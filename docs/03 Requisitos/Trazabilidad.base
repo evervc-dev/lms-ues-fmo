@@ -1,0 +1,65 @@
+filters:
+  or:
+    - tipo == "rf"
+    - tipo == "rnf"
+properties:
+  file.name:
+    displayName: ID
+  nombre:
+    displayName: Nombre
+  prioridad:
+    displayName: Prioridad
+  modulo:
+    displayName: Módulo
+  roles:
+    displayName: Roles
+  rnf:
+    displayName: RNF
+  adr:
+    displayName: Decisiones
+  estado:
+    displayName: Estado
+views:
+  - type: table
+    name: Requisitos funcionales
+    filters:
+      and:
+        - tipo == "rf"
+    order: [file.name, nombre, prioridad, modulo, roles, rnf, adr, estado]
+    sort:
+      - property: file.name
+        direction: ASC
+  - type: table
+    name: RF por módulo
+    filters:
+      and:
+        - tipo == "rf"
+    groupBy:
+      property: modulo
+      direction: ASC
+    order: [file.name, nombre, prioridad, estado]
+  - type: table
+    name: RF por prioridad
+    filters:
+      and:
+        - tipo == "rf"
+    groupBy:
+      property: prioridad
+      direction: ASC
+    order: [file.name, nombre, modulo, estado]
+  - type: table
+    name: RF afectados por decisiones
+    filters:
+      and:
+        - tipo == "rf"
+        - '!adr.isEmpty()'
+    order: [file.name, nombre, adr, estado]
+  - type: table
+    name: No funcionales
+    filters:
+      and:
+        - tipo == "rnf"
+    order: [file.name, nombre, categoria, prioridad, estado]
+    sort:
+      - property: file.name
+        direction: ASC
