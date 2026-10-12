@@ -1,0 +1,101 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+@source '../../config/navegacion.php';
+
+/*
+ * Tema del LMS (ADR-034). Los colores son variables: el modo oscuro, si se aprueba,
+ * se agrega redefiniéndolas sin tocar las vistas.
+ */
+@theme {
+    /* Campana de avisos (RF23): la campana se mece y el número aparece con un pequeño rebote. */
+    --animate-campana: campana 0.8s ease-in-out;
+    --animate-numero: numero 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    @keyframes campana {
+        0%,
+        100% {
+            transform: rotate(0);
+        }
+        20% {
+            transform: rotate(14deg);
+        }
+        40% {
+            transform: rotate(-12deg);
+        }
+        60% {
+            transform: rotate(8deg);
+        }
+        80% {
+            transform: rotate(-4deg);
+        }
+    }
+
+    @keyframes numero {
+        from {
+            transform: scale(0.4);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Paleta UES (docs/13 Layout/Guía de estilo para Stitch.md). marca-600 y marca-700 son los rojos oficiales. */
+    --color-marca-50: #fdf2f3;
+    --color-marca-100: #fbe4e6;
+    --color-marca-200: #f6c6cc;
+    --color-marca-300: #ee98a3;
+    --color-marca-400: #e05f72;
+    --color-marca-500: #cb3149;
+    --color-marca-600: #ae152d;
+    --color-marca-700: #8b0e13;
+    --color-marca-800: #6e0b10;
+    --color-marca-900: #520a0d;
+    --color-marca-950: #2e0507;
+    --color-acento: #9d2235;
+
+    /* Neutros del sitio de la UES. El fondo es un gris algo más marcado que el #f8f8f8 original: con
+       aquel, una tarjeta blanca con borde de 1 px no se distinguía del lienzo y las pantallas se leían
+       como recuadros blancos sueltos (revisión de diseño del 25/10/2026). */
+    --color-fondo: #f1f1f2;
+    --color-borde: #dcdcde;
+    --color-texto: #1a171b;
+    --color-texto-suave: #696969;
+    --color-texto-desactivado: #ababab;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+/* «Seleccionar archivo» con aspecto de botón secundario (<x-ui.button variante="secundario">): sin estilo
+   no se leía como algo que se pulsa (QA del rol Administrador, 27/10/2026, Importaciones, figuras 1 y 2). */
+input[type='file']::file-selector-button {
+    margin-right: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background-color: white;
+    box-shadow: inset 0 0 0 1px var(--color-borde);
+    color: var(--color-texto);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 150ms;
+}
+
+input[type='file']:hover::file-selector-button {
+    background-color: var(--color-zinc-50);
+}
+
+input[type='file']:focus-visible::file-selector-button {
+    outline: 2px solid var(--color-marca-600);
+    outline-offset: 2px;
+}
