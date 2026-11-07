@@ -262,3 +262,16 @@ it('CP-RF06-09 el docente no entra a la página del calendario de evaluaciones',
 
     actingAs($e['docente'])->get(route('periodos.calendario'))->assertForbidden();
 });
+
+it('no muestra fechas como sincronizadas si la integración con Google Calendar no está habilitada', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+    $parcial = calendarioPeriodo()->agregar($e['administrador'], $e['periodo'], 'Segundo parcial', '2026-11-10 08:00', null);
+    DbContext::system(fn () => DB::table('google_sync_refs')->insert(['entity_type' => 'period_calendar_event', 'entity_id' => $parcial, 'provider' => 'google_calendar',
+        'external_id' => 'evt-viejo', 'sync_status' => 'synced', 'created_at' => now(), 'updated_at' => now()]));
+
+    Livewire::test(CalendarioEvaluaciones::class)->assertSee('Sincronizada');
+
+    config(['services.google.calendar.enabled' => false]);
+    Livewire::test(CalendarioEvaluaciones::class)->assertDontSee('Sincronizada')->assertSee('No disponible');
+});

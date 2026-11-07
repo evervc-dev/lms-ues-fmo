@@ -34,7 +34,9 @@ function parametrosReales(User $usuario, string $uri): array
         'usuario' => $usuario->id,
         'periodo' => DB::table('academic_periods')->value('id'),
         'lote' => DB::table('import_batches')->value('id') ?? 999999,
-        'manual' => 'bienvenida',
+        // La bienvenida es solo del estudiante; el resto abre el manual de su rol.
+        'manual' => collect(['estudiante' => 'bienvenida', 'docente' => 'docente', 'coordinador' => 'coordinador', 'jefe_departamento' => 'jefe-de-departamento',
+            'administrador' => 'administrador', 'soporte_tecnico' => 'soporte-tecnico'])->first(fn (string $slug, string $rol) => $usuario->hasRole($rol)) ?? 'bienvenida',
         default => 'x',
     }])->all();
 }

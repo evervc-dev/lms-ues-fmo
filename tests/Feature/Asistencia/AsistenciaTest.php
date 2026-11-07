@@ -472,3 +472,15 @@ it('el Coordinador que también imparte la sección abre la asistencia desde Cla
     actingAs($coordinador)->get(route('secciones.asistencia', ['seccion' => $e['ulid']]))->assertOk()
         ->assertSee('wire:submit="abrir"', false);
 });
+
+it('señala las solicitudes de cancelación por aprobar cuya fecha ya pasó', function () {
+    $e = escenario();
+    actingAs($e['docente']);
+    app(AsistenciaService::class)->solicitarCancelacion($e['docente'], $e['seccion'], now()->addDay()->toDateString(), 'cancellation', 'Fumigación del edificio.');
+    actingAs($e['coordinador']);
+
+    Livewire::test(ClasesCanceladas::class)->assertSee('Fumigación del edificio.')->assertDontSee('Fecha pasada');
+
+    $this->travel(3)->days();
+    Livewire::test(ClasesCanceladas::class)->assertSee('Fecha pasada')->assertSee('Cancelaciones y cambios de modalidad');
+});

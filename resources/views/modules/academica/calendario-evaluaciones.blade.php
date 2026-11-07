@@ -37,6 +37,10 @@
                         @if ($f->ends_at) – {{ \Illuminate\Support\Carbon::parse($f->ends_at)->timezone(config('app.timezone'))->format('d/m/Y H:i') }} @else <span class="text-texto-suave">· {{ __('todo el día') }}</span> @endif
                     </td>
                     <td>
+                        {{-- Sin la integración habilitada no hay nada sincronizado, aunque quede un registro anterior (QA 03/11, H-07). --}}
+                        @if (! $calendarHabilitado)
+                            <x-ui.badge color="gris">{{ __('No disponible') }}</x-ui.badge>
+                        @else
                         @switch($f->sync_status)
                             @case('synced') <x-ui.badge color="verde">{{ __('Sincronizada') }}</x-ui.badge> @break
                             @case('pending') <x-ui.badge color="azul">{{ __('Enviando…') }}</x-ui.badge> @break
@@ -45,6 +49,7 @@
                                 @break
                             @default <x-ui.badge color="gris">{{ __('Sin sincronizar') }}</x-ui.badge>
                         @endswitch
+                        @endif
                     </td>
                     @if ($abierto)
                         <td class="text-right">

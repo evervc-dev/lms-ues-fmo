@@ -191,7 +191,8 @@ it('CP-RF25-08 los reportes dibujan un gráfico de la medida principal, sin las 
     expect(ReporteService::grafico('asistencia', $reportes->generar($e['administrador'], 'asistencia')['filas'])['valores'])->toBe([]);
 
     $riesgo = ReporteService::grafico('bajo_rendimiento', $reportes->generar($e['administrador'], 'bajo_rendimiento')['filas']);
-    expect(array_combine($riesgo['etiquetas'], $riesgo['valores']))->toEqual(['Riesgo de reprobar' => 1.0, 'Asistencia < 75 %' => 1.0]);
+    // Las dos alertas son de la misma matrícula: cuenta un estudiante, por su alerta más grave (QA 03/11).
+    expect(array_combine($riesgo['etiquetas'], $riesgo['valores']))->toEqual(['Asistencia < 75 %' => 1.0]);
 
     actingAs($e['administrador']);
     Livewire::withQueryParams(['tipo' => 'carga_docente'])->test(Reportes::class)
@@ -210,6 +211,6 @@ it('CP-RF25-06 el docente ve la carrera en sus reportes pero no tiene filtro de 
 it('la Ayuda escribe los avisos de los manuales con palabras y sin emojis', function () {
     $e = escenario();
 
-    actingAs($e['jefe'])->get(route('ayuda', ['manual' => 'bienvenida']))->assertOk()
+    actingAs($e['estudiante'])->get(route('ayuda', ['manual' => 'bienvenida']))->assertOk()
         ->assertSee('Atención: Solo un teléfono')->assertDontSee(['⚠️', '💡', 'ℹ️', '⛔', '✅']);
 });

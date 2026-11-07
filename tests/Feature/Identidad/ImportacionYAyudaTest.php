@@ -156,7 +156,17 @@ it('turns the vault mermaid diagrams and callouts into readable steps', function
         ->and($html)->not->toContain('sequenceDiagram')
         ->and($html)->not->toContain('[!warning]')
         ->and($html)->toContain('Registre su teléfono')
-        ->and($html)->toContain('Docente → Plataforma:');
+        ->and($html)->toContain('Docente → Plataforma:')
+        ->and($html)->not->toMatch('/<li>\s*\d+\.\s/');
+});
+
+it('muestra la guía de bienvenida solo al estudiante', function () {
+    $this->artisan('ayuda:sincronizar')->assertSuccessful();
+    $e = escenario();
+
+    actingAs($e['estudiante'])->get(route('ayuda'))->assertOk()->assertSee('Bienvenido a la plataforma');
+    actingAs($e['docente'])->get(route('ayuda'))->assertOk()->assertDontSee('Bienvenido a la plataforma')->assertSee('Manual del Docente');
+    actingAs($e['docente'])->get(route('ayuda', ['manual' => 'bienvenida']))->assertNotFound();
 });
 
 it('shows the integrations in use from the environment without revealing secrets or offering to save', function () {

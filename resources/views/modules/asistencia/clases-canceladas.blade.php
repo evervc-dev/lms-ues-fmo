@@ -1,6 +1,6 @@
 {{-- Clases canceladas (RF32, maqueta 43). --}}
 <div class="flex flex-col gap-5 lg:h-full">
-    <x-ui.encabezado :titulo="__('Clases canceladas')" :subtitulo="__('Las clases canceladas no cuentan para la asistencia.')">
+    <x-ui.encabezado :titulo="__('Clases canceladas')" :subtitulo="__('Cancelaciones y cambios de modalidad. Las clases canceladas no cuentan para la asistencia.')">
         <x-slot:acciones>
             <x-ui.select wire:model.live="estado" :aria-label="__('Estado')"><option value="requested">{{ __('Por aprobar') }}</option><option value="resueltas">{{ __('Resueltas') }}</option></x-ui.select>
             <x-ui.button icono="x-circle" x-on:click="$dispatch('abrir-modal', 'cancelar-directo')">{{ $alcanceFacultad ? __('Cancelar para la facultad') : __('Cancelar para la carrera') }}</x-ui.button>
@@ -11,7 +11,13 @@
             <x-slot:cabecera><th>{{ __('Fecha') }}</th><th>{{ __('Alcance') }}</th><th>{{ __('Tipo') }}</th><th>{{ __('Motivo') }}</th><th>{{ __('Solicitó') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
             @foreach ($cancelaciones as $c)
                 <tr wire:key="canc-{{ $c->id }}">
-                    <td class="whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($c->date)->format('d/m/Y') }}</td>
+                    <td class="whitespace-nowrap">
+                        {{ \Illuminate\Support\Carbon::parse($c->date)->format('d/m/Y') }}
+                        {{-- Una solicitud sin resolver de un día que ya pasó: aprobarla solo saca esa clase del porcentaje. --}}
+                        @if ($c->status === 'requested' && \Illuminate\Support\Carbon::parse($c->date)->lt(today()))
+                            <x-ui.badge color="ambar">{{ __('Fecha pasada') }}</x-ui.badge>
+                        @endif
+                    </td>
                     <td>{{ ['section' => $c->code.' · '.$c->grupo, 'career' => __('Carrera :c', ['c' => $c->carrera]), 'faculty' => __('Toda la facultad')][$c->scope] }}</td>
                     <td>{{ $c->kind === 'cancellation' ? __('Cancelación') : __('Pasa a virtual') }}</td>
                     <td class="max-w-xs">{{ $c->reason }}</td>

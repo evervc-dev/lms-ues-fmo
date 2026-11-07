@@ -12,7 +12,7 @@ use Livewire\Component;
 
 /**
  * Ayuda en la app (RNF05, maqueta 49): manuales de resources/ayuda (php artisan ayuda:sincronizar).
- * Cada usuario ve la guía de bienvenida y los manuales de sus roles.
+ * El estudiante ve además la guía de bienvenida; cada usuario, los manuales de sus roles.
  */
 #[Layout('layouts::app')]
 class Ayuda extends Component
@@ -37,8 +37,12 @@ class Ayuda extends Component
     private function disponibles(): array
     {
         $propios = collect(self::POR_ROL)->filter(fn ($slug, $rol) => auth()->user()->hasRole($rol))->values();
+        // La guía de bienvenida es la primera semana del estudiante (teléfono, QR, primera tarea): al personal no le sirve.
+        if (auth()->user()->hasRole('estudiante')) {
+            $propios->prepend('bienvenida');
+        }
 
-        return $propios->prepend('bienvenida')->filter(fn ($slug) => File::exists(resource_path("ayuda/{$slug}.md")))->values()->all();
+        return $propios->filter(fn ($slug) => File::exists(resource_path("ayuda/{$slug}.md")))->values()->all();
     }
 
     /**
@@ -76,7 +80,8 @@ class Ayuda extends Component
             $pasos = collect($mensajes)->map(fn (array $m) => '**'.($nombres[$m[1]] ?? $m[1]).' → '.($nombres[$m[2]] ?? $m[2]).':** '.$limpiar($m[3]));
         } else {
             preg_match_all('/\[\s*"([^"]+)"\s*\]/', $cuerpo, $etiquetas);
-            $pasos = collect($etiquetas[1])->map($limpiar)->unique()->values();
+            // Las cajas del diagrama ya traen su número («1. Ingrese…»): sin quitarlo, la lista salía «1. 1. Ingrese…».
+            $pasos = collect($etiquetas[1])->map(fn (string $t) => preg_replace('/^\d+\.\s*/', '', $limpiar($t)))->unique()->values();
         }
 
         return $pasos->isEmpty() ? '' : $pasos->map(fn (string $p, int $i) => ($i + 1).'. '.$p)->implode("\n")."\n";
