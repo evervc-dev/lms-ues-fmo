@@ -331,7 +331,7 @@ class AsistenciaService
     /**
      * Sesiones abiertas cuya vigencia ya pasó.
      *
-     * @return Collection<int, object>
+     * @return Collection<int, \stdClass>
      */
     private function vencidas(?int $seccionId = null): Collection
     {
