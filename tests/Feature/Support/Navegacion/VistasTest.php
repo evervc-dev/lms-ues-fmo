@@ -132,3 +132,35 @@ it('shows the open attendance notice only to enrolled students', function () {
     $this->actingAs($estudiante)->get(route('inicio'))->assertOk()->assertSeeText('Asistencia abierta · PRN115');
     $this->actingAs($docente)->get(route('inicio'))->assertOk()->assertDontSeeText('Asistencia abierta');
 });
+
+it('no muestra al estudiante el aviso de una sesión de asistencia de otro día que quedó abierta', function () {
+    $e = escenario();
+    app(AsistenciaService::class)->abrir($e['docente'], $e['seccion'], 10);
+    $this->travel(1)->days();
+
+    $this->actingAs($e['estudiante'])->get(route('inicio'))->assertOk()->assertDontSeeText('Asistencia abierta');
+});
+
+it('muestra solo las pestañas con alcance sobre la sección: el Coordinador que también es docente no ve el Foro de una sección que supervisa', function () {
+    $e = escenario();
+    DbContext::system(fn () => $e['coordinador']->assignRole('docente'));
+
+    $this->actingAs($e['coordinador']->fresh())
+        ->get(route('secciones.notas', ['seccion' => $e['ulid']]))
+        ->assertOk()
+        ->assertSeeTextInOrder(['Contenidos', 'Notas', 'Asistencia', 'Estudiantes'])
+        ->assertDontSee(route('secciones.foro', ['seccion' => $e['ulid']]));
+
+    $this->actingAs($e['docente'])
+        ->get(route('secciones.notas', ['seccion' => $e['ulid']]))
+        ->assertOk()
+        ->assertSee(route('secciones.foro', ['seccion' => $e['ulid']]));
+});
+
+it('mantiene la barra de pestañas en las pantallas de la sección que ocupan todo el alto', function (string $ruta) {
+    $e = escenario();
+
+    $this->actingAs($e['docente'])->get(route($ruta, ['seccion' => $e['ulid']]))->assertOk()
+        ->assertSee('-mb-px shrink-0 overflow-x-auto', false)
+        ->assertSee(route('secciones.contenidos', ['seccion' => $e['ulid']]));
+})->with(['secciones.revisiones', 'secciones.estudiantes', 'secciones.acta']);

@@ -4,7 +4,7 @@
 --}}
 @props(['pestanas' => [], 'etiqueta' => null])
 
-<nav aria-label="{{ $etiqueta ?? __('Pestañas') }}" {{ $attributes->class(['-mb-px overflow-x-auto']) }}>
+<nav aria-label="{{ $etiqueta ?? __('Pestañas') }}" {{ $attributes->class(['-mb-px shrink-0 overflow-x-auto']) }}>
     <ul class="flex min-w-max gap-1 border-b border-borde">
         @foreach ($pestanas as $pestana)
             <li>

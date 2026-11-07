@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Asistencia\Jobs\CerrarSesionesVencidas;
 use App\Modules\Asistencia\Jobs\PurgarTokensQr;
 use App\Modules\Contenidos\Jobs\PurgarPapelera;
 use App\Modules\Evaluaciones\Jobs\AvisarRevisionesDisponibles;
@@ -18,6 +19,9 @@ Schedule::job(new CerrarIntentosVencidos)->everyMinute()->withoutOverlapping();
 
 // Avisa cuando la corrección de un cuestionario queda visible (RF16, ADR-040).
 Schedule::job(new AvisarRevisionesDisponibles)->everyMinute()->withoutOverlapping();
+
+// Cierra las sesiones de asistencia vencidas: quienes no marcaron quedan ausentes (RF19, ADR-028).
+Schedule::job(new CerrarSesionesVencidas)->everyMinute()->withoutOverlapping();
 
 // Borra los tokens del QR de asistencia vencidos hace más de 7 días (RF20, ADR-028).
 Schedule::job(new PurgarTokensQr)->dailyAt('03:00')->withoutOverlapping();

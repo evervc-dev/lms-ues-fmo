@@ -190,7 +190,8 @@ class PanelService
     {
         return DB::table('attendance_sessions as a')->join('enrollments as e', 'e.section_id', '=', 'a.section_id')
             ->join('sections as s', 's.id', '=', 'a.section_id')->join('subjects as m', 'm.id', '=', 's.subject_id')
-            ->where('e.student_id', $u->id)->where('e.status', 'active')->where('a.status', 'open')
+            ->where('e.student_id', $u->id)->where('e.status', 'active')
+            ->tap(fn ($q) => AsistenciaService::soloVigentes($q, 'a'))
             ->orderByDesc('a.opened_at')
             ->first(['m.code', 'm.name', 's.ulid as seccion']);
     }
@@ -207,8 +208,11 @@ class PanelService
         return [
             'clasesHoy' => DB::table('section_schedules as h')->join('sections', 'sections.id', '=', 'h.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
                 ->leftJoin('classrooms', 'classrooms.id', '=', 'h.classroom_id')->whereIn('h.section_id', $secciones)->where('h.weekday', $dia)->orderBy('h.start_time')
-                ->get(['sections.ulid', 'sections.code as grupo', 'subjects.code', 'subjects.name', 'h.start_time', 'h.end_time', 'classrooms.code as aula',
-                    DB::raw("(select s.ulid from attendance_sessions s where s.section_id = sections.id and s.status = 'open' limit 1) as sesion_abierta")]),
+                ->select(['sections.ulid', 'sections.code as grupo', 'subjects.code', 'subjects.name', 'h.start_time', 'h.end_time', 'classrooms.code as aula'])
+                // Solo la sesión vigente de hoy: una abierta de otro día ya venció y no es la de esta clase.
+                ->selectSub(fn ($q) => AsistenciaService::soloVigentes($q->from('attendance_sessions as s')->whereColumn('s.section_id', 'sections.id')
+                    ->whereDate('s.session_date', now()->toDateString()), 's')->orderByDesc('s.opened_at')->limit(1)->select('s.ulid'), 'sesion_abierta')
+                ->get(),
             'porCalificar' => DB::table('submissions as s')->join('assessments as a', 'a.id', '=', 's.assessment_id')
                 ->leftJoin('grades as g', fn ($j) => $j->on('g.enrollment_id', '=', 's.enrollment_id')->on('g.grade_item_id', '=', 'a.grade_item_id'))
                 ->whereIn('s.section_id', $secciones)->where('s.status', 'submitted')->whereNull('g.id')->count()
