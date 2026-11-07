@@ -53,7 +53,8 @@ class NuevaTarea extends Component
 
     public function mount(): void
     {
-        $this->abre = now()->format('Y-m-d\TH:i');
+        // A la próxima media hora en punto: «01:03» no es una hora que alguien elija (QA 04/11, D-15).
+        $this->abre = now()->addMinutes(30 - now()->minute % 30)->second(0)->format('Y-m-d\TH:i');
         $this->cierra = now()->addWeek()->setTime(23, 59)->format('Y-m-d\TH:i');
     }
 

@@ -387,3 +387,19 @@ it('shows whole weights and rubric points without cutting their trailing zeros',
 
     actingAs($e['estudiante'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()->assertSeeText(['Cómputo 3 · 40 %', '(50 %)']);
 });
+
+it('con el período abierto el libro llama «Acumulada» a la nota y no la marca en rojo', function () {
+    $e = escenario();
+    computos($e);
+    actingAs($e['docente']);
+
+    Livewire::test(NotasSeccion::class, ['seccion' => $e['ulid']])->assertSee('Acumulada')->assertDontSeeHtml('text-center font-semibold text-red-700');
+});
+
+it('propone abrir la tarea nueva a la próxima media hora en punto', function () {
+    $e = escenario();
+    $this->travelTo(now()->parse('2026-11-04 01:03:27'));
+    actingAs($e['docente']);
+
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->assertSet('abre', '2026-11-04T01:30');
+});

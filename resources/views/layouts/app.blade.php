@@ -56,6 +56,13 @@
                     {{ $periodoActivo ? __('Período :periodo · en curso', ['periodo' => $periodoActivo]) : __('Sin período activo') }}
                 </span>
 
+                {{-- Con «Entrar como…» activo el ambiente es de pruebas: se avisa en todas las pantallas, no solo en el login (QA 03/11, H-14). --}}
+                @if (app(\App\Modules\Identidad\Services\AccesoDesarrolloService::class)->habilitado())
+                    <span class="ml-1 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-inset ring-amber-200" title="{{ __('Datos de demostración; el acceso «Entrar como…» está activo.') }}">
+                        {{ __('Ambiente de pruebas') }}
+                    </span>
+                @endif
+
                 @if ($asistenciaAbierta)
                     <a href="{{ route('asistencia.escanear') }}" wire:navigate class="mx-auto hidden items-center gap-2 rounded-full bg-marca-50 px-3 py-1.5 text-sm text-texto ring-1 ring-inset ring-marca-200 hover:bg-marca-100 sm:inline-flex">
                         <span class="size-2 animate-pulse rounded-full bg-marca-600"></span>

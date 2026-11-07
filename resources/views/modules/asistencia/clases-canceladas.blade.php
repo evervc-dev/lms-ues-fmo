@@ -41,7 +41,7 @@
             <x-ui.field :etiqueta="__('Motivo')" para="motivoCanc" error="motivo" :ayuda="__('Ej.: asueto nacional.')" requerido><x-ui.textarea id="motivoCanc" wire:model="motivo" /></x-ui.field>
         </form>
         <x-slot:pie>
-            <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'cancelar-directo')">{{ __('Cancelar') }}</x-ui.button>
+            <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'cancelar-directo')">{{ __('Volver') }}</x-ui.button>
             <x-ui.button type="submit" form="form-canc" variante="peligro-solido">{{ __('Cancelar clases') }}</x-ui.button>
         </x-slot:pie>
     </x-ui.modal>

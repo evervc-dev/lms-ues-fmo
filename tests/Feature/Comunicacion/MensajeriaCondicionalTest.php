@@ -289,8 +289,8 @@ it('alcance S: solo el docente de la sección mensajea; otro docente, el estudia
 it('el libro de notas ofrece «Mensajear a estudiantes que…» solo a quien puede', function () {
     $e = escenario();
 
-    actingAs($e['docente'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()->assertSeeText('Mensajear a estudiantes que…');
-    actingAs($e['coordinador'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()->assertDontSeeText('Mensajear a estudiantes que…');
+    actingAs($e['docente'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()->assertSeeText('Escribir a estudiantes según su entrega o nota');
+    actingAs($e['coordinador'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()->assertDontSeeText('Escribir a estudiantes según su entrega o nota');
 });
 
 it('CP-RF31-03 respeta al enviar a quien el docente quitó de la lista', function () {

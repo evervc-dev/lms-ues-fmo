@@ -27,7 +27,8 @@
     </main>
     <footer class="mt-8 text-xs text-zinc-500">
         LMS UES FMO
-        @if (Route::has('ayuda'))
+        {{-- La Ayuda pide sesión: sin ella, el enlace volvía al login. --}}
+        @if (Route::has('ayuda') && auth()->check())
             · <a href="{{ route('ayuda') }}" class="hover:underline">{{ __('Ayuda') }}</a>
         @endif
     </footer>
