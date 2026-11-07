@@ -128,7 +128,7 @@
                 <x-ui.field :etiqueta="__('Tipo')" para="tipoCancelacion"><x-ui.select id="tipoCancelacion" wire:model="tipoCancelacion"><option value="cancellation">{{ __('Cancelar la clase') }}</option><option value="modality_change">{{ __('Pasar a virtual') }}</option></x-ui.select></x-ui.field>
             </div>
             <x-ui.field :etiqueta="__('Motivo')" para="motivoCancelacion" error="motivoCancelacion" requerido><x-ui.textarea id="motivoCancelacion" wire:model="motivoCancelacion" /></x-ui.field>
-            <p class="text-xs text-texto-suave">{{ __('La aprueba el Coordinador; esa sesión no cuenta para la asistencia.') }}</p>
+            <p class="text-xs text-texto-suave">{{ __('Es para una clase de hoy en adelante, no solo la de esta sesión: elija la fecha (se propone mañana). La aprueba el Coordinador: al aprobarla se avisa a la sección y esa clase no cuenta para la asistencia.') }}</p>
         </form>
         <x-slot:pie>
             <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'cancelar-clase')">{{ __('Cancelar') }}</x-ui.button>

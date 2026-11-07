@@ -13,7 +13,7 @@
                 <x-ui.field :etiqueta="__('Estudiante')" para="prorroga-matricula" error="matricula" requerido>
                     <x-ui.select id="prorroga-matricula" wire:model="matricula">
                         <option value="">{{ __('Elija…') }}</option>
-                        @foreach ($estudiantes as $est)<option value="{{ $est->id }}">{{ $est->last_name }}, {{ $est->first_name }}</option>@endforeach
+                        @foreach ($estudiantes as $est)<option value="{{ $est->id }}">{{ $est->nombre }}</option>@endforeach
                     </x-ui.select>
                 </x-ui.field>
                 <x-ui.field :etiqueta="__('Tipo')" para="prorroga-tipo" error="tipo" requerido>
@@ -33,7 +33,7 @@
             <x-ui.table :vacio="__('Sin prórrogas.')">
                 <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Tipo') }}</th><th>{{ __('Hasta') }}</th><th>{{ __('Motivo') }}</th></x-slot:cabecera>
                 @foreach ($prorrogas as $p)
-                    <tr wire:key="prorroga-{{ $p->id }}"><td>{{ $p->first_name }} {{ $p->last_name }}</td><td>{{ __(\App\Modules\Evaluaciones\Services\ProrrogaService::TIPOS[$p->kind]) }}</td><td>{{ $fecha($p->until) }}</td><td>{{ $p->reason }}</td></tr>
+                    <tr wire:key="prorroga-{{ $p->id }}"><td>{{ $p->nombre }}</td><td>{{ __(\App\Modules\Evaluaciones\Services\ProrrogaService::TIPOS[$p->kind]) }}</td><td>{{ $fecha($p->until) }}</td><td>{{ $p->reason }}</td></tr>
                 @endforeach
             </x-ui.table>
         </form>

@@ -58,3 +58,15 @@ it('opens every screen with every development account on the demo data without e
 
     expect($fallas)->toBe([]);
 });
+
+it('siembra datos de demo coherentes: cada evaluación cierra dentro de su cómputo y no hay entregas a tiempo después del cierre', function () {
+    $this->seed();
+
+    $fueraDelComputo = DB::table('assessments as a')->join('grade_items as g', 'g.id', '=', 'a.grade_item_id')->join('grading_components as c', 'c.id', '=', 'g.component_id')
+        ->where(fn ($q) => $q->whereDate('a.closes_at', '<', DB::raw('c.starts_on'))->orWhereDate('a.closes_at', '>', DB::raw('c.ends_on')))
+        ->pluck('a.title')->unique()->values()->all();
+    $aTiempoDespuesDelCierre = DB::table('submissions as s')->join('assessments as a', 'a.id', '=', 's.assessment_id')
+        ->where('s.is_late', false)->whereColumn('s.submitted_at', '>', 'a.closes_at')->count();
+
+    expect($fueraDelComputo)->toBe([])->and($aTiempoDespuesDelCierre)->toBe(0);
+});
