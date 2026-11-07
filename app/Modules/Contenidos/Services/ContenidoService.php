@@ -313,7 +313,7 @@ class ContenidoService
      * Recurso con sus archivos, sin registrar nada: la apertura se registra una sola vez al entrar a la página
      * (registrarApertura), no en cada petición.
      *
-     * @return array{recurso: \stdClass, archivos: Collection<int, \stdClass>, completado: bool}
+     * @return array{recurso: \stdClass, archivos: Collection<int, \stdClass>, completado: bool, disponible: bool}
      */
     public function recurso(User $usuario, int $seccionId, string $ulid): array
     {
@@ -322,11 +322,17 @@ class ContenidoService
             ->where('units.section_id', $seccionId)->where('resources.ulid', $ulid)->whereNull('resources.deleted_at')
             ->first(['resources.*', 'units.title as unidad']) ?? abort(404);
         $matricula = $this->matricula($usuario, $seccionId);
+        $archivos = DB::table('resource_files')->where('resource_id', $recurso->id)->orderBy('path')->get(['id', 'path', 'name', 'bytes']);
+        $ruta = (string) $recurso->file_path;
 
         return [
             'recurso' => $recurso,
-            'archivos' => DB::table('resource_files')->where('resource_id', $recurso->id)->orderBy('path')->get(['id', 'path', 'name', 'bytes']),
+            'archivos' => $archivos,
             'completado' => $matricula && DB::table('resource_progress')->where('enrollment_id', $matricula)->where('resource_id', $recurso->id)->exists(),
+            // Si el archivo no está en el disco, la página lo dice en vez de incrustar la página de error 404 (QA 04/11, D-02).
+            'disponible' => $ruta !== '' && ($recurso->resource_type === 'folder'
+                ? $archivos->contains(fn (\stdClass $a) => Storage::exists($ruta.'/'.$a->path))
+                : Storage::exists($ruta)),
         ];
     }
 

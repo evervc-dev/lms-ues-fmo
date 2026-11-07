@@ -719,8 +719,8 @@ class DemoAcademicSeeder extends Seeder
 
         DB::table('integrations')->insert(['key' => 'google_workspace', 'settings' => Crypt::encryptString(json_encode(['client_id' => 'pendiente-ti-ues', 'allowed_domain' => 'ues.edu.sv']))] + $this->stamps());
         DB::table('scheduled_reports')->insert([
-            ['user_id' => $this->dev['coordinador'], 'report_type' => 'attendance_by_section', 'filters' => json_encode(['career' => 'ISI']), 'frequency' => 'weekly', 'next_run_at' => now()->next('Monday')->setTime(7, 0)] + $this->stamps(),
-            ['user_id' => $this->dev['jefe'], 'report_type' => 'teacher_kpis', 'filters' => json_encode(['department' => 'DIA']), 'frequency' => 'monthly', 'next_run_at' => now()->addMonth()->startOfMonth()->setTime(7, 0)] + $this->stamps(),
+            ['user_id' => $this->dev['coordinador'], 'report_type' => 'asistencia', 'filters' => json_encode(['career' => 'ISI']), 'frequency' => 'weekly', 'next_run_at' => now()->next('Monday')->setTime(7, 0)] + $this->stamps(),
+            ['user_id' => $this->dev['jefe'], 'report_type' => 'carga_docente', 'filters' => json_encode(['department' => 'DIA']), 'frequency' => 'monthly', 'next_run_at' => now()->addMonth()->startOfMonth()->setTime(7, 0)] + $this->stamps(),
         ]);
         DB::table('exports')->insert([
             ['ulid' => (string) Str::ulid(), 'user_id' => $this->dev['docente'], 'export_type' => 'gradebook', 'path' => 'exportaciones/libro-notas-prn115-01.xlsx', 'status' => 'ready'] + $this->stamps(now()->subDays(2)),

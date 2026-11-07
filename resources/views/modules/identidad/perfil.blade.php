@@ -112,7 +112,7 @@
                     <x-slot:cabecera><th>{{ __('Equipo') }}</th><th>{{ __('IP') }}</th><th>{{ __('Última actividad') }}</th></x-slot:cabecera>
                     @foreach ($sesiones['sesiones'] as $s)
                         <tr>
-                            <td class="max-w-xs truncate">{{ \Illuminate\Support\Str::limit($s->user_agent, 60) }} @if ($s->id === session()->getId()) <x-ui.badge color="verde">{{ __('Esta sesión') }}</x-ui.badge> @endif</td>
+                            <td class="max-w-xs truncate" title="{{ $s->user_agent }}">{{ \App\Modules\Identidad\Services\PerfilService::navegador($s->user_agent) }} @if ($s->id === session()->getId()) <x-ui.badge color="verde">{{ __('Esta sesión') }}</x-ui.badge> @endif</td>
                             <td class="font-mono text-xs">{{ $s->ip_address }}</td>
                             <td>{{ \Illuminate\Support\Carbon::createFromTimestamp($s->last_activity)->timezone('America/El_Salvador')->format('d/m/Y H:i') }}</td>
                         </tr>

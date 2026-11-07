@@ -334,3 +334,31 @@ it('CP-RF11-06 muestra el árbol de archivos de la carpeta con el botón de desc
         ->assertSee('intro.pdf')->assertSee('tabla.xlsx')->assertSee('anexos')
         ->assertSeeHtml(route('secciones.recurso.zip', ['seccion' => $e['ulid'], 'recurso' => $ulid]));
 });
+
+it('avisa dentro de la página cuando los archivos de la carpeta no están en el servidor, sin ofrecer el .zip', function () {
+    Storage::fake();
+    $e = escenario();
+    $unidad = unidadDeContenidos($e['seccion']);
+    contenidos()->agregarRecurso($e['docente'], $unidad, datosDeCarpeta(['guia/intro.pdf']));
+    $recurso = DB::table('resources')->where('unit_id', $unidad)->first(['ulid', 'file_path']);
+
+    actingAs($e['estudiante']);
+    Livewire::test(Recurso::class, ['seccion' => $e['ulid'], 'recurso' => $recurso->ulid])->assertSee('Descargar todo (.zip)')->assertDontSee('Los archivos no están disponibles');
+
+    Storage::deleteDirectory($recurso->file_path);
+    Livewire::test(Recurso::class, ['seccion' => $e['ulid'], 'recurso' => $recurso->ulid])->assertDontSee('Descargar todo (.zip)')->assertSee('Los archivos no están disponibles');
+});
+
+it('avisa dentro de la página cuando el archivo del recurso no está en el servidor, en lugar de incrustar el error 404', function () {
+    Storage::fake();
+    $e = escenario();
+    $unidad = unidadDeContenidos($e['seccion']);
+    contenidos()->agregarRecurso($e['docente'], $unidad, ['tipo' => 'file', 'titulo' => 'Presentación', 'archivo' => UploadedFile::fake()->create('presentacion.pdf', 20, 'application/pdf')]);
+    $recurso = DB::table('resources')->where('unit_id', $unidad)->first(['ulid', 'file_path']);
+
+    actingAs($e['estudiante']);
+    Livewire::test(Recurso::class, ['seccion' => $e['ulid'], 'recurso' => $recurso->ulid])->assertSeeHtml('<iframe')->assertDontSee('El archivo no está disponible');
+
+    Storage::delete($recurso->file_path);
+    Livewire::test(Recurso::class, ['seccion' => $e['ulid'], 'recurso' => $recurso->ulid])->assertDontSeeHtml('<iframe')->assertSee('El archivo no está disponible');
+});

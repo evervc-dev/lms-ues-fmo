@@ -191,7 +191,8 @@ class ReporteService
      */
     public function programados(User $usuario): Collection
     {
-        return DB::table('scheduled_reports')->where('user_id', $usuario->id)->orderBy('next_run_at')->get();
+        // Solo los tipos que existen: el job ya salta los demás y aquí salían con su clave interna en inglés.
+        return DB::table('scheduled_reports')->where('user_id', $usuario->id)->whereIn('report_type', array_keys(self::TIPOS))->orderBy('next_run_at')->get();
     }
 
     /**

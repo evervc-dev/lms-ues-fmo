@@ -10,7 +10,7 @@
     </div>
 
     <x-ui.alert tipo="aviso" :titulo="__('Fórmula provisional')">
-        {{ __('Demanda = reprobados de la materia + aprobados de su prerrequisito en el último período cerrado; grupos = demanda ÷ :c, redondeado hacia arriba. RF10 tiene pendiente la fórmula oficial.', ['c' => $cupo]) }}
+        {{ __('Demanda = reprobados de la materia + aprobados de su prerrequisito en el último período cerrado; grupos = demanda ÷ :c, redondeado hacia arriba. Es una estimación provisional, mientras se define la fórmula oficial.', ['c' => $cupo]) }}
     </x-ui.alert>
 
     <div class="grid gap-3 md:grid-cols-[minmax(0,20rem)]">
