@@ -78,7 +78,7 @@
         <div class="grid gap-3 sm:grid-cols-3">
             <x-ui.stat :etiqueta="__('Pendientes de calificar')" :valor="$b['porCalificar']" icono="inbox-stack" :tono="$b['porCalificar'] ? 'aviso' : 'exito'" />
             <x-ui.stat :etiqueta="__('Matrícula y carga académica')" :valor="$b['matricula']" icono="users" :detalle="trans_choice('{1} en 1 sección|[0,*] en :count secciones', $b['secciones'])" />
-            <x-ui.stat :etiqueta="__('Estudiantes en alerta')" :valor="$b['alertas']->count()" icono="exclamation-triangle" :tono="$b['alertas']->isNotEmpty() ? 'error' : 'exito'" />
+            <x-ui.stat :etiqueta="__('Estudiantes en alerta')" :valor="$b['enAlerta']" icono="exclamation-triangle" :tono="$b['enAlerta'] ? 'error' : 'exito'" />
         </div>
         <div class="mt-4 grid gap-4 lg:grid-cols-2">
             <x-ui.card :titulo="__('Clases de hoy')">
@@ -97,7 +97,7 @@
             </x-ui.card>
             <x-ui.card :titulo="__('Alertas de estudiantes')">
                 @forelse ($b['alertas'] as $a)
-                    <p class="flex justify-between py-1 text-sm"><span>{{ $a->first_name }} {{ $a->last_name }} · {{ $a->code }}</span><x-ui.badge :color="$a->alert_type === 'attendance_85' ? 'ambar' : 'rojo'">{{ $alertas[$a->alert_type] }}</x-ui.badge></p>
+                    <p class="flex justify-between py-1 text-sm"><span>{{ $a->first_name }} {{ $a->last_name }} · {{ $a->code }}</span><x-ui.badge :color="$a->alert_type === 'attendance_78' ? 'ambar' : 'rojo'">{{ $alertas[$a->alert_type] }}</x-ui.badge></p>
                 @empty
                     <p class="text-sm text-texto-suave">{{ __('Sin alertas abiertas.') }}</p>
                 @endforelse

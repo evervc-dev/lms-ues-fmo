@@ -34,6 +34,28 @@ class AsistenciaService
     /** Las que avisan al estudiante: preventiva y crítica. Bajo el mínimo solo se marca «en riesgo» (Flujo Alerta de inasistencias). */
     public const ALERTAS_CON_AVISO = ['attendance_85', 'attendance_78'];
 
+    /**
+     * Alertas que ve el personal, de la más grave a la menos grave (RF22, RF17). El preventivo (85 %) solo avisa al
+     * estudiante. Las alertas se guardan por umbral y cómputo, así que un estudiante puede tener varias abiertas a
+     * la vez; las pantallas del personal muestran una por matrícula, la más grave, y cuentan estudiantes.
+     */
+    public const ALERTAS_DEL_PERSONAL = ['attendance_75', 'grade_risk', 'attendance_78'];
+
+    /** Gravedad de una alerta del personal (3 la más grave, 0 si no es del personal), para `max()` en SQL. */
+    public static function gravedadSql(string $tabla = 'a'): string
+    {
+        $casos = collect(self::ALERTAS_DEL_PERSONAL)->reverse()->values()
+            ->map(fn (string $tipo, int $i) => "when '{$tipo}' then ".($i + 1))->implode(' ');
+
+        return "case {$tabla}.alert_type {$casos} else 0 end";
+    }
+
+    /** Tipo de alerta de una gravedad calculada con gravedadSql(). */
+    public static function alertaDeGravedad(int $gravedad): ?string
+    {
+        return array_reverse(self::ALERTAS_DEL_PERSONAL)[$gravedad - 1] ?? null;
+    }
+
     /** Vértices de un área por polígono (RF26): con menos no hay superficie; con más, el dibujo ya no es un aula ni un edificio. */
     public const VERTICES_MIN = 3;
 

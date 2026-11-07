@@ -3,6 +3,7 @@
 namespace App\Modules\Academica\Services;
 
 use App\Models\User;
+use App\Modules\Asistencia\Services\AsistenciaService;
 use App\Modules\Identidad\Services\PerfilContextualService;
 use App\Support\Alcance;
 use Illuminate\Support\Collection;
@@ -55,7 +56,9 @@ class SeccionService
             ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->whereRaw('lower(subjects.code) like ?', ["%{$buscar}%"])->orWhereRaw('lower(subjects.name) like ?', ["%{$buscar}%"])))
             ->select('sections.id', 'sections.ulid', 'sections.code as grupo', 'sections.max_capacity', 'subjects.code', 'subjects.name',
                 DB::raw("(select count(*) from enrollments e where e.section_id = sections.id and e.status = 'active') as inscritos"),
-                DB::raw('(select count(distinct a.enrollment_id) from academic_alerts a join enrollments e on e.id = a.enrollment_id where e.section_id = sections.id and a.closed_at is null) as alertas'))
+                // Estudiantes con alguna alerta que ve el personal (RF22): el preventivo del 85 % solo avisa al estudiante.
+                DB::raw('(select count(distinct a.enrollment_id) from academic_alerts a join enrollments e on e.id = a.enrollment_id where e.section_id = sections.id and a.closed_at is null'
+                    .' and '.AsistenciaService::gravedadSql().' > 0) as alertas'))
             ->orderBy('subjects.code')->orderBy('sections.code');
 
         $secciones = $this->alcance->secciones($consulta, $usuario, self::AMBITOS[$ambito])->get();
@@ -84,10 +87,12 @@ class SeccionService
         return DB::table('enrollments as e')->join('users as u', 'u.id', '=', 'e.student_id')->leftJoin('student_profiles as p', 'p.user_id', '=', 'u.id')
             ->where('e.section_id', $seccionId)->whereIn('e.status', ['active', 'withdrawn', 'transferred'])
             ->select('e.id', 'e.status', 'e.enrolled_via', 'u.first_name', 'u.last_name', 'u.institutional_email', 'p.student_code',
-                DB::raw("(select round(100.0 * sum(case when r.status in ('present', 'justified') then 1 when r.status = 'late' then 0.5 else 0 end) / count(*), 1) from attendance_records r where r.enrollment_id = e.id) as asistencia"),
+                DB::raw('(select '.AsistenciaService::porcentajeSql().' from attendance_records r where r.enrollment_id = e.id) as asistencia'),
                 DB::raw("(select round(avg(g.score), 1) from grades g where g.enrollment_id = e.id and g.status = 'published') as promedio"),
-                DB::raw('(select count(*) from academic_alerts a where a.enrollment_id = e.id and a.closed_at is null) as alertas'))
-            ->orderByRaw("case when e.status = 'active' then 0 else 1 end")->orderBy('u.last_name')->get();
+                // La alerta más grave de la matrícula, no cuántas hay: se guardan por umbral y cómputo (RF22).
+                DB::raw('(select max('.AsistenciaService::gravedadSql().') from academic_alerts a where a.enrollment_id = e.id and a.closed_at is null) as gravedad'))
+            ->orderByRaw("case when e.status = 'active' then 0 else 1 end")->orderBy('u.last_name')->get()
+            ->each(fn (object $e) => $e->alerta = AsistenciaService::alertaDeGravedad((int) $e->gravedad));
     }
 
     /**

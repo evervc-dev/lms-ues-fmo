@@ -1,8 +1,10 @@
 <?php
 
+use App\Modules\Academica\Services\SeccionService;
 use App\Modules\Asistencia\Services\AsistenciaService;
 use App\Modules\Comunicacion\Notifications\Aviso;
 use App\Modules\Reportes\Services\PanelService;
+use App\Modules\Reportes\Services\ReporteService;
 use App\Support\DbContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -115,7 +117,9 @@ it('CP-RF22-03 bajo 75 % queda «en riesgo» en los paneles del docente y del Co
     alertasClases($e, ['present', 'present', 'absent']);
 
     expect(alertasAbiertas($e))->toBe(['attendance_75', 'attendance_78', 'attendance_85'])
-        ->and(app(PanelService::class)->docente($e['docente'])['alertas']->pluck('alert_type')->sort()->values()->all())->toBe(['attendance_75', 'attendance_78'])
+        // El panel muestra una fila por estudiante, con su alerta más grave (QA 03/11: la misma persona salía dos veces).
+        ->and(app(PanelService::class)->docente($e['docente'])['alertas']->pluck('alert_type')->all())->toBe(['attendance_75'])
+        ->and(app(PanelService::class)->docente($e['docente'])['enAlerta'])->toBe(1)
         ->and(app(PanelService::class)->coordinador($e['coordinador'])['riesgo'])->toBe(1);
 });
 
@@ -175,4 +179,33 @@ it('CP-RF22-05 con todo en orden no abre ninguna alerta', function () {
 
     // 3,5 de 4 = 87,5 %: la tardanza vale 0,5.
     expect(alertasAbiertas($e))->toBe([]);
+});
+
+it('cuenta estudiantes, no alertas: una fila por matrícula con su alerta más grave en Mis secciones, Estudiantes y el reporte de riesgo', function () {
+    $e = escenario();
+    alertasComputo($e);
+    alertasClases($e, ['present', 'present', 'absent']);
+    expect(alertasAbiertas($e))->toBe(['attendance_75', 'attendance_78', 'attendance_85']);
+
+    $secciones = app(SeccionService::class)->listar($e['docente'], 'propias');
+    expect((int) $secciones->firstWhere('id', $e['seccion'])->alertas)->toBe(1);
+
+    $estudiantes = app(SeccionService::class)->estudiantes($e['docente'], $e['seccion']);
+    expect($estudiantes->firstWhere('id', $e['matricula'])->alerta)->toBe('attendance_75');
+
+    $reporte = app(ReporteService::class)->generar($e['coordinador'], 'bajo_rendimiento');
+    expect($reporte['filas'])->toHaveCount(1)
+        ->and($reporte['filas']->first()[4])->toBe('Asistencia < 75 %');
+});
+
+it('el preventivo del 85 % no cuenta como alerta en las pantallas del personal', function () {
+    $e = escenario();
+    alertasComputo($e);
+    // 4 de 5 = 80 %.
+    alertasClases($e, ['present', 'present', 'present', 'present', 'absent']);
+    expect(alertasAbiertas($e))->toBe(['attendance_85']);
+
+    expect((int) app(SeccionService::class)->listar($e['docente'], 'propias')->firstWhere('id', $e['seccion'])->alertas)->toBe(0)
+        ->and(app(SeccionService::class)->estudiantes($e['docente'], $e['seccion'])->firstWhere('id', $e['matricula'])->alerta)->toBeNull()
+        ->and(app(ReporteService::class)->generar($e['coordinador'], 'bajo_rendimiento')['filas'])->toBeEmpty();
 });

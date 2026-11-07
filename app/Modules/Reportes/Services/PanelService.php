@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Academica\Services\PeriodoService;
 use App\Modules\Asistencia\Services\AsistenciaService;
 use App\Support\Alcance;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -219,12 +220,25 @@ class PanelService
                 + DB::table('quiz_attempts as q')->join('assessments as a', 'a.id', '=', 'q.assessment_id')->whereIn('a.section_id', $secciones)->where('q.status', 'pending_grading')->count(),
             'matricula' => DB::table('enrollments')->whereIn('section_id', $secciones)->where('status', 'active')->count(),
             'secciones' => $secciones->count(),
-            'alertas' => DB::table('academic_alerts as a')->join('enrollments as e', 'e.id', '=', 'a.enrollment_id')->join('users as u', 'u.id', '=', 'e.student_id')
-                ->join('sections', 'sections.id', '=', 'e.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
-                // El preventivo (85 %) solo avisa al estudiante; el docente ve desde el crítico (RF22, Flujo Alerta de inasistencias).
-                ->whereIn('e.section_id', $secciones)->whereNull('a.closed_at')->where('a.alert_type', '!=', 'attendance_85')->orderByDesc('a.opened_at')->limit(5)
-                ->get(['a.alert_type', 'u.first_name', 'u.last_name', 'subjects.code']),
+            'enAlerta' => $this->alertas($secciones)->getCountForPagination(),
+            'alertas' => $this->alertas($secciones)->limit(5)->get()
+                ->each(fn (object $a) => $a->alert_type = AsistenciaService::alertaDeGravedad((int) $a->gravedad)),
         ];
+    }
+
+    /**
+     * Una fila por matrícula con alerta abierta, con su alerta más grave (RF22). El preventivo (85 %) solo avisa al
+     * estudiante; el personal ve desde el crítico (Flujo Alerta de inasistencias).
+     */
+    private function alertas(Collection $secciones): Builder
+    {
+        return DB::table('academic_alerts as a')->join('enrollments as e', 'e.id', '=', 'a.enrollment_id')->join('users as u', 'u.id', '=', 'e.student_id')
+            ->join('sections', 'sections.id', '=', 'e.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
+            ->whereIn('e.section_id', $secciones)->whereNull('a.closed_at')->whereIn('a.alert_type', AsistenciaService::ALERTAS_DEL_PERSONAL)
+            ->groupBy('a.enrollment_id', 'u.first_name', 'u.last_name', 'subjects.code')
+            ->select(['a.enrollment_id', 'u.first_name', 'u.last_name', 'subjects.code'])
+            ->selectRaw('max('.AsistenciaService::gravedadSql().') as gravedad, max(a.opened_at) as desde')
+            ->orderByDesc('gravedad')->orderByDesc('desde');
     }
 
     /**

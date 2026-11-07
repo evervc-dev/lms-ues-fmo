@@ -79,13 +79,21 @@ class ReporteService
                 'columnas' => [__('Estudiante'), __('Carné'), __('Carrera'), __('Sección'), __('Alerta'), __('Desde')],
                 'filas' => ($filas = DB::table('academic_alerts as a')->join('enrollments as e', 'e.id', '=', 'a.enrollment_id')->join('users as u', 'u.id', '=', 'e.student_id')
                     ->leftJoin('student_profiles as p', 'p.user_id', '=', 'u.id')->join('sections', 'sections.id', '=', 'e.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
-                    ->whereIn('e.section_id', $secciones)->whereNull('a.closed_at')
+                    // Una fila por matrícula con su alerta más grave: se guardan por umbral y cómputo (RF22) y el reporte
+                    // contaba alertas, no estudiantes. El preventivo del 85 % solo avisa al estudiante.
+                    ->whereIn('e.section_id', $secciones)->whereNull('a.closed_at')->whereIn('a.alert_type', AsistenciaService::ALERTAS_DEL_PERSONAL)
                     ->when($carrera !== null, fn ($q) => $q->whereExists(fn ($c) => $c->from('student_careers as sc')->whereColumn('sc.student_id', 'u.id')
                         ->where('sc.career_id', $carrera)->where('sc.status', 'active')))
-                    ->orderBy('u.last_name')->limit(2000)
-                    ->get(['u.id as estudiante', 'u.first_name', 'u.last_name', 'p.student_code', 'subjects.code', 'sections.code as grupo', 'a.alert_type', 'a.opened_at']))
-                    ->map(fn ($a) => [$a->last_name.', '.$a->first_name, $a->student_code, $this->carrerasDeEstudiantes($filas->pluck('estudiante')->all())[$a->estudiante] ?? '—',
-                        $a->code.' · '.$a->grupo, __(self::ALERTAS[$a->alert_type] ?? $a->alert_type), Carbon::parse($a->opened_at)->format('d/m/Y')]),
+                    ->groupBy('e.id', 'u.id', 'u.first_name', 'u.last_name', 'p.student_code', 'subjects.code', 'sections.code')
+                    ->orderBy('u.last_name')->orderBy('u.first_name')->limit(2000)
+                    ->get(['u.id as estudiante', 'u.first_name', 'u.last_name', 'p.student_code', 'subjects.code', 'sections.code as grupo',
+                        DB::raw('max('.AsistenciaService::gravedadSql().') as gravedad'), DB::raw('min(a.opened_at) as opened_at')]))
+                    ->pipe(function (Collection $filas) {
+                        $carreras = $this->carrerasDeEstudiantes($filas->pluck('estudiante')->all());
+
+                        return $filas->map(fn ($a) => [$a->last_name.', '.$a->first_name, $a->student_code, $carreras[$a->estudiante] ?? '—',
+                            $a->code.' · '.$a->grupo, __(self::ALERTAS[AsistenciaService::alertaDeGravedad((int) $a->gravedad)] ?? '—'), Carbon::parse($a->opened_at)->format('d/m/Y')]);
+                    }),
             ],
             'carga_docente' => [
                 'columnas' => [__('Docente'), __('Secciones'), __('Estudiantes')],
@@ -112,7 +120,7 @@ class ReporteService
 
     /**
      * Lo que dibuja el gráfico de cada reporte (R-11): una sola serie, la medida principal de cada fila; en
-     * «Estudiantes en riesgo», cuántas alertas abiertas hay de cada tipo. Las filas sin dato no se dibujan.
+     * «Estudiantes en riesgo», cuántas matrículas tienen cada tipo como su alerta más grave. Las filas sin dato no se dibujan.
      *
      * @param  Collection<int, array<int, mixed>>  $filas
      * @return array{titulo: string, etiquetas: array<int, string>, valores: array<int, float>, maximo: ?int, sufijo: string, enteros: bool, recortado: bool}
@@ -123,7 +131,7 @@ class ReporteService
             'asistencia' => [__('Asistencia por sección'), 0, 5, 100, ' %'],
             'notas' => [__('Promedio de las notas publicadas por sección'), 0, 4, 10, ''],
             'carga_docente' => [__('Estudiantes a cargo de cada docente'), 0, 2, null, ''],
-            default => [__('Alertas abiertas por tipo'), null, null, null, ''],
+            default => [__('Estudiantes por su alerta más grave'), null, null, null, ''],
         };
 
         $puntos = $etiqueta === null
