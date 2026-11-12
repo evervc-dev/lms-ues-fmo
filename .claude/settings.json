@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledMcpjsonServers": ["laravel-boost"],
+  "permissions": {
+    "allow": [
+      "mcp__laravel-boost__application-info",
+      "mcp__laravel-boost__database-connections",
+      "mcp__laravel-boost__database-schema",
+      "mcp__laravel-boost__database-query",
+      "mcp__laravel-boost__search-docs",
+      "mcp__laravel-boost__last-error",
+      "mcp__laravel-boost__read-log-entries",
+      "mcp__laravel-boost__browser-logs",
+      "mcp__laravel-boost__get-absolute-url",
+      "Bash(php artisan migrate:*)",
+      "Bash(php artisan route:list:*)",
+      "Bash(php artisan test:*)",
+      "Bash(vendor/bin/pest:*)",
+      "Bash(vendor/bin/pint:*)",
+      "Bash(vendor/bin/phpstan:*)",
+      "Bash(composer test)",
+      "Bash(composer check)",
+      "Bash(python scripts/openproject.py:*)"
+    ],
+    "deny": [
+      "Bash(git push origin main:*)",
+      "Bash(git push origin test:*)"
+    ]
+  }
+}

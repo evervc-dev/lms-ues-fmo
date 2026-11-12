@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"error":"#ba1a1a","on-primary-fixed-variant":"#920020","acento":"#9D2235","warning-text":"#B45309","success-text":"#15803D","borde":"#E2E2E2","marca-300":"#EE98A3","fondo":"#F8F8F8","primary":"#87001d","on-tertiary":"#ffffff","surface-container-low":"#f9f1f7","superficie":"#FFFFFF","texto-suave":"#696969","warning-bg":"#FFFBEB","inverse-on-surface":"#f6eef4","surface-bright":"#fff7fd","on-tertiary-fixed":"#001f25","background":"#fff7fd","on-error-container":"#93000a","surface-container":"#f3ecf1","secondary-fixed":"#ffdada","on-background":"#1e1a1f","info-text":"#1D4ED8","inverse-primary":"#ffb3b2","on-secondary":"#ffffff","primary-container":"#ae152d","on-secondary-fixed-variant":"#8c142a","tertiary":"#004852","on-error":"#ffffff","on-surface":"#1e1a1f","surface-container-highest":"#e8e0e6","surface-variant":"#e8e0e6","danger-bg":"#FEF2F2","marca-800":"#6E0B10","secondary":"#ad2e40","on-primary":"#ffffff","marca-50":"#FDF2F3","on-tertiary-fixed-variant":"#004e5a","tertiary-container":"#00616f","marca-100":"#FBE4E6","marca-600":"#AE152D","on-primary-fixed":"#410008","primary-fixed-dim":"#ffb3b2","on-secondary-fixed":"#40000c","outline-variant":"#e2bebd","inverse-surface":"#332f34","texto":"#1A171B","surface-tint":"#b71e33","on-surface-variant":"#5a4040","tertiary-fixed":"#a6eefe","outline":"#8e706f","surface":"#fff7fd","on-primary-container":"#ffbfbe","info-bg":"#EFF6FF","marca-200":"#F6C6CC","secondary-fixed-dim":"#ffb3b5","surface-container-high":"#eee6ec","tertiary-fixed-dim":"#8ad2e1","surface-dim":"#dfd8dd","danger-text":"#B91C1C","error-container":"#ffdad6","secondary-container":"#fe6b78","texto-desactivado":"#ABABAB","marca-900":"#520A0D","primary-fixed":"#ffdad9","surface-container-lowest":"#ffffff","on-secondary-container":"#6c001a","marca-500":"#CB3149","success-bg":"#F0FDF4","marca-700":"#8B0E13","marca-400":"#E05F72","on-tertiary-container":"#92daea"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"margin":"1.5rem","space-sm":"0.5rem","space-lg":"1.5rem","space-xl":"2rem","gutter":"1rem","space-xs":"0.25rem","space-md":"1rem","gutter-mobile":"0.75rem","margin-mobile":"1rem"},fontFamily:{"body-lg":["Hanken Grotesk"],"label-nav-header":["Hanken Grotesk"],"label-md":["Hanken Grotesk"],"headline-md":["Hanken Grotesk"],"body-md":["Hanken Grotesk"],"headline-sm":["Hanken Grotesk"],"label-sm":["Hanken Grotesk"],"headline-lg":["Hanken Grotesk"],"display-qr":["Hanken Grotesk"]},fontSize:{"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"label-nav-header":["12px",{lineHeight:"16px",letterSpacing:"0.05em",fontWeight:"600"}],"label-md":["14px",{lineHeight:"20px",fontWeight:"500"}],"headline-md":["18px",{lineHeight:"24px",fontWeight:"600"}],"body-md":["14px",{lineHeight:"21px",fontWeight:"400"}],"headline-sm":["16px",{lineHeight:"22px",fontWeight:"600"}],"label-sm":["12px",{lineHeight:"16px",fontWeight:"500"}],"headline-lg":["24px",{lineHeight:"32px",fontWeight:"600"}],"display-qr":["36px",{lineHeight:"44px",fontWeight:"600"}]}}}};</script></head><body class="bg-fondo font-body-md text-texto min-h-screen"><header class="fixed top-0 left-0 right-0 h-14 bg-superficie border-b border-borde z-50 flex items-center justify-between px-margin"><div class="flex items-center gap-space-md"><button aria-label="Alternar menú de navegación" class="p-space-xs text-texto hover:text-marca-700 hover:bg-fondo rounded transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">menu</span></button><div class="flex items-center gap-space-sm"><div class="p-1 bg-fondo border border-borde rounded"><img alt="Logo UES FMO" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XDS48mTMd5DibJc8K3dAGjpKfF0FdyiXqicWk1OWOJWUfa82_GiimnGHpp9GGXQNKt-QznrdrYoFxotA-frHBBGtpNqOAqf8mIALR55j8Ia9K1Hffa9M3Jqw0odz8cuW0hF1zCphTKDgftuG59900UnDiOkGj9UeVP1i125LwSLJraUA1TZTaiHafYb_2Hu8Ox5sA2u4FGara1MOubqV806LwebkJEB17cVjZRTizefHhWmAJ4arQcc5U"/></div><span class="font-headline-sm text-headline-sm text-texto font-bold tracking-tight select-none">LMS UES FMO</span></div><div class="hidden md:flex items-center gap-space-xs px-2.5 py-1 bg-marca-50 text-marca-700 border border-marca-200 rounded-full font-label-sm text-label-sm select-none"><span class="w-1.5 h-1.5 rounded-full bg-marca-600"></span><span>Período 2026-II · en curso</span></div></div><div class="hidden lg:flex items-center gap-space-sm px-3 py-1 bg-marca-50 border border-marca-200 rounded-full"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-marca-600 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-marca-600"></span></span><span class="font-label-sm text-label-sm text-texto">Asistencia abierta · <strong class="text-marca-800 font-semibold">PRN115</strong></span><a class="font-label-sm text-label-sm text-marca-700 hover:text-marca-900 underline font-semibold ml-1" data-path="escanear-qr" href="#">Marcar</a></div><div class="flex items-center gap-space-md"><a class="p-1.5 text-texto-suave hover:text-texto hover:bg-fondo rounded-full transition-colors" data-path="ayuda" href="#" title="Centro de Ayuda"><span class="material-symbols-outlined text-[20px]">help_outline</span></a><button class="relative p-1.5 text-texto-suave hover:text-texto hover:bg-fondo rounded-full transition-colors" title="Notificaciones institucionales" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-marca-600 font-label-sm text-[10px] font-semibold text-superficie">3</span></button><div class="h-6 w-px bg-borde mx-1"></div><div class="flex items-center gap-space-sm cursor-pointer group"><img alt="Profile" class="w-8 h-8 rounded-full object-cover border border-borde" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsKpytg_2UHt-LW_vr_bYVC9cRUgQuqxFieuP659Ax8rKys5Z2TICRdMkCUb9jyu9D9TFQoBGGj2EKqjLgK4CRe8X2tLAgzJaeTV9Y9aZKwlLZPKtwJmtai3wFUuyFILMr14sDm5epbtCmqG-ZNcmE4Q5o2GXrIZ3D4K1bJFKJbxBvGETRrMvg29Od4wC4k10-bVbA54ktsCggJo531usPCKJgEiUTx72I74p8723PueFX3Vvj0n4i5w"/><div class="hidden xl:flex flex-col text-left"><span class="font-label-md text-label-md font-semibold text-texto leading-none group-hover:text-marca-700 transition-colors">Carlos Martínez</span><span class="font-label-sm text-[11px] text-texto-suave leading-tight mt-0.5">Docente y Coordinador</span></div><span class="font-label-sm text-label-sm text-texto-suave">(KR) ▾</span></div></div></header><aside class="fixed left-0 top-14 bottom-0 w-64 bg-superficie border-r border-borde z-40 overflow-y-auto"><nav class="py-space-md flex flex-col gap-space-md" data-active-classes="bg-marca-50 text-marca-700 font-semibold border-l-4 border-marca-600 pl-3"><div class="px-space-md"><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="inicio" href="#"><span class="material-symbols-outlined text-[20px]">home</span><span>Inicio</span></a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Estudio</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="escanear-qr" href="#"><span class="material-symbols-outlined text-[20px]">qr_code_scanner</span><span>Escanear QR</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="mis-materias" href="#"><span class="material-symbols-outlined text-[20px]">menu_book</span><span>Mis materias</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="mis-notas" href="#"><span class="material-symbols-outlined text-[20px]">grade</span><span>Mis notas</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="mi-asistencia" href="#"><span class="material-symbols-outlined text-[20px]">event_available</span><span>Mi asistencia</span></a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Docencia</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="mis-secciones" href="#"><span class="material-symbols-outlined text-[20px]">class</span><span>Mis secciones</span></a><a class="flex items-center justify-between px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="pendientes-de-calificar" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">assignment_late</span><span>Pendientes de calificar</span></div><span class="px-1.5 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-[11px] font-semibold border border-marca-200">12</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="bancos-de-preguntas" href="#"><span class="material-symbols-outlined text-[20px]">quiz</span><span>Bancos de preguntas</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="rubricas" href="#"><span class="material-symbols-outlined text-[20px]">rule</span><span>Rúbricas</span></a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Coordinación</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="supervision-de-aulas" href="#"><span class="material-symbols-outlined text-[20px]">meeting_room</span><span>Supervisión de aulas</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="carga-academica" href="#"><span class="material-symbols-outlined text-[20px]">schedule</span><span>Carga académica</span></a><a class="flex items-center justify-between px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="matricula" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">how_to_reg</span><span>Matrícula</span></div><span class="px-1.5 py-0.5 rounded-full bg-info-bg text-info-text font-label-sm text-[11px] font-semibold">3</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="importar-estudiantes" href="#"><span class="material-symbols-outlined text-[20px]">group_add</span><span>Importar estudiantes</span></a><a class="flex items-center justify-between px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="actas-por-validar" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">verified</span><span>Actas por validar</span></div><span class="px-1.5 py-0.5 rounded-full bg-warning-bg text-warning-text font-label-sm text-[11px] font-semibold">5</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="clases-canceladas" href="#"><span class="material-symbols-outlined text-[20px]">event_busy</span><span>Clases canceladas</span></a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Jefatura</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="secciones-del-departamento" href="#"><span class="material-symbols-outlined text-[20px]">domain</span><span>Secciones del departamento</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="cierre-del-periodo" href="#"><span class="material-symbols-outlined text-[20px]">lock_clock</span><span>Cierre del período</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="desempeno-docente" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span><span>Desempeño docente</span></a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Consultas</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="reportes" href="#"><span class="material-symbols-outlined text-[20px]">description</span><span>Reportes</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="estadisticas-de-oferta" href="#"><span class="material-symbols-outlined text-[20px]">bar_chart</span><span>Estadísticas de oferta</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="auditoria" href="#"><span class="material-symbols-outlined text-[20px]">policy</span><span>Auditoría</span></a></div><div class="flex flex-col gap-1 pt-2 border-t border-borde"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Cuenta</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="mi-perfil" href="#"><span class="material-symbols-outlined text-[20px]">account_circle</span><span>Mi perfil</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="ayuda" href="#"><span class="material-symbols-outlined text-[20px]">help</span><span>Ayuda</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-danger-text hover:bg-danger-bg transition-colors font-body-md text-body-md" data-path="cerrar-sesion" href="#"><span class="material-symbols-outlined text-[20px]">logout</span><span>Cerrar sesión</span></a></div></nav></aside><div class="pl-64"><main class="w-full pt-14 px-margin bg-fondo min-h-screen"><div class="flex flex-col w-full pb-16">
+<!-- Top Banner / Course Context Header -->
+<section class="relative bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden mb-6">
+<div class="h-2 w-full bg-marca-600"></div>
+<div class="p-6 md:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+<div class="space-y-2">
+<div class="flex flex-wrap items-center gap-2">
+<span class="px-2.5 py-0.5 rounded-full bg-marca-100 text-marca-700 font-label-sm text-label-sm font-semibold">
+            PRN115 · Grupo 01
+          </span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container text-texto-suave font-label-sm text-label-sm">
+            Ciclo II-2026
+          </span>
+<span class="px-2 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-success-text animate-pulse"></span>
+            Activo
+          </span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-texto tracking-tight">
+          Programación I
+        </h1>
+<div class="flex flex-wrap items-center gap-4 text-texto-suave font-body-md text-body-md pt-1">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-marca-600">school</span>
+            Docente responsable: <strong class="text-texto font-medium">Ing. Carlos Martínez</strong>
+</span>
+<span class="text-borde hidden md:inline">•</span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">domain</span>
+            Depto. de Ingeniería de Sistemas Informáticos
+          </span>
+<span class="text-borde hidden md:inline">•</span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">schedule</span>
+            4 UV · 52 Estudiantes
+          </span>
+</div>
+</div>
+<!-- Quick Action / QR Reminder Card -->
+<div class="flex items-center gap-4 bg-marca-50 rounded-xl p-4 self-start lg:self-center">
+<div class="w-10 h-10 rounded-lg bg-marca-600 text-superficie flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">forum</span>
+</div>
+<div>
+<div class="font-label-md text-label-md font-semibold text-marca-900 leading-none">Canal Académico</div>
+<div class="font-label-sm text-label-sm text-marca-700 mt-1">Resolución de dudas en <span class="font-semibold">&lt; 4h</span></div>
+</div>
+</div>
+</div>
+<!-- Course Navigation Tabs -->
+<div class="px-6 md:px-8 bg-surface-container-lowest flex items-center gap-2 overflow-x-auto">
+<a class="py-3 px-4 text-texto-suave hover:text-texto font-label-md text-label-md transition-colors whitespace-nowrap" href="#">
+        General
+      </a>
+<a class="py-3 px-4 text-texto-suave hover:text-texto font-label-md text-label-md transition-colors whitespace-nowrap" href="#">
+        Material de Clase
+      </a>
+<a class="py-3 px-4 text-texto-suave hover:text-texto font-label-md text-label-md transition-colors whitespace-nowrap" href="#">
+        Laboratorios
+      </a>
+<a class="py-3 px-4 text-marca-600 font-semibold font-label-md text-label-md relative whitespace-nowrap flex items-center gap-2" href="#">
+<span>Foro de Discusión</span>
+<span class="px-1.5 py-0.2 rounded-full bg-marca-600 text-superficie font-label-sm text-[11px] font-bold">24</span>
+<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-marca-600"></span>
+</a>
+<a class="py-3 px-4 text-texto-suave hover:text-texto font-label-md text-label-md transition-colors whitespace-nowrap" href="#">
+        Tareas y Evaluaciones
+      </a>
+<a class="py-3 px-4 text-texto-suave hover:text-texto font-label-md text-label-md transition-colors whitespace-nowrap" href="#">
+        Calificaciones
+      </a>
+<a class="py-3 px-4 text-texto-suave hover:text-texto font-label-md text-label-md transition-colors whitespace-nowrap" href="#">
+        Asistencia
+      </a>
+</div>
+</section>
+<!-- Filter, Search and CTA Controls -->
+<section class="bg-surface-container-lowest rounded-xl shadow-sm p-4 mb-6">
+<div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+<!-- Search input -->
+<div class="relative flex-1 max-w-lg">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-texto-desactivado text-[20px]">search</span>
+<input class="w-full pl-10 pr-4 py-2.5 rounded-lg bg-fondo text-texto placeholder:text-texto-desactivado font-body-md text-body-md focus:bg-superficie focus:outline-none focus:ring-2 focus:ring-marca-500 transition-all" placeholder="Buscar por título, código de error, estudiante..." type="text"/>
+</div>
+<!-- Controls Right -->
+<div class="flex flex-wrap items-center gap-3">
+<!-- Category selector -->
+<div class="flex items-center gap-2 bg-fondo rounded-lg px-3 py-1.5 text-texto">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">filter_list</span>
+<label class="sr-only" for="filtro-categoria">Filtrar por categoría</label>
+<select class="bg-transparent text-texto font-label-md text-label-md focus:outline-none cursor-pointer" id="filtro-categoria">
+<option value="todos">Todos los hilos</option>
+<option value="c2">Cómputo II</option>
+<option value="lab">Dudas de Laboratorio</option>
+<option value="proyecto">Proyecto de Cátedra</option>
+<option value="teoria">Consultas teóricas</option>
+</select>
+</div>
+<!-- Sort selector -->
+<div class="flex items-center gap-2 bg-fondo rounded-lg px-3 py-1.5 text-texto">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">sort</span>
+<label class="sr-only" for="filtro-orden">Ordenar por</label>
+<select class="bg-transparent text-texto font-label-md text-label-md focus:outline-none cursor-pointer" id="filtro-orden">
+<option value="recientes">Más recientes</option>
+<option value="participaciones">Más participaciones</option>
+<option value="sin-respuesta">Sin respuesta</option>
+</select>
+</div>
+<!-- Create thread CTA -->
+<button class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-marca-600 hover:bg-marca-700 text-superficie font-label-md text-label-md font-semibold transition-all shadow-sm active:scale-95" onclick="document.getElementById('modal-nuevo-hilo').classList.remove('hidden')" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>+ Nuevo hilo de discusión</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Main 2-Column Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- Left Column: Discussions List (8 Cols) -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Pinned Threads Box -->
+<div class="space-y-3">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2 text-marca-800">
+<span class="material-symbols-outlined text-[20px] text-marca-600 fill-1" style="font-variation-settings: 'FILL' 1;">push_pin</span>
+<span class="font-headline-sm text-headline-sm uppercase tracking-wider font-bold">Hilos Fijados por Cátedra</span>
+</div>
+<span class="font-label-sm text-label-sm text-texto-suave">2 avisos prioritarios</span>
+</div>
+<!-- Pinned Thread 1 -->
+<article class="bg-surface-container-lowest rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 left-0 bottom-0 w-1.5 bg-marca-600"></div>
+<div class="flex items-start justify-between gap-4">
+<div class="flex items-start gap-3.5">
+<img class="w-11 h-11 rounded-full object-cover flex-shrink-0" data-alt="Close-up academic portrait of Ing. Carlos Martinez, male university computer science professor in late 30s with glasses and warm scholarly expression, soft ambient daylight background with bookshelf, academic university setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPNh0EBZtaRHgH-lGhMRY4NSngnCl5oZy07-JH32k6atJabOveCjUQ9PaHYsef0NzIzYvUck7GIstpzIYotJdQTrOnu88oBawPlTIolGP_a_3vM2JKAbtwUeyUwFxKGtvH1kbYDgTT20oLCUx1A4t-xWQXEjQmZpEQrrxU08OOAwjZtaLDll5IFjnUuiuFrPg0BB-DMdtt48PBXoWBhbDoj8ngAnFk0vQzaDqYqU-sG6cQIsa9f_yqZA"/>
+<div class="space-y-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="font-label-md text-label-md font-bold text-texto">Ing. Carlos Martínez</span>
+<span class="px-2 py-0.5 rounded-full bg-marca-100 text-marca-700 font-label-sm text-label-sm font-semibold">
+                    Docente Responsable
+                  </span>
+<span class="text-texto-suave font-label-sm text-label-sm">• Hace 25 min</span>
+</div>
+<a class="block font-headline-md text-headline-md text-texto hover:text-marca-700 font-bold group-hover:underline transition-colors pt-1" href="#">
+                  Normativa de entrega y rúbrica del Laboratorio 02: Punteros y Memoria Dinámica
+                </a>
+<p class="font-body-md text-body-md text-texto-suave line-clamp-2">
+                  Estimados estudiantes, queda habilitado el repositorio base para la práctica de estructuras ligadas y gestión con malloc/free. Verifiquen las pruebas de sanitización con Valgrind antes de remitir el Pull Request.
+                </p>
+<div class="flex flex-wrap items-center gap-2 pt-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    #Laboratorio02
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-marca-50 text-marca-700 font-label-sm text-label-sm">
+                    #CómputoII
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto-suave font-label-sm text-label-sm">
+                    #RúbricaOficial
+                  </span>
+</div>
+</div>
+</div>
+<!-- Thread Stats Badge -->
+<div class="flex flex-col items-end gap-1 flex-shrink-0">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-texto font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[18px] text-marca-600">chat_bubble</span>
+<span>18</span>
+</div>
+<span class="font-label-sm text-[11px] text-texto-suave">respuestas</span>
+</div>
+</div>
+</article>
+<!-- Pinned Thread 2 -->
+<article class="bg-surface-container-lowest rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 left-0 bottom-0 w-1.5 bg-marca-500"></div>
+<div class="flex items-start justify-between gap-4">
+<div class="flex items-start gap-3.5">
+<div class="w-11 h-11 rounded-full bg-marca-100 text-marca-700 flex items-center justify-center flex-shrink-0 font-bold">
+<span class="material-symbols-outlined text-[24px]">forum</span>
+</div>
+<div class="space-y-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="font-label-md text-label-md font-bold text-texto">Coordinación de Cátedra PRN115</span>
+<span class="px-2 py-0.5 rounded-full bg-info-bg text-info-text font-label-sm text-label-sm font-semibold">
+                    Institucional
+                  </span>
+<span class="text-texto-suave font-label-sm text-label-sm">• Ayer a las 14:10</span>
+</div>
+<a class="block font-headline-md text-headline-md text-texto hover:text-marca-700 font-bold group-hover:underline transition-colors pt-1" href="#">
+                  Canal oficial de Discord y horarios de asesorías presenciales en Edificio B
+                </a>
+<p class="font-body-md text-body-md text-texto-suave line-clamp-2">
+                  Acceso directo a las salas de consulta con auxiliares de cátedra (Martes y Jueves 13:00 - 16:00 en Laboratorio 3). Recuerde que no se atenderán solicitudes de depuración de código sin pruebas previas.
+                </p>
+<div class="flex flex-wrap items-center gap-2 pt-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    #Asesorías
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    #EdificioB
+                  </span>
+</div>
+</div>
+</div>
+<!-- Thread Stats Badge -->
+<div class="flex flex-col items-end gap-1 flex-shrink-0">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-texto font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[18px] text-marca-600">chat_bubble</span>
+<span>31</span>
+</div>
+<span class="font-label-sm text-[11px] text-texto-suave">respuestas</span>
+</div>
+</div>
+</article>
+</div>
+<!-- General Discussions Box -->
+<div class="space-y-4 pt-2">
+<div class="flex items-center justify-between px-1">
+<h2 class="font-headline-sm text-headline-sm text-texto font-bold">Discusiones de la Comunidad</h2>
+<span class="font-label-sm text-label-sm text-texto-suave">Mostrando 4 de 22 hilos</span>
+</div>
+<!-- Thread 1: Segfault (Solved) -->
+<article class="bg-surface-container-lowest rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-start justify-between gap-4">
+<div class="flex items-start gap-3.5">
+<img class="w-11 h-11 rounded-full object-cover flex-shrink-0" data-alt="Authentic university student portrait, male Latin American young engineering student smiling gently, neutral university studio background, natural indoor light, realistic academic atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqxSRq67c1CNjQaC8BfgZbZIJevMiEmlgnbNEx2f6i4xJLPJmX0BvdwFQIbN5Ggxp-hHQZMKfN4gchvS4zg6ZMBMGtA7ra9DJ5j4XS85lXI6cxWv_nnHjZRq3LcCSGBIoSkIa8TWTKeAz8LxT1T3B8KnkG2Uu8XaDNyN1iocqqYSomlSmCOzqlk6OvCFqReoy711Ugyu8jKACwAcIzeqTEaV4-SftP-CXGlxvVJ2X8Ji2uvFuxN9oMWw"/>
+<div class="space-y-1.5">
+<div class="flex flex-wrap items-center gap-2">
+<span class="font-label-md text-label-md font-semibold text-texto">Cristian Eduardo Ortiz</span>
+<span class="font-label-sm text-label-sm text-texto-suave font-mono">OC22009</span>
+<span class="text-texto-suave font-label-sm text-label-sm">• Publicado hace 1h 40m</span>
+<span class="px-2 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                    Resuelto por docente
+                  </span>
+</div>
+<a class="block font-headline-md text-headline-md text-texto hover:text-marca-600 font-bold transition-colors" href="#">
+                  Error de segmentación (SIGSEGV) al desreferenciar puntero doble en función recursiva
+                </a>
+<p class="font-body-md text-body-md text-texto-suave line-clamp-2">
+                  Al compilar con <code>g++ -Wall -g</code> la inserción en árbol binario arroja SIGSEGV justo en la línea 48 donde asigno (*raiz)-&gt;izq. He verificado que la memoria esté reservada con malloc pero sigo obteniendo crash en Ubuntu 22.04.
+                </p>
+<!-- Tags and meta -->
+<div class="flex flex-wrap items-center gap-2 pt-2">
+<span class="px-2 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-label-sm">
+                    Duda de compilación
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    Valgrind
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    Punteros
+                  </span>
+<span class="text-texto-suave font-label-sm text-label-sm ml-2 hidden sm:inline">
+                    Última respuesta de Ing. Carlos Martínez hace 42 min
+                  </span>
+</div>
+</div>
+</div>
+<!-- Stats -->
+<div class="flex flex-col items-end gap-1 flex-shrink-0">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-texto font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">forum</span>
+<span>7</span>
+</div>
+<span class="font-label-sm text-[11px] text-texto-suave">respuestas</span>
+</div>
+</div>
+</article>
+<!-- Thread 2: IEEE Formatting -->
+<article class="bg-surface-container-lowest rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-start justify-between gap-4">
+<div class="flex items-start gap-3.5">
+<img class="w-11 h-11 rounded-full object-cover flex-shrink-0" data-alt="Portrait of Gabriela Sofia Sanchez, female Hispanic university student in early 20s with glasses, focused expression, neat academic attire, soft ambient library background with blurred books." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBReWOGpvaphw397NzoJwmJyH9Rt_CZdmre6fZ1GhcR1U0UVXPlhtT-60bhnZ7A2mmFuqFWo4Pnf1-mcCT6Z-jeKYR9icjlhL9HmNzSMDMBVZ_axzzwoh93ModjTzI2RqELzSuxMaabDJzgcqwZGWx5eDBVmFn__2ufEzvH9xauamrJeCB4mdrtyBWfcotuy2ifJ3CH2PVIKU4MZUu-7kXQfK-4KrV2QZVui_T4yw006qLCltN5pJuEqg"/>
+<div class="space-y-1.5">
+<div class="flex flex-wrap items-center gap-2">
+<span class="font-label-md text-label-md font-semibold text-texto">Gabriela Sofía Sánchez</span>
+<span class="font-label-sm text-label-sm text-texto-suave font-mono">GS21004</span>
+<span class="text-texto-suave font-label-sm text-label-sm">• Publicado hace 3h 15m</span>
+<span class="px-2 py-0.5 rounded-full bg-info-bg text-info-text font-label-sm text-label-sm font-semibold">
+                    En discusión
+                  </span>
+</div>
+<a class="block font-headline-md text-headline-md text-texto hover:text-marca-600 font-bold transition-colors" href="#">
+                  Duda con el formateo de salida en el Informe Técnico según IEEE
+                </a>
+<p class="font-body-md text-body-md text-texto-suave line-clamp-2">
+                  ¿Para la sección de resultados del Laboratorio 01 es obligatorio incluir las tablas de complejidad temporal en formato a dos columnas o podemos presentar la gráfica de gnuplot en una sola columna extendida?
+                </p>
+<div class="flex flex-wrap items-center gap-2 pt-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    Pruebas Unitarias
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    Informe Técnico
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    IEEE
+                  </span>
+</div>
+</div>
+</div>
+<!-- Stats -->
+<div class="flex flex-col items-end gap-1 flex-shrink-0">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-texto font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">forum</span>
+<span>4</span>
+</div>
+<span class="font-label-sm text-[11px] text-texto-suave">respuestas</span>
+</div>
+</div>
+</article>
+<!-- Thread 3: std::bad_alloc on 32-bit lab computers -->
+<article class="bg-surface-container-lowest rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-start justify-between gap-4">
+<div class="flex items-start gap-3.5">
+<div class="w-11 h-11 rounded-full bg-surface-container text-texto flex items-center justify-center font-bold text-label-md">
+                MR
+              </div>
+<div class="space-y-1.5">
+<div class="flex flex-wrap items-center gap-2">
+<span class="font-label-md text-label-md font-semibold text-texto">Manuel Antonio Rivera</span>
+<span class="font-label-sm text-label-sm text-texto-suave font-mono">RM23012</span>
+<span class="text-texto-suave font-label-sm text-label-sm">• Publicado hace 5h</span>
+</div>
+<a class="block font-headline-md text-headline-md text-texto hover:text-marca-600 font-bold transition-colors" href="#">
+                  Comportamiento de std::bad_alloc en sistemas de 32 bits de la sala de cómputo
+                </a>
+<p class="font-body-md text-body-md text-texto-suave line-clamp-2">
+                  Al correr la prueba de estrés con arreglos dinámicos de 50,000 elementos en las máquinas de la Sala B, el heap se agota rápidamente lanzando bad_alloc, mientras que en laptop de 64 bits corre fluido. ¿Se adaptará el test suite?
+                </p>
+<div class="flex flex-wrap items-center gap-2 pt-2">
+<span class="px-2 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-label-sm">
+                    Duda de compilación
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    Memoria Dinámica
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    Laboratorio
+                  </span>
+</div>
+</div>
+</div>
+<!-- Stats -->
+<div class="flex flex-col items-end gap-1 flex-shrink-0">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-texto font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">forum</span>
+<span>2</span>
+</div>
+<span class="font-label-sm text-[11px] text-texto-suave">respuestas</span>
+</div>
+</div>
+</article>
+<!-- Thread 4: Extemporaneous submission warning -->
+<article class="bg-surface-container-lowest rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-start justify-between gap-4">
+<div class="flex items-start gap-3.5">
+<div class="w-11 h-11 rounded-full bg-warning-bg text-warning-text flex items-center justify-center font-bold text-label-md">
+                KC
+              </div>
+<div class="space-y-1.5">
+<div class="flex flex-wrap items-center gap-2">
+<span class="font-label-md text-label-md font-semibold text-texto">Karla Vanessa Cruz</span>
+<span class="font-label-sm text-label-sm text-texto-suave font-mono">CC20081</span>
+<span class="text-texto-suave font-label-sm text-label-sm">• Publicado hace 8h</span>
+<span class="px-2 py-0.5 rounded-full bg-warning-bg text-warning-text font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                    Plazo Crítico
+                  </span>
+</div>
+<a class="block font-headline-md text-headline-md text-texto hover:text-marca-600 font-bold transition-colors" href="#">
+                  Aclaración sobre la fecha límite de la entrega extemporánea
+                </a>
+<p class="font-body-md text-body-md text-texto-suave line-clamp-2">
+                  Buenas tardes docente, quisiéramos confirmar si el descuento del 20% aplica hasta las 23:59 del domingo o si el repositorio cierra a las 18:00 tal como figura en el calendario de la plataforma.
+                </p>
+<div class="flex flex-wrap items-center gap-2 pt-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    Proyecto de Cátedra
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-texto font-label-sm text-label-sm">
+                    Normativa
+                  </span>
+</div>
+</div>
+</div>
+<!-- Stats -->
+<div class="flex flex-col items-end gap-1 flex-shrink-0">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-texto font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">forum</span>
+<span>9</span>
+</div>
+<span class="font-label-sm text-[11px] text-texto-suave">respuestas</span>
+</div>
+</div>
+</article>
+</div>
+<!-- Pagination Box -->
+<nav aria-label="Navegación de páginas del foro" class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex items-center justify-between">
+<div class="text-texto-suave font-body-md text-body-md">
+          Mostrando <span class="font-semibold text-texto">1 - 6</span> de <span class="font-semibold text-texto">24</span> discusiones
+        </div>
+<div class="flex items-center gap-1">
+<button aria-label="Página anterior" class="w-9 h-9 rounded-lg flex items-center justify-center text-texto-suave hover:bg-fondo hover:text-texto disabled:opacity-40 transition-colors" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button aria-current="page" class="w-9 h-9 rounded-lg bg-marca-600 text-superficie font-label-md text-label-md font-semibold flex items-center justify-center shadow-sm" type="button">
+            1
+          </button>
+<button aria-label="Página 2" class="w-9 h-9 rounded-lg hover:bg-fondo text-texto font-label-md text-label-md font-medium flex items-center justify-center transition-colors" type="button">
+            2
+          </button>
+<button aria-label="Página 3" class="w-9 h-9 rounded-lg hover:bg-fondo text-texto font-label-md text-label-md font-medium flex items-center justify-center transition-colors" type="button">
+            3
+          </button>
+<button aria-label="Página 4" class="w-9 h-9 rounded-lg hover:bg-fondo text-texto font-label-md text-label-md font-medium flex items-center justify-center transition-colors" type="button">
+            4
+          </button>
+<button aria-label="Página siguiente" class="w-9 h-9 rounded-lg flex items-center justify-center text-texto hover:bg-fondo hover:text-marca-700 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</nav>
+</div>
+<!-- Right Column: Forum Summary & Rules Sidebar (4 Cols) -->
+<aside class="lg:col-span-4 flex flex-col gap-6">
+<!-- Forum Stats Card -->
+<section class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-marca-600">query_stats</span>
+<h3 class="font-headline-sm text-headline-sm text-texto font-bold">Estadísticas del Foro</h3>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-fondo p-3.5 rounded-lg">
+<div class="font-label-sm text-label-sm text-texto-suave">Hilos activos</div>
+<div class="font-display-qr text-[28px] font-bold text-marca-800 leading-tight mt-1">24</div>
+<div class="text-[11px] text-success-text font-medium flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[12px]">trending_up</span>
+              +5 esta semana
+            </div>
+</div>
+<div class="bg-fondo p-3.5 rounded-lg">
+<div class="font-label-sm text-label-sm text-texto-suave">Respuestas totales</div>
+<div class="font-display-qr text-[28px] font-bold text-texto leading-tight mt-1">142</div>
+<div class="text-[11px] text-texto-suave font-medium mt-0.5">Media: 5.9 / hilo</div>
+</div>
+</div>
+<!-- Metric bar: Time response -->
+<div class="bg-marca-50 rounded-lg p-3.5 space-y-2">
+<div class="flex justify-between items-center text-label-sm font-label-sm">
+<span class="text-marca-900 font-semibold">Tasa de respuesta &lt; 4 horas</span>
+<span class="text-marca-800 font-bold font-mono">94%</span>
+</div>
+<!-- Custom track -->
+<div class="w-full h-2 rounded-full bg-marca-200 overflow-hidden">
+<div class="h-full bg-marca-600 rounded-full" style="width: 94%;"></div>
+</div>
+<p class="font-label-sm text-[11px] text-marca-700 leading-tight">
+            Compromiso de resolución docente y auxilio de cátedra PRN115.
+          </p>
+</div>
+</section>
+<!-- Top Contributors Card -->
+<section class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-marca-600">workspace_premium</span>
+<h3 class="font-headline-sm text-headline-sm text-texto font-bold">Top Participantes</h3>
+</div>
+<span class="font-label-sm text-[11px] text-texto-suave uppercase tracking-wider font-semibold">Cómputo II</span>
+</div>
+<div class="space-y-3">
+<!-- User 1 -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-fondo transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<span class="w-5 font-bold text-marca-700 font-label-md text-label-md text-center">1</span>
+<img class="w-9 h-9 rounded-full object-cover flex-shrink-0" data-alt="Avatar photo of top student contributor Cristian Ortiz, Latin American young male in college setting, sharp focus, natural daylight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAybmnkCnMhY4KkDwXd4nt1-AHNnO6Da4IC5DJUKAMeQcRBFt9MhX54LQxfN-NX3bWymrjmcc5Fyy6LC1E5S2sbKXQJ-OdBG2YRBuLwcfaPv4W6VF_ODcOrF2776HL_UJgSrPp-n71U5EqgnckVIZlPvJjzRq1IU06pMPjcJLXcutDcK91TT5C61ci5fi6IRRADXb7lpXTMrPMSok2_VFn9LqH7iXKshvsuV1BGwCES2wKl6X3zes-0LQ"/>
+<div class="min-w-0">
+<div class="font-label-md text-label-md font-semibold text-texto truncate">Cristian E. Ortiz</div>
+<div class="font-label-sm text-[11px] text-texto-suave">OC22009 · Sistemas</div>
+</div>
+</div>
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-marca-100 text-marca-800 font-label-sm text-label-sm font-bold flex-shrink-0">
+<span class="material-symbols-outlined text-[14px]">stars</span>
+<span>28</span>
+</div>
+</div>
+<!-- User 2 -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-fondo transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<span class="w-5 font-bold text-texto-suave font-label-md text-label-md text-center">2</span>
+<img class="w-9 h-9 rounded-full object-cover flex-shrink-0" data-alt="Avatar photo of university student Gabriela Sanchez, collegiate woman smiling, library light background, natural tone." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9GsT7Xd01LMWTiqRvSunLEdiAATE8WZbZbun1EjknOxPHDBFr6QKDwMbHhiZFItCCOUjkvDh61IBmGmQ2A6fF-_swJM_H7LAVi70KvoFjYsxd0f1aMPb92oOvVdl741smTfERo9I5w2o8mB9YXQhLjWsB_Co3meP7Jtm1x0hushxDC0H5sIQLbeT0na4o09YvnfLE40QQes0ep0W5qhnXlK6Ig_CCia6zpAq0AZw_6GdYOlOkNMpJDA"/>
+<div class="min-w-0">
+<div class="font-label-md text-label-md font-semibold text-texto truncate">Gabriela S. Sánchez</div>
+<div class="font-label-sm text-[11px] text-texto-suave">GS21004 · Sistemas</div>
+</div>
+</div>
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-texto font-label-sm text-label-sm font-semibold flex-shrink-0">
+<span class="material-symbols-outlined text-[14px] text-texto-suave">chat</span>
+<span>21</span>
+</div>
+</div>
+<!-- User 3 -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-fondo transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<span class="w-5 font-bold text-texto-suave font-label-md text-label-md text-center">3</span>
+<div class="w-9 h-9 rounded-full bg-marca-50 text-marca-700 flex items-center justify-center font-bold text-label-sm flex-shrink-0">
+                EM
+              </div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md font-semibold text-texto truncate">Eduardo Menjívar</div>
+<div class="font-label-sm text-[11px] text-texto-suave">ME22015 · Sistemas</div>
+</div>
+</div>
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-texto font-label-sm text-label-sm font-semibold flex-shrink-0">
+<span class="material-symbols-outlined text-[14px] text-texto-suave">chat</span>
+<span>17</span>
+</div>
+</div>
+<!-- User 4 -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-fondo transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<span class="w-5 font-bold text-texto-suave font-label-md text-label-md text-center">4</span>
+<div class="w-9 h-9 rounded-full bg-surface-container text-texto flex items-center justify-center font-bold text-label-sm flex-shrink-0">
+                LR
+              </div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md font-semibold text-texto truncate">Lucía Rivas Romero</div>
+<div class="font-label-sm text-[11px] text-texto-suave">RR21034 · Sistemas</div>
+</div>
+</div>
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-texto font-label-sm text-label-sm font-semibold flex-shrink-0">
+<span class="material-symbols-outlined text-[14px] text-texto-suave">chat</span>
+<span>12</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Institutional Guidelines Card (Netiquette) -->
+<section class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-3">
+<div class="flex items-center gap-2 text-marca-800">
+<span class="material-symbols-outlined text-[20px] text-marca-600">gavel</span>
+<h3 class="font-headline-sm text-headline-sm uppercase tracking-wide font-bold">Pautas de Convivencia UES</h3>
+</div>
+<p class="font-body-md text-body-md text-texto-suave leading-relaxed">
+          Este espacio es un entorno académico oficial regido por el <strong class="text-texto">Reglamento Disciplinario de la Universidad de El Salvador</strong>.
+        </p>
+<ul class="space-y-2.5 text-texto-suave font-body-md text-body-md pt-1">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] text-marca-600 mt-1 flex-shrink-0">check</span>
+<span><strong>Respeto y cordialidad:</strong> Diríjase a sus compañeros y docentes con respeto mutuo ("usted").</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] text-marca-600 mt-1 flex-shrink-0">code</span>
+<span><strong>Citación ética de código:</strong> Está prohibido publicar soluciones completas de tareas evaluadas. Cita siempre fuentes externas.</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] text-marca-600 mt-1 flex-shrink-0">bug_report</span>
+<span><strong>Formato de consultas:</strong> Incluya traza de compilación (logs), fragmento mínimo reproducible y versión del compilador.</span>
+</li>
+</ul>
+<div class="pt-2">
+<a class="inline-flex items-center gap-1 text-marca-700 hover:text-marca-900 font-label-md text-label-md font-semibold underline" href="#">
+<span>Ver normativa académica completa</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</a>
+</div>
+</section>
+<!-- Office Hours & Support Contact Card -->
+<section class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-marca-600">contact_support</span>
+<h3 class="font-headline-sm text-headline-sm text-texto font-bold">Atención Docente</h3>
+</div>
+<div class="space-y-2 text-texto-suave font-body-md text-body-md">
+<p><strong class="text-texto">Horario de oficina:</strong> Lunes y Miércoles 10:00 - 12:00 m.</p>
+<p><strong class="text-texto">Ubicación:</strong> Cubículo 14, Edificio B, Planta Alta.</p>
+<p><strong class="text-texto">Correo:</strong> <span class="text-marca-700 underline font-mono text-[13px]">carlos.martinez@ues.edu.sv</span></p>
+</div>
+</section>
+</aside>
+</div>
+<!-- Interactive Modal: + Nuevo Hilo de Discusión -->
+<div class="hidden fixed inset-0 z-50 overflow-y-auto bg-marca-900/40 backdrop-blur-sm flex items-center justify-center p-4" id="modal-nuevo-hilo">
+<div class="bg-surface-container-lowest rounded-xl shadow-xl max-w-2xl w-full p-6 space-y-5 relative animate-in fade-in zoom-in-95 duration-150">
+<div class="flex items-center justify-between pb-3">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-marca-100 text-marca-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">post_add</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-texto font-bold">Publicar Nuevo Hilo</h3>
+<p class="font-label-sm text-label-sm text-texto-suave">PRN115 · Programación I · Ciclo II-2026</p>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-texto-suave hover:bg-fondo hover:text-texto transition-colors" onclick="document.getElementById('modal-nuevo-hilo').classList.add('hidden')" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<form class="space-y-4" onsubmit="event.preventDefault(); document.getElementById('modal-nuevo-hilo').classList.add('hidden');">
+<div>
+<label class="block font-label-md text-label-md text-texto font-semibold mb-1">Título de la discusión</label>
+<input class="w-full px-3.5 py-2 rounded-lg bg-fondo text-texto font-body-md text-body-md focus:bg-superficie focus:outline-none focus:ring-2 focus:ring-marca-500" placeholder="Ej. Duda con puntero a función en el ejercicio 3 del lab" required="" type="text"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label class="block font-label-md text-label-md text-texto font-semibold mb-1">Categoría</label>
+<select class="w-full px-3 py-2 rounded-lg bg-fondo text-texto font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-marca-500">
+<option>Dudas de Laboratorio</option>
+<option>Proyecto de Cátedra</option>
+<option>Consultas teóricas</option>
+<option>Cómputo II</option>
+</select>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-texto font-semibold mb-1">Etiqueta técnica</label>
+<input class="w-full px-3.5 py-2 rounded-lg bg-fondo text-texto font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-marca-500" placeholder="Ej. Valgrind, C++, GCC" type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-texto font-semibold mb-1">Detalle y código fuente</label>
+<textarea class="w-full p-3 rounded-lg bg-fondo text-texto font-body-md text-body-md focus:bg-superficie focus:outline-none focus:ring-2 focus:ring-marca-500" placeholder="Explique su consulta detalladamente. Puede incluir bloques de código usando sangría o comillas invertidas." required="" rows="5"></textarea>
+</div>
+<div class="p-3 bg-marca-50 rounded-lg text-marca-800 font-label-sm text-label-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-marca-600 flex-shrink-0">info</span>
+<span>Por favor no incluya soluciones completas de tareas calificadas. Su mensaje será moderado por el docente.</span>
+</div>
+<div class="flex items-center justify-end gap-3 pt-2">
+<button class="px-4 py-2 rounded-lg text-texto hover:bg-fondo font-label-md text-label-md transition-colors" onclick="document.getElementById('modal-nuevo-hilo').classList.add('hidden')" type="button">
+            Cancelar
+          </button>
+<button class="px-5 py-2 rounded-lg bg-marca-600 hover:bg-marca-700 text-superficie font-label-md text-label-md font-semibold shadow-sm transition-all" type="submit">
+            Publicar Hilo
+          </button>
+</div>
+</form>
+</div>
+</div>
+</div></main></div></body></html>

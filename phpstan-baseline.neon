@@ -1,0 +1,709 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \#2 \$callback of method Illuminate\\Console\\Command\:\:trap\(\) expects callable\(int\)\: void, Closure\(\)\: true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Console/Commands/Dev.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Academica\\Livewire\\CargaAcademica\:\:\$secciones\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Modules/Academica/Livewire/CargaAcademica.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\:\:pluck\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Modules/Academica/Livewire/Catalogo.php
+
+		-
+			message: '#^Parameter \#1 \$array \(array\{0\: array\{etiqueta\: \(array\|string\), url\: string, activa\: false\}, 1\: array\{etiqueta\: \(array\|string\), url\: string, activa\: true\}, 2\: array\{etiqueta\: \(array\|string\), url\: string, activa\: false\}, 3\?\: array\{etiqueta\: \(array\|string\), url\: string, activa\: false\}\}\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: app/Modules/Academica/Livewire/ClavesMatricula.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,object\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Modules/Academica/Livewire/MisMaterias.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\CargaAcademicaService\:\:asignaturas\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/CargaAcademicaService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\CargaAcademicaService\:\:docentesDisponibles\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/CargaAcademicaService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\CargaAcademicaService\:\:secciones\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/CargaAcademicaService.php
+
+		-
+			message: '#^Parameter \#1 \$a of method App\\Modules\\Academica\\Services\\HorarioService\:\:seCruzan\(\) expects Illuminate\\Support\\Collection\<int, object\>, Illuminate\\Support\\Collection\<int, object\{weekday\: int, start_time\: string, end_time\: string\}&stdClass\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Academica/Services/CargaAcademicaService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\CarreraService\:\:coordinadores\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<\(int\|string\), stdClass\|null\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/CarreraService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\CarreraService\:\:detalle\(\) should return array\{carrera\: object, periodo\: string\|null, planes\: array\<int, string\>, coordinador\: object\|null, docentes\: Illuminate\\Support\\Collection\<int, object\>, materias\: Illuminate\\Support\\Collection\<int, object\>\} but returns array\{carrera\: stdClass, periodo\: mixed, planes\: array\<mixed\>, coordinador\: object\|null, docentes\: Illuminate\\Support\\Collection\<int, object\{id\: int, nombre\: mixed, correo\: mixed, grupos\: int\<0, max\>\}&stdClass\>, materias\: Illuminate\\Support\\Collection\<int, object\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/CarreraService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\CarreraService\:\:docentesDe\(\) should return Illuminate\\Support\\Collection\<int, Illuminate\\Support\\Collection\<int, object\>\> but returns Illuminate\\Support\\Collection\<\(int\|string\), Illuminate\\Support\\Collection\<int, stdClass\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/CarreraService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\CarreraService\:\:listar\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/CarreraService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\CarreraService\:\:materiasDelPlan\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/CarreraService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\CarreraService\:\:ofertaPorCarrera\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<\(int\|string\), stdClass\|null\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/CarreraService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\CarreraService\:\:seccionesDe\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/CarreraService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\CatalogoService\:\:estructura\(\) should return array\{departamentos\: Illuminate\\Support\\Collection\<int, object\>, carreras\: Illuminate\\Support\\Collection\<int, object\>, aulas\: Illuminate\\Support\\Collection\<int, object\>\} but returns array\{departamentos\: Illuminate\\Support\\Collection\<int, stdClass\>, carreras\: Illuminate\\Support\\Collection\<int, stdClass\>, aulas\: Illuminate\\Support\\Collection\<int, stdClass\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/CatalogoService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\HorarioService\:\:bloques\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/HorarioService.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Query\\Builder\:\:value\(\) expects string, Illuminate\\Contracts\\Database\\Query\\Expression given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Modules/Academica/Services/HorarioService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\MatriculaService\:\:claves\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/MatriculaService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\MatriculaService\:\:materiasInscribibles\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/MatriculaService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\MatriculaService\:\:opcionesDeCambio\(\) should return array\{materia\: object, plazo\: Illuminate\\Support\\Carbon, abierto\: bool, pendiente\: bool, secciones\: Illuminate\\Support\\Collection\<int, object\>\} but returns array\{materia\: stdClass\|null, plazo\: Illuminate\\Support\\Carbon, abierto\: bool, pendiente\: bool, secciones\: Illuminate\\Support\\Collection\<int, stdClass\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/MatriculaService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\MatriculaService\:\:plazos\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, object\{id\: int, name\: mixed, deadline\: Illuminate\\Support\\Carbon\|null, por_defecto\: Illuminate\\Support\\Carbon, extended_until\: Illuminate\\Support\\Carbon\|null, extension_reason\: mixed, rige\: Illuminate\\Support\\Carbon, vencido\: bool\}&stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/MatriculaService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\MatriculaService\:\:prorrogas\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/MatriculaService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\MatriculaService\:\:seccionesAbiertas\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/MatriculaService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\MatriculaService\:\:solicitudes\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/MatriculaService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\PeriodoService\:\:listar\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/PeriodoService.php
+
+		-
+			message: '#^Called ''pluck'' on Laravel collection, but could have been retrieved as a query\.$#'
+			identifier: larastan.noUnnecessaryCollectionCall
+			count: 1
+			path: app/Modules/Academica/Services/SeccionService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\SeccionService\:\:estudiantes\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/SeccionService.php
+
+		-
+			message: '#^Method App\\Modules\\Academica\\Services\\SeccionService\:\:listar\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Academica/Services/SeccionService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between App\\Modules\\Identidad\\Models\\StudentDevice and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Modules/Asistencia/Services/AsistenciaQrService.php
+
+		-
+			message: '#^Method App\\Modules\\Asistencia\\Services\\AsistenciaService\:\:areas\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Asistencia/Services/AsistenciaService.php
+
+		-
+			message: '#^Method App\\Modules\\Asistencia\\Services\\AsistenciaService\:\:cancelaciones\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Asistencia/Services/AsistenciaService.php
+
+		-
+			message: '#^Method App\\Modules\\Asistencia\\Services\\AsistenciaService\:\:historial\(\) should return array\{registros\: Illuminate\\Support\\Collection\<int, object\>, porcentaje\: float\|null, porComputo\: Illuminate\\Support\\Collection\<int, object\>\} but returns array\{registros\: Illuminate\\Support\\Collection\<int, stdClass\>, porcentaje\: float\|null, porComputo\: Illuminate\\Support\\Collection\<int, stdClass\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Asistencia/Services/AsistenciaService.php
+
+		-
+			message: '#^Method App\\Modules\\Asistencia\\Services\\AsistenciaService\:\:justificacionesPendientes\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Asistencia/Services/AsistenciaService.php
+
+		-
+			message: '#^Method App\\Modules\\Asistencia\\Services\\AsistenciaService\:\:miAsistencia\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Asistencia/Services/AsistenciaService.php
+
+		-
+			message: '#^Method App\\Modules\\Asistencia\\Services\\AsistenciaService\:\:sesion\(\) should return array\{sesion\: object, estudiantes\: Illuminate\\Support\\Collection\<int, object\>, rechazos\: Illuminate\\Support\\Collection\<int, object\>, conteo\: array\<string, int\>, segundos\: int\} but returns array\{sesion\: stdClass\|null, estudiantes\: Illuminate\\Support\\Collection\<int, stdClass\>, rechazos\: Illuminate\\Support\\Collection\<int, stdClass\>, conteo\: array\<int\>, segundos\: int\<0, max\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Asistencia/Services/AsistenciaService.php
+
+		-
+			message: '#^Method App\\Modules\\Asistencia\\Services\\AsistenciaService\:\:sesiones\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Asistencia/Services/AsistenciaService.php
+
+		-
+			message: '#^Parameter \#1 \$registros of method App\\Modules\\Asistencia\\Services\\AsistenciaService\:\:porcentaje\(\) expects Illuminate\\Support\\Collection\<int, object\>, Illuminate\\Support\\Collection\<int, stdClass\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Asistencia/Services/AsistenciaService.php
+
+		-
+			message: '#^Method App\\Modules\\Asistencia\\Services\\DiagnosticoService\:\:intentos\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Asistencia/Services/DiagnosticoService.php
+
+		-
+			message: '#^Called ''pluck'' on Laravel collection, but could have been retrieved as a query\.$#'
+			identifier: larastan.noUnnecessaryCollectionCall
+			count: 1
+			path: app/Modules/Asistencia/Services/ReporteMeetService.php
+
+		-
+			message: '#^Method App\\Modules\\Asistencia\\Services\\ReporteMeetService\:\:calculo\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, object\{matricula\: int, nombre\: string, correo\: mixed, carnet\: mixed, minutos\: int, porcentaje\: float, estado\: ''absent''\|''present''\}&stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Asistencia/Services/ReporteMeetService.php
+
+		-
+			message: '#^Method App\\Modules\\Asistencia\\Services\\ReporteMeetService\:\:clases\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Asistencia/Services/ReporteMeetService.php
+
+		-
+			message: '#^Method App\\Modules\\Asistencia\\Services\\ReporteMeetService\:\:vistaPrevia\(\) should return array\{reporte\: object, clase\: object, presentes\: Illuminate\\Support\\Collection\<int, object\>, ausentes\: Illuminate\\Support\\Collection\<int, object\>, sin_asociar\: Illuminate\\Support\\Collection\<int, object\>, descartadas\: Illuminate\\Support\\Collection\<int, object\>\} but returns array\{reporte\: object, clase\: object, presentes\: Illuminate\\Support\\Collection\<int, object\>, ausentes\: Illuminate\\Support\\Collection\<int, object\>, sin_asociar\: Illuminate\\Support\\Collection\<int, stdClass\>, descartadas\: Illuminate\\Support\\Collection\<int, stdClass\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Asistencia/Services/ReporteMeetService.php
+
+		-
+			message: '#^Parameter \#1 \$clases of method App\\Modules\\Asistencia\\Services\\ReporteMeetService\:\:actualizarEstados\(\) expects Illuminate\\Support\\Collection\<int, object\>, Illuminate\\Support\\Collection\<int, stdClass\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Modules/Asistencia/Services/ReporteMeetService.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Auditoria\\Livewire\\Auditoria\:\:\$eventos\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Auditoria/Livewire/Auditoria.php
+
+		-
+			message: '#^Method App\\Modules\\Calificaciones\\Services\\CalificacionService\:\:actasPorValidar\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Calificaciones/Services/CalificacionService.php
+
+		-
+			message: '#^Method App\\Modules\\Calificaciones\\Services\\CalificacionService\:\:estadoCierre\(\) should return array\{carreras\: Illuminate\\Support\\Collection\<string, Illuminate\\Support\\Collection\<int, object\>\>, total\: int, validadas\: int, pendientes\: Illuminate\\Support\\Collection\<int, string\>, autorizado\: object\|null, periodo\: object\|null\} but returns array\{carreras\: Illuminate\\Support\\Collection\<\(int\|string\), Illuminate\\Support\\Collection\<int, stdClass\>\>, total\: int\<0, max\>, validadas\: int\<0, max\>, pendientes\: Illuminate\\Support\\Collection\<int, non\-falsy\-string\>, autorizado\: stdClass\|null, periodo\: stdClass\|null\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Calificaciones/Services/CalificacionService.php
+
+		-
+			message: '#^Method App\\Modules\\Calificaciones\\Services\\CalificacionService\:\:estructura\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Calificaciones/Services/CalificacionService.php
+
+		-
+			message: '#^Method App\\Modules\\Calificaciones\\Services\\CalificacionService\:\:libro\(\) should return array\{computos\: Illuminate\\Support\\Collection\<int, object\>, filas\: Illuminate\\Support\\Collection\<int, object\>, cerrado\: bool\} but returns array\{computos\: Illuminate\\Support\\Collection\<int, object\>, filas\: Illuminate\\Support\\Collection\<int, stdClass\>, cerrado\: bool\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Calificaciones/Services/CalificacionService.php
+
+		-
+			message: '#^Method App\\Modules\\Calificaciones\\Services\\CalificacionService\:\:misNotas\(\) should return array\{materias\: Illuminate\\Support\\Collection\<int, object\>, historial\: Illuminate\\Support\\Collection\<int, object\>\} but returns array\{materias\: Illuminate\\Support\\Collection\<int, stdClass\>, historial\: Illuminate\\Support\\Collection\<int, stdClass\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Calificaciones/Services/CalificacionService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,object\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 3
+			path: app/Modules/Calificaciones/Services/CalificacionService.php
+
+		-
+			message: '#^Method App\\Modules\\Calificaciones\\Services\\RevisionService\:\:deSeccion\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Calificaciones/Services/RevisionService.php
+
+		-
+			message: '#^Method App\\Modules\\Calificaciones\\Services\\RevisionService\:\:items\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Calificaciones/Services/RevisionService.php
+
+		-
+			message: '#^Method App\\Modules\\Calificaciones\\Services\\RevisionService\:\:pendientes\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Calificaciones/Services/RevisionService.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: string$#'
+			identifier: match.unhandled
+			count: 1
+			path: app/Modules/Comunicacion/Listeners/EnviarAvisos.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Query\\Builder\:\:value\(\) expects string, Illuminate\\Contracts\\Database\\Query\\Expression given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Comunicacion/Listeners/EnviarAvisos.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Comunicacion\\Livewire\\MensajeCondicional\:\:\$candidatos\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Modules/Comunicacion/Livewire/MensajeCondicional.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Comunicacion\\Livewire\\MensajeCondicional\:\:\$destinatarios\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Modules/Comunicacion/Livewire/MensajeCondicional.php
+
+		-
+			message: '#^Method App\\Modules\\Comunicacion\\Services\\ForoService\:\:hilo\(\) should return array\{hilo\: object, raiz\: Illuminate\\Support\\Collection\<int, object\>, hijos\: Illuminate\\Support\\Collection\<int\|string, Illuminate\\Support\\Collection\<int, object\>\>\} but returns array\{hilo\: stdClass, raiz\: Illuminate\\Support\\Collection\<int, stdClass\>, hijos\: Illuminate\\Support\\Collection\<\(int\|string\), Illuminate\\Support\\Collection\<int, stdClass\>\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Comunicacion/Services/ForoService.php
+
+		-
+			message: '#^Method App\\Modules\\Comunicacion\\Services\\ForoService\:\:hilos\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Comunicacion/Services/ForoService.php
+
+		-
+			message: '#^Method App\\Modules\\Comunicacion\\Services\\MensajeriaService\:\:actividades\(\) should return Illuminate\\Support\\Collection\<int, object\{id\: int, title\: string, entregable\: bool\}\> but returns Illuminate\\Support\\Collection\<int, object\{id\: mixed, title\: mixed, entregable\: bool\}&stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Comunicacion/Services/MensajeriaService.php
+
+		-
+			message: '#^Method App\\Modules\\Comunicacion\\Services\\MensajeriaService\:\:destinatarios\(\) should return Illuminate\\Support\\Collection\<int, object\{id\: int, nombre\: string, correo\: string, nota\: float\|null\}\> but returns Illuminate\\Support\\Collection\<int, object\{id\: int, nombre\: string, correo\: mixed, nota\: float\|null\}&stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Comunicacion/Services/MensajeriaService.php
+
+		-
+			message: '#^Method App\\Modules\\Comunicacion\\Services\\MensajeriaService\:\:historial\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, object\{id\: mixed, asunto\: mixed, texto\: mixed, actividad\: mixed, condicion\: mixed, cuando\: mixed, enviadoPor\: string, destinatarios\: Illuminate\\Support\\Collection\<\(int\|string\), object\{nombre\: string, correo\: mixed, entregado\: bool\}&stdClass\>, entregados\: int\<0, max\>\}&stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Comunicacion/Services/MensajeriaService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Modules/Comunicacion/Services/MensajeriaService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,stdClass\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Modules/Comunicacion/Services/MensajeriaService.php
+
+		-
+			message: '#^Method App\\Modules\\Comunicacion\\Services\\NotificacionService\:\:yaEnviado\(\) should return Illuminate\\Support\\Collection\<int, true\> but returns Illuminate\\Support\\Collection\<\(int\|string\), bool\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Comunicacion/Services/NotificacionService.php
+
+		-
+			message: '#^Method App\\Modules\\Contenidos\\Services\\ContenidoService\:\:analitica\(\) should return array\{recursos\: Illuminate\\Support\\Collection\<int, object\>, estudiantes\: Illuminate\\Support\\Collection\<int, object\>, celdas\: array\<string, object\>\} but returns array\{recursos\: Illuminate\\Support\\Collection\<int, stdClass\>, estudiantes\: Illuminate\\Support\\Collection\<int, stdClass\>, celdas\: array\<string, stdClass\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Contenidos/Services/ContenidoService.php
+
+		-
+			message: '#^Method App\\Modules\\Contenidos\\Services\\ContenidoService\:\:carpeta\(\) should return array\{recurso\: object, archivos\: Illuminate\\Support\\Collection\<int, object\>\} but returns array\{recurso\: stdClass, archivos\: Illuminate\\Support\\Collection\<int, stdClass\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Contenidos/Services/ContenidoService.php
+
+		-
+			message: '#^Method App\\Modules\\Contenidos\\Services\\ContenidoService\:\:papelera\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, \(object\{tipo\: ''recurso'', id\: int, title\: mixed, unidad\: mixed, resource_type\: mixed, deleted_at\: mixed\}&stdClass\)\|\(object\{tipo\: ''unidad'', id\: int, title\: mixed, unidad\: null, resource_type\: null, deleted_at\: mixed\}&stdClass\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Contenidos/Services/ContenidoService.php
+
+		-
+			message: '#^Method App\\Modules\\Contenidos\\Services\\ContenidoService\:\:unidades\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Contenidos/Services/ContenidoService.php
+
+		-
+			message: '#^Offset ''bytes'' on array\{archivo\: Illuminate\\Http\\UploadedFile, ruta\: string, bytes\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Modules/Contenidos/Services/ContenidoService.php
+
+		-
+			message: '#^Method App\\Modules\\Evaluaciones\\Services\\ActividadService\:\:desgloseRubrica\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Evaluaciones/Services/ActividadService.php
+
+		-
+			message: '#^Method App\\Modules\\Evaluaciones\\Services\\ActividadService\:\:pendientes\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Evaluaciones/Services/ActividadService.php
+
+		-
+			message: '#^Method App\\Modules\\Evaluaciones\\Services\\ActividadService\:\:porComputo\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Evaluaciones/Services/ActividadService.php
+
+		-
+			message: '#^Method App\\Modules\\Evaluaciones\\Services\\CuestionarioService\:\:aciertos\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Evaluaciones/Services/CuestionarioService.php
+
+		-
+			message: '#^Method App\\Modules\\Evaluaciones\\Services\\CuestionarioService\:\:banco\(\) should return array\{banco\: object, preguntas\: Illuminate\\Support\\Collection\<int, object\>, esDueno\: bool, compartidoCon\: Illuminate\\Support\\Collection\<int, object\>\} but returns array\{banco\: object, preguntas\: Illuminate\\Support\\Collection\<int, stdClass\>, esDueno\: bool, compartidoCon\: Illuminate\\Support\\Collection\<int, stdClass\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Evaluaciones/Services/CuestionarioService.php
+
+		-
+			message: '#^Method App\\Modules\\Evaluaciones\\Services\\CuestionarioService\:\:bancos\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Evaluaciones/Services/CuestionarioService.php
+
+		-
+			message: '#^Method App\\Modules\\Evaluaciones\\Services\\CuestionarioService\:\:intento\(\) should return array\{intento\: object, cuestionario\: object, preguntas\: Illuminate\\Support\\Collection\<int, object\>, segundos\: int\} but returns array\{intento\: stdClass\|null, cuestionario\: stdClass\|null, preguntas\: Illuminate\\Support\\Collection\<int, stdClass\>, segundos\: int\<0, max\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Evaluaciones/Services/CuestionarioService.php
+
+		-
+			message: '#^Method App\\Modules\\Evaluaciones\\Services\\CuestionarioService\:\:monitor\(\) should return array\{cuestionario\: object, filas\: Illuminate\\Support\\Collection\<int, object\>, resumen\: array\{sin_empezar\: int, en_curso\: int, enviados\: int\}, finEfectivo\: Illuminate\\Support\\Carbon, topeExtra\: Illuminate\\Support\\Carbon, revisionDesde\: Illuminate\\Support\\Carbon, enVivo\: bool\} but returns array\{cuestionario\: object, filas\: Illuminate\\Support\\Collection\<int, stdClass\>, resumen\: array\{sin_empezar\: int\<0, max\>, en_curso\: int\<0, max\>, enviados\: int\<0, max\>\}, finEfectivo\: Illuminate\\Support\\Carbon, topeExtra\: Illuminate\\Support\\Carbon, revisionDesde\: Illuminate\\Support\\Carbon, enVivo\: bool\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Evaluaciones/Services/CuestionarioService.php
+
+		-
+			message: '#^Method App\\Modules\\Evaluaciones\\Services\\ProrrogaService\:\:deActividad\(\) should return array\{datosActividad\: object, prorrogas\: Illuminate\\Support\\Collection\<int, object\>, estudiantes\: Illuminate\\Support\\Collection\<int, object\>, tipos\: array\<string, string\>\} but returns array\{datosActividad\: object, prorrogas\: Illuminate\\Support\\Collection\<int, stdClass\>, estudiantes\: Illuminate\\Support\\Collection\<int, stdClass\>, tipos\: non\-empty\-array\{submission\?\: ''Entrega de la tarea'', review\?\: ''Plazo para pedir…''\}\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Evaluaciones/Services/ProrrogaService.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Identidad\\Livewire\\CrearUsuario\:\:\$opciones\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Identidad/Livewire/CrearUsuario.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Identidad\\Livewire\\RolesUsuario\:\:\$opciones\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Identidad/Livewire/RolesUsuario.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Identidad\\Livewire\\SolicitudesDispositivo\:\:\$actual\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Modules/Identidad/Livewire/SolicitudesDispositivo.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Identidad\\Livewire\\SolicitudesDispositivo\:\:\$solicitudes\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Modules/Identidad/Livewire/SolicitudesDispositivo.php
+
+		-
+			message: '#^Method App\\Modules\\Identidad\\Services\\AsignacionService\:\:opciones\(\) should return array\{departamentos\: Illuminate\\Support\\Collection\<int, object\>, carreras\: Illuminate\\Support\\Collection\<int, object\>, planes\: Illuminate\\Support\\Collection\<int, object\>\} but returns array\{departamentos\: Illuminate\\Support\\Collection\<int, stdClass\>, carreras\: Illuminate\\Support\\Collection\<int, stdClass\>, planes\: Illuminate\\Support\\Collection\<int, stdClass\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Identidad/Services/AsignacionService.php
+
+		-
+			message: '#^Method App\\Modules\\Identidad\\Services\\DispositivoService\:\:historial\(\) should return array\{dispositivos\: Illuminate\\Support\\Collection\<int, object\>, cambioReciente\: bool\} but returns array\{dispositivos\: Illuminate\\Support\\Collection\<int, stdClass\>, cambioReciente\: bool\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Identidad/Services/DispositivoService.php
+
+		-
+			message: '#^Method App\\Modules\\Identidad\\Services\\DispositivoService\:\:solicitudes\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Identidad/Services/DispositivoService.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Socialite\\Contracts\\User\:\:getRaw\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Modules/Identidad/Services/GoogleAuthService.php
+
+		-
+			message: '#^Method App\\Modules\\Identidad\\Services\\ImportacionService\:\:lote\(\) should return array\{lote\: object, errores\: Illuminate\\Support\\Collection\<int, object\>\} but returns array\{lote\: stdClass, errores\: Illuminate\\Support\\Collection\<int, stdClass\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Identidad/Services/ImportacionService.php
+
+		-
+			message: '#^Method App\\Modules\\Identidad\\Services\\ImportacionService\:\:lotes\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Identidad/Services/ImportacionService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>code" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Identidad/Services/ImportacionService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>plan" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Identidad/Services/ImportacionService.php
+
+		-
+			message: '#^Method App\\Modules\\Identidad\\Services\\PerfilService\:\:preferencias\(\) should return Illuminate\\Support\\Collection\<int, object\{codigo\: string, descripcion\: string, correo\: bool, obligatorio\: bool\}\> but returns Illuminate\\Support\\Collection\<int, object\{codigo\: mixed, descripcion\: mixed, correo\: bool, obligatorio\: bool\}&stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Identidad/Services/PerfilService.php
+
+		-
+			message: '#^Method App\\Modules\\Identidad\\Services\\PerfilService\:\:sesiones\(\) should return array\{sesiones\: Illuminate\\Support\\Collection\<int, object\>, accesos\: Illuminate\\Support\\Collection\<int, object\>, disponible\: bool\} but returns array\{disponible\: bool, sesiones\: Illuminate\\Support\\Collection\<\(int\|string\), mixed\>, accesos\: Illuminate\\Support\\Collection\<int, stdClass\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Identidad/Services/PerfilService.php
+
+		-
+			message: '#^Method App\\Modules\\Identidad\\Services\\RolService\:\:matriz\(\) should return array\{roles\: array\<string, array\{usuarios\: int, permisos\: array\<int, string\>\}\>, grupos\: array\<string, array\<int, string\>\>\} but returns array\{roles\: array\<string, array\{usuarios\: int, permisos\: array\<mixed\>\}\>, grupos\: array\<Illuminate\\Support\\Collection\<int, mixed\>\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Identidad/Services/RolService.php
+
+		-
+			message: '#^Dead catch \- Illuminate\\Validation\\ValidationException is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
+			count: 1
+			path: app/Modules/Identidad/Services/UsuarioService.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Socialite\\Contracts\\Provider\:\:with\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Modules/Identidad/routes.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,object\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Modules/Reportes/Livewire/DesempenoDocente.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Modules/Reportes/Livewire/DesempenoDocente.php
+
+		-
+			message: '#^Method App\\Modules\\Reportes\\Services\\DesempenoService\:\:indicadores\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Reportes/Services/DesempenoService.php
+
+		-
+			message: '#^Method App\\Modules\\Reportes\\Services\\DesempenoService\:\:periodos\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Reportes/Services/DesempenoService.php
+
+		-
+			message: '#^Method App\\Modules\\Reportes\\Services\\PanelService\:\:agendaDelEstudiante\(\) should return Illuminate\\Support\\Collection\<string, Illuminate\\Support\\Collection\<int, object\>\> but returns Illuminate\\Support\\Collection\<\(int\|string\), Illuminate\\Support\\Collection\<int, mixed\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Reportes/Services/PanelService.php
+
+		-
+			message: '#^Method App\\Modules\\Reportes\\Services\\ReporteService\:\:programados\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Reportes/Services/ReporteService.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Http\\Request\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Support/DbContext.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type Illuminate\\Http\\Request\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Support/DbContext.php
+
+		-
+			message: '#^Method Database\\Seeders\\DemoAcademicSeeder\:\:seedEnrollments\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: database/seeders/DemoAcademicSeeder.php
+
+		-
+			message: '#^Method Database\\Seeders\\DemoAcademicSeeder\:\:seedSections\(\) should return Illuminate\\Support\\Collection\<int, object\> but returns Illuminate\\Support\\Collection\<int, \(object\{id\: int, code\: string, section\: literal\-string&lowercase\-string&non\-falsy\-string&uppercase\-string, cycle\: 9, index\: int, shift\: 0\|1, subject_id\: mixed, subject\: mixed, department_id\: mixed, teacher\: int\}&stdClass\)\|\(object\{id\: int, code\: string, section\: literal\-string&lowercase\-string&non\-falsy\-string&uppercase\-string, cycle\: 7, index\: int, shift\: 0\|1, subject_id\: mixed, subject\: mixed, department_id\: mixed, teacher\: int\}&stdClass\)\|\(object\{id\: int, code\: string, section\: literal\-string&lowercase\-string&non\-falsy\-string&uppercase\-string, cycle\: 5, index\: int, shift\: 0\|1, subject_id\: mixed, subject\: mixed, department_id\: mixed, teacher\: int\}&stdClass\)\|\(object\{id\: int, code\: string, section\: literal\-string&lowercase\-string&non\-falsy\-string&uppercase\-string, cycle\: 3, index\: int, shift\: 0\|1, subject_id\: mixed, subject\: mixed, department_id\: mixed, teacher\: int\}&stdClass\)\|\(object\{id\: int, code\: string, section\: literal\-string&lowercase\-string&non\-falsy\-string&uppercase\-string, cycle\: 1, index\: int, shift\: 0\|1, subject_id\: mixed, subject\: mixed, department_id\: mixed, teacher\: int\}&stdClass\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: database/seeders/DemoAcademicSeeder.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_values contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: database/seeders/DemoAcademicSeeder.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: database/seeders/DemoAcademicSeeder.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,object\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: database/seeders/DemoAcademicSeeder.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between \*NEVER\* and ''Tarea 2'' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: database/seeders/DemoAcademicSeeder.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between \*NEVER\* and ''Parcial 1'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 3
+			path: database/seeders/DemoAcademicSeeder.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between \*NEVER\* and ''Proyecto final'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 2
+			path: database/seeders/DemoAcademicSeeder.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between \*NEVER\* and ''Tarea 2'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: database/seeders/DemoAcademicSeeder.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between \*NEVER\* and ''assignment'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: database/seeders/DemoAcademicSeeder.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between \*NEVER\* and ''grace_penalty'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: database/seeders/DemoAcademicSeeder.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between \*NEVER\* and ''strict'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: database/seeders/DemoAcademicSeeder.php

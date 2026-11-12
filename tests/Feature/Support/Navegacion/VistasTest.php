@@ -69,9 +69,9 @@ it('enforces each view permission for the role', function (string $rol) {
 
 it('shows the view card with its requirement, task, team and milestone', function () {
     $this->actingAs(usuarioCon('docente'))
-        ->get(route('perfil.google-calendar'))
+        ->get(route(registrarVistaPendiente()))
         ->assertOk()
-        ->assertSeeText(['Google Calendar', 'Pantalla en construcción', 'RF21', 'OP#455', 'Equipo 5 · H3']);
+        ->assertSeeText(['Vista pendiente', 'Pantalla en construcción', 'RF21', 'OP#455', 'Equipo 5 · H3']);
 });
 
 it('shows the section header and only the tabs the role may see', function () {

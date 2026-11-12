@@ -104,7 +104,7 @@ class MatriculaService
      *
      * @return Collection<int, object>
      */
-    public function materiasInscribibles(User $estudiante): Collection
+    public function materiasInscribibles(User $estudiante, string $buscar = ''): Collection
     {
         $this->alcance->exigir($estudiante, 'matricula.automatricular');
         $periodo = PeriodoService::activoId();
@@ -120,9 +120,15 @@ class MatriculaService
         $inscritas = DB::table('enrollments')->where('student_id', $estudiante->id)->where('period_id', $periodo)->where('status', 'active')
             ->pluck('subject_id')->map(fn ($id) => (int) $id)->all();
 
+        // Búsqueda por código o nombre, sin distinguir tildes, como en el catálogo (H-10 de la QA del 27/10).
+        $buscar = trim($buscar);
+        $patron = Busqueda::fragmentoSinTildes($buscar);
+
         return DB::table('career_subjects')->join('subjects', 'subjects.id', '=', 'career_subjects.subject_id')
             ->where('career_subjects.study_plan_id', $plan)->where('subjects.is_active', true)
             ->whereRaw('career_subjects.cycle % 2 = ?', [$paridad])
+            ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->whereRaw("lower(subjects.code) like ? escape '\\'", [$patron])
+                ->orWhereRaw(Busqueda::sinTildes('subjects.name')." like ? escape '\\'", [$patron])))
             ->orderBy('career_subjects.cycle')->orderBy('subjects.code')
             ->get(['subjects.id', 'subjects.code', 'subjects.name', 'subjects.credits', 'career_subjects.cycle'])
             ->each(function (object $m) use ($abiertas, $conClave, $inscritas): void {

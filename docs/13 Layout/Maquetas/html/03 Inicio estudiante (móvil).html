@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#fff7fd;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary": "#87001d", "surface-container-lowest": "#ffffff", "danger-bg": "#FEF2F2", "surface-container-highest": "#e8e0e6", "on-tertiary-container": "#92daea", "marca-300": "#EE98A3", "marca-100": "#FBE4E6", "on-primary-fixed-variant": "#920020", "background": "#fff7fd", "outline-variant": "#e2bebd", "on-secondary-fixed-variant": "#8c142a", "on-background": "#1e1a1f", "on-secondary-container": "#6c001a", "surface-container": "#f3ecf1", "warning-bg": "#FFFBEB", "on-surface-variant": "#5a4040", "secondary": "#ad2e40", "marca-700": "#8B0E13", "acento": "#9D2235", "danger-text": "#B91C1C", "tertiary-fixed": "#a6eefe", "marca-600": "#AE152D", "secondary-fixed": "#ffdada", "on-primary-fixed": "#410008", "marca-500": "#CB3149", "inverse-primary": "#ffb3b2", "surface-tint": "#b71e33", "info-bg": "#EFF6FF", "tertiary-fixed-dim": "#8ad2e1", "info-text": "#1D4ED8", "error-container": "#ffdad6", "on-surface": "#1e1a1f", "marca-50": "#FDF2F3", "secondary-fixed-dim": "#ffb3b5", "on-secondary": "#ffffff", "inverse-on-surface": "#f6eef4", "success-bg": "#F0FDF4", "on-primary": "#ffffff", "marca-900": "#520A0D", "on-tertiary-fixed": "#001f25", "marca-400": "#E05F72", "texto-suave": "#696969", "fondo": "#F8F8F8", "primary-container": "#ae152d", "on-tertiary-fixed-variant": "#004e5a", "texto": "#1A171B", "tertiary": "#004852", "surface": "#fff7fd", "outline": "#8e706f", "secondary-container": "#fe6b78", "on-error-container": "#93000a", "texto-desactivado": "#ABABAB", "warning-text": "#B45309", "on-secondary-fixed": "#40000c", "surface-container-low": "#f9f1f7", "surface-bright": "#fff7fd", "marca-200": "#F6C6CC", "primary-fixed": "#ffdad9", "primary-fixed-dim": "#ffb3b2", "borde": "#E2E2E2", "surface-variant": "#e8e0e6", "marca-800": "#6E0B10", "surface-container-high": "#eee6ec", "success-text": "#15803D", "surface-dim": "#dfd8dd", "inverse-surface": "#332f34", "on-error": "#ffffff", "error": "#ba1a1a", "on-tertiary": "#ffffff", "on-primary-container": "#ffbfbe", "tertiary-container": "#00616f", "superficie": "#FFFFFF" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2rem", "space-xs": "0.25rem", "gutter": "1rem", "space-md": "1rem", "space-sm": "0.5rem", "margin-mobile": "1rem", "margin": "1.5rem", "space-lg": "1.5rem", "gutter-mobile": "0.75rem" }, "fontFamily": { "label-md": ["Hanken Grotesk"], "label-nav-header": ["Hanken Grotesk"], "label-sm": ["Hanken Grotesk"], "body-md": ["Hanken Grotesk"], "headline-md": ["Hanken Grotesk"], "display-qr": ["Hanken Grotesk"], "headline-lg": ["Hanken Grotesk"], "body-lg": ["Hanken Grotesk"], "headline-sm": ["Hanken Grotesk"] }, "fontSize": { "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }], "label-nav-header": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }], "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }], "body-md": ["14px", { "lineHeight": "21px", "fontWeight": "400" }], "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "display-qr": ["36px", { "lineHeight": "44px", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "headline-sm": ["16px", { "lineHeight": "22px", "fontWeight": "600" }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 bg-superficie/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(26,23,27,0.04)] pt-safe"><div class="h-14 px-margin-mobile flex items-center justify-between gap-space-xs"><div class="flex items-center gap-space-xs"><button aria-label="Abrir menú" class="w-11 h-11 flex items-center justify-center text-on-surface hover:text-marca-600 active:scale-95 transition-transform"><span class="material-symbols-outlined text-[24px]">menu</span></button><div class="flex items-center justify-center w-7 h-7 bg-marca-600 rounded-lg shadow-sm"><span class="font-headline-sm text-headline-sm font-bold text-on-primary tracking-tighter">UES</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm leading-tight text-texto font-bold truncate max-w-[96px]">LMS UES</span><div class="inline-flex"><span class="bg-marca-100 text-marca-700 font-label-nav-header text-label-nav-header px-1.5 py-0.5 rounded-full leading-none">2026-II</span></div></div></div><div class="flex items-center gap-1"><button aria-label="Centro de ayuda" class="w-11 h-11 flex items-center justify-center text-texto-suave hover:text-texto"><span class="material-symbols-outlined text-[20px]">help_outline</span></button><button aria-label="Notificaciones" class="relative w-11 h-11 flex items-center justify-center text-texto-suave hover:text-texto"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-2.5 right-2 min-w-[16px] h-4 px-1 rounded-full bg-marca-600 text-on-primary font-label-nav-header text-[10px] leading-4 flex items-center justify-center font-bold">3</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 ml-1"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-14 pb-20 bg-surface px-margin-mobile"><div class="flex flex-col w-full pb-6 space-y-4">
+<!-- 1. Banner Superior de Aviso Urgente: Asistencia en Curso -->
+<section class="relative overflow-hidden rounded-xl bg-gradient-to-br from-marca-700 via-marca-600 to-primary p-4 text-on-primary shadow-md">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-marca-200 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-superficie"></span>
+</span>
+<span class="font-label-sm text-label-sm tracking-wide uppercase font-semibold text-marca-100">Sesión en vivo</span>
+</div>
+<div class="inline-flex items-center gap-1 bg-black/25 px-2 py-0.5 rounded-full backdrop-blur-sm">
+<span class="material-symbols-outlined text-[16px] text-marca-200">timer</span>
+<span class="font-label-sm text-label-sm font-semibold tracking-wider text-superficie" id="qr-timer">09:16</span>
+</div>
+</div>
+<div class="mt-2.5">
+<h2 class="font-headline-md text-headline-md leading-tight text-superficie font-bold">PRN115 · G.T. 01</h2>
+<p class="font-body-md text-body-md text-marca-100 mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">meeting_room</span>
+        Aula A-101 · Edificio Central
+      </p>
+</div>
+<div class="mt-3.5 pt-3 flex items-center justify-between gap-3 bg-white/10 rounded-lg p-2.5 backdrop-blur-md">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-marca-100">Toma de asistencia</span>
+<span class="font-headline-sm text-headline-sm font-bold text-superficie">Activa ahora</span>
+</div>
+<button class="inline-flex items-center justify-center gap-1.5 h-11 px-4 bg-superficie text-marca-700 font-label-md text-label-md font-bold rounded-lg shadow-sm active:scale-95 transition-transform shrink-0" onclick="handleScanQR()">
+<span class="material-symbols-outlined text-[20px] text-marca-600">qr_code_scanner</span>
+        Escanear QR
+      </button>
+</div>
+</section>
+<!-- 2. Saludo y Ficha Académica del Estudiante -->
+<section class="bg-superficie rounded-xl p-4 shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Fotografía de perfil de una joven estudiante salvadoreña de ingeniería, expresión profesional y cálida, vestimenta formal universitaria casual en tonos neutros, iluminación de estudio suave con fondo desenfocado en biblioteca académica moderna." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2tNU3UGsgroTflHr3W8SZI4Nz0TFon_gALu0VNQRjUaqR3rgEt9o_B43MCI0sDc5eereSWJw9KbBTg79QOXPLpVMbDLKLEq3Bxj5voa1ImTwfq21T6SB9P_WYjSRwt_Tuhy6GOmASVDuy7bxug_enuPdv0O-59l1HwU2Qj2JkLmVGp3PIjJ9B9BkLniUYA6HQ-n4yocgnsT_pNXf_g6AOF-W_azAawXQRWIGDqyAYx88JdhTp4tAIUg"/>
+</div>
+<span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-success-text rounded-full ring-2 ring-superficie"></span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-texto-suave">Ciclo Académico II-2026</span>
+<h1 class="font-headline-md text-headline-md text-texto font-bold leading-tight">Hola, Gabriela</h1>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-texto-suave">CUM Global</span>
+<div class="font-headline-lg text-headline-lg font-bold text-marca-600 leading-none mt-0.5">8.42</div>
+</div>
+</div>
+<div class="mt-3 grid grid-cols-2 gap-2 pt-3">
+<div class="bg-surface-container-low rounded-lg p-2.5">
+<span class="font-label-sm text-label-sm text-texto-suave block">Carné UES</span>
+<span class="font-headline-sm text-headline-sm font-bold text-texto tracking-wide uppercase">GS21004</span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2.5">
+<span class="font-label-sm text-label-sm text-texto-suave block">Carrera</span>
+<span class="font-headline-sm text-headline-sm font-bold text-texto truncate block" title="Ingeniería en Sistemas Informáticos">Ing. Sistemas (ISI)</span>
+</div>
+</div>
+</section>
+<!-- 3. Sección 'Pendientes próximos' -->
+<section class="space-y-2">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] text-marca-600">notification_important</span>
+<h2 class="font-headline-sm text-headline-sm text-texto font-bold">Pendientes próximos</h2>
+</div>
+<span class="font-label-sm text-label-sm text-marca-600 font-semibold">2 activos</span>
+</div>
+<!-- Pendiente 1: Tarea con entrega inmediata -->
+<div class="bg-superficie rounded-xl p-3.5 shadow-sm space-y-2.5">
+<div class="flex items-start justify-between gap-2">
+<div class="flex flex-col">
+<div class="inline-flex items-center gap-1.5">
+<span class="px-2 py-0.5 bg-marca-100 text-marca-700 rounded-full font-label-sm text-label-sm font-semibold">PRN115</span>
+<span class="px-2 py-0.5 bg-danger-bg text-danger-text rounded-full font-label-sm text-label-sm font-medium">Urgente</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-texto mt-1.5">Tarea 2: Algoritmos de Búsqueda</h3>
+</div>
+</div>
+<div class="flex items-center gap-1.5 text-texto-suave font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[18px] text-danger-text">schedule</span>
+<span>Vence: Mañana · 23:59 CST</span>
+</div>
+<div class="pt-1 flex items-center justify-between gap-3">
+<div class="flex items-center gap-1 text-texto-suave font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">attachment</span>
+<span>Formato .zip / git</span>
+</div>
+<button class="h-11 px-4 bg-marca-600 text-on-primary font-label-md text-label-md font-semibold rounded-lg shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1" onclick="handleDeliverTask()">
+<span>Entregar</span>
+<span class="material-symbols-outlined text-[18px]">upload</span>
+</button>
+</div>
+</div>
+<!-- Pendiente 2: Parcial presencial -->
+<div class="bg-superficie rounded-xl p-3.5 shadow-sm space-y-2.5">
+<div class="flex items-start justify-between gap-2">
+<div class="flex flex-col">
+<div class="inline-flex items-center gap-1.5">
+<span class="px-2 py-0.5 bg-surface-container-high text-texto rounded-full font-label-sm text-label-sm font-semibold">BAD115</span>
+<span class="px-2 py-0.5 bg-warning-bg text-warning-text rounded-full font-label-sm text-label-sm font-medium">Evaluación</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-texto mt-1.5">Parcial 2 Teórico-Práctico</h3>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 text-texto-suave font-label-sm text-label-sm">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">calendar_today</span>
+<span>Jue 16/10 · 07:00</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">location_on</span>
+<span>Presencial LAB-1</span>
+</div>
+</div>
+<div class="pt-1 flex items-center justify-between gap-2">
+<span class="font-label-sm text-label-sm text-texto-suave">Ponderación: 25% Cómputo II</span>
+<button class="h-11 px-3 bg-fondo text-texto font-label-md text-label-md font-medium rounded-lg active:scale-95 transition-transform flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">info</span>
+<span>Guía Temática</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 4. Sección 'Semáforo de asistencia' (Art. 48 RCE-UES) -->
+<section class="bg-superficie rounded-xl p-4 shadow-sm space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] text-marca-600">fact_check</span>
+<h2 class="font-headline-sm text-headline-sm text-texto font-bold">Semáforo de asistencia</h2>
+</div>
+<span class="px-2 py-0.5 bg-success-bg text-success-text rounded-full font-label-sm text-label-sm font-bold">88.6% Global</span>
+</div>
+<!-- Banner normativo informativo RCE -->
+<div class="bg-info-bg rounded-lg p-2.5 flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-info-text shrink-0 mt-0.5">policy</span>
+<p class="font-label-sm text-label-sm text-info-text leading-snug">
+<span class="font-bold">Art. 48 RCE-UES:</span> El mínimo reglamentario para derecho a examen final es 75% de asistencias teóricas y prácticas.
+      </p>
+</div>
+<!-- Indicador de alerta crítica/ámbar -->
+<div class="bg-warning-bg rounded-lg p-3 space-y-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-warning-text"></span>
+<span class="font-headline-sm text-headline-sm font-bold text-texto">SIO115 · Sistemas Operativos</span>
+</div>
+<span class="font-headline-sm text-headline-sm font-bold text-warning-text">78.0%</span>
+</div>
+<div class="w-full bg-superficie rounded-full h-1.5 overflow-hidden">
+<div class="bg-warning-text h-1.5 rounded-full" style="width: 78%"></div>
+</div>
+<div class="flex items-center justify-between text-warning-text font-label-sm text-label-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+<span>Riesgo en Cómputo III</span>
+</span>
+<span class="font-bold">A 2 faltas del límite crítico</span>
+</div>
+</div>
+<!-- Asistencias saludables -->
+<div class="grid grid-cols-2 gap-2 pt-1">
+<div class="bg-surface-container-low rounded-lg p-2.5">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm font-semibold text-texto">PRN115</span>
+<span class="font-label-sm text-label-sm font-bold text-success-text">92.0%</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mb-1">
+<div class="bg-success-text h-1.5 rounded-full" style="width: 92%"></div>
+</div>
+<span class="font-label-sm text-label-sm text-success-text flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Regular
+        </span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2.5">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm font-semibold text-texto">DSI115</span>
+<span class="font-label-sm text-label-sm font-bold text-success-text">95.0%</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mb-1">
+<div class="bg-success-text h-1.5 rounded-full" style="width: 95%"></div>
+</div>
+<span class="font-label-sm text-label-sm text-success-text flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Regular
+        </span>
+</div>
+</div>
+</section>
+<!-- 5. Sección 'Mis materias activas' (Tarjetas verticales móviles) -->
+<section class="space-y-3">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] text-marca-600">auto_stories</span>
+<h2 class="font-headline-sm text-headline-sm text-texto font-bold">Mis materias activas</h2>
+</div>
+<span class="font-label-sm text-label-sm text-texto-suave">4 asignaturas</span>
+</div>
+<!-- Tarjeta Materia 1: PRN115 -->
+<article class="bg-superficie rounded-xl p-4 shadow-sm space-y-3">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="inline-flex items-center gap-2">
+<span class="bg-marca-100 text-marca-700 font-label-sm text-label-sm font-bold px-2 py-0.5 rounded-full">PRN115</span>
+<span class="font-label-sm text-label-sm text-texto-suave">G.T. 01 · G.L. 02</span>
+</div>
+<h3 class="font-headline-md text-headline-md font-bold text-texto mt-1">Programación I</h3>
+<p class="font-body-md text-body-md text-texto-suave mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">person</span>
+            Ing. Carlos Martínez
+          </p>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-texto-suave block">Nota actual</span>
+<span class="font-headline-md text-headline-md font-bold text-success-text">8.8</span>
+</div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-texto-suave">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Aula A-101
+        </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">event_repeat</span> Lun / Mié 07:00
+        </span>
+</div>
+<!-- Barra de progreso temático del curso en Rojo UES -->
+<div class="space-y-1">
+<div class="flex justify-between items-center font-label-sm text-label-sm">
+<span class="text-texto-suave">Avance del programa</span>
+<span class="font-bold text-texto">65.0%</span>
+</div>
+<div class="w-full bg-fondo rounded-full h-1.5 overflow-hidden">
+<div class="bg-marca-600 h-1.5 rounded-full transition-all duration-500" style="width: 65%"></div>
+</div>
+</div>
+<div class="pt-1 flex items-center gap-2">
+<button class="h-11 flex-1 bg-marca-600 text-on-primary font-label-md text-label-md font-semibold rounded-lg shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-2">
+<span>Ingresar al curso</span>
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+<button aria-label="Recursos y carpetas de PRN115" class="h-11 w-11 shrink-0 bg-fondo text-texto rounded-lg flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">folder</span>
+</button>
+</div>
+</article>
+<!-- Tarjeta Materia 2: BAD115 -->
+<article class="bg-superficie rounded-xl p-4 shadow-sm space-y-3">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="inline-flex items-center gap-2">
+<span class="bg-marca-100 text-marca-700 font-label-sm text-label-sm font-bold px-2 py-0.5 rounded-full">BAD115</span>
+<span class="font-label-sm text-label-sm text-texto-suave">G.T. 02 · G.L. 01</span>
+</div>
+<h3 class="font-headline-md text-headline-md font-bold text-texto mt-1">Sistemas de Bases de Datos</h3>
+<p class="font-body-md text-body-md text-texto-suave mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">person</span>
+            Inga. Marcela Henríquez
+          </p>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-texto-suave block">Nota actual</span>
+<span class="font-headline-md text-headline-md font-bold text-texto">8.1</span>
+</div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-texto-suave">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">location_on</span> LAB-1 Sistemas
+        </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">event_repeat</span> Mar / Jue 07:00
+        </span>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between items-center font-label-sm text-label-sm">
+<span class="text-texto-suave">Avance del programa</span>
+<span class="font-bold text-texto">58.0%</span>
+</div>
+<div class="w-full bg-fondo rounded-full h-1.5 overflow-hidden">
+<div class="bg-marca-600 h-1.5 rounded-full" style="width: 58%"></div>
+</div>
+</div>
+<div class="pt-1 flex items-center gap-2">
+<button class="h-11 flex-1 bg-fondo text-texto font-label-md text-label-md font-semibold rounded-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
+<span>Ingresar al curso</span>
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+<button aria-label="Recursos y carpetas de BAD115" class="h-11 w-11 shrink-0 bg-fondo text-texto rounded-lg flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">folder</span>
+</button>
+</div>
+</article>
+<!-- Tarjeta Materia 3: SIO115 -->
+<article class="bg-superficie rounded-xl p-4 shadow-sm space-y-3">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="inline-flex items-center gap-2">
+<span class="bg-marca-100 text-marca-700 font-label-sm text-label-sm font-bold px-2 py-0.5 rounded-full">SIO115</span>
+<span class="font-label-sm text-label-sm text-texto-suave">G.T. 01 · G.L. 03</span>
+</div>
+<h3 class="font-headline-md text-headline-md font-bold text-texto mt-1">Sistemas Operativos</h3>
+<p class="font-body-md text-body-md text-texto-suave mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">person</span>
+            Ing. Roberto Villalobos
+          </p>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-texto-suave block">Nota actual</span>
+<span class="font-headline-md text-headline-md font-bold text-warning-text">7.6</span>
+</div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-texto-suave">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Aula C-204
+        </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">event_repeat</span> Mar / Jue 09:00
+        </span>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between items-center font-label-sm text-label-sm">
+<span class="text-texto-suave">Avance del programa</span>
+<span class="font-bold text-texto">60.0%</span>
+</div>
+<div class="w-full bg-fondo rounded-full h-1.5 overflow-hidden">
+<div class="bg-marca-600 h-1.5 rounded-full" style="width: 60%"></div>
+</div>
+</div>
+<div class="pt-1 flex items-center gap-2">
+<button class="h-11 flex-1 bg-fondo text-texto font-label-md text-label-md font-semibold rounded-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
+<span>Ingresar al curso</span>
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+<button aria-label="Recursos y carpetas de SIO115" class="h-11 w-11 shrink-0 bg-fondo text-texto rounded-lg flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">folder</span>
+</button>
+</div>
+</article>
+</section>
+<!-- Modal / Toast de interacción ligera para QR -->
+<div class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" id="qr-modal">
+<div class="bg-superficie rounded-xl w-full max-w-sm p-5 space-y-4 shadow-xl">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[24px] text-marca-600">qr_code_scanner</span>
+<h3 class="font-headline-sm text-headline-sm font-bold text-texto">Escaneo de Asistencia</h3>
+</div>
+<button class="w-8 h-8 rounded-full bg-fondo flex items-center justify-center text-texto-suave" onclick="closeScanQR()">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="bg-surface-container-high rounded-lg p-4 flex flex-col items-center justify-center text-center space-y-3">
+<div class="w-40 h-40 bg-superficie rounded-lg flex items-center justify-center relative overflow-hidden">
+<div class="absolute inset-x-2 top-0 h-0.5 bg-marca-600 shadow-[0_0_8px_#AE152D] animate-bounce"></div>
+<span class="material-symbols-outlined text-[96px] text-texto-suave">qr_code_2</span>
+</div>
+<p class="font-body-md text-body-md text-texto-suave">
+          Alinee el código QR proyectado en el aula A-101 dentro del recuadro.
+        </p>
+</div>
+<div class="flex gap-2">
+<button class="h-11 flex-1 bg-marca-600 text-on-primary font-label-md text-label-md font-semibold rounded-lg shadow-sm active:scale-95 transition-transform" onclick="simulateSuccessQR()">
+          Simular Registro
+        </button>
+<button class="h-11 px-4 bg-fondo text-texto font-label-md text-label-md font-medium rounded-lg" onclick="closeScanQR()">
+          Cancelar
+        </button>
+</div>
+</div>
+</div>
+<!-- Toast confirmación -->
+<div class="hidden fixed bottom-24 left-4 right-4 z-50 bg-inverse-surface text-inverse-on-surface rounded-xl p-3.5 shadow-lg flex items-center justify-between" id="toast-notif">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[22px] text-success-text">verified</span>
+<span class="font-label-md text-label-md font-medium" id="toast-text">Asistencia registrada exitosamente.</span>
+</div>
+<button class="text-inverse-on-surface/80 hover:text-inverse-on-surface" onclick="hideToast()">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+<script>
+  // Cuenta regresiva del banner de asistencia
+  let totalSeconds = 9 * 60 + 16;
+  const timerElement = document.getElementById('qr-timer');
+  
+  if (timerElement) {
+    const countdownInterval = setInterval(() => {
+      if (totalSeconds <= 0) {
+        clearInterval(countdownInterval);
+        timerElement.textContent = "00:00";
+        return;
+      }
+      totalSeconds--;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }, 1000);
+  }
+
+  function handleScanQR() {
+    const modal = document.getElementById('qr-modal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeScanQR() {
+    const modal = document.getElementById('qr-modal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function simulateSuccessQR() {
+    closeScanQR();
+    showToast('¡Asistencia confirmada en PRN115 (Aula A-101)!');
+  }
+
+  function handleDeliverTask() {
+    showToast('Redirigiendo al buzón de entrega: Tarea 2...');
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toast-notif');
+    const toastText = document.getElementById('toast-text');
+    if (toast && toastText) {
+      toastText.textContent = message;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3500);
+    }
+  }
+
+  function hideToast() {
+    const toast = document.getElementById('toast-notif');
+    if (toast) toast.classList.add('hidden');
+  }
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-superficie/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(26,23,27,0.05)]" data-active-classes="text-marca-600 font-semibold"><div class="flex items-center justify-around h-16 px-space-xs"><a aria-current="page" class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] w-14 transition-colors text-marca-600 font-semibold" data-path="dashboard-academico" href="#"><span class="material-symbols-outlined text-[22px]">school</span><span class="font-label-sm text-label-sm mt-0.5">Cursos</span></a><a class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] w-14 text-texto-suave hover:text-texto transition-colors" data-path="horario-clases" href="#"><span class="material-symbols-outlined text-[22px]">calendar_today</span><span class="font-label-sm text-label-sm mt-0.5">Horario</span></a><a class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] w-14 text-texto-suave hover:text-texto transition-colors" data-path="registro-asistencia-qr" href="#"><span class="material-symbols-outlined text-[24px]">qr_code_scanner</span><span class="font-label-sm text-label-sm mt-0.5">QR</span></a><a class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] w-14 text-texto-suave hover:text-texto transition-colors" data-path="calificaciones-evaluaciones" href="#"><span class="material-symbols-outlined text-[22px]">analytics</span><span class="font-label-sm text-label-sm mt-0.5">Notas</span></a><a class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] w-14 text-texto-suave hover:text-texto transition-colors" data-path="tramites-expediente" href="#"><span class="material-symbols-outlined text-[22px]">folder_shared</span><span class="font-label-sm text-label-sm mt-0.5">Trámites</span></a></div></nav></body></html>

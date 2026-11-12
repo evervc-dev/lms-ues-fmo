@@ -3,14 +3,12 @@
 use App\Models\User;
 use App\Modules\Comunicacion\Livewire\Ayuda;
 use App\Modules\Identidad\Livewire\ImportarUsuarios;
-use App\Modules\Identidad\Livewire\Integraciones;
 use App\Modules\Identidad\Services\ImportacionService;
 use App\Modules\Reportes\Livewire\Reportes;
 use App\Support\DbContext;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\Support\HojaXlsx;
@@ -161,18 +159,15 @@ it('turns the vault mermaid diagrams and callouts into readable steps', function
         ->and($html)->toContain('Docente → Plataforma:');
 });
 
-it('keeps integration secrets encrypted and never shows them back', function () {
+it('shows the integrations in use from the environment without revealing secrets or offering to save', function () {
     $e = escenario();
-    actingAs($e['administrador']);
+    config(['services.google.client_id' => 'abc.apps.googleusercontent.com', 'services.google.client_secret' => 'super-secreto', 'mail.mailers.smtp.host' => '']);
 
-    Livewire::test(Integraciones::class)->set('datos.google_workspace.client_id', 'abc.apps.googleusercontent.com')
-        ->set('datos.google_workspace.client_secret', 'super-secreto')->set('datos.google_workspace.allowed_domain', 'ues.edu.sv')
-        ->call('guardar', 'google_workspace')->assertSet('datos.google_workspace.client_secret', '');
-
-    $guardado = DB::table('integrations')->where('key', 'google_workspace')->value('settings');
-    expect($guardado)->not->toContain('super-secreto')
-        ->and(json_decode(Crypt::decryptString($guardado), true)['client_secret'])->toBe('super-secreto');
-    actingAs($e['administrador'])->get(route('integraciones'))->assertOk()->assertDontSee('super-secreto');
+    actingAs($e['administrador'])->get(route('integraciones'))->assertOk()
+        ->assertSeeText(['abc.apps.googleusercontent.com', 'GOOGLE_CLIENT_SECRET', 'Definido (no se muestra)', 'MAIL_HOST', 'Pendiente'])
+        ->assertDontSee('super-secreto')
+        ->assertDontSeeText('Guardar');
+    actingAs($e['docente'])->get(route('integraciones'))->assertForbidden();
 });
 
 it('CP-RF25-01 limits a teacher report to their own sections and exports it as CSV', function () {

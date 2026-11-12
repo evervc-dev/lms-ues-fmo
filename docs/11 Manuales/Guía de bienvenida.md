@@ -2,33 +2,41 @@
 tipo: manual
 rol: "[[Estudiante]]"
 ayuda_ruta: /ayuda/bienvenida
-estado: esqueleto
+estado: revisado
+capturas: pendientes
 origen: Encuesta estudiantes T36-14
 ---
 
 # Bienvenido a la plataforma
 
-Guía corta para estudiantes de nuevo ingreso. Se hizo porque la pidieron en la [[Encuesta estudiantes]]: «una guía de uso amigable para los de nuevo ingreso, con dibujos».
+Esta guía es para su primera semana. En cinco minutos sabrá entrar, preparar su teléfono para la asistencia y entregar su primera tarea. Para todo lo demás está el [[Manual Estudiante|Manual del Estudiante]].
 
 ## Sus primeros 4 pasos
 ```mermaid
 flowchart LR
-  A["1️⃣ Ingrese con Google<br/>@ues.edu.sv"] --> B["2️⃣ Registre su teléfono"]
-  B --> C["3️⃣ Marque asistencia<br/>con el QR"]
-  C --> D["4️⃣ Entregue su<br/>primera tarea"]
+  A["1. Ingrese con Google<br/>@ues.edu.sv"] --> B["2. Registre su teléfono"]
+  B --> C["3. Marque asistencia<br/>con el QR"]
+  C --> D["4. Entregue su<br/>primera tarea"]
 ```
 
 ### 1. Ingrese con su cuenta institucional
-Pulse **Iniciar sesión con Google** y elija su correo **@ues.edu.sv** (por ejemplo `rr19118@ues.edu.sv`). Otras cuentas no funcionan.
+Pulse **Iniciar sesión con Google** y elija su correo **@ues.edu.sv** (por ejemplo, `ab12345@ues.edu.sv`). Con un correo personal, como uno de Gmail, no podrá entrar.
+
+> [!tip] Si es su primera vez
+> Si al entrar no ve sus materias, es normal: su cuenta se crea al primer ingreso y la Administración le asigna el rol de estudiante. Espere un día hábil o escriba a Soporte Técnico.
+
 > [!example] Ilustración pendiente
 > Botón «Iniciar sesión con Google» y el selector de cuentas con la cuenta @ues.edu.sv resaltada.
 
 ### 2. Registre su teléfono (una sola vez)
-Desde su teléfono: **Mi perfil → Dispositivo de asistencia → Registrar este teléfono**. No necesita huella ni PIN.
+Hágalo **desde su teléfono**, no desde una computadora: abra **Mi perfil → Dispositivo de asistencia** y pulse **Registrar este teléfono**. No necesita huella ni PIN.
+
 > [!warning] Solo un teléfono
-> Si lo cambia o lo pierde, pida a Soporte Técnico que autorice el nuevo.
+> La asistencia con QR solo funciona desde el teléfono que registró. Si lo cambia o lo pierde, pida el cambio en la misma pantalla con **Solicitar cambio de teléfono**; Soporte Técnico lo aprueba.
 
 ### 3. Marque asistencia en clase
+Cuando el docente abre la asistencia, proyecta un código QR que cambia cada 10 segundos. Usted lo escanea con su teléfono registrado desde **Escanear QR**:
+
 ```mermaid
 sequenceDiagram
   actor D as Docente
@@ -40,21 +48,23 @@ sequenceDiagram
   P->>P: ¿Teléfono correcto? ¿Está en el campus? ¿QR vigente?
   P-->>E: Presente
 ```
-En clases virtuales por Meet, entre **con su cuenta @ues.edu.sv** y permanezca al menos el 70 % de la clase.
+
+Active la **ubicación** del teléfono y permita que el navegador la use: sin ella, la asistencia se rechaza. En las clases virtuales por Meet, entre **con su cuenta @ues.edu.sv** y quédese al menos el 70 % de la clase.
 
 ### 4. Entregue su primera tarea
-Abra la tarea, arrastre su archivo y pulse **Enviar entrega**. Revise antes la fecha límite y los formatos permitidos.
+Abra la materia en **Mis materias**, vaya a **Actividades** y abra la tarea. Revise la fecha límite y los formatos permitidos, adjunte su archivo y pulse **Enviar entrega**.
+
 > [!example] Ilustración pendiente
-> Tarjeta de la tarea con la fecha límite y la zona para arrastrar archivos.
+> Tarjeta de la tarea con la fecha límite y la zona para adjuntar archivos.
 
 ## Dónde está cada cosa
 | Quiero… | Vaya a… |
 |---|---|
-| Ver qué debo entregar | **Inicio**, en la lista de pendientes |
+| Ver qué tengo que entregar | **Inicio**, en «Pendientes por fecha» |
+| Inscribir una materia | **Inscripción de materias** |
+| Ver mis materias y sus contenidos | **Mis materias** |
 | Ver mis notas | **Mis notas** |
 | Ver mi asistencia | **Mi asistencia** |
-| Inscribirme con una clave | **Mis materias → Inscribirme con clave** |
-| Elegir mis avisos | **Mi perfil → Notificaciones** |
-| Ver de qué me avisan | Pulse el aviso en la **campana** o en **Notificaciones**: queda leído y lo lleva a la pantalla del evento |
-
-Manual completo: [[Manual Estudiante]].
+| Elegir qué avisos me llegan por correo | **Mi perfil → Notificaciones** |
+| Ver un aviso | La **campana** de arriba: al pulsar un aviso queda leído y lo lleva a la pantalla del evento |
+| Pedir ayuda | **Ayuda**, en el menú, o Soporte Técnico de la facultad |

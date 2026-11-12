@@ -33,6 +33,7 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 | Permiso | Adm | Jefe | Coord | Doc | Est | Sop | RF |
 |---|---|---|---|---|---|---|---|
 | `periodos.gestionar` | G | | | | | | [[RF06]], [[RF34]] (con este permiso el Administrador cierra el período, último eslabón de la cadena de actas) |
+| `periodos.calendario.gestionar` | G | D | C | | | | [[RF06]], [[ADR-068 Calendario de evaluaciones por ámbito]] (el Administrador fija las fechas globales del período, el Jefe las de su departamento y el Coordinador las de su carrera; cada quien sincroniza con su propio Google Calendar) |
 | `asignaturas.gestionar` | G | | | | | | [[RF07]] |
 | `carreras.ver` | | D | C | | | | [[RF07]], [[RF08]], [[ADR-047 Carreras visibles y carga masiva sin el Coordinador]] (el Administrador no lo necesita: ya tiene el catálogo) |
 | `secciones.gestionar` | G | | C | | | | [[RF08]] |

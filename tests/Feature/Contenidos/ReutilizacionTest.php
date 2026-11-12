@@ -119,6 +119,35 @@ it('CP-RF14-01 copia las unidades con sus recursos, cada archivo con su propia c
     expect(Storage::exists($recursos[0]->file_path))->toBeTrue();
 });
 
+it('CP-RF18-02 al copiar un recurso, la regla que apunta a la otra sección no se copia y «al abrirlo» sí (ADR-067)', function () {
+    $e = escenario();
+    $anterior = seccionAnterior($e);
+    $quizAnterior = (int) DB::table('assessments')->where('section_id', $anterior['seccion'])->where('assessment_type', 'quiz')->value('id');
+    $unidad = (int) DB::table('units')->where('section_id', $anterior['seccion'])->value('id');
+    DbContext::system(function () use ($unidad, $quizAnterior): void {
+        $t = fn (array $fila) => $fila + ['created_at' => now(), 'updated_at' => now()];
+        DB::table('resources')->insert($t(['ulid' => (string) Str::ulid(), 'unit_id' => $unidad, 'resource_type' => 'page', 'title' => 'Refuerzo del parcial',
+            'html_content' => '<p>Repase</p>', 'completion_mode' => 'automatic', 'position' => 4,
+            'completion_rule' => json_encode(['type' => 'min_score', 'assessment_id' => $quizAnterior, 'min' => 6.0])]));
+        DB::table('resources')->insert($t(['ulid' => (string) Str::ulid(), 'unit_id' => $unidad, 'resource_type' => 'page', 'title' => 'Lectura inicial',
+            'html_content' => '<p>Lea</p>', 'completion_mode' => 'automatic', 'position' => 5, 'completion_rule' => json_encode(['type' => 'opened'])]));
+    });
+
+    actingAs($e['docente']);
+    Livewire::test(Importar::class, ['seccion' => $e['ulid']])->set('origen', $anterior['seccion'])->call('importar')->assertHasNoErrors();
+
+    $copias = DB::table('resources')->join('units', 'units.id', '=', 'resources.unit_id')->where('units.section_id', $e['seccion'])
+        ->whereIn('resources.title', ['Refuerzo del parcial', 'Lectura inicial'])->pluck('resources.completion_rule', 'resources.title');
+    $modos = DB::table('resources')->join('units', 'units.id', '=', 'resources.unit_id')->where('units.section_id', $e['seccion'])
+        ->whereIn('resources.title', ['Refuerzo del parcial', 'Lectura inicial'])->pluck('resources.completion_mode', 'resources.title');
+
+    // La regla sobre el cuestionario del período anterior no existe en la sección nueva: el recurso llega manual.
+    expect($modos['Refuerzo del parcial'])->toBe('manual')
+        ->and($copias['Refuerzo del parcial'])->toBeNull()
+        ->and($modos['Lectura inicial'])->toBe('automatic')
+        ->and(json_decode((string) $copias['Lectura inicial'], true))->toBe(['type' => 'opened']);
+});
+
 it('CP-RF14-01 solo copia de un período anterior y no copia dos veces la misma sección', function () {
     $e = escenario();
     $anterior = seccionAnterior($e);

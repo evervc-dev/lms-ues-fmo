@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mi Asistencia - LMS UES FMO</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Instrument Sans"', 'sans-serif'],
+          },
+          colors: {
+            marca: {
+              50: '#FDF2F3',
+              100: '#FBE4E6',
+              200: '#F6C6CC',
+              300: '#EE98A3',
+              400: '#E05F72',
+              500: '#CB3149',
+              600: '#AE152D',
+              700: '#8B0E13',
+              800: '#6E0B10',
+              900: '#520A0D',
+            },
+            borde: '#E2E2E2',
+            fondo: '#F8F8F8',
+            superficie: '#FFFFFF',
+            texto: {
+              DEFAULT: '#1A171B',
+              suave: '#696969',
+              desactivado: '#ABABAB'
+            }
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    body {
+      font-family: 'Instrument Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+</head>
+<body class="bg-fondo text-texto min-h-screen flex flex-col">
+<!-- Header Superior (56px) -->
+<header class="fixed top-0 left-0 right-0 h-14 bg-superficie border-b border-borde z-50 flex items-center justify-between px-6 shadow-xs">
+<div class="flex items-center gap-6">
+<!-- Logo UES y Título -->
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-marca-600 flex items-center justify-center shadow-xs">
+<span class="text-white font-bold text-xs tracking-wider">UES</span>
+</div>
+<div class="flex flex-col">
+<span class="font-bold text-sm text-texto leading-none">LMS UES FMO</span>
+<span class="text-[11px] text-texto-suave leading-tight">Dpto. Ing. de Sistemas</span>
+</div>
+</div>
+<!-- Badge de Ciclo / Período -->
+<div class="hidden md:flex items-center gap-2 px-3 py-1 bg-fondo border border-borde rounded-full text-xs">
+<span class="material-symbols-outlined text-[16px] text-texto-suave">calendar_today</span>
+<span class="font-medium text-texto">Período 2026-II</span>
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span class="text-emerald-700 font-medium text-[11px]">en curso</span>
+</div>
+</div>
+<!-- Acciones Derecha & Perfil -->
+<div class="flex items-center gap-3">
+<button class="w-8 h-8 rounded-lg border border-borde bg-white hover:bg-fondo flex items-center justify-center text-texto-suave hover:text-texto transition-colors" title="Centro de Ayuda">
+<span class="material-symbols-outlined text-[18px]">help</span>
+</button>
+<button class="relative w-8 h-8 rounded-lg border border-borde bg-white hover:bg-fondo flex items-center justify-center text-texto-suave hover:text-texto transition-colors" title="Notificaciones">
+<span class="material-symbols-outlined text-[18px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-marca-600 rounded-full ring-2 ring-white"></span>
+</button>
+<div class="h-6 w-px bg-borde mx-1"></div>
+<!-- Info de Usuario -->
+<div class="flex items-center gap-2.5 pl-1">
+<div class="hidden sm:flex flex-col text-right">
+<span class="text-xs font-semibold text-texto leading-none">Carlos Martínez</span>
+<span class="text-[11px] text-texto-suave leading-tight font-mono mt-0.5">gs21004</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-marca-600 text-white flex items-center justify-center font-medium text-xs shadow-xs">
+          CM
+        </div>
+</div>
+</div>
+</header>
+<div class="flex pt-14 min-h-screen">
+<!-- Sidebar Navegación Lateral (256px) -->
+<aside class="w-64 fixed left-0 top-14 bottom-0 bg-white border-r border-borde z-40 flex flex-col py-5 px-3 overflow-y-auto">
+<nav class="flex-1 space-y-1">
+<!-- Inicio -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo text-sm font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">home</span>
+<span>Inicio</span>
+</a>
+<!-- Grupo: ESTUDIO -->
+<div class="pt-5 pb-2 px-3">
+<span class="text-[11px] font-semibold text-texto-desactivado uppercase tracking-wider">ESTUDIO</span>
+</div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo text-sm font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+<span>Escanear QR</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo text-sm font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">menu_book</span>
+<span>Mis materias</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo text-sm font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">grade</span>
+<span>Mis notas</span>
+</a>
+<!-- Ítem Activo: Mi Asistencia -->
+<a class="flex items-center justify-between px-3 py-2 rounded-lg bg-marca-50 text-marca-700 font-semibold text-sm transition-colors border-l-4 border-marca-600" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-marca-600">fact_check</span>
+<span>Mi asistencia</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-marca-600"></span>
+</a>
+<!-- Grupo: CUENTA -->
+<div class="pt-5 pb-2 px-3">
+<span class="text-[11px] font-semibold text-texto-desactivado uppercase tracking-wider">CUENTA</span>
+</div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo text-sm font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">account_circle</span>
+<span>Mi perfil</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo text-sm font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">contact_support</span>
+<span>Ayuda</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 text-sm font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span>Cerrar sesión</span>
+</a>
+</nav>
+<!-- Pie de sidebar: Soporte / Versión -->
+<div class="pt-4 border-t border-borde px-3 text-[11px] text-texto-suave">
+<span>UES FMO · Campus Digital v3.4</span>
+</div>
+</aside>
+<!-- Contenido Principal -->
+<main class="ml-64 flex-1 p-6 md:p-8 bg-fondo max-w-7xl">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 text-xs text-texto-suave mb-4">
+<a class="hover:text-texto transition-colors" href="#">Inicio</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-texto font-medium">Mi asistencia</span>
+</nav>
+<!-- Header Row Principal -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-xs font-semibold uppercase tracking-wider text-marca-700 bg-marca-50 px-2 py-0.5 rounded border border-marca-100">
+              Facultad Multidisciplinaria de Oriente
+            </span>
+</div>
+<h1 class="text-2xl font-bold text-neutral-900 tracking-tight">Mi asistencia</h1>
+<p class="text-sm text-texto-suave mt-1">
+            Monitoreo reglamentario de asistencia presencial y virtual según el Art. 48 del RCE-UES.
+          </p>
+</div>
+<!-- Botones de Acción -->
+<div class="flex items-center gap-3 flex-wrap">
+<button class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-borde bg-white hover:bg-neutral-50 text-texto font-medium text-xs transition-colors shadow-xs">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">description</span>
+<span>Descargar constancia oficial (PDF)</span>
+</button>
+<button class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-marca-600 hover:bg-marca-700 text-white font-medium text-xs transition-colors shadow-xs" onclick="document.getElementById('modal-justificacion').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[18px]">assignment_turned_in</span>
+<span>Justificar inasistencia</span>
+</button>
+</div>
+</div>
+<!-- Banner Semáforo Normativo -->
+<div class="bg-red-50 border border-red-200/80 rounded-xl p-4 mb-6">
+<div class="flex items-start md:items-center gap-3.5">
+<div class="w-9 h-9 rounded-lg bg-red-100 text-marca-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">gavel</span>
+</div>
+<div class="flex-1">
+<h4 class="text-xs font-bold text-marca-900 uppercase tracking-wide mb-1">
+              Semáforo Reglamentario de Asistencia UES (Art. 48 RCE-UES)
+            </h4>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-700">
+<span class="inline-flex items-center gap-1.5 font-medium">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+<strong>Verde (≥ 85%)</strong>: Sin riesgo académico
+              </span>
+<span class="text-neutral-300 hidden sm:inline">•</span>
+<span class="inline-flex items-center gap-1.5 font-medium">
+<span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+<strong>Ámbar (75% - 84.9%)</strong>: Alerta preventiva por cátedra
+              </span>
+<span class="text-neutral-300 hidden sm:inline">•</span>
+<span class="inline-flex items-center gap-1.5 font-medium">
+<span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+<strong>Rojo (&lt; 75%)</strong>: Pérdida de derecho a cómputo regular
+              </span>
+</div>
+</div>
+</div>
+</div>
+<!-- 4 Stat Cards Grid -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+<!-- Tarjeta 1: Global -->
+<div class="bg-white border border-borde rounded-xl p-4.5 shadow-xs flex flex-col justify-between">
+<div class="flex items-center justify-between mb-3">
+<span class="text-xs font-medium text-texto-suave">Asistencia Global</span>
+<div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">percent</span>
+</div>
+</div>
+<div>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-bold text-neutral-900">88.6%</span>
+<span class="text-xs text-texto-suave">promedio</span>
+</div>
+<div class="mt-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-medium border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Habilitado en todas las materias
+              </span>
+</div>
+</div>
+</div>
+<!-- Tarjeta 2: Sesiones -->
+<div class="bg-white border border-borde rounded-xl p-4.5 shadow-xs flex flex-col justify-between">
+<div class="flex items-center justify-between mb-3">
+<span class="text-xs font-medium text-texto-suave">Sesiones Computadas</span>
+<div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">event_available</span>
+</div>
+</div>
+<div>
+<div class="flex items-baseline gap-1">
+<span class="text-2xl font-bold text-neutral-900">62</span>
+<span class="text-sm text-texto-suave">/ 70 clases</span>
+</div>
+<div class="w-full bg-neutral-100 h-1.5 rounded-full mt-2 overflow-hidden">
+<div class="bg-blue-600 h-1.5 rounded-full" style="width: 88.5%"></div>
+</div>
+<p class="text-[11px] text-texto-suave mt-1.5">8 inasistencias en Ciclo II-2026</p>
+</div>
+</div>
+<!-- Tarjeta 3: Justificadas -->
+<div class="bg-white border border-borde rounded-xl p-4.5 shadow-xs flex flex-col justify-between">
+<div class="flex items-center justify-between mb-3">
+<span class="text-xs font-medium text-texto-suave">Inasistencias Justificadas</span>
+<div class="w-7 h-7 rounded-lg bg-marca-50 text-marca-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">task_alt</span>
+</div>
+</div>
+<div>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-bold text-neutral-900">3</span>
+<span class="text-xs font-semibold text-emerald-600">validadas</span>
+</div>
+<p class="text-[11px] text-texto-suave mt-2">
+              Dictamen formal de Bienestar Universitario
+            </p>
+</div>
+</div>
+<!-- Tarjeta 4: Estado de Riesgo -->
+<div class="bg-white border border-amber-300 rounded-xl p-4.5 shadow-xs bg-gradient-to-br from-amber-50/40 to-white flex flex-col justify-between">
+<div class="flex items-center justify-between mb-3">
+<span class="text-xs font-semibold text-amber-800">Estado de Riesgo</span>
+<div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">warning</span>
+</div>
+</div>
+<div>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-bold text-amber-700">1</span>
+<span class="text-xs font-medium text-neutral-800">asignatura en alerta</span>
+</div>
+<div class="mt-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-semibold">
+                SIO115 (78.4%) · 2 faltas del límite crítico
+              </span>
+</div>
+</div>
+</div>
+</section>
+<!-- Resumen por Asignatura (5 Cursos Inscritos) -->
+<section class="mb-6">
+<div class="flex items-center justify-between mb-3">
+<div>
+<h2 class="text-base font-bold text-neutral-900">Resumen de Asistencia por Asignatura</h2>
+<p class="text-xs text-texto-suave">Seleccione una asignatura para filtrar las sesiones en la bitácora</p>
+</div>
+<span class="text-xs font-medium text-texto-suave bg-neutral-100 px-2.5 py-1 rounded-full border border-borde">
+            5 asignaturas inscritas
+          </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Card PRN115 -->
+<div class="bg-white border border-borde rounded-xl p-4 hover:border-neutral-400 transition-all cursor-pointer shadow-xs">
+<div class="flex items-start justify-between gap-2 mb-2">
+<div>
+<span class="text-[11px] font-bold text-marca-700 uppercase tracking-wide">PRN115 · Gto 01</span>
+<h3 class="text-sm font-bold text-neutral-900">Programación I</h3>
+<p class="text-[11px] text-texto-suave">Ing. Roberto Díaz Flores</p>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
+                Excelente
+              </span>
+</div>
+<div class="mt-3">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-texto-suave">Asistencia acumulada</span>
+<span class="font-bold text-neutral-900">96.0% <span class="text-texto-suave font-normal text-[11px]">(24/25)</span></span>
+</div>
+<div class="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
+<div class="bg-emerald-500 h-2 rounded-full" style="width: 96%"></div>
+</div>
+</div>
+</div>
+<!-- Card BAD115 -->
+<div class="bg-white border border-borde rounded-xl p-4 hover:border-neutral-400 transition-all cursor-pointer shadow-xs">
+<div class="flex items-start justify-between gap-2 mb-2">
+<div>
+<span class="text-[11px] font-bold text-marca-700 uppercase tracking-wide">BAD115 · Gto 02</span>
+<h3 class="text-sm font-bold text-neutral-900">Bases de Datos I</h3>
+<p class="text-[11px] text-texto-suave">Msc. Elena Quintanilla</p>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
+                Óptimo
+              </span>
+</div>
+<div class="mt-3">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-texto-suave">Asistencia acumulada</span>
+<span class="font-bold text-neutral-900">91.3% <span class="text-texto-suave font-normal text-[11px]">(21/23)</span></span>
+</div>
+<div class="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
+<div class="bg-emerald-500 h-2 rounded-full" style="width: 91.3%"></div>
+</div>
+</div>
+</div>
+<!-- Card DSI115 -->
+<div class="bg-white border border-borde rounded-xl p-4 hover:border-neutral-400 transition-all cursor-pointer shadow-xs">
+<div class="flex items-start justify-between gap-2 mb-2">
+<div>
+<span class="text-[11px] font-bold text-marca-700 uppercase tracking-wide">DSI115 · Gto 01</span>
+<h3 class="text-sm font-bold text-neutral-900">Diseño de Sistemas I</h3>
+<p class="text-[11px] text-texto-suave">Ing. Mauricio Granados</p>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
+                Regular
+              </span>
+</div>
+<div class="mt-3">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-texto-suave">Asistencia acumulada</span>
+<span class="font-bold text-neutral-900">88.0% <span class="text-texto-suave font-normal text-[11px]">(22/25)</span></span>
+</div>
+<div class="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
+<div class="bg-emerald-500 h-2 rounded-full" style="width: 88%"></div>
+</div>
+</div>
+</div>
+<!-- Card SIO115 (En Riesgo - Activa) -->
+<div class="bg-white border-2 border-amber-400 rounded-xl p-4 shadow-sm relative ring-2 ring-amber-100 cursor-pointer">
+<div class="flex items-start justify-between gap-2 mb-2">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="text-[11px] font-bold text-marca-700 uppercase tracking-wide">SIO115 · Gto 01</span>
+<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+</div>
+<h3 class="text-sm font-bold text-neutral-900">Sistemas Operativos</h3>
+<p class="text-[11px] text-texto-suave">Ing. Carlos Menjívar</p>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-semibold">
+                Alerta preventiva
+              </span>
+</div>
+<div class="mt-3">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-amber-800 font-medium">Asistencia acumulada</span>
+<span class="font-bold text-amber-700">78.4% <span class="text-texto-suave font-normal text-[11px]">(18/23)</span></span>
+</div>
+<div class="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
+<div class="bg-amber-500 h-2 rounded-full" style="width: 78.4%"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] mt-2 pt-1.5 border-t border-amber-100">
+<span class="text-red-600 font-medium">2 inasistencias sin justificar</span>
+<span class="text-amber-700 font-semibold">Riesgo Cómputo III</span>
+</div>
+</div>
+</div>
+<!-- Card ANS115 -->
+<div class="bg-white border border-borde rounded-xl p-4 hover:border-neutral-400 transition-all cursor-pointer shadow-xs">
+<div class="flex items-start justify-between gap-2 mb-2">
+<div>
+<span class="text-[11px] font-bold text-marca-700 uppercase tracking-wide">ANS115 · Gto 02</span>
+<h3 class="text-sm font-bold text-neutral-900">Análisis Numérico</h3>
+<p class="text-[11px] text-texto-suave">Ing. Claudia Morales</p>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
+                Conforme
+              </span>
+</div>
+<div class="mt-3">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-texto-suave">Asistencia acumulada</span>
+<span class="font-bold text-neutral-900">86.9% <span class="text-texto-suave font-normal text-[11px]">(20/23)</span></span>
+</div>
+<div class="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
+<div class="bg-emerald-500 h-2 rounded-full" style="width: 86.9%"></div>
+</div>
+</div>
+</div>
+<!-- Card Consejo Académico / Nota -->
+<div class="bg-marca-50/50 border border-marca-100 rounded-xl p-4 flex flex-col justify-between shadow-xs">
+<div>
+<span class="text-[11px] font-bold text-marca-700 uppercase tracking-wide">CONSEJO ACADÉMICO</span>
+<h4 class="text-sm font-bold text-neutral-900 mt-0.5">Cómputo en Evaluación</h4>
+<p class="text-xs text-neutral-600 mt-1.5 leading-relaxed">
+                El período de evaluación para el Cómputo III cierra el 28 de noviembre. Toda inasistencia debe justificarse dentro de los 5 días hábiles.
+              </p>
+</div>
+<div class="pt-2">
+<a class="inline-flex items-center gap-1 text-xs font-semibold text-marca-700 hover:text-marca-800" href="#">
+<span>Consultar calendario de parciales</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</section>
+<!-- Tabla de Bitácora de Sesiones -->
+<section class="bg-white border border-borde rounded-xl shadow-xs overflow-hidden mb-8">
+<!-- Filtros y Toolbar -->
+<div class="p-4 border-b border-borde flex flex-col md:flex-row md:items-center justify-between gap-3">
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-base font-bold text-neutral-900">Bitácora de Sesiones</h2>
+<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-marca-50 text-marca-700 border border-marca-200">
+                SIO115 Activa
+              </span>
+</div>
+<p class="text-xs text-texto-suave">Auditoría detallada de marcado biométrico, QR rotativo y validaciones docentes</p>
+</div>
+<!-- Controles / Selectores -->
+<div class="flex flex-wrap items-center gap-2">
+<!-- Selector Asignatura -->
+<div class="relative">
+<select class="h-9 pl-3 pr-8 rounded-lg bg-fondo border border-borde text-xs font-medium text-texto appearance-none focus:outline-none focus:border-marca-600">
+<option selected="">SIO115 · Sistemas Operativos</option>
+<option>PRN115 · Programación I</option>
+<option>BAD115 · Bases de Datos I</option>
+<option>DSI115 · Diseño de Sistemas I</option>
+<option>ANS115 · Análisis Numérico</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2 text-texto-suave pointer-events-none text-[18px]">expand_more</span>
+</div>
+<!-- Selector Cómputo -->
+<div class="relative">
+<select class="h-9 pl-3 pr-8 rounded-lg bg-fondo border border-borde text-xs font-medium text-texto appearance-none focus:outline-none focus:border-marca-600">
+<option>Cómputo I</option>
+<option>Cómputo II</option>
+<option selected="">Cómputo III (Actual)</option>
+<option>Todos los cómputos</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2 text-texto-suave pointer-events-none text-[18px]">expand_more</span>
+</div>
+<!-- Botón Exportar -->
+<button class="h-9 px-3 rounded-lg border border-borde bg-white hover:bg-fondo text-texto flex items-center gap-1.5 text-xs font-medium transition-colors" title="Exportar tabla">
+<span class="material-symbols-outlined text-[16px]">ios_share</span>
+<span>Exportar</span>
+</button>
+</div>
+</div>
+<!-- Tabla -->
+<div class="overflow-x-auto">
+<table class="w-full text-left text-xs border-collapse">
+<thead>
+<tr class="bg-fondo/80 border-b border-borde text-texto-suave font-semibold text-[11px] uppercase tracking-wider">
+<th class="py-3 px-4">Fecha y Hora</th>
+<th class="py-3 px-4">Tema Desarrollado</th>
+<th class="py-3 px-4">Modalidad / Espacio</th>
+<th class="py-3 px-4">Estado</th>
+<th class="py-3 px-4">Método de Marcado</th>
+<th class="py-3 px-4 text-right">Acción</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-borde">
+<!-- Fila 1 -->
+<tr class="hover:bg-neutral-50/70 transition-colors">
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="font-semibold text-neutral-900 text-xs">14/10/2026</div>
+<div class="text-[11px] text-texto-suave">07:02 - 08:40</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-semibold text-neutral-900 text-xs">Gestión de Memoria y Paginación</div>
+<div class="text-[11px] text-texto-suave">Unidad 4: Memoria Virtual</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1 text-[11px] font-medium text-texto bg-fondo border border-borde px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[15px] text-marca-600">desktop_windows</span>
+                    Presencial LAB-1
+                  </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Presente
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-medium text-neutral-800 text-[11px]">QR Rotativo Dinámico</div>
+<div class="text-[10px] text-texto-suave">IP campus &amp; GPS verificado (12m de radio)</div>
+</td>
+<td class="py-3.5 px-4 text-right whitespace-nowrap">
+<button class="p-1 rounded text-texto-suave hover:text-texto hover:bg-neutral-100" title="Ver comprobante">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</button>
+</td>
+</tr>
+<!-- Fila 2: Tarde -->
+<tr class="hover:bg-neutral-50/70 transition-colors">
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="font-semibold text-neutral-900 text-xs">12/10/2026</div>
+<div class="text-[11px] text-amber-700 font-medium">07:18 - 08:40 (18 min retardo)</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-semibold text-neutral-900 text-xs">Hilos y Concurrencia POSIX</div>
+<div class="text-[11px] text-texto-suave">Unidad 3: Multiprocesamiento</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1 text-[11px] font-medium text-texto bg-fondo border border-borde px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[15px] text-marca-600">domain</span>
+                    Presencial A-101
+                  </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[11px] font-semibold border border-amber-200">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    Tarde
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-medium text-neutral-800 text-[11px]">Código temporal de 6 dígitos</div>
+<div class="text-[10px] text-texto-suave">Validado extemporáneo por docente</div>
+</td>
+<td class="py-3.5 px-4 text-right whitespace-nowrap">
+<button class="p-1 rounded text-texto-suave hover:text-texto hover:bg-neutral-100" title="Detalles">
+<span class="material-symbols-outlined text-[18px]">info</span>
+</button>
+</td>
+</tr>
+<!-- Fila 3: Ausente (Acción justificar) -->
+<tr class="bg-red-50/40 hover:bg-red-50/70 transition-colors">
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="font-semibold text-red-700 text-xs">07/10/2026</div>
+<div class="text-[11px] text-red-600 font-medium">07:00 - 08:40</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-semibold text-neutral-900 text-xs">Planificación de Procesos CPU</div>
+<div class="text-[11px] text-red-600">Sesión clave de cómputo</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1 text-[11px] font-medium text-texto bg-fondo border border-borde px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[15px] text-marca-600">domain</span>
+                    Presencial A-101
+                  </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 text-[11px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                    Ausente
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-medium text-red-700 text-[11px]">Sin registro de presencia</div>
+<div class="text-[10px] text-texto-suave">Tiempo restante de justificación: 2 días</div>
+</td>
+<td class="py-3.5 px-4 text-right whitespace-nowrap">
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-marca-600 hover:bg-marca-700 text-white text-[11px] font-semibold transition-colors shadow-xs" onclick="document.getElementById('modal-justificacion').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[14px]">add_task</span>
+<span>Justificar falta</span>
+</button>
+</td>
+</tr>
+<!-- Fila 4: Virtual Presente -->
+<tr class="hover:bg-neutral-50/70 transition-colors">
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="font-semibold text-neutral-900 text-xs">05/10/2026</div>
+<div class="text-[11px] text-texto-suave">07:05 - 08:35</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-semibold text-neutral-900 text-xs">Llamadas al Sistema en Linux</div>
+<div class="text-[11px] text-texto-suave">Unidad 2: Arquitectura del SO</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1 text-[11px] font-medium text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[15px]">video_camera_front</span>
+                    Virtual Google Meet
+                  </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Presente
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-medium text-neutral-800 text-[11px]">Reporte Meet UES Sync</div>
+<div class="text-[10px] text-texto-suave">82 min activo continuos (91% sesión)</div>
+</td>
+<td class="py-3.5 px-4 text-right whitespace-nowrap">
+<button class="p-1 rounded text-texto-suave hover:text-texto hover:bg-neutral-100" title="Ver analítica">
+<span class="material-symbols-outlined text-[18px]">query_stats</span>
+</button>
+</td>
+</tr>
+<!-- Fila 5: Justificada -->
+<tr class="hover:bg-neutral-50/70 transition-colors">
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="font-semibold text-neutral-900 text-xs">30/09/2026</div>
+<div class="text-[11px] text-texto-suave">07:00 - 08:40</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-semibold text-neutral-900 text-xs">Introducción al Kernel</div>
+<div class="text-[11px] text-texto-suave">Unidad 2: Arquitectura del SO</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1 text-[11px] font-medium text-texto bg-fondo border border-borde px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[15px] text-marca-600">domain</span>
+                    Presencial A-101
+                  </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[11px] font-semibold border border-blue-200">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    Justificada
+                  </span>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-medium text-neutral-800 text-[11px]">Comprobante Médico Bienestar UES</div>
+<div class="text-[10px] text-blue-700 font-medium">Dictamen formal #BU-491 aprobado</div>
+</td>
+<td class="py-3.5 px-4 text-right whitespace-nowrap">
+<button class="p-1 rounded text-blue-700 hover:bg-blue-50" title="Ver resolución">
+<span class="material-symbols-outlined text-[18px]">attachment</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Paginación Footer -->
+<div class="p-3.5 bg-fondo border-t border-borde flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-texto-suave">
+<span>Mostrando <strong>5</strong> de <strong>23</strong> sesiones programadas para SIO115</span>
+<div class="flex items-center gap-1">
+<button class="w-7 h-7 rounded border border-borde bg-white text-texto-desactivado flex items-center justify-center cursor-not-allowed">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<button class="w-7 h-7 rounded bg-marca-600 text-white flex items-center justify-center font-bold text-xs">1</button>
+<button class="w-7 h-7 rounded border border-borde bg-white text-texto hover:bg-neutral-100 flex items-center justify-center text-xs">2</button>
+<button class="w-7 h-7 rounded border border-borde bg-white text-texto hover:bg-neutral-100 flex items-center justify-center text-xs">3</button>
+<button class="w-7 h-7 rounded border border-borde bg-white text-texto hover:bg-neutral-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- Modal de Justificación de Inasistencia (RF22) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 hidden" id="modal-justificacion">
+<div class="relative w-full max-w-xl bg-white rounded-xl shadow-xl border border-borde overflow-hidden flex flex-col max-h-[90vh]">
+<!-- Header del Modal -->
+<div class="p-4 border-b border-borde flex items-start justify-between">
+<div>
+<div class="flex items-center gap-1.5 mb-1">
+<span class="w-2 h-2 rounded-full bg-marca-600"></span>
+<span class="text-[11px] font-bold uppercase tracking-wider text-marca-700">Trámite Académico RF22</span>
+</div>
+<h3 class="text-base font-bold text-neutral-900">Solicitud de Justificación de Inasistencia</h3>
+<p class="text-xs text-texto-suave mt-0.5">
+            Clase: <strong class="text-neutral-800">SIO115 · Sistemas Operativos (07/10/2026)</strong>
+</p>
+</div>
+<button class="w-8 h-8 rounded-lg border border-borde bg-white hover:bg-fondo flex items-center justify-center text-texto-suave hover:text-texto" onclick="document.getElementById('modal-justificacion').classList.add('hidden')">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Alerta Plazo Legal -->
+<div class="m-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 text-xs flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-blue-700 shrink-0">timer</span>
+<div><strong>Plazo reglamentario:</strong> Máximo 5 días hábiles según Art. 48 RCE-UES. Plazo vence el 14/10/2026.</div>
+</div>
+<!-- Formulario Modal -->
+<form class="px-4 pb-4 space-y-3.5 overflow-y-auto flex-1">
+<div>
+<label class="block text-xs font-semibold text-neutral-800 mb-1">
+            Tipo de Justificación <span class="text-red-500">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-9 pl-3 pr-8 rounded-lg bg-fondo border border-borde text-xs text-neutral-800 appearance-none focus:outline-none focus:border-marca-600">
+<option selected="">Incapacidad Médica (ISSS / Bienestar UES)</option>
+<option>Causa de Fuerza Mayor o Calamidad Doméstica</option>
+<option>Actividad Académica o Representación Institucional UES</option>
+<option>Diligencia Laboral Ineludible (Constancia de Empleador)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2 text-texto-suave pointer-events-none text-[18px]">expand_more</span>
+</div>
+</div>
+<div>
+<label class="block text-xs font-semibold text-neutral-800 mb-1">
+            Motivo Detallado <span class="text-red-500">*</span>
+</label>
+<textarea class="w-full p-2.5 rounded-lg bg-fondo border border-borde text-xs text-neutral-800 placeholder:text-texto-desactivado focus:outline-none focus:border-marca-600 resize-none" rows="3">Consulta médica de urgencia en Clínica Parroquial San Miguel y posterior validación ante Bienestar Universitario UES FMO por cuadro de virosis respiratoria aguda.</textarea>
+<span class="text-[10px] text-texto-suave block mt-1">Mínimo 30 caracteres requeridos.</span>
+</div>
+<div>
+<label class="block text-xs font-semibold text-neutral-800 mb-1">
+            Documento Probatorio Certificado <span class="text-red-500">*</span>
+</label>
+<div class="rounded-lg border-2 border-dashed border-borde bg-fondo p-3 text-center flex flex-col items-center justify-center">
+<span class="material-symbols-outlined text-[24px] text-marca-600 mb-0.5">upload_file</span>
+<p class="text-xs font-medium text-neutral-800">Arrastre el comprobante oficial o haga clic para examinar</p>
+<p class="text-[10px] text-texto-suave">Formatos: PDF, JPG, PNG (Hasta 5 MB)</p>
+</div>
+<!-- Archivo adjunto -->
+<div class="mt-2 p-2 rounded-lg border border-borde bg-white flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-7 h-7 rounded bg-marca-50 text-marca-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+</span>
+<div>
+<p class="text-xs font-semibold text-neutral-900 leading-tight">constancia_medica_07oct.pdf</p>
+<span class="text-[10px] text-texto-suave">1.2 MB · Certificado ISSS con sello</span>
+</div>
+</div>
+<button class="p-1 rounded text-red-600 hover:bg-red-50" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</button>
+</div>
+</div>
+<div class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px]">
+<strong>Declaración Jurada:</strong> La presentación de constancias alteradas o falsas será sancionada conforme al Reglamento General Disciplinario de la UES.
+        </div>
+</form>
+<!-- Footer Modal -->
+<div class="p-3.5 bg-fondo border-t border-borde flex items-center justify-end gap-2">
+<button class="px-3.5 py-1.5 rounded-lg border border-borde bg-white hover:bg-neutral-100 text-neutral-800 text-xs font-medium transition-colors" onclick="document.getElementById('modal-justificacion').classList.add('hidden')" type="button">
+          Cancelar
+        </button>
+<button class="px-3.5 py-1.5 rounded-lg bg-marca-600 hover:bg-marca-700 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs" onclick="alert('Solicitud enviada exitosamente para revisión docente.'); document.getElementById('modal-justificacion').classList.add('hidden');" type="button">
+<span class="material-symbols-outlined text-[16px]">send</span>
+<span>Enviar solicitud</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

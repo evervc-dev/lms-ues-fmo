@@ -235,6 +235,8 @@ erDiagram
   period_calendar_events {
     bigint id PK
     bigint period_id FK
+    bigint department_id FK "ADR-068: scope, nullable"
+    bigint career_id FK "ADR-068: scope, nullable, exclusive with department_id"
     varchar title
     timestamptz starts_at
     timestamptz ends_at
@@ -400,7 +402,7 @@ erDiagram
     text html_content "sanitized"
     varchar pdf_mode "download, viewer"
     varchar completion_mode "manual, automatic"
-    jsonb completion_rule "min_score, submission, forum_posts, opened"
+    jsonb completion_rule "ADR-067: one rule, type + keys"
     bigint source_resource_id FK "copied from"
     smallint position
     timestamptz deleted_at
@@ -991,6 +993,7 @@ erDiagram
 | Una clave activa por asignatura y período | `UNIQUE (subject_id, period_id) WHERE is_active` en `enrollment_keys` | [[RF29]] |
 | Una fecha límite por período y departamento; la prórroga es posterior a la fecha | `UNIQUE (period_id, department_id)` y `CHECK (extended_until IS NULL OR extended_until > deadline)` en `enrollment_deadlines` | [[RF29]], [[ADR-051 Fecha límite de inscripción por departamento]] |
 | Una prórroga por período y estudiante | `UNIQUE (period_id, student_id)` en `enrollment_extensions` | [[RF29]], [[ADR-051 Fecha límite de inscripción por departamento]] |
+| Una fecha del calendario pertenece a un solo ámbito | `CHECK (department_id IS NULL OR career_id IS NULL)` en `period_calendar_events` | [[RF06]], [[ADR-068 Calendario de evaluaciones por ámbito]] |
 | Un acta por sección; un cierre por departamento y período | `UNIQUE (section_id)` en `grade_sheets`; `UNIQUE (period_id, department_id)` en `department_closures` | [[RF34]] |
 | Cerrar el período | El Service exige que todos los departamentos con secciones tengan `department_closures` | [[RF34]] |
 | Una matrícula activa por estudiante, materia y período | `UNIQUE (student_id, period_id, subject_id) WHERE status = 'active'` | [[RF09]] |

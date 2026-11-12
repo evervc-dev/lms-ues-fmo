@@ -5,6 +5,7 @@ namespace App\Modules\Evaluaciones\Services;
 use App\Models\User;
 use App\Modules\Calificaciones\Jobs\EvaluarRiesgoAcademico;
 use App\Modules\Calificaciones\Services\CalificacionService;
+use App\Modules\Evaluaciones\Events\IntentoCalificado;
 use App\Support\Alcance;
 use App\Support\DbContext;
 use Illuminate\Support\Carbon;
@@ -527,7 +528,14 @@ class CuestionarioService
         // el candado único), y solo si la nota quedó publicada, para reevaluar el riesgo académico de la sección (RF17).
         if ($item->is_published) {
             $seccion = (int) $item->section_id;
-            DB::afterCommit(fn () => EvaluarRiesgoAcademico::dispatch($seccion));
+            $evaluacion = (int) $intento->assessment_id;
+            $matricula = (int) $intento->enrollment_id;
+            DB::afterCommit(function () use ($seccion, $evaluacion, $matricula): void {
+                EvaluarRiesgoAcademico::dispatch($seccion);
+                // La nota ya nació publicada: no habrá un «publicar notas» que complete los recursos de la regla
+                // de nota mínima (RF18, ADR-067).
+                IntentoCalificado::dispatch($evaluacion, $matricula);
+            });
         }
     }
 }

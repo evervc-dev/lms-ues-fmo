@@ -1,0 +1,39 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.fleet
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode/*
+!/.vscode/mcp.json
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+Homestead.json
+Homestead.yaml
+Thumbs.db
+
+# Obsidian (vault en docs/): estado local de cada persona
+/docs/.obsidian/workspace*.json
+/docs/.obsidian/cache
+/docs/.trash/
+
+# Vault abierto desde la raíz por error (el vault es docs/)
+/.obsidian/
+
+# Variables de la pila Docker local
+/docker/.env
+
+# Capturas de las pruebas de navegador (Pest Browser)
+/tests/Browser/Screenshots

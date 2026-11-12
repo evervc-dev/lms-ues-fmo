@@ -51,7 +51,7 @@ class ContenidoService
     /** Máximo de segundos que se aceptan por envío: el latido más un margen por la demora de la red. */
     public const TOPE_LATIDO = 35;
 
-    public function __construct(private Alcance $alcance, private ReutilizacionService $reutilizacion) {}
+    public function __construct(private Alcance $alcance, private ReutilizacionService $reutilizacion, private ProgresoService $progreso) {}
 
     /**
      * Regla de validación del archivo: extensión declarada y mime real, más el tamaño máximo.
@@ -172,7 +172,7 @@ class ContenidoService
     }
 
     /**
-     * @param  array{tipo: string, titulo: string, descripcion?: string|null, url?: string|null, texto?: string|null, pdf?: string|null, archivo?: UploadedFile|null, archivos?: array<int, UploadedFile>, rutas?: array<int, string>}  $datos
+     * @param  array{tipo: string, titulo: string, descripcion?: string|null, url?: string|null, texto?: string|null, pdf?: string|null, archivo?: UploadedFile|null, archivos?: array<int, UploadedFile>, rutas?: array<int, string>, completion?: string|null, regla?: array<string, mixed>|null}  $datos
      *
      * @throws ValidationException
      */
@@ -180,6 +180,11 @@ class ContenidoService
     {
         $seccionId = (int) (DB::table('units')->where('id', $unidadId)->value('section_id') ?? abort(404));
         $this->exigirEnSeccion($usuario, 'contenidos.gestionar', $seccionId);
+
+        // Cómo se completa el recurso (RF18, ADR-067): sin elección, la página se completa al abrirla y el resto, a mano.
+        // Se valida antes de subir nada: una regla inválida no debe dejar archivos huérfanos en el disco.
+        $modo = ($datos['completion'] ?? ($datos['tipo'] === 'page' ? 'automatic' : 'manual')) === 'automatic' ? 'automatic' : 'manual';
+        $regla = $modo === 'automatic' ? $this->progreso->validarRegla($seccionId, $datos['regla'] ?? ['type' => 'opened']) : null;
 
         $ulid = (string) Str::ulid();
         $ruta = null;
@@ -205,13 +210,13 @@ class ContenidoService
             $this->exigirUrlAdmitida((string) ($datos['url'] ?? ''));
         }
 
-        DbContext::run(function () use ($ulid, $unidadId, $datos, $ruta, $carpeta): void {
+        $recursoId = DbContext::run(function () use ($ulid, $unidadId, $datos, $ruta, $carpeta, $modo, $regla): int {
             $recursoId = DB::table('resources')->insertGetId([
                 'ulid' => $ulid, 'unit_id' => $unidadId, 'resource_type' => $datos['tipo'], 'title' => $datos['titulo'],
                 'description' => $datos['descripcion'] ?? null, 'file_path' => $ruta, 'url' => $datos['url'] ?? null,
                 'html_content' => $datos['tipo'] === 'page' ? $this->saneado((string) ($datos['texto'] ?? '')) : null,
                 'pdf_mode' => $datos['tipo'] === 'file' ? ($datos['pdf'] ?? 'viewer') : null,
-                'completion_mode' => $datos['tipo'] === 'page' ? 'automatic' : 'manual',
+                'completion_mode' => $modo, 'completion_rule' => $regla === null ? null : json_encode($regla, JSON_UNESCAPED_UNICODE),
                 'position' => (int) DB::table('resources')->where('unit_id', $unidadId)->max('position') + 1,
                 'created_at' => now(), 'updated_at' => now(),
             ]);
@@ -222,7 +227,42 @@ class ContenidoService
                     'bytes' => $entrada['bytes'] ?? 0, 'created_at' => now(), 'updated_at' => now(),
                 ]);
             }
+
+            return $recursoId;
         }, 'resource.created');
+
+        // Quien ya cumple la regla queda al día desde el primer momento (RF18): no se le pide repetir lo hecho.
+        if ($regla !== null) {
+            $this->progreso->evaluarRecurso($recursoId);
+        }
+    }
+
+    /**
+     * Cómo se completa un recurso ya publicado (RF18, ADR-067): a mano o con una regla, que se evalúa en el momento
+     * para quienes ya la cumplen. Lo completado antes no se desmarca.
+     *
+     * @param  array<string, mixed>|null  $regla
+     *
+     * @throws ValidationException
+     */
+    public function cambiarRegla(User $usuario, int $seccionId, int $recursoId, string $modo, ?array $regla): void
+    {
+        $this->exigirEnSeccion($usuario, 'contenidos.gestionar', $seccionId);
+        $this->recursoDeSeccion($seccionId, $recursoId)->whereNull('deleted_at')->first(['id']) ?? abort(404);
+        if (! in_array($modo, ['manual', 'automatic'], true)) {
+            throw ValidationException::withMessages(['completion' => __('Elija cómo se completa el recurso.')]);
+        }
+        $normalizada = $modo === 'automatic' ? $this->progreso->validarRegla($seccionId, $regla ?? []) : null;
+
+        DbContext::run(fn () => $this->recursoDeSeccion($seccionId, $recursoId)->update([
+            'completion_mode' => $modo,
+            'completion_rule' => $normalizada === null ? null : json_encode($normalizada, JSON_UNESCAPED_UNICODE),
+            'updated_at' => now(),
+        ]), 'resource.completion_updated');
+
+        if ($normalizada !== null) {
+            $this->progreso->evaluarRecurso($recursoId);
+        }
     }
 
     /**
@@ -301,8 +341,9 @@ class ContenidoService
             return;
         }
         RegistrarAccesoRecurso::dispatch((int) $recurso->id, $matricula, 'open', now()->format('Y-m-d H:i:s.uP'));
-        if ($recurso->completion_mode === 'automatic') {
-            $this->completar($matricula, (int) $recurso->id, 'rule');
+        // Solo la regla «al abrirlo» se cumple aquí (RF18): las demás las resuelven los listeners con su evento.
+        if ((ProgresoService::regla($recurso)['type'] ?? null) === 'opened') {
+            $this->progreso->completar($matricula, (int) $recurso->id, 'rule');
         }
     }
 
@@ -336,13 +377,20 @@ class ContenidoService
     }
 
     /**
-     * @throws AuthorizationException
+     * «Ya lo leí» (RF18, CP-RF18-01). Solo vale para un recurso **manual** y vivo de esa sección: el id lo manda el
+     * navegador, así que un recurso con regla automática no se puede completar por aquí sin cumplirla (ADR-067).
+     *
+     * @throws AuthorizationException|ValidationException
      */
     public function marcarLeido(User $usuario, int $seccionId, int $recursoId): void
     {
         $matricula = $this->matricula($usuario, $seccionId)
             ?? throw new AuthorizationException(__('Solo puede marcar materiales de las asignaturas en las que está matriculado.'));
-        $this->completar($matricula, $recursoId, 'manual');
+        $recurso = $this->recursoDeSeccion($seccionId, $recursoId)->whereNull('deleted_at')->first(['id', 'completion_mode']) ?? abort(404);
+        if ($recurso->completion_mode !== 'manual') {
+            throw ValidationException::withMessages(['recurso' => __('Este material se completa solo, al cumplirse su regla.')]);
+        }
+        $this->progreso->completar($matricula, $recursoId, 'manual');
     }
 
     /**
@@ -559,7 +607,7 @@ class ContenidoService
                         $ruta = $this->copiaDelArchivo($r, $destinoId, $ulid, $copias);
                         $id = DB::table('resources')->insertGetId(['ulid' => $ulid, 'unit_id' => $nueva, 'resource_type' => $r->resource_type, 'title' => $r->title,
                             'description' => $r->description, 'file_path' => $ruta, 'url' => $r->url, 'html_content' => $r->html_content, 'pdf_mode' => $r->pdf_mode,
-                            'completion_mode' => $r->completion_mode, 'completion_rule' => $r->completion_rule, 'source_resource_id' => $r->id, 'position' => $r->position,
+                            'completion_mode' => $this->modoCopiado($r), 'completion_rule' => $this->reglaCopiada($r), 'source_resource_id' => $r->id, 'position' => $r->position,
                             'created_at' => now(), 'updated_at' => now()]);
                         foreach (DB::table('resource_files')->where('resource_id', $r->id)->get() as $f) {
                             DB::table('resource_files')->insert(['resource_id' => $id, 'path' => $f->path, 'name' => $f->name, 'bytes' => $f->bytes, 'created_at' => now(), 'updated_at' => now()]);
@@ -796,15 +844,26 @@ class ContenidoService
         return DB::table('units')->where('id', $unidadId)->where('section_id', $seccionId);
     }
 
+    /**
+     * Modo de finalización de la copia (ADR-067): una regla que apunta a una evaluación o a un hilo de la sección de
+     * origen no existe en la de destino, así que el recurso se copia manual y el docente vuelve a fijarla.
+     */
+    private function modoCopiado(\stdClass $recurso): string
+    {
+        return $this->reglaCopiada($recurso) === null ? 'manual' : 'automatic';
+    }
+
+    private function reglaCopiada(\stdClass $recurso): ?string
+    {
+        $regla = ProgresoService::regla($recurso);
+
+        return ($regla['type'] ?? null) === 'opened' ? json_encode(['type' => 'opened']) : null;
+    }
+
     private function matricula(User $usuario, int $seccionId): ?int
     {
         $id = DB::table('enrollments')->where('student_id', $usuario->id)->where('section_id', $seccionId)->where('status', 'active')->value('id');
 
         return $id === null ? null : (int) $id;
-    }
-
-    private function completar(int $matricula, int $recursoId, string $origen): void
-    {
-        DB::table('resource_progress')->insertOrIgnore(['resource_id' => $recursoId, 'enrollment_id' => $matricula, 'origin' => $origen, 'completed_at' => now()]);
     }
 }

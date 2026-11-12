@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "error-container": "#ffdad6", "acento": "#9D2235", "primary-container": "#ae152d", "error": "#ba1a1a", "surface-container-high": "#eee6ec", "danger-bg": "#FEF2F2", "on-error": "#ffffff", "marca-200": "#F6C6CC", "danger-text": "#B91C1C", "primary-fixed-dim": "#ffb3b2", "surface-tint": "#b71e33", "texto-desactivado": "#ABABAB", "tertiary-container": "#00616f", "secondary-fixed-dim": "#ffb3b5", "tertiary": "#004852", "on-tertiary-fixed": "#001f25", "marca-800": "#6E0B10", "surface-container": "#f3ecf1", "inverse-on-surface": "#f6eef4", "marca-400": "#E05F72", "on-background": "#1e1a1f", "primary": "#87001d", "on-tertiary-fixed-variant": "#004e5a", "texto": "#1A171B", "outline-variant": "#e2bebd", "tertiary-fixed-dim": "#8ad2e1", "on-secondary": "#ffffff", "warning-text": "#B45309", "texto-suave": "#696969", "on-tertiary-container": "#92daea", "surface-container-lowest": "#ffffff", "secondary-container": "#fe6b78", "warning-bg": "#FFFBEB", "background": "#fff7fd", "marca-700": "#8B0E13", "on-primary-fixed": "#410008", "on-error-container": "#93000a", "on-secondary-fixed": "#40000c", "borde": "#E2E2E2", "fondo": "#F8F8F8", "on-surface-variant": "#5a4040", "marca-900": "#520A0D", "surface": "#fff7fd", "marca-300": "#EE98A3", "primary-fixed": "#ffdad9", "info-text": "#1D4ED8", "success-bg": "#F0FDF4", "marca-500": "#CB3149", "surface-dim": "#dfd8dd", "inverse-surface": "#332f34", "info-bg": "#EFF6FF", "secondary-fixed": "#ffdada", "marca-100": "#FBE4E6", "on-secondary-container": "#6c001a", "surface-bright": "#fff7fd", "surface-variant": "#e8e0e6", "surface-container-highest": "#e8e0e6", "surface-container-low": "#f9f1f7", "inverse-primary": "#ffb3b2", "on-surface": "#1e1a1f", "on-tertiary": "#ffffff", "on-secondary-fixed-variant": "#8c142a", "superficie": "#FFFFFF", "tertiary-fixed": "#a6eefe", "on-primary-container": "#ffbfbe", "on-primary": "#ffffff", "marca-600": "#AE152D", "marca-50": "#FDF2F3", "on-primary-fixed-variant": "#920020", "success-text": "#15803D", "secondary": "#ad2e40", "outline": "#8e706f" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2rem", "margin": "1.5rem", "space-md": "1rem", "gutter": "1rem", "margin-mobile": "1rem", "space-sm": "0.5rem", "space-lg": "1.5rem", "gutter-mobile": "0.75rem", "space-xs": "0.25rem" }, "fontFamily": { "label-md": [ "Hanken Grotesk" ], "display-qr": [ "Hanken Grotesk" ], "label-nav-header": [ "Hanken Grotesk" ], "headline-sm": [ "Hanken Grotesk" ], "headline-md": [ "Hanken Grotesk" ], "body-md": [ "Hanken Grotesk" ], "body-lg": [ "Hanken Grotesk" ], "headline-lg": [ "Hanken Grotesk" ], "label-sm": [ "Hanken Grotesk" ] }, "fontSize": { "label-md": [ "14px", { "lineHeight": "20px", "fontWeight": "500" } ], "display-qr": [ "36px", { "lineHeight": "44px", "fontWeight": "600" } ], "label-nav-header": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" } ], "headline-sm": [ "16px", { "lineHeight": "22px", "fontWeight": "600" } ], "headline-md": [ "18px", { "lineHeight": "24px", "fontWeight": "600" } ], "body-md": [ "14px", { "lineHeight": "21px", "fontWeight": "400" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "headline-lg": [ "24px", { "lineHeight": "32px", "fontWeight": "600" } ], "label-sm": [ "12px", { "lineHeight": "16px", "fontWeight": "500" } ] } } } };</script></head><body class="bg-fondo text-texto font-body-md text-body-md antialiased"><header class="fixed top-0 left-0 right-0 h-14 bg-superficie border-b border-borde z-50 flex items-center justify-between px-margin"><div class="flex items-center gap-space-md"><button aria-label="Menú principal" class="p-space-xs rounded-lg hover:bg-fondo text-texto transition-colors flex items-center justify-center" type="button"><span class="material-symbols-outlined text-[22px]">menu</span></button><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-marca-600 flex items-center justify-center text-superficie font-headline-sm text-headline-sm font-bold tracking-tight shadow-sm">UES</div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-texto leading-none">LMS UES FMO</span><span class="font-label-sm text-label-sm text-texto-suave leading-none mt-0.5">Ingeniería de Sistemas</span></div></div><div class="hidden xl:flex items-center gap-space-xs ml-space-sm pl-space-md border-l border-borde"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-marca-100 text-marca-800 font-label-sm text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-marca-600"></span>Período 2026-II · en curso</span></div></div><div class="flex items-center gap-space-md"><div class="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-warning-bg border border-warning-text/20 text-warning-text font-label-sm text-label-sm"><span class="material-symbols-outlined text-[16px]">alarm</span><span>Asistencia abierta · <strong>PRN115</strong></span><a class="ml-1 font-semibold underline hover:text-marca-800" data-path="mi-asistencia" href="#">[Marcar]</a></div><div class="flex items-center gap-space-xs border-l border-borde pl-space-md"><button class="w-9 h-9 rounded-lg flex items-center justify-center text-texto-suave hover:text-texto hover:bg-fondo transition-colors" title="Ayuda institucional" type="button"><span class="material-symbols-outlined text-[20px]">help</span></button><button class="relative w-9 h-9 rounded-lg flex items-center justify-center text-texto-suave hover:text-texto hover:bg-fondo transition-colors" title="Notificaciones" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-marca-600 text-superficie font-label-sm text-[10px] flex items-center justify-center font-bold">3</span></button></div><div class="flex items-center gap-space-sm pl-space-sm border-l border-borde"><div class="text-right hidden sm:block"><p class="font-headline-sm text-label-md text-texto leading-none">Carlos Martínez</p><p class="font-label-sm text-label-sm text-texto-suave leading-none mt-1">Docente y Coordinador</p></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ring-2 ring-marca-100"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-14 bottom-0 w-64 bg-superficie border-r border-borde z-40 overflow-y-auto"><nav class="p-space-sm flex flex-col gap-space-xs" data-active-classes="bg-marca-50 text-marca-700 font-semibold border-l-4 border-marca-600 rounded-r-lg"><div class="px-space-sm pt-space-sm pb-space-xs"><p class="font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider">Estudio</p></div><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="escanear-qr" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">qr_code_scanner</span><span class="font-body-md text-body-md">Escanear QR</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="mis-materias" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">auto_stories</span><span class="font-body-md text-body-md">Mis materias</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="mis-notas" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">grade</span><span class="font-body-md text-body-md">Mis notas</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="mi-asistencia" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">event_available</span><span class="font-body-md text-body-md">Mi asistencia</span></div></a><div class="px-space-sm pt-space-md pb-space-xs"><p class="font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider">Docencia</p></div><a aria-current="page" class="flex items-center justify-between px-space-sm py-2 transition-colors bg-marca-50 text-marca-700 font-semibold border-l-4 border-marca-600 rounded-r-lg" data-path="mis-secciones" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">groups</span><span class="font-body-md text-body-md">Mis secciones</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="pendientes-de-calificar" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">assignment_late</span><span class="font-body-md text-body-md">Pendientes de calificar</span></div><span class="px-2 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-[11px] font-semibold">12</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="bancos-de-preguntas" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">quiz</span><span class="font-body-md text-body-md">Bancos de preguntas</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="rubricas" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">rule</span><span class="font-body-md text-body-md">Rúbricas</span></div></a><div class="px-space-sm pt-space-md pb-space-xs"><p class="font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider">Coordinación</p></div><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="supervision-de-aulas" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">meeting_room</span><span class="font-body-md text-body-md">Supervisión de aulas</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="carga-academica" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">calendar_month</span><span class="font-body-md text-body-md">Carga académica</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="matricula" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">how_to_reg</span><span class="font-body-md text-body-md">Matrícula</span></div><span class="px-2 py-0.5 rounded-full bg-info-bg text-info-text font-label-sm text-[11px] font-semibold">3</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="importar-estudiantes" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">upload_file</span><span class="font-body-md text-body-md">Importar estudiantes</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="actas-por-validar" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">verified_user</span><span class="font-body-md text-body-md">Actas por validar</span></div><span class="px-2 py-0.5 rounded-full bg-warning-bg text-warning-text font-label-sm text-[11px] font-semibold">5</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="clases-canceladas" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">event_busy</span><span class="font-body-md text-body-md">Clases canceladas</span></div></a><div class="px-space-sm pt-space-md pb-space-xs"><p class="font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider">Jefatura</p></div><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="secciones-del-departamento" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">domain</span><span class="font-body-md text-body-md">Secciones del depto</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="cierre-del-periodo" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">lock_clock</span><span class="font-body-md text-body-md">Cierre del período</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="desempeno-docente" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">trending_up</span><span class="font-body-md text-body-md">Desempeño docente</span></div></a><div class="px-space-sm pt-space-md pb-space-xs"><p class="font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider">Consultas</p></div><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="reportes" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">description</span><span class="font-body-md text-body-md">Reportes</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto hover:bg-fondo transition-colors" data-path="estadisticas-de-oferta" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-texto-suave">bar_chart</span><span class="font-body-md text-body-md">Estadísticas de oferta</span></div></a></nav></aside><div class="pl-64"><main class="pt-14 min-h-screen bg-fondo"><div class="w-full px-margin py-space-md"><div class="flex flex-col w-full">
+<!-- 1. Migas de Pan Institucionales UES -->
+<nav aria-label="Ruta de navegación" class="flex items-center gap-space-xs text-label-sm font-label-sm text-texto-suave mb-space-md">
+<a class="hover:text-marca-600 transition-colors flex items-center gap-1" data-path="mis-secciones" href="#">
+<span class="material-symbols-outlined text-[16px]">home</span>
+<span>Inicio</span>
+</a>
+<span class="text-borde select-none">/</span>
+<a class="hover:text-marca-600 transition-colors" data-path="mis-secciones" href="#">Mis secciones</a>
+<span class="text-borde select-none">/</span>
+<span class="text-texto font-medium">PRN115 · Programación I</span>
+<span class="text-borde select-none">/</span>
+<span class="text-marca-700 font-semibold">Estudiantes</span>
+</nav>
+<!-- 2. Cabecera de la Sección Oficial -->
+<section class="bg-superficie rounded-xl shadow-sm mb-space-lg overflow-hidden">
+<div class="p-space-lg flex flex-col xl:flex-row xl:items-start justify-between gap-space-md">
+<!-- Información Académica -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="px-2.5 py-0.5 rounded-full bg-marca-100 text-marca-800 font-label-sm text-label-sm font-bold tracking-tight">
+            PRN115
+          </span>
+<h1 class="font-headline-lg text-headline-lg text-texto tracking-tight m-0">
+            Programación I · Grupo 01
+          </h1>
+<span class="px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-success-text animate-pulse"></span>
+            Activo · Ciclo II-2026
+          </span>
+</div>
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 text-label-md font-label-md text-texto-suave mt-1">
+<span class="flex items-center gap-1.5 text-texto">
+<span class="material-symbols-outlined text-[18px] text-marca-600">person</span>
+            Ing. Carlos Martínez <span class="text-texto-suave font-normal">(Responsable)</span>
+</span>
+<span class="hidden md:inline text-borde">·</span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">schedule</span>
+            Lun y Mié 07:00 – 08:40
+          </span>
+<span class="hidden md:inline text-borde">·</span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">meeting_room</span>
+            Edificio B · Aula B-12
+          </span>
+<span class="hidden md:inline text-borde">·</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded bg-fondo text-texto font-label-sm text-[11px] font-medium">
+            Presencial
+          </span>
+</div>
+</div>
+<!-- Acciones de Cabecera -->
+<div class="flex flex-wrap items-center gap-space-sm pt-2 xl:pt-0">
+<button class="px-space-md py-2 rounded-lg bg-marca-600 hover:bg-marca-700 text-superficie font-label-md text-label-md font-semibold transition-all shadow-sm flex items-center gap-2" onclick="document.getElementById('modal-inscribir').classList.remove('hidden')" type="button">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+<span>+ Inscribir estudiante</span>
+</button>
+<button class="px-space-md py-2 rounded-lg bg-superficie hover:bg-fondo text-texto font-label-md text-label-md font-medium transition-colors shadow-sm flex items-center gap-2" type="button">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">download</span>
+<span>Exportar (.xlsx / .pdf)</span>
+</button>
+<button class="px-space-md py-2 rounded-lg bg-superficie hover:bg-fondo text-texto font-label-md text-label-md font-medium transition-colors shadow-sm flex items-center gap-2" type="button">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">mail</span>
+<span>Mensaje grupal</span>
+</button>
+</div>
+</div>
+<!-- Pestañas Horizontales de Navegación -->
+<div class="px-space-lg flex items-center gap-space-md overflow-x-auto bg-superficie">
+<a class="py-3 px-1 text-label-md font-label-md text-texto-suave hover:text-texto whitespace-nowrap transition-colors flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-[18px]">library_books</span>
+        Contenidos
+      </a>
+<a class="py-3 px-1 text-label-md font-label-md text-texto-suave hover:text-texto whitespace-nowrap transition-colors flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-[18px]">task</span>
+        Actividades
+      </a>
+<a class="py-3 px-1 text-label-md font-label-md text-texto-suave hover:text-texto whitespace-nowrap transition-colors flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-[18px]">grade</span>
+        Notas
+      </a>
+<a class="py-3 px-1 text-label-md font-label-md text-texto-suave hover:text-texto whitespace-nowrap transition-colors flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-[18px]">event_available</span>
+        Asistencia
+      </a>
+<a class="py-3 px-1 text-label-md font-label-md text-texto-suave hover:text-texto whitespace-nowrap transition-colors flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-[18px]">forum</span>
+        Foro
+      </a>
+<!-- PESTAÑA ACTIVA -->
+<a class="py-3 px-1 text-label-md font-label-md text-marca-700 font-bold whitespace-nowrap shadow-[inset_0_-2px_0_0] shadow-marca-600 flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-[18px] text-marca-600">group</span>
+        Estudiantes (45)
+      </a>
+<a class="py-3 px-1 text-label-md font-label-md text-texto-suave hover:text-texto whitespace-nowrap transition-colors flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-[18px]">analytics</span>
+        Analítica
+      </a>
+</div>
+</section>
+<!-- 3. Panel de Métricas Rápidas de la Sección -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md mb-space-lg">
+<!-- Card 1: Matriculados -->
+<div class="bg-superficie rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-texto-suave uppercase tracking-wider">Total Matriculados</span>
+<div class="w-8 h-8 rounded-lg bg-marca-50 text-marca-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">groups</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-baseline justify-between">
+<span class="text-headline-lg font-headline-lg text-texto tracking-tight">45 <span class="text-headline-sm font-normal text-texto-suave">/ 45</span></span>
+<span class="px-2 py-0.5 rounded-full bg-marca-100 text-marca-800 font-label-sm text-label-sm font-semibold">Cupo 100%</span>
+</div>
+<div class="mt-space-sm">
+<div class="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
+<div class="bg-marca-600 h-1.5 rounded-full" style="width: 100%;"></div>
+</div>
+</div>
+</div>
+<!-- Card 2: Asistencia Promedio -->
+<div class="bg-superficie rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-texto-suave uppercase tracking-wider">Asistencia Promedio</span>
+<div class="w-8 h-8 rounded-lg bg-success-bg text-success-text flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-baseline justify-between">
+<span class="text-headline-lg font-headline-lg text-texto tracking-tight">91.8%</span>
+<span class="px-2 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-semibold">Estable</span>
+</div>
+<p class="text-label-sm font-label-sm text-texto-suave mt-space-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-warning-text">warning</span>
+        3 alumnos con registro &lt; 85%
+      </p>
+</div>
+<!-- Card 3: Promedio de Calificaciones -->
+<div class="bg-superficie rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-texto-suave uppercase tracking-wider">Promedio Acumulado</span>
+<div class="w-8 h-8 rounded-lg bg-info-bg text-info-text flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">bar_chart</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-baseline justify-between">
+<span class="text-headline-lg font-headline-lg text-texto tracking-tight">7.64 <span class="text-headline-sm font-normal text-texto-suave">/ 10.0</span></span>
+<span class="px-2 py-0.5 rounded-full bg-info-bg text-info-text font-label-sm text-label-sm font-semibold">84% Aprobación</span>
+</div>
+<div class="mt-space-sm">
+<div class="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
+<div class="bg-info-text h-1.5 rounded-full" style="width: 76.4%;"></div>
+</div>
+</div>
+</div>
+<!-- Card 4: Alerta Temprana de Riesgo -->
+<div class="bg-superficie rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-texto-suave uppercase tracking-wider">Riesgo Académico</span>
+<div class="w-8 h-8 rounded-lg bg-danger-bg text-danger-text flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">warning_amber</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-baseline justify-between">
+<span class="text-headline-lg font-headline-lg text-danger-text tracking-tight">4</span>
+<span class="px-2 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-label-sm font-bold">Crítico</span>
+</div>
+<p class="text-label-sm font-label-sm text-texto-suave mt-space-sm">
+        Deserción / inasistencia detectada
+      </p>
+</div>
+</section>
+<!-- 4. Filtros de Búsqueda y Segmentación -->
+<section class="bg-superficie rounded-xl p-space-md shadow-sm mb-space-md">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-space-sm items-center">
+<!-- Input de búsqueda -->
+<div class="lg:col-span-4 relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-texto-suave text-[20px]">search</span>
+<input class="w-full h-10 pl-10 pr-space-md rounded-lg bg-fondo text-body-md font-body-md text-texto placeholder-texto-desactivado focus:outline-none focus:ring-2 focus:ring-marca-500 transition-all" placeholder="Buscar por carné institucional, apellidos o nombres..." type="text"/>
+</div>
+<!-- Filtro: Estado -->
+<div class="lg:col-span-2">
+<select class="w-full h-10 px-3 rounded-lg bg-fondo text-label-md font-label-md text-texto focus:outline-none focus:ring-2 focus:ring-marca-500 cursor-pointer">
+<option value="">Estado: Todos</option>
+<option value="regular">Regular</option>
+<option value="alerta">Alerta Académica</option>
+<option value="riesgo">En riesgo de deserción</option>
+<option value="condicional">Condicional</option>
+</select>
+</div>
+<!-- Filtro: Rango de Asistencia -->
+<div class="lg:col-span-2">
+<select class="w-full h-10 px-3 rounded-lg bg-fondo text-label-md font-label-md text-texto focus:outline-none focus:ring-2 focus:ring-marca-500 cursor-pointer">
+<option value="">Asistencia: Todos</option>
+<option value="optima">&gt; 85% (Regular)</option>
+<option value="preventiva">75% - 85% (Preventiva)</option>
+<option value="critica">&lt; 75% (Crítico)</option>
+</select>
+</div>
+<!-- Filtro: Subgrupo Lab -->
+<div class="lg:col-span-2">
+<select class="w-full h-10 px-3 rounded-lg bg-fondo text-label-md font-label-md text-texto focus:outline-none focus:ring-2 focus:ring-marca-500 cursor-pointer">
+<option value="">Laboratorio: Todos</option>
+<option value="lab1">LAB 01 (Mié 09:00)</option>
+<option value="lab2">LAB 02 (Jue 09:00)</option>
+</select>
+</div>
+<!-- Ordenar por -->
+<div class="lg:col-span-2">
+<select class="w-full h-10 px-3 rounded-lg bg-fondo text-label-md font-label-md text-texto focus:outline-none focus:ring-2 focus:ring-marca-500 cursor-pointer">
+<option value="apellidos">Apellidos (A-Z)</option>
+<option value="promedio_desc">Promedio acumulado (Mayor a menor)</option>
+<option value="asistencia_asc">Asistencia (Menor a mayor)</option>
+<option value="carne">Carné institucional</option>
+</select>
+</div>
+</div>
+</section>
+<!-- 5. Tabla de Estudiantes de la Sección -->
+<section class="bg-superficie rounded-xl shadow-sm overflow-hidden mb-space-md">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-fondo text-label-nav-header font-label-nav-header text-texto-suave uppercase tracking-wider">
+<th class="py-3 px-space-md">Estudiante</th>
+<th class="py-3 px-space-md">Plan y Ciclo</th>
+<th class="py-3 px-space-md">Grupo Lab</th>
+<th class="py-3 px-space-md">Asistencia</th>
+<th class="py-3 px-space-md">Nota Acumulada</th>
+<th class="py-3 px-space-md">Estado / Alertas</th>
+<th class="py-3 px-space-md text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-borde text-body-md font-body-md text-texto">
+<!-- FILA 1: Gabriela Sofía Sánchez -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-full bg-marca-100 text-marca-800 flex items-center justify-center font-bold text-label-md shrink-0">
+                  GS
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-texto truncate">Gabriela Sofía Sánchez</span>
+<span class="text-label-sm font-label-sm text-texto-suave">GS21004</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-texto">Ing. Sistemas Informáticos</span>
+<span class="text-label-sm font-label-sm text-texto-suave">Plan 2023 · Ciclo IV</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<span class="px-2.5 py-0.5 rounded-full bg-fondo text-texto font-label-sm text-label-sm font-semibold">
+                LAB 01
+              </span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-bold">
+                  96.5%
+                </span>
+<span class="text-label-sm text-texto-suave">19/20</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-sm text-headline-sm font-bold text-success-text">9.15</span>
+<span class="text-label-sm text-texto-suave">(Sobresaliente)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<span class="px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-medium">
+                Regular
+              </span>
+</td>
+<td class="py-3.5 px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Ver expediente académico" type="button">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Enviar mensaje" type="button">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo transition-colors" title="Opciones" type="button">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- FILA 2: Manuel Antonio Ramos -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-full bg-marca-100 text-marca-800 flex items-center justify-center font-bold text-label-md shrink-0">
+                  MR
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-texto truncate">Manuel Antonio Ramos</span>
+<span class="text-label-sm font-label-sm text-texto-suave">MR20015</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-texto">Ing. Sistemas Informáticos</span>
+<span class="text-label-sm font-label-sm text-texto-suave">Plan 2023 · Ciclo IV</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<span class="px-2.5 py-0.5 rounded-full bg-fondo text-texto font-label-sm text-label-sm font-semibold">
+                LAB 02
+              </span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-bold">
+                  88.0%
+                </span>
+<span class="text-label-sm text-texto-suave">17/20</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-sm text-headline-sm font-bold text-texto">7.20</span>
+<span class="text-label-sm text-texto-suave">(Aprobado)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<span class="px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-medium">
+                Regular
+              </span>
+</td>
+<td class="py-3.5 px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Ver expediente" type="button">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Enviar mensaje" type="button">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo transition-colors" title="Opciones" type="button">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- FILA 3: Cristian Eduardo Ortiz (EN RIESGO) -->
+<tr class="bg-danger-bg/30 hover:bg-danger-bg/50 transition-colors">
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-full bg-danger-bg text-danger-text flex items-center justify-center font-bold text-label-md shrink-0">
+                  CO
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-texto truncate">Cristian Eduardo Ortiz</span>
+<span class="text-label-sm font-label-sm text-danger-text font-semibold">OC22009</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-texto">Ing. Sistemas Informáticos</span>
+<span class="text-label-sm font-label-sm text-texto-suave">Plan 2023 · Ciclo IV</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<span class="px-2.5 py-0.5 rounded-full bg-fondo text-texto font-label-sm text-label-sm font-semibold">
+                LAB 01
+              </span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">arrow_downward</span>
+                  71.5%
+                </span>
+<span class="text-label-sm text-danger-text font-medium">Crítico</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-sm text-headline-sm font-bold text-danger-text">4.80</span>
+<span class="text-label-sm text-danger-text">(Reprobado)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col items-start gap-1">
+<span class="px-2.5 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">crisis_alert</span>
+                  Riesgo de Deserción
+                </span>
+<span class="text-[11px] text-danger-text font-medium">7 días sin ingresar</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="px-2.5 py-1 rounded bg-marca-600 hover:bg-marca-700 text-superficie font-label-sm text-[12px] font-semibold transition-colors shadow-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">psychology</span>
+                  Tutoría
+                </button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo transition-colors" title="Justificaciones de inasistencia" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+<button class="p-1.5 rounded-lg text-danger-text hover:bg-danger-bg transition-colors" title="Retirar con motivo" type="button">
+<span class="material-symbols-outlined text-[18px]">person_remove</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- FILA 4: Andrea Lucía Lemus -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-full bg-marca-100 text-marca-800 flex items-center justify-center font-bold text-label-md shrink-0">
+                  AL
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-texto truncate">Andrea Lucía Lemus</span>
+<span class="text-label-sm font-label-sm text-texto-suave">AL23011</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-texto">Ing. Sistemas Informáticos</span>
+<span class="text-label-sm font-label-sm text-texto-suave">Plan 2023 · Ciclo IV</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<span class="px-2.5 py-0.5 rounded-full bg-fondo text-texto font-label-sm text-label-sm font-semibold">
+                LAB 02
+              </span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-bold">
+                  94.0%
+                </span>
+<span class="text-label-sm text-texto-suave">18/20</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-sm text-headline-sm font-bold text-success-text">8.60</span>
+<span class="text-label-sm text-texto-suave">(Sobresaliente)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<span class="px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-medium">
+                Regular
+              </span>
+</td>
+<td class="py-3.5 px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Ver expediente" type="button">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Enviar mensaje" type="button">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo transition-colors" title="Opciones" type="button">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- FILA 5: Mario Ernesto Portillo (ALERTA AMBAR) -->
+<tr class="bg-warning-bg/20 hover:bg-warning-bg/40 transition-colors">
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-full bg-warning-bg text-warning-text flex items-center justify-center font-bold text-label-md shrink-0">
+                  MP
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-texto truncate">Mario Ernesto Portillo</span>
+<span class="text-label-sm font-label-sm text-warning-text font-semibold">PM21034</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-texto">Ing. Sistemas Informáticos</span>
+<span class="text-label-sm font-label-sm text-texto-suave">Plan 2023 · Ciclo IV</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<span class="px-2.5 py-0.5 rounded-full bg-fondo text-texto font-label-sm text-label-sm font-semibold">
+                LAB 01
+              </span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-warning-bg text-warning-text font-label-sm text-label-sm font-bold">
+                  81.0%
+                </span>
+<span class="text-label-sm text-warning-text">&lt; 85%</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-sm text-headline-sm font-bold text-warning-text">5.90</span>
+<span class="text-label-sm text-texto-suave">(Límite 6.0)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<span class="px-2.5 py-0.5 rounded-full bg-warning-bg text-warning-text font-label-sm text-label-sm font-medium flex items-center gap-1 w-max">
+<span class="material-symbols-outlined text-[14px]">report_problem</span>
+                Alerta Académica
+              </span>
+</td>
+<td class="py-3.5 px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="px-2.5 py-1 rounded bg-superficie hover:bg-fondo text-texto font-label-sm text-[12px] font-semibold transition-colors shadow-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px] text-warning-text">support</span>
+                  Citar asesoría
+                </button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Ver expediente" type="button">
+<span class="material-symbols-outlined text-[18px]">badge</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo transition-colors" title="Opciones" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- FILA 6: Roxana Beatriz Ventura -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-full bg-marca-100 text-marca-800 flex items-center justify-center font-bold text-label-md shrink-0">
+                  RV
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-texto truncate">Roxana Beatriz Ventura</span>
+<span class="text-label-sm font-label-sm text-texto-suave">VR22014</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-texto">Ing. Sistemas Informáticos</span>
+<span class="text-label-sm font-label-sm text-texto-suave">Plan 2023 · Ciclo IV</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<span class="px-2.5 py-0.5 rounded-full bg-fondo text-texto font-label-sm text-label-sm font-semibold">
+                LAB 02
+              </span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-bold">
+                  92.5%
+                </span>
+<span class="text-label-sm text-texto-suave">18/20</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-sm text-headline-sm font-bold text-texto">8.35</span>
+<span class="text-label-sm text-texto-suave">(Aprobado)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<span class="px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-medium">
+                Regular
+              </span>
+</td>
+<td class="py-3.5 px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Ver expediente" type="button">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Enviar mensaje" type="button">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo transition-colors" title="Opciones" type="button">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- 6. Pie de Tabla con Paginación Institucional -->
+<div class="p-space-md bg-superficie flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<div class="text-label-sm font-label-sm text-texto-suave">
+        Mostrando <span class="font-semibold text-texto">6</span> de <span class="font-semibold text-texto">45</span> estudiantes inscritos en el padrón
+      </div>
+<div class="flex items-center gap-1.5">
+<button class="p-1.5 rounded-lg bg-fondo text-texto-desactivado cursor-not-allowed" disabled="" title="Anterior" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-marca-600 text-superficie font-label-sm text-label-sm font-bold flex items-center justify-center shadow-sm" type="button">
+          1
+        </button>
+<button class="w-8 h-8 rounded-lg bg-superficie hover:bg-fondo text-texto font-label-sm text-label-sm font-medium flex items-center justify-center transition-colors" type="button">
+          2
+        </button>
+<button class="w-8 h-8 rounded-lg bg-superficie hover:bg-fondo text-texto font-label-sm text-label-sm font-medium flex items-center justify-center transition-colors" type="button">
+          3
+        </button>
+<span class="px-1 text-texto-suave">...</span>
+<button class="w-8 h-8 rounded-lg bg-superficie hover:bg-fondo text-texto font-label-sm text-label-sm font-medium flex items-center justify-center transition-colors" type="button">
+          8
+        </button>
+<button class="p-1.5 rounded-lg bg-superficie hover:bg-fondo text-texto transition-colors" title="Siguiente" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 7. Modal / Bloque de Inscripción Rápida (RF09) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-texto/40 backdrop-blur-sm p-4 hidden" id="modal-inscribir">
+<div class="bg-superficie w-full max-w-lg rounded-xl shadow-xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+<!-- Encabezado Modal -->
+<div class="p-space-lg bg-superficie flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-marca-50 text-marca-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">how_to_reg</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-texto">Inscribir Estudiante</h2>
+<p class="font-label-sm text-label-sm text-texto-suave">Módulo RF09 · Registro en PRN115 Grupo 01</p>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg text-texto-suave hover:text-texto hover:bg-fondo transition-colors flex items-center justify-center" onclick="document.getElementById('modal-inscribir').classList.add('hidden')" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Contenido / Formulario -->
+<form class="p-space-lg flex flex-col gap-space-md" onsubmit="event.preventDefault(); document.getElementById('modal-inscribir').classList.add('hidden');">
+<!-- Carné / Correo con autocompletado simulado -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm font-semibold text-texto">Carné o Correo Institucional UES *</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-texto-suave text-[20px]">badge</span>
+<input class="w-full h-10 pl-10 pr-space-md rounded-lg bg-fondo text-body-md font-body-md text-texto focus:outline-none focus:ring-2 focus:ring-marca-500" placeholder="Ej: AB22001 o nombre.apellido@ues.edu.sv" type="text" value="AL22030"/>
+</div>
+<span class="text-[11px] text-texto-suave">El sistema consulta el padrón de Administración Académica FMO.</span>
+</div>
+<!-- Tarjeta de confirmación de estudiante encontrado -->
+<div class="p-space-sm rounded-lg bg-fondo flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-full bg-marca-100 text-marca-800 flex items-center justify-center font-bold text-label-md shrink-0">
+            AL
+          </div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-texto truncate">Alejandro Luis Lemus Carballo</span>
+<span class="text-label-sm font-label-sm text-texto-suave">Ing. Sistemas Informáticos (Plan 2023) · Carné AL22030</span>
+</div>
+</div>
+<!-- Subgrupo de Laboratorio -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm font-semibold text-texto">Asignación de Subgrupo de Laboratorio *</label>
+<select class="w-full h-10 px-3 rounded-lg bg-fondo text-label-md font-label-md text-texto focus:outline-none focus:ring-2 focus:ring-marca-500">
+<option value="lab1">LAB 01 · Miércoles 09:00 - 10:40 (Cupo disponible: 3)</option>
+<option value="lab2">LAB 02 · Jueves 09:00 - 10:40 (Cupo disponible: 1)</option>
+</select>
+</div>
+<!-- Comprobaciones automáticas del sistema -->
+<div class="p-space-sm rounded-lg bg-surface-container flex flex-col gap-1.5">
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-success-text">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>Sin colisión de horario de teoría y laboratorio</span>
+</div>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-success-text">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>Cumple pre-requisitos (PRN114 - Algoritmos I aprobada)</span>
+</div>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-warning-text">
+<span class="material-symbols-outlined text-[16px]">info</span>
+<span>Cupo de sobrecupo habilitado por Jefatura de Departamento</span>
+</div>
+</div>
+<!-- Botones de Acción -->
+<div class="pt-space-sm flex items-center justify-end gap-space-sm">
+<button class="px-space-md py-2 rounded-lg bg-fondo hover:bg-superficie text-texto font-label-md text-label-md font-medium transition-colors" onclick="document.getElementById('modal-inscribir').classList.add('hidden')" type="button">
+            Cancelar
+          </button>
+<button class="px-space-md py-2 rounded-lg bg-marca-600 hover:bg-marca-700 text-superficie font-label-md text-label-md font-semibold transition-all shadow-sm flex items-center gap-1.5" type="submit">
+<span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+<span>Inscribir en sección</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+</div></div></main></div></body></html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..900;1,300..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container": "#f3ecf1", "surface": "#fff7fd", "error": "#ba1a1a", "surface-variant": "#e8e0e6", "on-background": "#1e1a1f", "on-error": "#ffffff", "texto-suave": "#696969", "on-secondary-fixed-variant": "#8c142a", "surface-container-lowest": "#ffffff", "marca-200": "#F6C6CC", "success-bg": "#F0FDF4", "marca-300": "#EE98A3", "secondary-fixed": "#ffdada", "marca-500": "#CB3149", "surface-container-low": "#f9f1f7", "on-tertiary-fixed": "#001f25", "on-tertiary-container": "#92daea", "danger-text": "#B91C1C", "info-bg": "#EFF6FF", "primary-fixed-dim": "#ffb3b2", "secondary": "#ad2e40", "primary-container": "#ae152d", "marca-900": "#520A0D", "primary": "#87001d", "texto": "#1A171B", "inverse-on-surface": "#f6eef4", "outline": "#8e706f", "outline-variant": "#e2bebd", "secondary-fixed-dim": "#ffb3b5", "success-text": "#15803D", "surface-dim": "#dfd8dd", "tertiary-fixed-dim": "#8ad2e1", "fondo": "#F8F8F8", "tertiary": "#004852", "on-error-container": "#93000a", "superficie": "#FFFFFF", "marca-700": "#8B0E13", "background": "#fff7fd", "marca-50": "#FDF2F3", "danger-bg": "#FEF2F2", "inverse-surface": "#332f34", "surface-container-highest": "#e8e0e6", "on-primary-container": "#ffbfbe", "info-text": "#1D4ED8", "warning-bg": "#FFFBEB", "on-secondary": "#ffffff", "surface-tint": "#b71e33", "primary-fixed": "#ffdad9", "tertiary-fixed": "#a6eefe", "on-tertiary-fixed-variant": "#004e5a", "marca-800": "#6E0B10", "on-surface": "#1e1a1f", "on-secondary-container": "#6c001a", "acento": "#9D2235", "marca-400": "#E05F72", "on-primary": "#ffffff", "marca-100": "#FBE4E6", "marca-600": "#AE152D", "error-container": "#ffdad6", "surface-bright": "#fff7fd", "on-surface-variant": "#5a4040", "texto-desactivado": "#ABABAB", "tertiary-container": "#00616f", "on-primary-fixed": "#410008", "borde": "#E2E2E2", "on-secondary-fixed": "#40000c", "surface-container-high": "#eee6ec", "on-primary-fixed-variant": "#920020", "on-tertiary": "#ffffff", "secondary-container": "#fe6b78", "warning-text": "#B45309", "inverse-primary": "#ffb3b2" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-lg": "1.5rem", "margin-mobile": "1rem", "gutter": "1rem", "gutter-mobile": "0.75rem", "space-xs": "0.25rem", "space-xl": "2rem", "margin": "1.5rem", "space-sm": "0.5rem", "space-md": "1rem" }, "fontFamily": { "headline-lg": [ "Hanken Grotesk" ], "label-nav-header": [ "Hanken Grotesk" ], "body-lg": [ "Hanken Grotesk" ], "headline-md": [ "Hanken Grotesk" ], "display-qr": [ "Hanken Grotesk" ], "label-md": [ "Hanken Grotesk" ], "headline-sm": [ "Hanken Grotesk" ], "label-sm": [ "Hanken Grotesk" ], "body-md": [ "Hanken Grotesk" ] }, "fontSize": { "headline-lg": [ "24px", { "lineHeight": "32px", "fontWeight": "600" } ], "label-nav-header": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "headline-md": [ "18px", { "lineHeight": "24px", "fontWeight": "600" } ], "display-qr": [ "36px", { "lineHeight": "44px", "fontWeight": "600" } ], "label-md": [ "14px", { "lineHeight": "20px", "fontWeight": "500" } ], "headline-sm": [ "16px", { "lineHeight": "22px", "fontWeight": "600" } ], "label-sm": [ "12px", { "lineHeight": "16px", "fontWeight": "500" } ], "body-md": [ "14px", { "lineHeight": "21px", "fontWeight": "400" } ] } } } };</script></head><body class="bg-fondo font-body-md text-body-md text-texto antialiased min-h-screen"><header class="fixed top-0 left-0 right-0 h-14 bg-superficie border-b border-borde z-50"><div class="h-14 w-full px-margin flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded bg-marca-600 flex items-center justify-center text-on-primary font-headline-sm text-headline-sm font-bold tracking-tight shadow-sm">U</div><span class="font-headline-sm text-headline-sm text-texto tracking-tight hidden sm:inline-block">LMS UES FMO</span></div><span class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-marca-100 text-marca-700 font-label-sm text-label-sm border border-marca-200"><span class="w-1.5 h-1.5 rounded-full bg-marca-600"></span>Período 2026-II · en curso</span></div><div class="flex items-center gap-space-md"><button class="w-8 h-8 rounded-lg flex items-center justify-center text-texto-suave hover:bg-fondo hover:text-texto transition-colors" title="Ayuda" type="button"><span class="material-symbols-outlined text-[20px]">help</span></button><button class="relative w-8 h-8 rounded-lg flex items-center justify-center text-texto-suave hover:bg-fondo hover:text-texto transition-colors" title="Notificaciones" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-marca-600 text-on-primary font-label-sm text-[10px] leading-none flex items-center justify-center">2</span></button><div class="h-5 w-px bg-borde mx-space-xs hidden sm:block"></div><div class="flex items-center gap-space-sm pl-space-xs"><div class="hidden lg:flex flex-col text-right"><span class="font-label-md text-label-md text-texto leading-none">Ing. Mauricio Portillo</span><span class="font-label-sm text-label-sm text-texto-suave leading-none mt-1">Soporte Técnico</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ring-1 ring-borde"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></div></header><aside class="fixed left-0 top-14 bottom-0 w-64 bg-superficie border-r border-borde z-40 flex flex-col justify-between overflow-y-auto"><div class="p-space-md flex flex-col gap-space-lg"><nav class="flex flex-col gap-1" data-active-classes="bg-marca-100 text-marca-700 font-semibold"><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="inicio" href="#"><span class="material-symbols-outlined text-[20px]">home</span><span>Inicio</span></a></nav><div class="flex flex-col gap-1"><div class="px-3 font-label-nav-header text-label-nav-header uppercase text-texto-desactivado tracking-wider">Soporte</div><nav class="flex flex-col gap-1 mt-1" data-active-classes="bg-marca-100 text-marca-700 font-semibold"><a class="flex items-center justify-between px-3 py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="solicitudes-de-dispositivo" href="#"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-[20px]">devices</span><span>Solicitudes de dispositivo</span></div><span class="px-2 py-0.5 rounded-full bg-warning-bg text-warning-text font-label-sm text-label-sm border border-borde">2</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="diagnostico-de-asistencia" href="#"><span class="material-symbols-outlined text-[20px]">fact_check</span><span>Diagnóstico de asistencia</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="consulta-de-usuarios" href="#"><span class="material-symbols-outlined text-[20px]">manage_accounts</span><span>Usuarios (consulta)</span></a></nav></div><div class="flex flex-col gap-1"><div class="px-3 font-label-nav-header text-label-nav-header uppercase text-texto-desactivado tracking-wider">Cuenta</div><nav class="flex flex-col gap-1 mt-1" data-active-classes="bg-marca-100 text-marca-700 font-semibold"><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="mi-perfil" href="#"><span class="material-symbols-outlined text-[20px]">badge</span><span>Mi perfil</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="centro-de-ayuda" href="#"><span class="material-symbols-outlined text-[20px]">help_center</span><span>Ayuda</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-danger-text hover:bg-danger-bg hover:text-danger-text transition-colors font-label-md text-label-md" data-path="cerrar-sesion" href="#"><span class="material-symbols-outlined text-[20px]">logout</span><span>Cerrar sesión</span></a></nav></div></div><div class="p-space-md border-t border-borde"><div class="px-3 py-2 rounded-lg bg-fondo text-texto-suave font-label-sm text-label-sm flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-success-text"></span>Servidor FMO</span><span class="font-mono text-[11px]">v2.4.0</span></div></div></aside><div class="pl-64"><main class="w-full pt-14 px-margin py-margin bg-fondo min-h-screen"><div class="flex flex-col w-full">
+<!-- Miga de Pan & Encabezado -->
+<div class="flex flex-col gap-space-sm mb-space-lg">
+<!-- Breadcrumb -->
+<nav aria-label="Breadcrumb" class="flex items-center gap-2 text-texto-suave font-label-sm text-label-sm">
+<a class="hover:text-marca-600 transition-colors" href="#">Inicio</a>
+<span class="text-borde select-none">/</span>
+<a class="hover:text-marca-600 transition-colors" href="#">Soporte</a>
+<span class="text-borde select-none">/</span>
+<span class="text-texto font-medium">Diagnóstico de asistencia</span>
+</nav>
+<!-- Título y Descripción -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md mt-1">
+<div>
+<div class="flex items-center gap-space-sm">
+<span class="px-2 py-0.5 rounded-full bg-marca-100 text-marca-700 font-label-sm text-[11px] font-semibold tracking-wide uppercase">RF20 · Auditoría</span>
+<span class="font-mono text-texto-suave text-label-sm">SES-ID: #SES-PRN115-09</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-texto tracking-tight mt-1">Diagnóstico de Asistencia Técnica (RF20)</h1>
+<p class="font-body-md text-body-md text-texto-suave mt-0.5 max-w-3xl">
+          Auditoría forense de intentos de registro, escaneo de QR rotativo y geocercas en sesiones presenciales.
+        </p>
+</div>
+<!-- Acciones de cabecera -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-superficie hover:bg-fondo text-texto font-label-md text-label-md shadow-sm transition-colors border border-borde" type="button">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">refresh</span>
+<span>Actualizar telemetría</span>
+</button>
+<button class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-superficie hover:bg-fondo text-texto font-label-md text-label-md shadow-sm transition-colors border border-borde" type="button">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">download</span>
+<span>Exportar bitácora</span>
+</button>
+</div>
+</div>
+<!-- Aviso Reglamentario / RBAC -->
+<div class="mt-space-sm p-3.5 rounded-xl bg-info-bg text-info-text flex items-start gap-3 shadow-sm border border-borde">
+<span class="material-symbols-outlined text-[20px] text-info-text flex-shrink-0 mt-0.5">policy</span>
+<div class="flex flex-col md:flex-row md:items-center justify-between w-full gap-2">
+<p class="font-body-md text-label-sm text-info-text leading-relaxed">
+<strong>Aviso reglamentario / Permisos:</strong> Herramienta de diagnóstico de solo lectura (Soporte Técnico - Alcance Global sin privilegios de modificación de notas ni matrícula según ADR-032 / RBAC).
+        </p>
+<span class="font-mono text-[11px] uppercase tracking-wider text-info-text px-2 py-0.5 rounded bg-superficie/80 border border-borde self-start md:self-auto flex-shrink-0">
+          AUDIT_LOG_RO
+        </span>
+</div>
+</div>
+</div>
+<!-- Barra de Filtros y Búsqueda -->
+<section class="bg-superficie rounded-xl p-space-md shadow-sm border border-borde mb-space-lg">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-space-md items-end">
+<!-- Carné o ID de sesión -->
+<div class="lg:col-span-4 flex flex-col gap-1.5">
+<label class="font-label-sm text-label-sm text-texto font-medium flex items-center justify-between" for="search-input">
+<span>Identificador de búsqueda</span>
+<span class="text-texto-suave font-normal text-[11px]">Carné o #Sesión</span>
+</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-[20px] text-texto-desactivado">search</span>
+<input class="w-full h-10 pl-10 pr-3 rounded-lg bg-superficie text-texto font-body-md text-body-md border border-borde focus:outline-none focus:ring-2 focus:ring-marca-500 focus:ring-offset-1 placeholder:text-texto-desactivado" id="search-input" placeholder="Ej: gs21004, rm20015 o #SES-..." type="text" value="#SES-PRN115-09"/>
+</div>
+</div>
+<!-- Fecha -->
+<div class="lg:col-span-2 flex flex-col gap-1.5">
+<label class="font-label-sm text-label-sm text-texto font-medium" for="date-selector">Fecha de cátedra</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-[20px] text-texto-suave">calendar_today</span>
+<select class="w-full h-10 pl-10 pr-8 rounded-lg bg-superficie text-texto font-label-md text-label-md border border-borde focus:outline-none focus:ring-2 focus:ring-marca-500 focus:ring-offset-1 appearance-none" id="date-selector">
+<option selected="">Hoy, 14/10/2026</option>
+<option>Ayer, 13/10/2026</option>
+<option>12/10/2026</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-[18px] text-texto-suave pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Asignatura / Grupo -->
+<div class="lg:col-span-3 flex flex-col gap-1.5">
+<label class="font-label-sm text-label-sm text-texto font-medium" for="course-selector">Cátedra / Sección</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-[20px] text-texto-suave">school</span>
+<select class="w-full h-10 pl-10 pr-8 rounded-lg bg-superficie text-texto font-label-md text-label-md border border-borde focus:outline-none focus:ring-2 focus:ring-marca-500 focus:ring-offset-1 appearance-none" id="course-selector">
+<option selected="">PRN115 · Programación I (GTO 01)</option>
+<option>BDD115 · Base de Datos I (GTO 02)</option>
+<option>FIR115 · Física I (GLB 01)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-[18px] text-texto-suave pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Tipo de Resultado -->
+<div class="lg:col-span-3 flex flex-col gap-1.5">
+<label class="font-label-sm text-label-sm text-texto font-medium" for="status-filter">Filtro de resultado</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-[20px] text-texto-suave">tune</span>
+<select class="w-full h-10 pl-10 pr-8 rounded-lg bg-superficie text-texto font-label-md text-label-md border border-borde focus:outline-none focus:ring-2 focus:ring-marca-500 focus:ring-offset-1 appearance-none" id="status-filter">
+<option selected="">Todos los intentos (42)</option>
+<option>Exitosos (35)</option>
+<option>Rechazos de geocerca (3)</option>
+<option>Código vencido / token expirado (2)</option>
+<option>Dispositivo no autorizado (2)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-[18px] text-texto-suave pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Métricas de la Sesión Consultada (Bento Summary) -->
+<section class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-space-md mb-space-lg">
+<!-- Metadatos de la Sesión -->
+<div class="md:col-span-3 lg:col-span-1 bg-superficie rounded-xl p-space-md shadow-sm border border-borde flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between text-texto-suave font-label-sm text-label-sm mb-2">
+<span>Aula Virtual / FMO</span>
+<span class="px-2 py-0.5 rounded-full bg-success-bg text-success-text text-[11px] font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-success-text"></span> Activa
+          </span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-texto leading-snug">PRN115 · GTO 01</h2>
+<p class="font-body-md text-label-sm text-texto-suave mt-1">Docente: <strong class="text-texto font-medium">Dra. Ana Ruiz</strong></p>
+</div>
+<div class="mt-4 pt-3 border-t border-borde flex flex-col gap-1 text-label-sm text-texto-suave">
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">schedule</span> Horario</span>
+<span class="font-medium text-texto">07:00 – 08:40 (24h)</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">meeting_room</span> Perímetro</span>
+<span class="font-medium text-texto">Edificio A · Aula A-101</span>
+</div>
+</div>
+</div>
+<!-- Indicador 1: Total Procesados -->
+<div class="bg-superficie rounded-xl p-space-md shadow-sm border border-borde flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-texto-suave">Total Intentos Procesados</span>
+<div class="w-8 h-8 rounded-lg bg-fondo flex items-center justify-center text-texto-suave">
+<span class="material-symbols-outlined text-[20px]">hub</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-[32px] font-bold text-texto tracking-tight leading-none">42</span>
+<span class="font-label-sm text-label-sm text-texto-suave">transacciones</span>
+</div>
+<div class="mt-3 flex items-center gap-2 text-[12px] text-texto-suave">
+<span class="inline-flex items-center gap-1 text-marca-700 font-medium">
+<span class="material-symbols-outlined text-[14px]">bolt</span> 100%
+          </span>
+<span>Procesamiento en &lt;140ms</span>
+</div>
+</div>
+</div>
+<!-- Indicador 2: Exitosos con Barra -->
+<div class="bg-superficie rounded-xl p-space-md shadow-sm border border-borde flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-texto-suave">Marcados Exitosos</span>
+<div class="w-8 h-8 rounded-lg bg-success-bg flex items-center justify-center text-success-text">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="flex items-baseline justify-between mb-1.5">
+<span class="font-headline-lg text-[32px] font-bold text-texto tracking-tight leading-none">35</span>
+<span class="font-label-md text-label-md text-success-text font-bold">83.3%</span>
+</div>
+<!-- Progress bar institucional -->
+<div class="w-full h-1.5 bg-borde rounded-full overflow-hidden">
+<div class="bg-marca-600 h-full rounded-full" style="width: 83.3%"></div>
+</div>
+<p class="font-label-sm text-[12px] text-texto-suave mt-2.5">
+          35 estudiantes validados en geocerca A-101
+        </p>
+</div>
+</div>
+<!-- Indicador 3: Rechazos Registrados -->
+<div class="bg-superficie rounded-xl p-space-md shadow-sm border border-borde flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-texto-suave">Rechazos Registrados</span>
+<div class="w-8 h-8 rounded-lg bg-danger-bg flex items-center justify-center text-danger-text">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="flex items-baseline justify-between">
+<span class="font-headline-lg text-[32px] font-bold text-danger-text tracking-tight leading-none">7</span>
+<span class="px-2 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-[11px] font-medium">16.7%</span>
+</div>
+<p class="font-label-sm text-[12px] text-texto mt-2.5">
+<strong class="font-medium">3 alumnos distintos</strong> presentaron incidencias técnicas de acceso.
+        </p>
+</div>
+</div>
+</section>
+<!-- Bitácora Forense de Intentos (Tabla principal) -->
+<section class="bg-superficie rounded-xl shadow-sm border border-borde mb-space-lg overflow-hidden">
+<!-- Header de la tabla -->
+<div class="p-space-md border-b border-borde flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm bg-superficie">
+<div>
+<h2 class="font-headline-md text-headline-md text-texto">Bitácora Forense de Intentos</h2>
+<p class="font-body-md text-label-sm text-texto-suave mt-0.5">
+          Registro inmutable de paquetes de telemetría de asistencia transmitidos por el cliente web y móvil.
+        </p>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-fondo text-texto-suave text-label-sm font-mono border border-borde">
+<span class="w-2 h-2 rounded-full bg-marca-500 animate-pulse"></span> Streaming en vivo
+        </span>
+</div>
+</div>
+<!-- Tabla Responsive -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-fondo border-b border-borde text-texto-suave font-label-nav-header text-label-nav-header uppercase tracking-wider">
+<th class="py-3 px-4 font-semibold w-24">Hora</th>
+<th class="py-3 px-4 font-semibold">Estudiante</th>
+<th class="py-3 px-4 font-semibold w-32">Resultado</th>
+<th class="py-3 px-4 font-semibold">Diagnóstico &amp; Motivo Técnico</th>
+<th class="py-3 px-4 font-semibold">Dispositivo / Autenticación</th>
+<th class="py-3 px-4 font-semibold text-right w-24">Acciones</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-borde font-body-md text-body-md">
+<!-- Fila 1: Kevin Ramos (Fuera de geocerca) -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-4 font-mono text-label-md text-texto font-medium align-top">
+              07:18:22
+            </td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col">
+<span class="font-medium text-texto">Kevin Alexander Ramos</span>
+<span class="font-mono text-label-sm text-texto-suave">rm20015</span>
+</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-label-sm font-semibold border border-danger-text/20">
+<span class="material-symbols-outlined text-[14px]">cancel</span>
+                RECHAZADO
+              </span>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col gap-1 max-w-lg">
+<div class="flex items-center gap-1.5 text-danger-text font-medium text-label-md">
+<span class="material-symbols-outlined text-[16px]">wrong_location</span>
+<span>Fuera de geocerca del campus (A 640 m del perímetro A-101)</span>
+</div>
+<!-- Detalle y regla forense -->
+<div class="p-2 rounded bg-fondo text-[12px] text-texto-suave font-mono leading-relaxed border border-borde">
+<span class="text-texto">IP:</span> 190.86.110.45 · <span class="text-texto">Precisión GPS:</span> ±8 m
+                  <div class="mt-1 text-marca-700 text-[11px] font-sans font-medium">
+                    • Regla #11: No se exhiben coordenadas absolutas, solo distancia relativa (640 m) para resguardo de privacidad.
+                  </div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col">
+<span class="text-texto text-label-md">Samsung SM-A325M</span>
+<span class="text-danger-text text-label-sm font-medium">No registrado</span>
+</div>
+</td>
+<td class="py-3.5 px-4 text-right align-top">
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Ver paquete crudo" type="button">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+</button>
+</td>
+</tr>
+<!-- Fila 2: Carlos Martínez (QR vencido) -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-4 font-mono text-label-md text-texto font-medium align-top">
+              07:14:05
+            </td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col">
+<span class="font-medium text-texto">Carlos Antonio Martínez</span>
+<span class="font-mono text-label-sm text-texto-suave">cm05012</span>
+</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-warning-bg text-warning-text font-label-sm text-label-sm font-semibold border border-warning-text/20">
+<span class="material-symbols-outlined text-[14px]">timer_off</span>
+                RECHAZADO
+              </span>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col gap-1 max-w-lg">
+<div class="flex items-center gap-1.5 text-warning-text font-medium text-label-md">
+<span class="material-symbols-outlined text-[16px]">sync_problem</span>
+<span>Token QR vencido (Desfase de rotación &gt; 10 s)</span>
+</div>
+<div class="p-2 rounded bg-warning-bg/40 text-[12px] text-texto-suave leading-relaxed border border-borde">
+<strong class="text-warning-text font-medium">Diagnóstico asistido:</strong> El alumno intentó escanear una fotografía reenviada por mensajería. Debe escanear en vivo la proyección del aula.
+                </div>
+</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col">
+<span class="text-texto text-label-md">Xiaomi 2201117TY</span>
+<span class="text-success-text text-label-sm font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">fingerprint</span> Token verificado
+                </span>
+</div>
+</td>
+<td class="py-3.5 px-4 text-right align-top">
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Ver paquete crudo" type="button">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+</button>
+</td>
+</tr>
+<!-- Fila 3: Sofía Miranda (Dispositivo no autorizado) -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-4 font-mono text-label-md text-texto font-medium align-top">
+              07:09:40
+            </td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col">
+<span class="font-medium text-texto">Sofía Elena Miranda</span>
+<span class="font-mono text-label-sm text-texto-suave">sm22081</span>
+</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-label-sm font-semibold border border-danger-text/20">
+<span class="material-symbols-outlined text-[14px]">smartphone</span>
+                RECHAZADO
+              </span>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col gap-1 max-w-lg">
+<div class="flex items-center gap-1.5 text-danger-text font-medium text-label-md">
+<span class="material-symbols-outlined text-[16px]">phonelink_erase</span>
+<span>Dispositivo no autorizado (Hash no coincide con el token)</span>
+</div>
+<div class="p-2 rounded bg-fondo text-[12px] text-texto leading-relaxed border border-borde">
+<span class="text-texto-suave">Resolución soporte:</span> Revisar en <em>Solicitudes de Dispositivo</em> o solicitar al docente código temporal de 6 dígitos (RF28).
+                </div>
+</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col">
+<span class="text-texto text-label-md font-mono text-[13px]">Dispositivo Desconocido</span>
+<span class="text-danger-text text-label-sm font-medium">Token de dispositivo inválido</span>
+</div>
+</td>
+<td class="py-3.5 px-4 text-right align-top">
+<a class="inline-flex p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" data-path="solicitudes-de-dispositivo" href="#" title="Ir a Solicitudes">
+<span class="material-symbols-outlined text-[20px]">open_in_new</span>
+</a>
+</td>
+</tr>
+<!-- Fila 4: Gabriela Sánchez (Registrado) -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-4 font-mono text-label-md text-texto font-medium align-top">
+              07:06:12
+            </td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col">
+<span class="font-medium text-texto">Gabriela María Sánchez</span>
+<span class="font-mono text-label-sm text-texto-suave">gs21004</span>
+</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-semibold border border-success-text/20">
+<span class="material-symbols-outlined text-[14px]">check</span>
+                REGISTRADO
+              </span>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col text-label-md text-texto">
+<span class="font-medium text-success-text">QR Rotativo en vivo verificado</span>
+<span class="text-texto-suave text-label-sm">Red Campus Edificio B · Distancia 12 m al aula A-101 · Token #84A9</span>
+</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col">
+<span class="text-texto text-label-md">Xiaomi Redmi Note 11</span>
+<span class="text-success-text text-label-sm font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified_user</span> Token OK
+                </span>
+</div>
+</td>
+<td class="py-3.5 px-4 text-right align-top">
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Ver paquete crudo" type="button">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+</button>
+</td>
+</tr>
+<!-- Fila 5: David Peña (Registrado) -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-4 font-mono text-label-md text-texto font-medium align-top">
+              07:02:45
+            </td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col">
+<span class="font-medium text-texto">David Ernesto Peña</span>
+<span class="font-mono text-label-sm text-texto-suave">dp19033</span>
+</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-semibold border border-success-text/20">
+<span class="material-symbols-outlined text-[14px]">check</span>
+                REGISTRADO
+              </span>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col text-label-md text-texto">
+<span class="font-medium text-success-text">QR Rotativo en vivo verificado</span>
+<span class="text-texto-suave text-label-sm">Red Campus Edificio B · Distancia 8 m al aula A-101 · Token #19BC</span>
+</div>
+</td>
+<td class="py-3.5 px-4 align-top">
+<div class="flex flex-col">
+<span class="text-texto text-label-md">iPhone 13</span>
+<span class="text-success-text text-label-sm font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">fingerprint</span> Token OK
+                </span>
+</div>
+</td>
+<td class="py-3.5 px-4 text-right align-top">
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-600 hover:bg-fondo transition-colors" title="Ver paquete crudo" type="button">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Paginación / Pie de bitácora -->
+<div class="p-space-md border-t border-borde bg-fondo flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-label-sm text-texto-suave">
+<span>Mostrando 5 de 42 transacciones forenses procesadas</span>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-superficie text-texto-desactivado border border-borde text-label-sm cursor-not-allowed" disabled="" type="button">Anterior</button>
+<span class="px-2 font-mono text-texto font-medium">Página 1 de 9</span>
+<button class="px-3 py-1.5 rounded-lg bg-superficie text-texto hover:bg-fondo border border-borde text-label-sm font-medium shadow-sm transition-colors" type="button">Siguiente</button>
+</div>
+</div>
+</section>
+<!-- Panel Inferior: Guía de Resolución de Incidencias de Asistencia -->
+<section class="bg-superficie rounded-xl p-space-lg shadow-sm border border-borde">
+<div class="flex items-center gap-2.5 mb-space-md">
+<div class="w-8 h-8 rounded-lg bg-marca-100 text-marca-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">support_agent</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-texto leading-snug">Guía de resolución de incidencias de asistencia</h3>
+<p class="font-label-sm text-label-sm text-texto-suave">Protocolo estándar para operadores y técnicos del Centro de Cómputo FMO</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Cuadro 1: Código QR Vencido -->
+<div class="p-space-md rounded-xl bg-fondo border border-borde flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-2 text-warning-text font-semibold font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">history_toggle_off</span>
+<span>Código QR vencido</span>
+</div>
+<p class="font-body-md text-label-sm text-texto-suave leading-relaxed">
+            Ocurre comúnmente cuando el alumno recibe capturas de pantalla de terceros por mensajería instantánea. Indicar al estudiante que <strong>debe enfocar directamente el proyector en vivo</strong> en el salón; el token regenera cada 8 segundos con sincronización NTP.
+          </p>
+</div>
+<div class="mt-4 pt-3 border-t border-borde text-[11px] font-mono text-texto-suave">
+          Causa: ExpiredTokenException (10s skew limit)
+        </div>
+</div>
+<!-- Cuadro 2: Fuera del Área del Campus -->
+<div class="p-space-md rounded-xl bg-fondo border border-borde flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-2 text-danger-text font-semibold font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">near_me_disabled</span>
+<span>Fuera del área del campus</span>
+</div>
+<p class="font-body-md text-label-sm text-texto-suave leading-relaxed">
+            Si la geolocalización falla por apantallamiento de señal en sótanos o laboratorios cerrados, el docente responsable puede activar y dictar un <strong>código temporal de 6 dígitos con vigencia de 30 segundos (RF28)</strong> en el panel de su cátedra.
+          </p>
+</div>
+<div class="mt-4 pt-3 border-t border-borde text-[11px] font-mono text-texto-suave">
+          Solución: Fallback Código PIN Docente (RF28)
+        </div>
+</div>
+<!-- Cuadro 3: Dispositivo No Registrado -->
+<div class="p-space-md rounded-xl bg-fondo border border-borde flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-2 text-marca-700 font-semibold font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">mobile_friendly</span>
+<span>Dispositivo no registrado</span>
+</div>
+<p class="font-body-md text-label-sm text-texto-suave leading-relaxed">
+            El sistema vincula 1 único teléfono por estudiante mediante token de dispositivo. Debe dirigir al estudiante a <strong class="text-texto">Mi Perfil › Dispositivo</strong> o revisar si posee una solicitud pendiente de reemplazo de teléfono en cola técnica.
+          </p>
+</div>
+<div class="mt-4 pt-3 border-t border-borde flex items-center justify-between text-[11px] font-medium text-marca-600">
+<a class="hover:underline flex items-center gap-1" data-path="solicitudes-de-dispositivo" href="#">
+            Ver solicitudes pendientes →
+          </a>
+</div>
+</div>
+</div>
+</section>
+</div></main></div></body></html>

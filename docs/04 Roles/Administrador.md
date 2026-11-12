@@ -25,7 +25,7 @@ fuente: Roles y permisos.pdf p.1–2
 - Configurar roles y permisos con spatie/laravel-permission ([[RF03]]).
 ### Auditoría e integraciones
 - Consultar la auditoría completa ([[RF05]]).
-- Configurar Google Workspace (inicio de sesión, Calendar, Drive), y el correo ([[RNF09]]).
+- Revisar la configuración de Google Workspace (inicio de sesión, Calendar, Drive) y del correo en Integraciones, de solo lectura: se cambia en el `.env` del servidor ([[RNF09]]).
 - Custodiar la cuenta de emergencia con 2FA ([[ADR-007 Inicio de sesión con Google]]).
 - Cerrar el período cuando todos los departamentos autorizaron su cierre ([[RF34]]).
 

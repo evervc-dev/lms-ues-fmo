@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"error":"#ba1a1a","on-primary-fixed-variant":"#920020","acento":"#9D2235","warning-text":"#B45309","success-text":"#15803D","borde":"#E2E2E2","marca-300":"#EE98A3","fondo":"#F8F8F8","primary":"#87001d","on-tertiary":"#ffffff","surface-container-low":"#f9f1f7","superficie":"#FFFFFF","texto-suave":"#696969","warning-bg":"#FFFBEB","inverse-on-surface":"#f6eef4","surface-bright":"#fff7fd","on-tertiary-fixed":"#001f25","background":"#fff7fd","on-error-container":"#93000a","surface-container":"#f3ecf1","secondary-fixed":"#ffdada","on-background":"#1e1a1f","info-text":"#1D4ED8","inverse-primary":"#ffb3b2","on-secondary":"#ffffff","primary-container":"#ae152d","on-secondary-fixed-variant":"#8c142a","tertiary":"#004852","on-error":"#ffffff","on-surface":"#1e1a1f","surface-container-highest":"#e8e0e6","surface-variant":"#e8e0e6","danger-bg":"#FEF2F2","marca-800":"#6E0B10","secondary":"#ad2e40","on-primary":"#ffffff","marca-50":"#FDF2F3","on-tertiary-fixed-variant":"#004e5a","tertiary-container":"#00616f","marca-100":"#FBE4E6","marca-600":"#AE152D","on-primary-fixed":"#410008","primary-fixed-dim":"#ffb3b2","on-secondary-fixed":"#40000c","outline-variant":"#e2bebd","inverse-surface":"#332f34","texto":"#1A171B","surface-tint":"#b71e33","on-surface-variant":"#5a4040","tertiary-fixed":"#a6eefe","outline":"#8e706f","surface":"#fff7fd","on-primary-container":"#ffbfbe","info-bg":"#EFF6FF","marca-200":"#F6C6CC","secondary-fixed-dim":"#ffb3b5","surface-container-high":"#eee6ec","tertiary-fixed-dim":"#8ad2e1","surface-dim":"#dfd8dd","danger-text":"#B91C1C","error-container":"#ffdad6","secondary-container":"#fe6b78","texto-desactivado":"#ABABAB","marca-900":"#520A0D","primary-fixed":"#ffdad9","surface-container-lowest":"#ffffff","on-secondary-container":"#6c001a","marca-500":"#CB3149","success-bg":"#F0FDF4","marca-700":"#8B0E13","marca-400":"#E05F72","on-tertiary-container":"#92daea"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"margin":"1.5rem","space-sm":"0.5rem","space-lg":"1.5rem","space-xl":"2rem","gutter":"1rem","space-xs":"0.25rem","space-md":"1rem","gutter-mobile":"0.75rem","margin-mobile":"1rem"},fontFamily:{"body-lg":["Hanken Grotesk"],"label-nav-header":["Hanken Grotesk"],"label-md":["Hanken Grotesk"],"headline-md":["Hanken Grotesk"],"body-md":["Hanken Grotesk"],"headline-sm":["Hanken Grotesk"],"label-sm":["Hanken Grotesk"],"headline-lg":["Hanken Grotesk"],"display-qr":["Hanken Grotesk"]},fontSize:{"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"label-nav-header":["12px",{lineHeight:"16px",letterSpacing:"0.05em",fontWeight:"600"}],"label-md":["14px",{lineHeight:"20px",fontWeight:"500"}],"headline-md":["18px",{lineHeight:"24px",fontWeight:"600"}],"body-md":["14px",{lineHeight:"21px",fontWeight:"400"}],"headline-sm":["16px",{lineHeight:"22px",fontWeight:"600"}],"label-sm":["12px",{lineHeight:"16px",fontWeight:"500"}],"headline-lg":["24px",{lineHeight:"32px",fontWeight:"600"}],"display-qr":["36px",{lineHeight:"44px",fontWeight:"600"}]}}}};</script></head><body class="bg-fondo font-body-md text-texto min-h-screen"><header class="fixed top-0 left-0 right-0 h-14 bg-superficie border-b border-borde z-50 flex items-center justify-between px-margin"><div class="flex items-center gap-space-md"><button aria-label="Alternar menú de navegación" class="p-space-xs text-texto hover:text-marca-700 hover:bg-fondo rounded transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">menu</span></button><div class="flex items-center gap-space-sm"><div class="p-1 bg-fondo border border-borde rounded"><img alt="Logo UES FMO" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XDS48mTMd5DibJc8K3dAGjpKfF0FdyiXqicWk1OWOJWUfa82_GiimnGHpp9GGXQNKt-QznrdrYoFxotA-frHBBGtpNqOAqf8mIALR55j8Ia9K1Hffa9M3Jqw0odz8cuW0hF1zCphTKDgftuG59900UnDiOkGj9UeVP1i125LwSLJraUA1TZTaiHafYb_2Hu8Ox5sA2u4FGara1MOubqV806LwebkJEB17cVjZRTizefHhWmAJ4arQcc5U"/></div><span class="font-headline-sm text-headline-sm text-texto font-bold tracking-tight select-none">LMS UES FMO</span></div><div class="hidden md:flex items-center gap-space-xs px-2.5 py-1 bg-marca-50 text-marca-700 border border-marca-200 rounded-full font-label-sm text-label-sm select-none"><span class="w-1.5 h-1.5 rounded-full bg-marca-600"></span><span>Período 2026-II · en curso</span></div></div><div class="hidden lg:flex items-center gap-space-sm px-3 py-1 bg-marca-50 border border-marca-200 rounded-full"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-marca-600 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-marca-600"></span></span><span class="font-label-sm text-label-sm text-texto">Asistencia abierta · <strong class="text-marca-800 font-semibold">PRN115</strong></span><a class="font-label-sm text-label-sm text-marca-700 hover:text-marca-900 underline font-semibold ml-1" data-path="escanear-qr" href="#">Marcar</a></div><div class="flex items-center gap-space-md"><a class="p-1.5 text-texto-suave hover:text-texto hover:bg-fondo rounded-full transition-colors" data-path="ayuda" href="#" title="Centro de Ayuda"><span class="material-symbols-outlined text-[20px]">help_outline</span></a><button class="relative p-1.5 text-texto-suave hover:text-texto hover:bg-fondo rounded-full transition-colors" title="Notificaciones institucionales" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-marca-600 font-label-sm text-[10px] font-semibold text-superficie">3</span></button><div class="h-6 w-px bg-borde mx-1"></div><div class="flex items-center gap-space-sm cursor-pointer group"><img alt="Profile" class="w-8 h-8 rounded-full object-cover border border-borde" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsKpytg_2UHt-LW_vr_bYVC9cRUgQuqxFieuP659Ax8rKys5Z2TICRdMkCUb9jyu9D9TFQoBGGj2EKqjLgK4CRe8X2tLAgzJaeTV9Y9aZKwlLZPKtwJmtai3wFUuyFILMr14sDm5epbtCmqG-ZNcmE4Q5o2GXrIZ3D4K1bJFKJbxBvGETRrMvg29Od4wC4k10-bVbA54ktsCggJo531usPCKJgEiUTx72I74p8723PueFX3Vvj0n4i5w"/><div class="hidden xl:flex flex-col text-left"><span class="font-label-md text-label-md font-semibold text-texto leading-none group-hover:text-marca-700 transition-colors">Carlos Martínez</span><span class="font-label-sm text-[11px] text-texto-suave leading-tight mt-0.5">Docente y Coordinador</span></div><span class="font-label-sm text-label-sm text-texto-suave">(KR) ▾</span></div></div></header><aside class="fixed left-0 top-14 bottom-0 w-64 bg-superficie border-r border-borde z-40 overflow-y-auto"><nav class="py-space-md flex flex-col gap-space-md" data-active-classes="bg-marca-50 text-marca-700 font-semibold border-l-4 border-marca-600 pl-3"><div class="px-space-md"><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="inicio" href="#"><span class="material-symbols-outlined text-[20px]">home</span><span>Inicio</span></a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Estudio</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="escanear-qr" href="#"><span class="material-symbols-outlined text-[20px]">qr_code_scanner</span><span>Escanear QR</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="mis-materias" href="#"><span class="material-symbols-outlined text-[20px]">menu_book</span><span>Mis materias</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="mis-notas" href="#"><span class="material-symbols-outlined text-[20px]">grade</span><span>Mis notas</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="mi-asistencia" href="#"><span class="material-symbols-outlined text-[20px]">event_available</span><span>Mi asistencia</span></a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Docencia</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="mis-secciones" href="#"><span class="material-symbols-outlined text-[20px]">class</span><span>Mis secciones</span></a><a class="flex items-center justify-between px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="pendientes-de-calificar" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">assignment_late</span><span>Pendientes de calificar</span></div><span class="px-1.5 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-[11px] font-semibold border border-marca-200">12</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="bancos-de-preguntas" href="#"><span class="material-symbols-outlined text-[20px]">quiz</span><span>Bancos de preguntas</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="rubricas" href="#"><span class="material-symbols-outlined text-[20px]">rule</span><span>Rúbricas</span></a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Coordinación</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="supervision-de-aulas" href="#"><span class="material-symbols-outlined text-[20px]">meeting_room</span><span>Supervisión de aulas</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="carga-academica" href="#"><span class="material-symbols-outlined text-[20px]">schedule</span><span>Carga académica</span></a><a class="flex items-center justify-between px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="matricula" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">how_to_reg</span><span>Matrícula</span></div><span class="px-1.5 py-0.5 rounded-full bg-info-bg text-info-text font-label-sm text-[11px] font-semibold">3</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="importar-estudiantes" href="#"><span class="material-symbols-outlined text-[20px]">group_add</span><span>Importar estudiantes</span></a><a class="flex items-center justify-between px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="actas-por-validar" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">verified</span><span>Actas por validar</span></div><span class="px-1.5 py-0.5 rounded-full bg-warning-bg text-warning-text font-label-sm text-[11px] font-semibold">5</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="clases-canceladas" href="#"><span class="material-symbols-outlined text-[20px]">event_busy</span><span>Clases canceladas</span></a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Jefatura</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="secciones-del-departamento" href="#"><span class="material-symbols-outlined text-[20px]">domain</span><span>Secciones del departamento</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="cierre-del-periodo" href="#"><span class="material-symbols-outlined text-[20px]">lock_clock</span><span>Cierre del período</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="desempeno-docente" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span><span>Desempeño docente</span></a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Consultas</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="reportes" href="#"><span class="material-symbols-outlined text-[20px]">description</span><span>Reportes</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="estadisticas-de-oferta" href="#"><span class="material-symbols-outlined text-[20px]">bar_chart</span><span>Estadísticas de oferta</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="auditoria" href="#"><span class="material-symbols-outlined text-[20px]">policy</span><span>Auditoría</span></a></div><div class="flex flex-col gap-1 pt-2 border-t border-borde"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Cuenta</div><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="mi-perfil" href="#"><span class="material-symbols-outlined text-[20px]">account_circle</span><span>Mi perfil</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md" data-path="ayuda" href="#"><span class="material-symbols-outlined text-[20px]">help</span><span>Ayuda</span></a><a class="flex items-center gap-space-sm px-space-md py-1.5 text-danger-text hover:bg-danger-bg transition-colors font-body-md text-body-md" data-path="cerrar-sesion" href="#"><span class="material-symbols-outlined text-[20px]">logout</span><span>Cerrar sesión</span></a></div></nav></aside><div class="pl-64"><main class="w-full pt-14 px-margin bg-fondo min-h-screen"><div class="flex flex-col w-full">
+<!-- Navegación de Migas de Pan Institucional -->
+<nav aria-label="Ruta de navegación" class="py-space-sm mb-space-sm">
+<ol class="flex flex-wrap items-center gap-space-xs text-texto-suave font-label-sm text-label-sm">
+<li>
+<a class="hover:text-marca-700 transition-colors flex items-center gap-1" data-path="inicio" href="#">
+<span class="material-symbols-outlined text-[16px]">home</span>
+<span>Inicio</span>
+</a>
+</li>
+<li class="select-none text-texto-desactivado">›</li>
+<li>
+<a class="hover:text-marca-700 transition-colors" data-path="mis-secciones" href="#">Mis secciones</a>
+</li>
+<li class="select-none text-texto-desactivado">›</li>
+<li>
+<a class="hover:text-marca-700 transition-colors font-medium" href="#">PRN115 · Programación I</a>
+</li>
+<li class="select-none text-texto-desactivado">›</li>
+<li>
+<a class="hover:text-marca-700 transition-colors" href="#">Foro de Discusión</a>
+</li>
+<li class="select-none text-texto-desactivado">›</li>
+<li aria-current="page" class="text-texto font-semibold truncate max-w-xs md:max-w-md">
+        Error de segmentación (SIGSEGV) al desreferenciar puntero doble
+      </li>
+</ol>
+</nav>
+<!-- Contenedor Principal: Discusión (2/3) y Panel Lateral Contextual (1/3) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start pb-space-xl">
+<!-- Columna Principal: Hilo y Árbol de Respuestas (8 de 12 col) -->
+<section class="lg:col-span-8 flex flex-col gap-space-md">
+<!-- Tarjeta: Publicación Raíz del Estudiante -->
+<article class="bg-superficie rounded-xl shadow-sm p-space-md md:p-space-lg relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1 bg-marca-600"></div>
+<!-- Encabezado del Hilo -->
+<header class="flex flex-col gap-space-sm pb-space-md">
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-medium">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+              Resuelto por cátedra
+            </span>
+<span class="px-2 py-0.5 rounded-full bg-marca-50 text-marca-800 font-label-sm text-label-sm font-medium">
+              Duda de compilación
+            </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">
+              C++ / Punteros
+            </span>
+<span class="px-2 py-0.5 rounded-full bg-info-bg text-info-text font-label-sm text-label-sm">
+              Guía de Árboles
+            </span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-texto tracking-tight mt-1">
+            Error de segmentación (SIGSEGV) al desreferenciar puntero doble en función recursiva
+          </h1>
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs text-texto-suave">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-marca-100 flex items-center justify-center text-marca-700 font-headline-sm text-headline-sm font-semibold select-none">
+                CO
+              </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md font-semibold text-texto">Cristian Eduardo Ortiz</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Estudiante</span>
+</div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-texto-suave">
+<span>Carné: <strong class="text-texto font-medium">OC22009</strong></span>
+<span>·</span>
+<span>Ingeniería de Sistemas Informáticos</span>
+<span>·</span>
+<time datetime="2026-03-24T14:32:00">Publicado hace 2 horas</time>
+</div>
+</div>
+</div>
+<!-- Votos / Interacciones del Post Principal -->
+<div class="flex items-center gap-2">
+<button aria-label="Marcar como útil" class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-fondo hover:bg-surface-container-high text-texto font-label-sm text-label-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">thumb_up</span>
+<span>8</span>
+</button>
+<button aria-label="Favorito" class="p-1 rounded-lg hover:bg-fondo text-texto-suave hover:text-texto transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">bookmark_border</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Cuerpo del Planteamiento -->
+<div class="flex flex-col gap-space-sm text-texto font-body-md text-body-md leading-relaxed pt-space-sm">
+<p>
+            Estimado docente y compañeros, reciba un cordial saludo. Durante la implementación de la Guía Práctica #4 sobre Árboles Binarios de Búsqueda (ABB), me he topado con un fallo de segmentación (<em>Segmentation fault: 11 / SIGSEGV</em>) cuando ejecuto la inserción sucesiva de nodos en memoria dinámica.
+          </p>
+<p>
+            He verificado con el depurador GDB y el colapso se genera justamente al evaluar la rama izquierda cuando la raíz apunta a <code class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[13px] text-primary">nullptr</code>. Adjunto el extracto de mi función recursiva:
+          </p>
+<!-- Bloque de Código de Consulta C++ -->
+<div class="rounded-xl overflow-hidden shadow-sm my-space-xs bg-marca-900 text-superficie font-mono text-[13px]">
+<div class="flex items-center justify-between px-space-md py-2 bg-marca-950/70 border-b border-marca-800 text-texto-desactivado text-label-sm">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-warning-text"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-success-text"></span>
+<span class="ml-2 font-mono text-xs text-superficie/80">arbol_binario.cpp · línea 48-62</span>
+</div>
+<button class="flex items-center gap-1 hover:text-superficie transition-colors" onclick="navigator.clipboard.writeText('void insertar(TreeNode** raiz, int valor) {\n    if (*raiz == nullptr) {\n        // ERROR: Acceso indebido antes de reserva\n        (*raiz)-&gt;izq = nullptr;\n        (*raiz)-&gt;der = nullptr;\n        *raiz = new TreeNode{valor, nullptr, nullptr};\n        return;\n    }\n    if (valor &lt; (*raiz)-&gt;dato) {\n        insertar(&amp;((*raiz)-&gt;izq), valor);\n    } else {\n        insertar(&amp;((*raiz)-&gt;der), valor);\n    }\n}')" type="button">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+<span>Copiar</span>
+</button>
+</div>
+<pre class="p-space-md overflow-x-auto leading-5 text-superficie/90"><code><span class="text-marca-300">void</span> <span class="text-tertiary-fixed">insertar</span>(<span class="text-tertiary-fixed-dim">TreeNode</span>** raiz, <span class="text-marca-300">int</span> valor) {
+    <span class="text-marca-400">if</span> (*raiz == <span class="text-marca-300">nullptr</span>) {
+        <span class="text-texto-desactivado">// ERROR crítico observado en GDB:</span>
+        (*raiz)-&gt;izq = <span class="text-marca-300">nullptr</span>;  <span class="text-error-container bg-error/30 px-1 rounded">&lt;-- SIGSEGV: Se desreferencia *raiz siendo nulo</span>
+        (*raiz)-&gt;der = <span class="text-marca-300">nullptr</span>;
+        *raiz = <span class="text-marca-400">new</span> <span class="text-tertiary-fixed-dim">TreeNode</span>{valor, <span class="text-marca-300">nullptr</span>, <span class="text-marca-300">nullptr</span>};
+        <span class="text-marca-400">return</span>;
+    }
+    
+    <span class="text-marca-400">if</span> (valor &lt; (*raiz)-&gt;dato) {
+        <span class="text-tertiary-fixed">insertar</span>(&amp;((*raiz)-&gt;izq), valor);
+    } <span class="text-marca-400">else</span> {
+        <span class="text-tertiary-fixed">insertar</span>(&amp;((*raiz)-&gt;der), valor);
+    }
+}</code></pre>
+</div>
+<p>
+            Agradezco de antemano cualquier sugerencia sobre el orden correcto de invocación para asegurar que la raíz del subárbol quede debidamente asignada en el puntero original de la función <code class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[13px] text-texto">main()</code>.
+          </p>
+</div>
+<!-- Botonera de Acciones del Hilo -->
+<footer class="flex flex-wrap items-center justify-between gap-space-sm pt-space-md mt-space-md bg-fondo/50 -mx-space-md md:-mx-space-lg -mb-space-md md:-mb-space-lg px-space-md md:px-space-lg py-space-sm">
+<div class="flex items-center gap-space-xs">
+<a class="inline-flex items-center gap-1.5 px-4 py-2 bg-marca-600 hover:bg-marca-700 text-superficie rounded font-label-md text-label-md font-semibold transition-colors shadow-sm" href="#formulario-respuesta">
+<span class="material-symbols-outlined text-[18px]">reply</span>
+<span>Responder al hilo</span>
+</a>
+<button class="inline-flex items-center gap-1.5 px-3 py-2 bg-superficie hover:bg-fondo text-texto rounded font-label-md text-label-md transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px] text-success-text" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+<span class="hidden sm:inline">Siguiendo hilo</span>
+</button>
+</div>
+<!-- Acciones de Moderación Docente / Coordinador -->
+<div class="flex items-center gap-space-xs">
+<div class="relative inline-block text-left group">
+<button aria-label="Menú de moderación" class="flex items-center gap-1 px-3 py-2 bg-superficie hover:bg-fondo text-texto font-label-sm text-label-sm rounded transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px] text-marca-700">admin_panel_settings</span>
+<span class="hidden md:inline font-medium">Moderación docente</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+<!-- Menú Desplegable flotante -->
+<div class="hidden group-hover:flex flex-col absolute right-0 bottom-full mb-1 w-52 bg-superficie rounded-xl shadow-md py-1.5 z-20 text-texto font-label-sm text-label-sm">
+<button class="flex items-center gap-2 px-3 py-2 hover:bg-fondo text-left" type="button">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">push_pin</span>
+<span>Fijar hilo en la sección</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-2 hover:bg-fondo text-left" type="button">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">lock</span>
+<span>Cerrar respuestas</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-2 hover:bg-danger-bg text-danger-text text-left" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility_off</span>
+<span>Ocultar mensaje por falta</span>
+</button>
+</div>
+</div>
+<button aria-label="Compartir enlace permanente" class="p-2 text-texto-suave hover:text-texto rounded hover:bg-superficie transition-colors" title="Copiar enlace" type="button">
+<span class="material-symbols-outlined text-[20px]">share</span>
+</button>
+</div>
+</footer>
+</article>
+<!-- Barra de Estado de Conversación -->
+<div class="flex items-center justify-between px-space-md py-2.5 bg-superficie rounded-xl shadow-sm text-texto">
+<div class="flex items-center gap-2 font-headline-sm text-headline-sm">
+<span>Respuestas académicas</span>
+<span class="px-2 py-0.5 rounded-full bg-marca-100 text-marca-800 font-label-sm text-[12px] font-semibold">3</span>
+</div>
+<div class="flex items-center gap-space-sm text-label-sm font-label-sm text-texto-suave">
+<span>Ordenar por:</span>
+<select aria-label="Ordenar respuestas" class="bg-fondo text-texto rounded px-2.5 py-1 text-label-sm font-medium cursor-pointer">
+<option>Validada por cátedra primero</option>
+<option>Más recientes</option>
+<option>Mayor cantidad de votos</option>
+</select>
+</div>
+</div>
+<!-- ÁRBOL JERÁRQUICO DE DISCUSIÓN -->
+<div class="flex flex-col gap-space-md">
+<!-- 1. RESPUESTA OFICIAL DESTACADA (Docente) -->
+<article class="bg-superficie rounded-xl shadow-sm p-space-md md:p-space-lg relative overflow-hidden ring-2 ring-success-text/30">
+<div class="absolute top-0 left-0 right-0 h-1 bg-success-text"></div>
+<!-- Encabezado de Solución Oficial -->
+<div class="flex items-center justify-between pb-space-sm mb-space-sm border-b border-borde/60">
+<div class="flex items-center gap-space-xs px-2.5 py-1 bg-success-bg text-success-text rounded-full font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span>Respuesta aceptada y validada por cátedra</span>
+</div>
+<span class="font-label-sm text-label-sm text-texto-suave">Hace 1 hora y 18 min</span>
+</div>
+<header class="flex items-start justify-between gap-space-sm mb-space-sm">
+<div class="flex items-center gap-space-sm">
+<img class="w-11 h-11 rounded-full object-cover shadow-sm" data-alt="Retrato académico formal del Ingeniero Carlos Martínez, docente universitario titular del departamento de informática, vistiendo camisa formal frente a biblioteca." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG4fGNJdsxZKe7pCn75OhfCTZ3SSAu-aDkaXBpjlSG7-RKW6N270GCbofak6TxcDdYU55-G3XOepo4-X2YXKWqwgutVwSTIAF__C00yRZhWFJ4-CW-EnAhhX7jVJsJScA1kQ9HpPjkowCOpETdkL2E7FKEmmBDPePqH6HL4xFReSfiWqxWSaorYjqLFsuEN30MVXxTFuJcs5BiN_Xot5zb38cJT9sgMsQS0eTSTh8vtiyP5eHE9ejJ5A"/>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-label-md text-label-md font-bold text-texto">Ing. Carlos Martínez</span>
+<span class="px-2 py-0.5 rounded-full bg-marca-600 text-superficie font-label-sm text-[11px] font-semibold">
+                    Docente Responsable
+                  </span>
+</div>
+<span class="font-label-sm text-label-sm text-texto-suave">Cátedra de Programación I · UES FMO</span>
+</div>
+</div>
+<!-- Votos de Aprobación Docente -->
+<div class="flex items-center gap-1 bg-success-bg text-success-text px-2.5 py-1 rounded-lg font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[16px]">thumb_up</span>
+<span>14 votos útiles</span>
+</div>
+</header>
+<!-- Cuerpo Pedagógico del Docente -->
+<div class="flex flex-col gap-space-sm text-texto font-body-md text-body-md leading-relaxed">
+<p>
+              Estimado Br. Cristian Ortiz, excelente planteamiento técnico.
+            </p>
+<p>
+              El problema de su código radica con exactitud en que usted está intentando desreferenciar los campos miembros <code class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[13px] text-marca-700">(*raiz)-&gt;izq</code> y <code class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[13px] text-marca-700">(*raiz)-&gt;der</code> cuando la condición previa confirma que <code class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[13px] text-texto font-bold">*raiz es nullptr</code>. En memoria virtual, usted solicita la dirección base <code class="font-mono text-texto font-bold">0x0</code> con desplazamiento de estructura, desencadenando la señal <strong class="text-error">SIGSEGV</strong> de protección de memoria por parte del kernel.
+            </p>
+<p>
+              Para solucionarlo, usted debe primero reservar el espacio del bloque con el operador <code class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[13px] text-primary">new</code> y ligarlo a <code class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[13px] text-primary">*raiz</code>, asignando después los punteros nulos en el constructor o lista de inicialización:
+            </p>
+<!-- Bloque de Código Corregido -->
+<div class="rounded-xl overflow-hidden shadow-sm my-space-xs bg-marca-900 text-superficie font-mono text-[13px]">
+<div class="flex items-center justify-between px-space-md py-2 bg-marca-950/80 border-b border-marca-800 text-label-sm text-success-text font-semibold">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">task_alt</span>
+<span>Solución recomendada según estándar C++14/C++17</span>
+</div>
+<button class="flex items-center gap-1 text-superficie/80 hover:text-superficie transition-colors" onclick="navigator.clipboard.writeText('void insertar(TreeNode** raiz, int valor) {\n    if (*raiz == nullptr) {\n        // 1. Asignamos primero la memoria dinámica al puntero base\n        *raiz = new TreeNode(valor);\n        return;\n    }\n    \n    // 2. Navegación recursiva sobre el árbol ordenado\n    if (valor &lt; (*raiz)-&gt;dato) {\n        insertar(&amp;((*raiz)-&gt;izq), valor);\n    } else if (valor &gt; (*raiz)-&gt;dato) {\n        insertar(&amp;((*raiz)-&gt;der), valor);\n    }\n    // Si el valor ya existe, se omite para evitar duplicados\n}')" type="button">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+<span>Copiar código</span>
+</button>
+</div>
+<pre class="p-space-md overflow-x-auto leading-5 text-superficie/90"><code><span class="text-marca-300">void</span> <span class="text-tertiary-fixed">insertar</span>(<span class="text-tertiary-fixed-dim">TreeNode</span>** raiz, <span class="text-marca-300">int</span> valor) {
+    <span class="text-marca-400">if</span> (*raiz == <span class="text-marca-300">nullptr</span>) {
+        <span class="text-success-text">// 1. Reservar memoria primero y enlazar directamente al puntero doble</span>
+        *raiz = <span class="text-marca-400">new</span> <span class="text-tertiary-fixed-dim">TreeNode</span>{valor, <span class="text-marca-300">nullptr</span>, <span class="text-marca-300">nullptr</span>};
+        <span class="text-marca-400">return</span>;
+    }
+    
+    <span class="text-texto-desactivado">// 2. Enrutamiento recursivo en el árbol binario</span>
+    <span class="text-marca-400">if</span> (valor &lt; (*raiz)-&gt;dato) {
+        <span class="text-tertiary-fixed">insertar</span>(&amp;((*raiz)-&gt;izq), valor);
+    } <span class="text-marca-400">else if</span> (valor &gt; (*raiz)-&gt;dato) {
+        <span class="text-tertiary-fixed">insertar</span>(&amp;((*raiz)-&gt;der), valor);
+    }
+    <span class="text-texto-desactivado">// Nota: Si valor == (*raiz)-&gt;dato, evitamos llaves duplicadas.</span>
+}</code></pre>
+</div>
+<p class="font-label-md text-label-md bg-marca-50 text-marca-900 p-space-sm rounded-lg">
+<strong>Recomendación para entrega:</strong> No olviden implementar la función complementaria de liberación recursiva <code class="font-mono text-primary font-semibold">destruirArbol(TreeNode* nodo)</code> para garantizar que no existan fugas reportadas en la prueba final con <em>Valgrind</em>.
+            </p>
+</div>
+<!-- Pie de Acciones de la Respuesta -->
+<div class="flex items-center justify-between pt-space-md mt-space-md border-t border-borde/70 font-label-sm text-label-sm">
+<div class="flex items-center gap-space-sm">
+<button class="inline-flex items-center gap-1.5 text-texto-suave hover:text-marca-700 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">reply</span>
+<span>Responder a este comentario</span>
+</button>
+<span class="text-borde">|</span>
+<button class="inline-flex items-center gap-1.5 text-texto-suave hover:text-texto transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">format_quote</span>
+<span>Citar</span>
+</button>
+</div>
+<button class="text-texto-suave hover:text-texto transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[18px]">share</span>
+<span>Enlace permanente</span>
+</button>
+</div>
+</article>
+<!-- 2. SUB-RESPUESTA ANIDADA (Estudiante Original agradeciendo) -->
+<div class="relative pl-6 md:pl-12">
+<!-- Guía visual del árbol anidado -->
+<div class="absolute left-3 md:left-6 top-0 bottom-6 w-0.5 bg-borde"></div>
+<div class="absolute left-3 md:left-6 top-6 w-3 md:w-5 h-0.5 bg-borde"></div>
+<article class="bg-superficie rounded-xl shadow-sm p-space-md relative">
+<header class="flex items-center justify-between gap-space-sm mb-2">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-marca-100 flex items-center justify-center text-marca-700 font-label-md text-label-md font-semibold select-none">
+                  CO
+                </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md font-semibold text-texto">Cristian Eduardo Ortiz</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-label-sm text-[10px]">Autor del hilo</span>
+</div>
+<time class="font-label-sm text-[11px] text-texto-suave" datetime="2026-03-24T15:10:00">Hace 45 minutos</time>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 text-success-text font-label-sm text-label-sm bg-success-bg px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px]">done_all</span>
+<span>Prueba aprobada</span>
+</span>
+</header>
+<div class="text-texto font-body-md text-body-md leading-relaxed flex flex-col gap-2">
+<p>
+                Muchas gracias por la aclaración, Ingeniero Martínez. Modifiqué el orden como indicó y la ejecución transcurre sin problemas.
+              </p>
+<div class="p-space-sm bg-fondo rounded-lg font-mono text-[12px] text-texto-suave flex items-center gap-2">
+<span class="material-symbols-outlined text-success-text text-[18px]">verified</span>
+<span>Valgrind output: <strong>All heap blocks were freed -- no leaks are possible</strong> (0 errors from 0 contexts).</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md pt-2 mt-2 border-t border-borde/40 font-label-sm text-[12px] text-texto-suave">
+<button class="hover:text-marca-700 flex items-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">thumb_up</span>
+<span>4 útiles</span>
+</button>
+<button class="hover:text-texto flex items-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">reply</span>
+<span>Responder</span>
+</button>
+</div>
+</article>
+</div>
+<!-- 3. OTRA RESPUESTA DE COMPAÑERO DE CLASE (Gabriela Sánchez) -->
+<article class="bg-superficie rounded-xl shadow-sm p-space-md md:p-space-lg">
+<header class="flex items-start justify-between gap-space-sm mb-space-sm">
+<div class="flex items-center gap-space-sm">
+<img class="w-10 h-10 rounded-full object-cover shadow-sm" data-alt="Fotografía de identificación estudiantil de Gabriela Sánchez, estudiante de ingeniería con vestimenta casual y sonrisa frente a fondo institucional claro." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsMswet_A5vGSic2cBkJuN_XhdSCedI7U9A6UPeMTsVNsyVX7hAM3BxwUbxAy7OJuDua0xoXkry2lTSX1VD846hBx950D0mrQL3RHE5-mw44x-ZnCPwCYpv_uIU5VcaYtKtaPre6KVk1tR0bDOlyPPMwfRKYCpPLSqQicDAsLQt9ilYfp-wfmw5knh1ne2-u6Eo6sSZ-TNrtkauTeVNbV6yPOLpi0Kj-taBWIWg5jcm5ez35Zr8QDJAg"/>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md font-semibold text-texto">Gabriela Sofía Sánchez</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Estudiante</span>
+</div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-texto-suave">
+<span>Carné: <strong class="text-texto font-medium">GS21004</strong></span>
+<span>·</span>
+<time datetime="2026-03-24T15:25:00">Hace 30 minutos</time>
+</div>
+</div>
+</div>
+<button class="flex items-center gap-1 text-texto-suave hover:text-texto px-2 py-1 rounded bg-fondo text-label-sm font-label-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">thumb_up</span>
+<span>2</span>
+</button>
+</header>
+<div class="text-texto font-body-md text-body-md leading-relaxed flex flex-col gap-2">
+<p>
+              Buenas tardes a todos. Una consulta complementaria respecto al manejo de árboles: en caso de que implementemos el estándar moderno C++17 haciendo uso de <code class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[13px] text-texto font-semibold">std::unique_ptr&lt;TreeNode&gt;</code>, ¿sería necesario pasar el puntero por referencia <code class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[13px] text-texto font-semibold">std::unique_ptr&lt;TreeNode&gt;&amp; raiz</code> en lugar del puntero doble clásico en estilo C?
+            </p>
+<p>
+              Entiendo que los punteros inteligentes evitan tener que invocar el destructor manualmente con <em>delete</em>, pero quisiera confirmar si la cátedra admite esa alternativa en la defensa de laboratorio del viernes.
+            </p>
+</div>
+<div class="flex items-center justify-between pt-space-sm mt-space-sm border-t border-borde/70 font-label-sm text-label-sm text-texto-suave">
+<button class="inline-flex items-center gap-1 text-texto-suave hover:text-marca-700 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">reply</span>
+<span>Responder a Gabriela</span>
+</button>
+<button class="text-texto-suave hover:text-danger-text transition-colors flex items-center gap-1 text-[11px]" type="button">
+<span class="material-symbols-outlined text-[14px]">flag</span>
+<span>Reportar contenido</span>
+</button>
+</div>
+</article>
+</div>
+<!-- 4. FORMULARIO DE RESPUESTA RÁPIDA CON EDITOR ENRIQUECIDO -->
+<section class="bg-superficie rounded-xl shadow-sm p-space-md md:p-space-lg flex flex-col gap-space-sm mt-space-xs" id="formulario-respuesta">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-md text-headline-md text-texto flex items-center gap-2">
+<span class="material-symbols-outlined text-marca-700 text-[22px]">rate_review</span>
+<span>Añadir respuesta al hilo de discusión</span>
+</h2>
+<span class="font-label-sm text-label-sm text-texto-suave">Formato Markdown &amp; C++ soportado</span>
+</div>
+<!-- Barra de Herramientas del Editor -->
+<div class="flex flex-wrap items-center gap-1 p-1.5 bg-fondo rounded-t-lg">
+<button class="p-1.5 text-texto hover:bg-superficie rounded transition-colors" title="Negrita" type="button">
+<span class="material-symbols-outlined text-[18px]">format_bold</span>
+</button>
+<button class="p-1.5 text-texto hover:bg-superficie rounded transition-colors" title="Cursiva" type="button">
+<span class="material-symbols-outlined text-[18px]">format_italic</span>
+</button>
+<button class="p-1.5 text-texto hover:bg-superficie rounded transition-colors" title="Lista con viñetas" type="button">
+<span class="material-symbols-outlined text-[18px]">format_list_bulleted</span>
+</button>
+<span class="h-4 w-px bg-borde mx-1"></span>
+<button class="flex items-center gap-1 px-2 py-1 text-texto hover:bg-superficie rounded font-mono text-[12px] font-semibold transition-colors bg-superficie/80 shadow-xs" title="Insertar bloque de código C++" type="button">
+<span class="material-symbols-outlined text-[16px]">terminal</span>
+<span>Insertar C++</span>
+</button>
+<button class="p-1.5 text-texto hover:bg-superficie rounded transition-colors" title="Insertar cita textual" type="button">
+<span class="material-symbols-outlined text-[18px]">format_quote</span>
+</button>
+<button class="p-1.5 text-texto hover:bg-superficie rounded transition-colors" title="Insertar enlace" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<span class="h-4 w-px bg-borde mx-1"></span>
+<button class="flex items-center gap-1 px-2 py-1 text-texto-suave hover:text-texto rounded font-label-sm text-[12px] transition-colors" title="Adjuntar archivo o salida de compilador" type="button">
+<span class="material-symbols-outlined text-[16px]">attach_file</span>
+<span>Adjuntar traza</span>
+</button>
+</div>
+<!-- Área de Redacción -->
+<div class="relative">
+<textarea class="w-full bg-superficie text-texto font-body-md text-body-md p-space-md rounded-b-lg border border-borde focus:outline-none focus:ring-2 focus:ring-marca-500 transition-all resize-y placeholder:text-texto-desactivado" placeholder="Escriba su aporte, explicación o consulta técnica con el debido respeto académico..." rows="5"></textarea>
+</div>
+<!-- Advertencia Institucional y Políticas de Código -->
+<div class="flex items-start gap-space-sm p-3 rounded-lg bg-warning-bg text-warning-text font-label-sm text-label-sm leading-snug">
+<span class="material-symbols-outlined text-[20px] shrink-0 text-warning-text" style="font-variation-settings: 'FILL' 1;">privacy_tip</span>
+<div>
+<strong>Código de Ética Académica UES FMO:</strong> Recuerde que no está permitida la publicación íntegra de soluciones directas de laboratorios calificados o tareas pendientes de entrega. Oriente mediante razonamiento conceptual, pseudocódigo o fragmentos mínimos demostrativos.
+          </div>
+</div>
+<!-- Acciones del Formulario -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs">
+<label class="flex items-center gap-2 cursor-pointer text-texto font-label-sm text-label-sm select-none">
+<input checked="" class="w-4 h-4 rounded text-marca-600 focus:ring-marca-500 accent-marca-600" type="checkbox"/>
+<span>Notificarme vía correo institucional al recibir respuestas</span>
+</label>
+<div class="flex items-center gap-space-sm">
+<button class="px-4 py-2 bg-superficie hover:bg-fondo text-texto rounded font-label-md text-label-md transition-colors" type="button">
+              Guardar borrador
+            </button>
+<button class="px-5 py-2 bg-marca-600 hover:bg-marca-700 text-superficie rounded font-label-md text-label-md font-semibold transition-colors shadow-sm flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[18px]">send</span>
+<span>Publicar respuesta</span>
+</button>
+</div>
+</div>
+</section>
+</section>
+<!-- Barra Lateral Derecha: Contexto y Métricas del Hilo (4 de 12 col) -->
+<aside class="lg:col-span-4 flex flex-col gap-space-md sticky top-20">
+<!-- Tarjeta 1: Resumen y Métricas del Hilo -->
+<div class="bg-superficie rounded-xl shadow-sm p-space-md flex flex-col gap-space-sm">
+<h2 class="font-headline-sm text-headline-sm text-texto flex items-center justify-between pb-space-xs border-b border-borde/70">
+<span>Resumen de actividad</span>
+<span class="material-symbols-outlined text-texto-suave text-[20px]">insights</span>
+</h2>
+<div class="grid grid-cols-2 gap-space-sm py-1">
+<div class="p-space-sm bg-fondo rounded-lg flex flex-col">
+<span class="font-label-sm text-label-sm text-texto-suave">Estado</span>
+<span class="font-headline-sm text-headline-sm text-success-text font-bold flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+              Resuelto
+            </span>
+</div>
+<div class="p-space-sm bg-fondo rounded-lg flex flex-col">
+<span class="font-label-sm text-label-sm text-texto-suave">Respuestas</span>
+<span class="font-headline-sm text-headline-sm text-texto font-bold mt-0.5">6 aportes</span>
+</div>
+<div class="p-space-sm bg-fondo rounded-lg flex flex-col">
+<span class="font-label-sm text-label-sm text-texto-suave">Vistas totales</span>
+<span class="font-headline-sm text-headline-sm text-texto font-bold mt-0.5">142</span>
+</div>
+<div class="p-space-sm bg-fondo rounded-lg flex flex-col">
+<span class="font-label-sm text-label-sm text-texto-suave">Resolución</span>
+<span class="font-headline-sm text-headline-sm text-primary font-bold mt-0.5">42 min</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-label-sm font-label-sm text-texto-suave pt-1">
+<span>Sección académica:</span>
+<strong class="text-texto font-semibold">Grupo Teórico 01</strong>
+</div>
+<div class="flex items-center justify-between text-label-sm font-label-sm text-texto-suave">
+<span>Ciclo lectivo:</span>
+<span class="text-texto">Ciclo I-2026</span>
+</div>
+</div>
+<!-- Tarjeta 2: Participantes en el Hilo -->
+<div class="bg-superficie rounded-xl shadow-sm p-space-md flex flex-col gap-space-sm">
+<h2 class="font-headline-sm text-headline-sm text-texto flex items-center justify-between pb-space-xs border-b border-borde/70">
+<span>Participantes en el debate</span>
+<span class="px-2 py-0.5 rounded-full bg-fondo text-texto font-label-sm text-[11px] font-semibold">4 miembros</span>
+</h2>
+<ul class="flex flex-col gap-space-sm">
+<li class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<img class="w-8 h-8 rounded-full object-cover shadow-xs" data-alt="Miniatura de perfil del Ingeniero Carlos Martínez con vestimenta docente universitaria." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh65lNwb6APTklqJ1Af6BV4fFMseunsqdb_5RLHdGsCiaY_mMmLaI98sSHDs2N9EY4_Uv9g_y-QJNMa8mTIZ6z3aTZEEqSOYpUcsZIIoecF6qkMOYi9ReEpZWrYmpLQ7ujXETvtyd-pOm3sehHC-362c0r6fQ9br30xRzRQ82nr3VgmBuSsd8fE3nmjBWyTz5o8Xv-JGFqwOjvu0maNhvNu-zUVYbhXEV8HWZuaFCrnb_EQd_mugjpgg"/>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm font-semibold text-texto leading-none">Ing. Carlos Martínez</span>
+<span class="font-label-sm text-[11px] text-marca-700 font-medium">Docente Titular</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-marca-50 text-marca-800 text-[11px] font-medium font-mono">1 resp</span>
+</li>
+<li class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-marca-100 flex items-center justify-center text-marca-700 font-label-sm text-[12px] font-semibold">
+                CO
+              </div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm font-semibold text-texto leading-none">Cristian Ortiz</span>
+<span class="font-label-sm text-[11px] text-texto-suave">Autor (OC22009)</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-fondo text-texto-suave text-[11px] font-medium font-mono">2 resp</span>
+</li>
+<li class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<img class="w-8 h-8 rounded-full object-cover shadow-xs" data-alt="Miniatura de perfil de la estudiante Gabriela Sánchez con fondo académico." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEqbZjOMoh47avZeLGkqCirIi4phG9lxYVGbk8i0yoScaibWEbCCpC7R11AnjVrGHkPpiWFvZvQ91FNsXHyiBrT0YfblzzPv9yqak2iiNRPADr0AvD4bRxgZn9PMqtJeUEHWgoLDLNw4f7viRkp5HDSCOlf2sphjk1yOfTELaCtM_x0GheKt8WPIzvxLQwqSmgdvYBhgyEJwPVoY4W-rcDNW5OfBuPRA3cR_93ngfSb36nTjLNwI4cZQ"/>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm font-semibold text-texto leading-none">Gabriela Sánchez</span>
+<span class="font-label-sm text-[11px] text-texto-suave">Estudiante (GS21004)</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-fondo text-texto-suave text-[11px] font-medium font-mono">1 resp</span>
+</li>
+<li class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-label-sm text-[12px] font-semibold">
+                MR
+              </div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm font-semibold text-texto leading-none">Mario Rivera</span>
+<span class="font-label-sm text-[11px] text-texto-suave">Instructor Ad-honorem</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-fondo text-texto-suave text-[11px] font-medium font-mono">Lectura</span>
+</li>
+</ul>
+</div>
+<!-- Tarjeta 3: Horario de Consulta Presencial -->
+<div class="bg-superficie rounded-xl shadow-sm p-space-md flex flex-col gap-space-xs border-l-4 border-marca-600">
+<div class="flex items-center gap-2 text-marca-800">
+<span class="material-symbols-outlined text-[20px]">calendar_clock</span>
+<span class="font-headline-sm text-headline-sm font-bold">Atención a Dudas Presencial</span>
+</div>
+<p class="font-body-md text-label-sm text-texto-suave leading-snug">
+          Si requiere apoyo personalizado con depuración de código en máquina:
+        </p>
+<div class="bg-fondo p-space-sm rounded-lg flex flex-col gap-1 mt-1 text-label-sm font-label-sm">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-texto">Días:</span>
+<span class="text-texto font-medium">Lunes y Miércoles</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-semibold text-texto">Horario:</span>
+<span class="text-marca-700 font-bold">10:00 - 12:00 m</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-semibold text-texto">Lugar:</span>
+<span class="text-texto">Cubículo 14, Edificio B (FMO)</span>
+</div>
+</div>
+</div>
+<!-- Tarjeta 4: Hilos de Discusión Relacionados -->
+<div class="bg-superficie rounded-xl shadow-sm p-space-md flex flex-col gap-space-sm">
+<h2 class="font-headline-sm text-headline-sm text-texto flex items-center justify-between pb-space-xs border-b border-borde/70">
+<span>Hilos relacionados</span>
+<span class="material-symbols-outlined text-texto-suave text-[20px]">library_books</span>
+</h2>
+<div class="flex flex-col gap-space-sm">
+<a class="group p-2 rounded-lg hover:bg-fondo transition-colors flex flex-col gap-1" href="#">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm font-semibold text-texto group-hover:text-marca-700 leading-snug">
+<span class="material-symbols-outlined text-[16px] text-marca-600">help</span>
+<span>Uso de Valgrind en laboratorios de cómputo</span>
+</div>
+<div class="flex items-center gap-space-xs text-[11px] font-label-sm text-texto-suave pl-5">
+<span>9 respuestas</span>
+<span>·</span>
+<span>Actualizado ayer</span>
+</div>
+</a>
+<a class="group p-2 rounded-lg hover:bg-fondo transition-colors flex flex-col gap-1" href="#">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm font-semibold text-texto group-hover:text-marca-700 leading-snug">
+<span class="material-symbols-outlined text-[16px] text-success-text">check_circle</span>
+<span>Manejo de memoria en listas doblemente enlazadas</span>
+</div>
+<div class="flex items-center gap-space-xs text-[11px] font-label-sm text-texto-suave pl-5">
+<span>18 respuestas</span>
+<span>·</span>
+<span>Guía #3</span>
+</div>
+</a>
+<a class="group p-2 rounded-lg hover:bg-fondo transition-colors flex flex-col gap-1" href="#">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm font-semibold text-texto group-hover:text-marca-700 leading-snug">
+<span class="material-symbols-outlined text-[16px] text-texto-desactivado">chat</span>
+<span>Diferencias prácticas entre puntero doble y referencia</span>
+</div>
+<div class="flex items-center gap-space-xs text-[11px] font-label-sm text-texto-suave pl-5">
+<span>5 respuestas</span>
+<span>·</span>
+<span>Hace 4 días</span>
+</div>
+</a>
+</div>
+<a class="text-center font-label-sm text-label-sm text-marca-700 hover:text-marca-900 font-semibold pt-1 border-t border-borde/50 hover:underline" href="#">
+          Ver todos los hilos del foro (PRN115) →
+        </a>
+</div>
+</aside>
+</div>
+</div></main></div></body></html>
