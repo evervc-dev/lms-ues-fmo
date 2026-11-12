@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#fff7fd;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary": "#87001d", "surface-container-lowest": "#ffffff", "danger-bg": "#FEF2F2", "surface-container-highest": "#e8e0e6", "on-tertiary-container": "#92daea", "marca-300": "#EE98A3", "marca-100": "#FBE4E6", "on-primary-fixed-variant": "#920020", "background": "#fff7fd", "outline-variant": "#e2bebd", "on-secondary-fixed-variant": "#8c142a", "on-background": "#1e1a1f", "on-secondary-container": "#6c001a", "surface-container": "#f3ecf1", "warning-bg": "#FFFBEB", "on-surface-variant": "#5a4040", "secondary": "#ad2e40", "marca-700": "#8B0E13", "acento": "#9D2235", "danger-text": "#B91C1C", "tertiary-fixed": "#a6eefe", "marca-600": "#AE152D", "secondary-fixed": "#ffdada", "on-primary-fixed": "#410008", "marca-500": "#CB3149", "inverse-primary": "#ffb3b2", "surface-tint": "#b71e33", "info-bg": "#EFF6FF", "tertiary-fixed-dim": "#8ad2e1", "info-text": "#1D4ED8", "error-container": "#ffdad6", "on-surface": "#1e1a1f", "marca-50": "#FDF2F3", "secondary-fixed-dim": "#ffb3b5", "on-secondary": "#ffffff", "inverse-on-surface": "#f6eef4", "success-bg": "#F0FDF4", "on-primary": "#ffffff", "marca-900": "#520A0D", "on-tertiary-fixed": "#001f25", "marca-400": "#E05F72", "texto-suave": "#696969", "fondo": "#F8F8F8", "primary-container": "#ae152d", "on-tertiary-fixed-variant": "#004e5a", "texto": "#1A171B", "tertiary": "#004852", "surface": "#fff7fd", "outline": "#8e706f", "secondary-container": "#fe6b78", "on-error-container": "#93000a", "texto-desactivado": "#ABABAB", "warning-text": "#B45309", "on-secondary-fixed": "#40000c", "surface-container-low": "#f9f1f7", "surface-bright": "#fff7fd", "marca-200": "#F6C6CC", "primary-fixed": "#ffdad9", "primary-fixed-dim": "#ffb3b2", "borde": "#E2E2E2", "surface-variant": "#e8e0e6", "marca-800": "#6E0B10", "surface-container-high": "#eee6ec", "success-text": "#15803D", "surface-dim": "#dfd8dd", "inverse-surface": "#332f34", "on-error": "#ffffff", "error": "#ba1a1a", "on-tertiary": "#ffffff", "on-primary-container": "#ffbfbe", "tertiary-container": "#00616f", "superficie": "#FFFFFF" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2rem", "space-xs": "0.25rem", "gutter": "1rem", "space-md": "1rem", "space-sm": "0.5rem", "margin-mobile": "1rem", "margin": "1.5rem", "space-lg": "1.5rem", "gutter-mobile": "0.75rem" }, "fontFamily": { "label-md": ["Hanken Grotesk"], "label-nav-header": ["Hanken Grotesk"], "label-sm": ["Hanken Grotesk"], "body-md": ["Hanken Grotesk"], "headline-md": ["Hanken Grotesk"], "display-qr": ["Hanken Grotesk"], "headline-lg": ["Hanken Grotesk"], "body-lg": ["Hanken Grotesk"], "headline-sm": ["Hanken Grotesk"] }, "fontSize": { "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }], "label-nav-header": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }], "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }], "body-md": ["14px", { "lineHeight": "21px", "fontWeight": "400" }], "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "display-qr": ["36px", { "lineHeight": "44px", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "headline-sm": ["16px", { "lineHeight": "22px", "fontWeight": "600" }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 bg-superficie/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(26,23,27,0.04)] pt-safe"><div class="h-14 px-margin-mobile flex items-center justify-between gap-space-xs"><div class="flex items-center gap-space-xs min-w-0"><button aria-label="Volver" class="w-11 h-11 flex items-center justify-center text-texto hover:text-marca-600 active:scale-95 transition-transform flex-shrink-0" onclick="history.back()"><span class="material-symbols-outlined text-[22px]">arrow_back</span></button><h1 class="font-headline-sm text-headline-sm text-texto truncate">Entrega Evaluacion</h1></div><div class="flex items-center gap-space-xs flex-shrink-0"><button aria-label="Ayuda de pantalla" class="w-11 h-11 flex items-center justify-center text-texto-suave hover:text-texto"><span class="material-symbols-outlined text-[20px]">help_outline</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-14 pb-safe bg-surface px-margin-mobile"><div class="flex flex-col w-full pb-8 space-y-4">
+<!-- Header Info Panel -->
+<section class="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col space-y-3">
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-marca-50 text-marca-700 font-label-sm text-label-sm font-semibold tracking-wide">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">terminal</span>
+        ACT-PRN115-C2-03
+      </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-warning-bg text-warning-text font-label-sm text-label-sm font-medium">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+        Quedan 2 días, 14 horas
+      </span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-texto">Laboratorio 3: Árboles Binarios</h2>
+<p class="font-body-md text-body-md text-texto-suave mt-0.5">Programación III • Ciclo II-2026</p>
+</div>
+<div class="flex items-center gap-2 pt-1 text-texto-suave font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-marca-600">event</span>
+<span>Vence el 17/10/2026 a las 23:59 CST</span>
+</div>
+</section>
+<!-- Estado Actual de la Entrega (Card Destacada) -->
+<section class="bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-3.5 relative overflow-hidden">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 rounded-full bg-success-text animate-pulse"></div>
+<span class="font-headline-sm text-headline-sm text-texto">Su Entrega Registrada</span>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-medium">
+<span class="material-symbols-outlined text-[15px]">verified</span>
+        Entregado para calificar
+      </span>
+</div>
+<!-- Archivo Subido Detalle -->
+<div class="bg-surface-container-low rounded-xl p-3 flex items-start gap-3">
+<div class="w-10 h-10 rounded-lg bg-marca-100 text-marca-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[24px]">folder_zip</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-label-md text-label-md text-texto font-semibold truncate">PRN115_Lab03_gs21004.zip</p>
+<p class="font-label-sm text-label-sm text-texto-suave">4.8 MB • Subido el 15/10/2026 18:24 CST</p>
+<div class="mt-2 flex items-center gap-1.5 bg-surface-container-lowest px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-[14px] text-success-text">lock</span>
+<span class="font-label-sm text-[11px] text-texto-suave truncate font-mono">SHA-256: 8f9b...4e21 (Verificado)</span>
+</div>
+</div>
+</div>
+<!-- Metadatos de Calificación -->
+<div class="grid grid-cols-2 gap-2 pt-1 font-label-sm text-label-sm">
+<div class="bg-fondo p-2.5 rounded-lg flex flex-col justify-between">
+<span class="text-texto-suave">Calificación:</span>
+<span class="font-semibold text-warning-text flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[16px]">hourglass_top</span>
+          Pendiente de revisión
+        </span>
+</div>
+<div class="bg-fondo p-2.5 rounded-lg flex flex-col justify-between">
+<span class="text-texto-suave">Plazo reglamentario:</span>
+<span class="font-semibold text-texto mt-1">5 días hábiles</span>
+</div>
+</div>
+</section>
+<!-- Acordeones / Secciones Colapsables -->
+<section class="space-y-2.5" id="accordion-group">
+<!-- Acordeón 1: Instrucciones -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden transition-all duration-200">
+<button class="w-full p-4 flex items-center justify-between text-left active:bg-fondo" onclick="toggleSection('sec-instrucciones', 'icon-instrucciones')" type="button">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-marca-50 text-marca-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">assignment</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-texto">Instrucciones y Requisitos</h3>
+<p class="font-label-sm text-label-sm text-texto-suave">JDK 17, árbol AVL y balanceo</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-texto-suave transition-transform duration-200" id="icon-instrucciones">expand_more</span>
+</button>
+<div class="hidden px-4 pb-4 pt-1 space-y-3 text-texto" id="sec-instrucciones">
+<div class="bg-fondo p-3 rounded-lg space-y-2">
+<div class="flex items-center gap-2 text-marca-700 font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[18px]">code</span>
+            Entorno de Ejecución Requerido
+          </div>
+<p class="font-body-md text-body-md text-texto-suave leading-relaxed">
+            Implemente un Árbol Binario de Búsqueda Balanceado (AVL) en Java SE 17 compatible con Maven. Debe incluir pruebas unitarias completas en JUnit 5.
+          </p>
+</div>
+<div class="space-y-1.5 font-label-md text-label-md">
+<span class="font-semibold text-texto">Estructura estricta de paquetes:</span>
+<pre class="bg-surface-container-high text-on-surface p-2.5 rounded-lg text-[12px] font-mono leading-tight overflow-x-auto">edu.ues.fmo.prn115.lab03/
+├── model/ (NodoAVL, ArbolAVL)
+├── service/ (Balanceador, Rotaciones)
+└── test/ (ArbolAVLTest.java)</pre>
+</div>
+<ul class="space-y-1.5 font-body-md text-body-md text-texto-suave list-disc list-inside">
+<li>Respetar la notación estándar de comentarios Javadoc en cada método público.</li>
+<li>Complejidad temporal garantizada de inserción y búsqueda en O(log n).</li>
+</ul>
+</div>
+</div>
+<!-- Acordeón 2: Recursos de Apoyo -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden transition-all duration-200">
+<button class="w-full p-4 flex items-center justify-between text-left active:bg-fondo" onclick="toggleSection('sec-recursos', 'icon-recursos')" type="button">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-info-bg text-info-text flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">download_for_offline</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-texto">Recursos de Apoyo</h3>
+<p class="font-label-sm text-label-sm text-texto-suave">Guía de cátedra y dataset de prueba</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-texto-suave transition-transform duration-200" id="icon-recursos">expand_more</span>
+</button>
+<div class="hidden px-4 pb-4 pt-1 space-y-2" id="sec-recursos">
+<div class="flex items-center justify-between p-3 bg-fondo rounded-xl active:scale-[0.99] transition-transform">
+<div class="flex items-center gap-3 min-w-0">
+<span class="material-symbols-outlined text-[24px] text-danger-text">picture_as_pdf</span>
+<div class="min-w-0">
+<p class="font-label-md text-label-md text-texto font-semibold truncate">Guia_Lab03_ArbolesBinarios.pdf</p>
+<p class="font-label-sm text-label-sm text-texto-suave">1.4 MB • Revisión 2.1</p>
+</div>
+</div>
+<button aria-label="Descargar guía PDF" class="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center text-marca-600 shadow-sm active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+</div>
+<div class="flex items-center justify-between p-3 bg-fondo rounded-xl active:scale-[0.99] transition-transform">
+<div class="flex items-center gap-3 min-w-0">
+<span class="material-symbols-outlined text-[24px] text-warning-text">data_object</span>
+<div class="min-w-0">
+<p class="font-label-md text-label-md text-texto font-semibold truncate">dataset_100k_nodos.json</p>
+<p class="font-label-sm text-label-sm text-texto-suave">3.1 MB • Datos masivos de estrés</p>
+</div>
+</div>
+<button aria-label="Descargar dataset JSON" class="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center text-marca-600 shadow-sm active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Acordeón 3: Criterios de Evaluación (Rúbrica) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden transition-all duration-200">
+<button class="w-full p-4 flex items-center justify-between text-left active:bg-fondo" onclick="toggleSection('sec-rubrica', 'icon-rubrica')" type="button">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-warning-bg text-warning-text flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">fact_check</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-texto">Criterios de Evaluación</h3>
+<p class="font-label-sm text-label-sm text-texto-suave">Rúbrica oficial (10.0 pts en total)</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-texto-suave transition-transform duration-200" id="icon-rubrica">expand_more</span>
+</button>
+<div class="hidden px-4 pb-4 pt-1 space-y-2.5" id="sec-rubrica">
+<!-- Criterio 1 -->
+<div class="bg-surface-container-low p-3 rounded-xl flex items-start justify-between gap-3">
+<div class="flex-1">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md font-semibold text-texto">1. Correctitud Algorítmica</span>
+</div>
+<p class="font-label-sm text-label-sm text-texto-suave mt-1">
+              Inserción, eliminación, rotaciones LL, RR, LR, RL y factores de balanceo sin inconsistencias.
+            </p>
+</div>
+<span class="px-2 py-1 rounded-md bg-marca-100 text-marca-700 font-label-sm text-label-sm font-semibold flex-shrink-0">
+            4.0 pts
+          </span>
+</div>
+<!-- Criterio 2 -->
+<div class="bg-surface-container-low p-3 rounded-xl flex items-start justify-between gap-3">
+<div class="flex-1">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md font-semibold text-texto">2. Modularidad y OOP</span>
+</div>
+<p class="font-label-sm text-label-sm text-texto-suave mt-1">
+              Encapsulamiento de clases Nodo/Árbol, bajo acoplamiento y respeto a principios SOLID.
+            </p>
+</div>
+<span class="px-2 py-1 rounded-md bg-marca-100 text-marca-700 font-label-sm text-label-sm font-semibold flex-shrink-0">
+            2.5 pts
+          </span>
+</div>
+<!-- Criterio 3 -->
+<div class="bg-surface-container-low p-3 rounded-xl flex items-start justify-between gap-3">
+<div class="flex-1">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md font-semibold text-texto">3. Manejo de Excepciones</span>
+</div>
+<p class="font-label-sm text-label-sm text-texto-suave mt-1">
+              Captura robusta de duplicados, nodos nulos y desbordes de memoria en casos extremos.
+            </p>
+</div>
+<span class="px-2 py-1 rounded-md bg-marca-100 text-marca-700 font-label-sm text-label-sm font-semibold flex-shrink-0">
+            2.0 pts
+          </span>
+</div>
+<!-- Criterio 4 -->
+<div class="bg-surface-container-low p-3 rounded-xl flex items-start justify-between gap-3">
+<div class="flex-1">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md font-semibold text-texto">4. Estilo y Javadoc</span>
+</div>
+<p class="font-label-sm text-label-sm text-texto-suave mt-1">
+              Convenciones estándar de nomenclatura en Java, comentarios de API y limpieza de código.
+            </p>
+</div>
+<span class="px-2 py-1 rounded-md bg-marca-100 text-marca-700 font-label-sm text-label-sm font-semibold flex-shrink-0">
+            1.5 pts
+          </span>
+</div>
+</div>
+</div>
+</section>
+<!-- Rectificación / Sustitución de Entrega (RF15) -->
+<section class="bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-3.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-marca-600">published_with_changes</span>
+<h3 class="font-headline-sm text-headline-sm text-texto">Rectificación de Entrega</h3>
+</div>
+<span class="font-label-sm text-label-sm text-texto-suave">Normativa RF15</span>
+</div>
+<p class="font-body-md text-body-md text-texto-suave">
+      Usted puede reemplazar el archivo entregado mientras el plazo de recepción permanezca habilitado.
+    </p>
+<!-- Zona táctil de subida de archivo -->
+<div class="bg-surface-container-low p-4 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer active:bg-surface-container-highest transition-colors" id="dropzone" onclick="document.getElementById('file-input').click()">
+<input accept=".zip,.tar.gz" class="hidden" id="file-input" onchange="handleFileSelected(this)" type="file"/>
+<div class="w-12 h-12 rounded-full bg-marca-100 text-marca-600 flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-[28px]">cloud_upload</span>
+</div>
+<p class="font-label-md text-label-md text-texto font-semibold" id="file-label-main">
+        Toque para seleccionar nuevo archivo
+      </p>
+<p class="font-label-sm text-label-sm text-texto-suave mt-0.5" id="file-label-sub">
+        Formatos permitidos: .zip o .tar.gz (Máx. 25 MB)
+      </p>
+</div>
+<!-- Botón Cancelar Entrega para Corregir -->
+<div class="flex flex-col gap-2 pt-1">
+<button class="w-full h-10 rounded-lg bg-danger-bg text-danger-text font-label-md text-label-md font-semibold flex items-center justify-center gap-2 active:opacity-80 transition-opacity" onclick="cancelSubmission()" type="button">
+<span class="material-symbols-outlined text-[18px]">remove_circle_outline</span>
+        Cancelar entrega para corregir
+      </button>
+<!-- Botón de acción primario UES -->
+<button class="w-full h-11 rounded-lg bg-marca-600 text-on-primary font-label-md text-label-md font-semibold shadow-sm flex items-center justify-center gap-2 active:bg-marca-700 transition-colors" id="save-btn" onclick="saveChanges()" type="button">
+<span class="material-symbols-outlined text-[18px]">save</span>
+        Guardar cambios en entrega
+      </button>
+</div>
+</section>
+<!-- Aviso de Integridad Académica UES FMO -->
+<footer class="bg-fondo p-3.5 rounded-xl flex items-start gap-3">
+<span class="material-symbols-outlined text-[22px] text-marca-600 flex-shrink-0 mt-0.5">verified_user</span>
+<div class="space-y-1">
+<p class="font-label-md text-label-md text-texto font-semibold">Política de Integridad Académica</p>
+<p class="font-label-sm text-label-sm text-texto-suave leading-relaxed">
+        El código entregado es analizado contra repositorios institucionales mediante algoritmos anti-plagio (MOSS). Cualquier concordancia no justificada invalidará su calificación según el Reglamento Disciplinario UES FMO.
+      </p>
+</div>
+</footer>
+</div>
+<script>
+  function toggleSection(contentId, iconId) {
+    const content = document.getElementById(contentId);
+    const icon = document.getElementById(iconId);
+    if (!content || !icon) return;
+
+    const isHidden = content.classList.contains('hidden');
+    if (isHidden) {
+      content.classList.remove('hidden');
+      icon.style.transform = 'rotate(180deg)';
+    } else {
+      content.classList.add('hidden');
+      icon.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  function handleFileSelected(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const mainLabel = document.getElementById('file-label-main');
+      const subLabel = document.getElementById('file-label-sub');
+      const dropzone = document.getElementById('dropzone');
+      
+      if (mainLabel && subLabel && dropzone) {
+        mainLabel.textContent = file.name;
+        subLabel.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB • Listo para subir';
+        dropzone.classList.remove('bg-surface-container-low');
+        dropzone.classList.add('bg-marca-50');
+      }
+    }
+  }
+
+  function cancelSubmission() {
+    if (confirm('¿Está seguro de revocar la entrega actual para realizar correcciones? Se conservará la copia anterior hasta sustituirla.')) {
+      alert('Entrega en modo borrador. No olvide subir su nueva versión antes del vencimiento.');
+    }
+  }
+
+  function saveChanges() {
+    const fileInput = document.getElementById('file-input');
+    if (fileInput && fileInput.files.length > 0) {
+      alert('Nueva versión registrada con éxito para calificar. Se ha recalculado el hash de integridad.');
+    } else {
+      alert('Por favor seleccione un archivo .zip o .tar.gz para sustituir la entrega.');
+    }
+  }
+</script></main></body></html>

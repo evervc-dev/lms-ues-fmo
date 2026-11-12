@@ -86,3 +86,17 @@ it('never prints the client secret', function () {
         ->expectsOutputToContain('Definido (no se muestra).')
         ->assertSuccessful();
 });
+
+it('reports Google Calendar as disabled without failing', function () {
+    simularGoogle(['error' => 'invalid_grant']);
+
+    $this->artisan('google:verificar')->expectsOutputToContain('Desactivado')->assertSuccessful();
+});
+
+it('fails when Google Calendar is enabled with a redirect URI that is not the profile callback', function () {
+    simularGoogle(['error' => 'invalid_grant']);
+    config(['services.google.calendar' => ['enabled' => true, 'redirect' => 'https://lms.ues.edu.sv/auth/google/callback']]);
+
+    expect(collect(app(GoogleCredencialesService::class)->verificar())->firstWhere('paso', 'GOOGLE_CALENDAR_REDIRECT_URI'))->ok->toBeFalse();
+    $this->artisan('google:verificar')->assertFailed();
+});

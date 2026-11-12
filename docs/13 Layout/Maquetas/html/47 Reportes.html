@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-tertiary-fixed":"#001f25","texto":"#1A171B","marca-50":"#FDF2F3","superficie":"#FFFFFF","surface-container-highest":"#e8e0e6","on-secondary-fixed-variant":"#8c142a","secondary-fixed":"#ffdada","marca-400":"#E05F72","inverse-surface":"#332f34","tertiary":"#004852","inverse-on-surface":"#f6eef4","primary-fixed-dim":"#ffb3b2","danger-text":"#B91C1C","surface-container-high":"#eee6ec","danger-bg":"#FEF2F2","tertiary-container":"#00616f","on-primary-container":"#ffbfbe","on-primary-fixed-variant":"#920020","on-primary-fixed":"#410008","on-error-container":"#93000a","texto-desactivado":"#ABABAB","secondary-fixed-dim":"#ffb3b5","on-primary":"#ffffff","surface-bright":"#fff7fd","marca-100":"#FBE4E6","surface-container-low":"#f9f1f7","on-tertiary-container":"#92daea","on-secondary-container":"#6c001a","secondary":"#ad2e40","success-text":"#15803D","outline":"#8e706f","on-surface":"#1e1a1f","primary-container":"#ae152d","on-secondary":"#ffffff","marca-500":"#CB3149","secondary-container":"#fe6b78","surface-tint":"#b71e33","on-surface-variant":"#5a4040","on-background":"#1e1a1f","tertiary-fixed":"#a6eefe","tertiary-fixed-dim":"#8ad2e1","marca-300":"#EE98A3","warning-bg":"#FFFBEB","background":"#fff7fd","acento":"#9D2235","error-container":"#ffdad6","success-bg":"#F0FDF4","surface-container-lowest":"#ffffff","marca-600":"#AE152D","primary":"#87001d","error":"#ba1a1a","surface-container":"#f3ecf1","marca-800":"#6E0B10","surface":"#fff7fd","marca-900":"#520A0D","surface-variant":"#e8e0e6","marca-700":"#8B0E13","warning-text":"#B45309","on-error":"#ffffff","marca-200":"#F6C6CC","on-tertiary":"#ffffff","borde":"#E2E2E2","on-secondary-fixed":"#40000c","inverse-primary":"#ffb3b2","on-tertiary-fixed-variant":"#004e5a","info-bg":"#EFF6FF","surface-dim":"#dfd8dd","outline-variant":"#e2bebd","info-text":"#1D4ED8","texto-suave":"#696969","fondo":"#F8F8F8","primary-fixed":"#ffdad9"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"gutter-mobile":"0.75rem","gutter":"1rem","space-sm":"0.5rem","margin":"1.5rem","margin-mobile":"1rem","space-xs":"0.25rem","space-xl":"2rem","space-md":"1rem","space-lg":"1.5rem"},fontFamily:{"headline-sm":["Hanken Grotesk"],"label-md":["Hanken Grotesk"],"label-sm":["Hanken Grotesk"],"headline-md":["Hanken Grotesk"],"label-nav-header":["Hanken Grotesk"],"headline-lg":["Hanken Grotesk"],"body-md":["Hanken Grotesk"],"body-lg":["Hanken Grotesk"],"display-qr":["Hanken Grotesk"]},fontSize:{"headline-sm":["16px",{lineHeight:"22px",fontWeight:"600"}],"label-md":["14px",{lineHeight:"20px",fontWeight:"500"}],"label-sm":["12px",{lineHeight:"16px",fontWeight:"500"}],"headline-md":["18px",{lineHeight:"24px",fontWeight:"600"}],"label-nav-header":["12px",{lineHeight:"16px",letterSpacing:"0.05em",fontWeight:"600"}],"headline-lg":["24px",{lineHeight:"32px",fontWeight:"600"}],"body-md":["14px",{lineHeight:"21px",fontWeight:"400"}],"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"display-qr":["36px",{lineHeight:"44px",fontWeight:"600"}]}}}}</script></head><body class="bg-fondo font-body-md text-texto antialiased min-h-screen"><header class="fixed top-0 left-0 right-0 h-14 bg-superficie z-50 shadow-[0_1px_8px_rgba(26,23,27,0.06)]"><div class="h-14 w-full px-margin flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="w-9 h-9 rounded-lg bg-marca-600 flex items-center justify-center text-on-primary font-headline-sm text-headline-sm select-none">UES</div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-texto leading-none">LMS UES FMO</span><span class="font-label-sm text-label-sm text-texto-suave leading-tight hidden sm:block">Facultad Multidisciplinaria de Oriente</span></div><div class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-marca-100 text-marca-700 font-label-sm text-label-sm ml-space-xs"><span class="w-1.5 h-1.5 rounded-full bg-marca-600"></span><span>Período 2026-II · en curso</span></div></div><div class="flex items-center gap-space-sm"><button class="w-8 h-8 rounded-lg flex items-center justify-center text-texto-suave hover:bg-fondo hover:text-texto transition-colors" title="Ayuda contextual" type="button"><span class="material-symbols-outlined text-[20px]">help</span></button><button class="relative w-8 h-8 rounded-lg flex items-center justify-center text-texto-suave hover:bg-fondo hover:text-texto transition-colors" title="Notificaciones" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-4 h-4 bg-marca-600 text-on-primary rounded-full font-label-sm text-[10px] leading-none flex items-center justify-center font-bold">3</span></button><div class="hidden sm:flex flex-col items-end pl-space-xs"><span class="font-label-md text-label-md text-texto leading-none">Carlos Martínez</span><span class="font-label-sm text-label-sm text-texto-suave leading-tight">Docente, Coord. y Soporte KR</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-1"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-14 bottom-0 w-64 bg-superficie z-40 flex flex-col justify-between shadow-[0_1px_8px_rgba(26,23,27,0.04)] overflow-y-auto"><div class="px-space-md py-space-md flex flex-col gap-space-md"><div class="flex flex-col gap-space-xs"><span class="px-space-sm font-label-nav-header text-label-nav-header uppercase text-texto-suave">SOPORTE</span><nav class="flex flex-col gap-0.5" data-active-classes="bg-marca-50 text-marca-700 font-semibold rounded-lg"><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="inicio" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">home</span><span>Inicio</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="solicitudes-de-dispositivo" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">devices</span><span>Solicitudes de dispositivo</span></div><span class="px-2 py-0.5 rounded-full bg-marca-100 text-marca-700 font-label-sm text-label-sm font-bold">2</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="diagnostico-de-asistencia" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">fact_check</span><span>Diagnóstico de asistencia</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="usuarios-consulta" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">group</span><span>Usuarios (consulta)</span></div></a></nav></div><div class="flex flex-col gap-space-xs"><span class="px-space-sm font-label-nav-header text-label-nav-header uppercase text-texto-suave">CONSULTAS</span><nav class="flex flex-col gap-0.5" data-active-classes="bg-marca-50 text-marca-700 font-semibold rounded-lg"><a aria-current="page" class="flex items-center justify-between px-space-sm py-2 transition-colors bg-marca-50 text-marca-700 font-semibold rounded-lg" data-path="reportes" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">description</span><span>Reportes</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="estadisticas-de-oferta" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">bar_chart</span><span>Estadísticas de oferta</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="auditoria" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">history_edu</span><span>Auditoría</span></div></a></nav></div></div><div class="px-space-md py-space-md flex flex-col gap-space-xs"><span class="px-space-sm font-label-nav-header text-label-nav-header uppercase text-texto-suave">CUENTA</span><nav class="flex flex-col gap-0.5" data-active-classes="bg-marca-50 text-marca-700 font-semibold rounded-lg"><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="mi-perfil" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">account_circle</span><span>Mi perfil</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors font-label-md text-label-md" data-path="ayuda" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">live_help</span><span>Ayuda</span></div></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-danger-text hover:bg-danger-bg hover:text-danger-text transition-colors font-label-md text-label-md" data-path="cerrar-sesion" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">logout</span><span>Cerrar sesión</span></div></a></nav></div></aside><div class="pl-64"><main class="relative pt-14 bg-fondo min-h-screen flex flex-col"><nav class="w-full px-margin pt-space-md pb-space-sm flex items-center gap-2 text-texto-suave font-label-sm text-label-sm select-none"><a class="hover:text-texto transition-colors" href="#">LMS UES FMO</a><span class="material-symbols-outlined text-[14px]">chevron_right</span><a class="hover:text-texto transition-colors" href="#">Soporte</a><span class="material-symbols-outlined text-[14px]">chevron_right</span><span class="text-texto font-medium">Plataforma</span></nav><div class="flex-1 w-full px-margin pb-space-xl"><div class="flex flex-col w-full">
+<!-- Dynamic Breadcrumb Injection & Page Head -->
+<div class="flex flex-col gap-space-sm mb-space-lg">
+<div class="flex items-center gap-2 text-texto-suave font-label-sm text-label-sm select-none">
+<span class="hover:text-texto transition-colors cursor-pointer">Inicio</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="hover:text-texto transition-colors cursor-pointer">Consultas</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-texto font-medium">Reportes Institucionales</span>
+</div>
+<div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-space-md pt-space-xs">
+<div class="flex flex-col max-w-3xl">
+<div class="flex items-center gap-space-xs mb-1">
+<span class="px-2 py-0.5 rounded-full bg-marca-100 text-marca-700 font-label-sm text-label-sm font-semibold">RF25 · Módulo Oficial</span>
+<span class="text-texto-suave font-label-sm text-label-sm">Período Académico 2026-II</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-texto tracking-tight">
+          Generador y Programación de Reportes Institucionales
+        </h1>
+<p class="font-body-md text-body-md text-texto-suave mt-1 leading-relaxed">
+          Emisión automatizada de consolidados de asistencia, rendimiento académico, carga docente y actas con exportación a Excel (.xlsx) y PDF oficial según RF25.
+        </p>
+</div>
+<div class="flex items-center gap-space-sm shrink-0">
+<button class="inline-flex items-center gap-2 px-space-md py-2 rounded-lg bg-superficie text-texto font-label-md text-label-md shadow-sm hover:bg-fondo transition-all duration-150 cursor-pointer" onclick="openScheduleModal()" type="button">
+<span class="material-symbols-outlined text-[20px] text-texto-suave">calendar_month</span>
+<span>Programar Envío Periódico</span>
+</button>
+<button class="inline-flex items-center gap-2 px-space-md py-2 rounded-lg bg-marca-600 text-on-primary font-label-md text-label-md shadow-sm hover:bg-marca-700 transition-all duration-150 cursor-pointer" onclick="document.getElementById('catalogo-section').scrollIntoView({ behavior: 'smooth' })" type="button">
+<span class="material-symbols-outlined text-[20px]">note_add</span>
+<span>+ Generar Nuevo Reporte</span>
+</button>
+</div>
+</div>
+</div>
+<!-- KPI / Summary Metrics Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md mb-space-xl">
+<!-- Card 1 -->
+<div class="bg-superficie rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<span class="font-label-nav-header text-label-nav-header uppercase text-texto-suave">Reportes Emitidos en el Ciclo</span>
+<div class="w-9 h-9 rounded-lg bg-marca-50 text-marca-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">download_done</span>
+</div>
+</div>
+<div class="mt-space-md flex flex-col">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-[28px] font-bold text-texto tracking-tight">248</span>
+<span class="font-label-sm text-label-sm text-success-text font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> +14.2%
+          </span>
+</div>
+<span class="font-body-md text-body-md text-texto-suave mt-0.5">PDF y Excel descargados oficialmente</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-superficie rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<span class="font-label-nav-header text-label-nav-header uppercase text-texto-suave">Envíos Programados Activos</span>
+<div class="w-9 h-9 rounded-lg bg-info-bg text-info-text flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">schedule_send</span>
+</div>
+</div>
+<div class="mt-space-md flex flex-col">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-[28px] font-bold text-texto tracking-tight">6</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-success-bg text-success-text font-medium">100% operativos</span>
+</div>
+<span class="font-body-md text-body-md text-texto-suave mt-0.5">Semanales y mensuales (@ues.edu.sv)</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-superficie rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<span class="font-label-nav-header text-label-nav-header uppercase text-texto-suave">Último Reporte Generado</span>
+<div class="w-9 h-9 rounded-lg bg-warning-bg text-warning-text flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">update</span>
+</div>
+</div>
+<div class="mt-space-md flex flex-col">
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-lg text-[24px] font-bold text-texto tracking-tight">Hace 35 min</span>
+</div>
+<span class="font-label-sm text-label-sm text-texto truncate font-medium mt-0.5" title="Consolidado de Asistencia · Cómputo II · ISI">
+          Consolidado Asistencia · Cómputo II · ISI
+        </span>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-superficie rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<span class="font-label-nav-header text-label-nav-header uppercase text-texto-suave">Formato Predilecto</span>
+<div class="w-9 h-9 rounded-lg bg-surface-container text-texto flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">donut_small</span>
+</div>
+</div>
+<div class="mt-space-md flex flex-col gap-1.5">
+<div class="flex items-center justify-between text-label-sm font-label-sm">
+<span class="text-texto font-semibold">68% .XLSX</span>
+<span class="text-texto-suave">32% PDF</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden flex">
+<div class="bg-marca-600 h-full rounded-l-full" style="width: 68%;"></div>
+<div class="bg-marca-300 h-full rounded-r-full" style="width: 32%;"></div>
+</div>
+<span class="font-body-md text-[11px] text-texto-suave">Membrete UES oficial en PDF</span>
+</div>
+</div>
+</div>
+<!-- SECTION 1: Catálogo de Reportes Disponibles -->
+<section class="flex flex-col gap-space-md mb-space-xl scroll-mt-20" id="catalogo-section">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div>
+<h2 class="font-headline-md text-headline-md text-texto">
+          Catálogo de Reportes Disponibles para Generación Inmediata
+        </h2>
+<p class="font-body-md text-body-md text-texto-suave">
+          Seleccione los parámetros de cátedra o carrera para procesar la exportación en tiempo real.
+        </p>
+</div>
+<span class="font-label-sm text-label-sm text-texto-suave bg-superficie px-3 py-1 rounded-full shadow-sm">
+        4 plantillas homologadas FMO
+      </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Card A: Asistencia y Deserción -->
+<div class="bg-superficie rounded-xl p-space-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div>
+<div class="flex items-start justify-between gap-space-sm mb-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-marca-50 text-marca-600 flex items-center justify-center group-hover:bg-marca-600 group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">co_present</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-marca-100 text-marca-700 font-semibold">RF22</span>
+<h3 class="font-headline-sm text-headline-sm text-texto mt-0.5">
+                  Reporte de Asistencia y Deserción Estudiantil
+                </h3>
+</div>
+</div>
+</div>
+<p class="font-body-md text-body-md text-texto-suave leading-relaxed mb-space-md">
+            Porcentajes de inasistencias por cómputo, alertas <span class="text-warning-text font-medium">&lt; 85%</span> y <span class="text-danger-text font-medium">&lt; 75% reglamentario</span>, estudiantes en causal de reprobación por inasistencia.
+          </p>
+<!-- Quick Filters -->
+<div class="bg-fondo p-space-sm rounded-lg mb-space-md grid grid-cols-1 sm:grid-cols-3 gap-2">
+<div>
+<label class="block font-label-sm text-[11px] text-texto-suave uppercase font-semibold mb-1">Carrera</label>
+<select class="w-full bg-superficie text-texto font-label-sm text-label-sm rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-marca-500 shadow-sm cursor-pointer">
+<option value="isi">Ing. en Sistemas (ISI)</option>
+<option value="ici">Ing. Civil (ICI)</option>
+<option value="iim">Ing. Industrial (IIN)</option>
+</select>
+</div>
+<div>
+<label class="block font-label-sm text-[11px] text-texto-suave uppercase font-semibold mb-1">Ciclo</label>
+<select class="w-full bg-superficie text-texto font-label-sm text-label-sm rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-marca-500 shadow-sm cursor-pointer">
+<option value="2026-2">2026-II (En curso)</option>
+<option value="2026-1">2026-I</option>
+</select>
+</div>
+<div>
+<label class="block font-label-sm text-[11px] text-texto-suave uppercase font-semibold mb-1">Asignatura</label>
+<select class="w-full bg-superficie text-texto font-label-sm text-label-sm rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-marca-500 shadow-sm cursor-pointer">
+<option value="all">Todas las materias</option>
+<option value="bd">Bases de Datos I</option>
+<option value="redes">Redes de Comunicación</option>
+<option value="ia">Inteligencia Artificial</option>
+</select>
+</div>
+</div>
+</div>
+<div class="pt-space-sm flex items-center justify-between">
+<div class="flex items-center gap-1.5 text-texto-suave font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>Corte en tiempo real</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-fondo text-texto hover:bg-surface-container font-label-sm text-label-sm shadow-sm transition-colors cursor-pointer" onclick="triggerDownload('Excel', 'Asistencia_Desercion_ISI_2026-II')" type="button">
+<span class="material-symbols-outlined text-[18px] text-success-text">table_view</span>
+<span>Descargar Excel</span>
+</button>
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-marca-600 text-on-primary hover:bg-marca-700 font-label-sm text-label-sm shadow-sm transition-colors cursor-pointer" onclick="triggerDownload('PDF', 'Asistencia_Desercion_ISI_2026-II')" type="button">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+<span>Descargar PDF</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card B: Calificaciones y Rendimiento -->
+<div class="bg-superficie rounded-xl p-space-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div>
+<div class="flex items-start justify-between gap-space-sm mb-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-marca-50 text-marca-600 flex items-center justify-center group-hover:bg-marca-600 group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">analytics</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-marca-100 text-marca-700 font-semibold">RF17 / RF33</span>
+<h3 class="font-headline-sm text-headline-sm text-texto mt-0.5">
+                  Consolidado de Calificaciones y Rendimiento por Cátedra
+                </h3>
+</div>
+</div>
+</div>
+<p class="font-body-md text-body-md text-texto-suave leading-relaxed mb-space-md">
+            Sábana de notas por actividad evaluativa, promedios de cómputos, distribución gaussiana de calificaciones y tasa de aprobación de fin de ciclo.
+          </p>
+<!-- Quick Filters -->
+<div class="bg-fondo p-space-sm rounded-lg mb-space-md grid grid-cols-1 sm:grid-cols-3 gap-2">
+<div>
+<label class="block font-label-sm text-[11px] text-texto-suave uppercase font-semibold mb-1">Departamento</label>
+<select class="w-full bg-superficie text-texto font-label-sm text-label-sm rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-marca-500 shadow-sm cursor-pointer">
+<option value="cs">Ing. en Sistemas</option>
+<option value="cb">Ciencias Básicas</option>
+</select>
+</div>
+<div>
+<label class="block font-label-sm text-[11px] text-texto-suave uppercase font-semibold mb-1">Docente Resp.</label>
+<select class="w-full bg-superficie text-texto font-label-sm text-label-sm rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-marca-500 shadow-sm cursor-pointer">
+<option value="all">Todos los docentes</option>
+<option value="cm">Ing. Carlos Martínez</option>
+<option value="rr">Inga. Rosa Ramos</option>
+</select>
+</div>
+<div>
+<label class="block font-label-sm text-[11px] text-texto-suave uppercase font-semibold mb-1">Asignatura</label>
+<select class="w-full bg-superficie text-texto font-label-sm text-label-sm rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-marca-500 shadow-sm cursor-pointer">
+<option value="all">Todas</option>
+<option value="tpi115">TPI115 - Prog. de Servidores</option>
+</select>
+</div>
+</div>
+</div>
+<div class="pt-space-sm flex items-center justify-between">
+<div class="flex items-center gap-1.5 text-texto-suave font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[18px]">equalizer</span>
+<span>Incluye curva de notas</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-fondo text-texto hover:bg-surface-container font-label-sm text-label-sm shadow-sm transition-colors cursor-pointer" onclick="triggerDownload('Excel', 'Consolidado_Calificaciones_Catedra_2026-II')" type="button">
+<span class="material-symbols-outlined text-[18px] text-success-text">table_view</span>
+<span>Descargar Excel</span>
+</button>
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-marca-600 text-on-primary hover:bg-marca-700 font-label-sm text-label-sm shadow-sm transition-colors cursor-pointer" onclick="triggerDownload('PDF', 'Consolidado_Calificaciones_Catedra_2026-II')" type="button">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+<span>Descargar PDF</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card C: Carga Académica y Horarios -->
+<div class="bg-superficie rounded-xl p-space-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div>
+<div class="flex items-start justify-between gap-space-sm mb-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-marca-50 text-marca-600 flex items-center justify-center group-hover:bg-marca-600 group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">calendar_view_week</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-marca-100 text-marca-700 font-semibold">RF08</span>
+<h3 class="font-headline-sm text-headline-sm text-texto mt-0.5">
+                  Carga Académica y Horarios Docentes
+                </h3>
+</div>
+</div>
+</div>
+<p class="font-body-md text-body-md text-texto-suave leading-relaxed mb-space-md">
+            Horas semanales por catedrático, asignación de laboratorios y aulas magistrales, matriz de verificación de traslapes y secciones a cargo en el período lectivo.
+          </p>
+<div class="p-3 rounded-lg bg-fondo flex items-center justify-between text-label-sm font-label-sm mb-space-md">
+<div class="flex items-center gap-2 text-texto">
+<span class="w-2 h-2 rounded-full bg-success-text"></span>
+<span>42 docentes activos registrados</span>
+</div>
+<span class="text-texto-suave">0 traslapes detectados</span>
+</div>
+</div>
+<div class="pt-space-sm flex items-center justify-between">
+<div class="flex items-center gap-1.5 text-texto-suave font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[18px]">room_preferences</span>
+<span>Edificios A, B, C y Cómputo</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-fondo text-texto hover:bg-surface-container font-label-sm text-label-sm shadow-sm transition-colors cursor-pointer" onclick="triggerDownload('Excel', 'Carga_Academica_Horarios_2026-II')" type="button">
+<span class="material-symbols-outlined text-[18px] text-success-text">table_view</span>
+<span>Descargar Excel</span>
+</button>
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-marca-600 text-on-primary hover:bg-marca-700 font-label-sm text-label-sm shadow-sm transition-colors cursor-pointer" onclick="triggerDownload('PDF', 'Carga_Academica_Horarios_2026-II')" type="button">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+<span>Descargar PDF</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card D: Estado de Actas Departamentales -->
+<div class="bg-superficie rounded-xl p-space-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div>
+<div class="flex items-start justify-between gap-space-sm mb-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-marca-50 text-marca-600 flex items-center justify-center group-hover:bg-marca-600 group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">history_edu</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-marca-100 text-marca-700 font-semibold">RF34</span>
+<h3 class="font-headline-sm text-headline-sm text-texto mt-0.5">
+                  Estado y Trazabilidad de Actas Departamentales
+                </h3>
+</div>
+</div>
+</div>
+<p class="font-body-md text-body-md text-texto-suave leading-relaxed mb-space-md">
+            Resumen de actas de evaluación publicadas, devueltas con observaciones y ratificadas por carrera para habilitación reglamentaria de cierre del período.
+          </p>
+<div class="p-3 rounded-lg bg-fondo flex items-center justify-between text-label-sm font-label-sm mb-space-md">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-warning-bg text-warning-text font-medium">3 pendientes firma</span>
+<span class="text-texto-suave">|</span>
+<span class="text-success-text font-medium">38 ratificadas</span>
+</div>
+<span class="text-texto-suave font-mono">92.6% listo</span>
+</div>
+</div>
+<div class="pt-space-sm flex items-center justify-between">
+<div class="flex items-center gap-1.5 text-texto-suave font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[18px]">security</span>
+<span>Sellado digital UES</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-fondo text-texto hover:bg-surface-container font-label-sm text-label-sm shadow-sm transition-colors cursor-pointer" onclick="triggerDownload('Excel', 'Estado_Actas_Departamentales_2026-II')" type="button">
+<span class="material-symbols-outlined text-[18px] text-success-text">table_view</span>
+<span>Descargar Excel</span>
+</button>
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-marca-600 text-on-primary hover:bg-marca-700 font-label-sm text-label-sm shadow-sm transition-colors cursor-pointer" onclick="triggerDownload('PDF', 'Estado_Actas_Departamentales_2026-II')" type="button">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+<span>Descargar PDF</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: Bandeja de Reportes Programados -->
+<section class="flex flex-col gap-space-md mb-space-xl">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div>
+<h2 class="font-headline-md text-headline-md text-texto">
+          Bandeja de Reportes Programados por Correo Electrónico (RF25)
+        </h2>
+<p class="font-body-md text-body-md text-texto-suave">
+          Cronogramas activos que despachan informes en formato institucional a cuentas de correo verificadas.
+        </p>
+</div>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-marca-50 text-marca-700 hover:bg-marca-100 font-label-sm text-label-sm font-semibold transition-colors shrink-0 self-start sm:self-auto cursor-pointer" onclick="openScheduleModal()" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Nueva Automatización</span>
+</button>
+</div>
+<!-- Scheduled Reports Table Container -->
+<div class="bg-superficie rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-fondo text-texto-suave font-label-nav-header text-label-nav-header uppercase tracking-wider">
+<th class="py-3 px-space-md">Reporte y Propósito</th>
+<th class="py-3 px-space-md">Frecuencia / Hora</th>
+<th class="py-3 px-space-md">Destinatarios Institucionales</th>
+<th class="py-3 px-space-md">Formato</th>
+<th class="py-3 px-space-md">Estado</th>
+<th class="py-3 px-space-md text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container font-body-md text-body-md">
+<!-- Row 1 -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-4 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-marca-100 text-marca-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">emergency</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-texto font-semibold">Asistencia Semanal en Riesgo ISI</span>
+<span class="text-[12px] text-texto-suave">Alumnos con &gt; 2 inasistencias en los últimos 7 días</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-space-md whitespace-nowrap">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-texto font-medium">Cada Lunes</span>
+<span class="text-[12px] text-texto-suave">07:00 CST</span>
+</div>
+</td>
+<td class="py-4 px-space-md">
+<div class="flex flex-col gap-0.5">
+<span class="font-mono text-[12px] text-texto truncate block max-w-xs">coordinacion.isi@ues.edu.sv</span>
+<span class="font-mono text-[12px] text-texto-suave truncate block max-w-xs">jefatura.sistemas@ues.edu.sv</span>
+</div>
+</td>
+<td class="py-4 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-success-text font-medium bg-success-bg px-2.5 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px]">table_chart</span> Excel (.xlsx)
+                </span>
+</td>
+<td class="py-4 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-success-text font-medium bg-success-bg px-2.5 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-success-text animate-pulse"></span> Activo
+                </span>
+</td>
+<td class="py-4 px-space-md text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-700 hover:bg-marca-50 transition-colors cursor-pointer" onclick="triggerManualDispatch('Asistencia Semanal en Riesgo ISI')" title="Ejecutar ahora" type="button">
+<span class="material-symbols-outlined text-[18px]">play_circle</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-texto hover:bg-surface-container transition-colors cursor-pointer" title="Editar programación" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-warning-text hover:bg-warning-bg transition-colors cursor-pointer" title="Pausar automatización" type="button">
+<span class="material-symbols-outlined text-[18px]">pause</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-4 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-marca-100 text-marca-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">badge</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-texto font-semibold">Consolidado Mensual de Desempeño Docente</span>
+<span class="text-[12px] text-texto-suave">Avance de programas y registro de evaluaciones</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-space-md whitespace-nowrap">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-texto font-medium">Día 1 de cada mes</span>
+<span class="text-[12px] text-texto-suave">06:00 CST</span>
+</div>
+</td>
+<td class="py-4 px-space-md">
+<div class="flex flex-col gap-0.5">
+<span class="font-mono text-[12px] text-texto truncate block max-w-xs">decanato.fmo@ues.edu.sv</span>
+<span class="font-mono text-[12px] text-texto-suave truncate block max-w-xs">jefatura.sistemas@ues.edu.sv</span>
+</div>
+</td>
+<td class="py-4 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-marca-700 font-medium bg-marca-100 px-2.5 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px]">picture_as_pdf</span> PDF Oficial
+                </span>
+</td>
+<td class="py-4 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-success-text font-medium bg-success-bg px-2.5 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-success-text"></span> Activo
+                </span>
+</td>
+<td class="py-4 px-space-md text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-700 hover:bg-marca-50 transition-colors cursor-pointer" onclick="triggerManualDispatch('Consolidado Mensual de Desempeño Docente')" title="Ejecutar ahora" type="button">
+<span class="material-symbols-outlined text-[18px]">play_circle</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-texto hover:bg-surface-container transition-colors cursor-pointer" title="Editar programación" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-warning-text hover:bg-warning-bg transition-colors cursor-pointer" title="Pausar automatización" type="button">
+<span class="material-symbols-outlined text-[18px]">pause</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-4 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-marca-100 text-marca-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">warning</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-texto font-semibold">Alerta de Inasistencia Crítica (&lt; 75%)</span>
+<span class="text-[12px] text-texto-suave">Causal directa de pérdida de derecho según reglamento</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-space-md whitespace-nowrap">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-texto font-medium">Quincenal</span>
+<span class="text-[12px] text-texto-suave">Viernes 17:00 CST</span>
+</div>
+</td>
+<td class="py-4 px-space-md">
+<div class="flex flex-col gap-0.5">
+<span class="font-mono text-[12px] text-texto truncate block max-w-xs">bienestar.fmo@ues.edu.sv</span>
+<span class="font-mono text-[12px] text-texto-suave truncate block max-w-xs">docentes.responsables@ues.edu.sv</span>
+</div>
+</td>
+<td class="py-4 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-success-text font-medium bg-success-bg px-2.5 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px]">table_chart</span> Excel (.xlsx)
+                </span>
+</td>
+<td class="py-4 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-success-text font-medium bg-success-bg px-2.5 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-success-text"></span> Activo
+                </span>
+</td>
+<td class="py-4 px-space-md text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-marca-700 hover:bg-marca-50 transition-colors cursor-pointer" onclick="triggerManualDispatch('Alerta de Inasistencia Crítica (&lt; 75%)')" title="Ejecutar ahora" type="button">
+<span class="material-symbols-outlined text-[18px]">play_circle</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-texto hover:bg-surface-container transition-colors cursor-pointer" title="Editar programación" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-lg text-texto-suave hover:text-warning-text hover:bg-warning-bg transition-colors cursor-pointer" title="Pausar automatización" type="button">
+<span class="material-symbols-outlined text-[18px]">pause</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- SECTION 3: Historial de Descargas Recientes -->
+<section class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-headline-md text-headline-md text-texto">
+          Historial de Descargas Recientes
+        </h2>
+<p class="font-body-md text-body-md text-texto-suave">
+          Bitácora de emisiones generadas durante la sesión activa con enlace directo para reprocesamiento.
+        </p>
+</div>
+<button class="inline-flex items-center gap-1 text-texto-suave hover:text-texto font-label-sm text-label-sm transition-colors cursor-pointer" onclick="refreshDownloadLog()" type="button">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Actualizar bitácora</span>
+</button>
+</div>
+<div class="bg-superficie rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse" id="history-table">
+<thead>
+<tr class="bg-fondo text-texto-suave font-label-nav-header text-label-nav-header uppercase tracking-wider">
+<th class="py-2.5 px-space-md">Fecha y Hora</th>
+<th class="py-2.5 px-space-md">Usuario Solicitante</th>
+<th class="py-2.5 px-space-md">Documento Emitido</th>
+<th class="py-2.5 px-space-md">Formato</th>
+<th class="py-2.5 px-space-md">Tamaño</th>
+<th class="py-2.5 px-space-md text-right">Descarga Directa</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container font-body-md text-body-md">
+<!-- Item 1 -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3 px-space-md whitespace-nowrap text-texto-suave font-mono text-[13px]">
+                15/10/2026 · 14:22
+              </td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-marca-100 text-marca-700 flex items-center justify-center text-[10px] font-bold">
+                    CM
+                  </div>
+<span class="font-label-sm text-label-sm text-texto">Carlos Martínez</span>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="font-label-md text-label-md text-texto font-medium">Consolidado_Asistencia_Computo_II_ISI.xlsx</span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-success-bg text-success-text">XLSX</span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap text-texto-suave font-mono text-[12px]">
+                842.1 KB
+              </td>
+<td class="py-3 px-space-md text-right whitespace-nowrap">
+<a class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-fondo hover:bg-marca-50 text-texto hover:text-marca-700 font-label-sm text-label-sm transition-colors" href="#download" onclick="triggerDownload('Excel', 'Consolidado_Asistencia_Computo_II_ISI')">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Re-descargar</span>
+</a>
+</td>
+</tr>
+<!-- Item 2 -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3 px-space-md whitespace-nowrap text-texto-suave font-mono text-[13px]">
+                15/10/2026 · 11:05
+              </td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-container text-texto flex items-center justify-center text-[10px] font-bold">
+                    RR
+                  </div>
+<span class="font-label-sm text-label-sm text-texto">Rosa Ramos</span>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="font-label-md text-label-md text-texto font-medium">Actas_Ratificadas_Cómputo_I_FMO.pdf</span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-marca-100 text-marca-700">PDF</span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap text-texto-suave font-mono text-[12px]">
+                3.4 MB
+              </td>
+<td class="py-3 px-space-md text-right whitespace-nowrap">
+<a class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-fondo hover:bg-marca-50 text-texto hover:text-marca-700 font-label-sm text-label-sm transition-colors" href="#download" onclick="triggerDownload('PDF', 'Actas_Ratificadas_Cómputo_I_FMO')">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Re-descargar</span>
+</a>
+</td>
+</tr>
+<!-- Item 3 -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3 px-space-md whitespace-nowrap text-texto-suave font-mono text-[13px]">
+                14/10/2026 · 16:48
+              </td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-marca-100 text-marca-700 flex items-center justify-center text-[10px] font-bold">
+                    CM
+                  </div>
+<span class="font-label-sm text-label-sm text-texto">Carlos Martínez</span>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="font-label-md text-label-md text-texto font-medium">Distribucion_Horarios_Laboratorios_2026-II.xlsx</span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap">
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-success-bg text-success-text">XLSX</span>
+</td>
+<td class="py-3 px-space-md whitespace-nowrap text-texto-suave font-mono text-[12px]">
+                1.2 MB
+              </td>
+<td class="py-3 px-space-md text-right whitespace-nowrap">
+<a class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-fondo hover:bg-marca-50 text-texto hover:text-marca-700 font-label-sm text-label-sm transition-colors" href="#download" onclick="triggerDownload('Excel', 'Distribucion_Horarios_Laboratorios_2026-II')">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Re-descargar</span>
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Notification Toast Container -->
+<div class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none" id="toast-container"></div>
+<!-- Modal: Programar Envío Periódico -->
+<div class="fixed inset-0 z-50 hidden bg-inverse-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="schedule-modal">
+<div class="bg-superficie rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-borde animate-in fade-in duration-200">
+<div class="px-space-lg py-space-md border-b border-borde flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-marca-50 text-marca-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-texto">Programar Envío Periódico</h3>
+</div>
+<button class="text-texto-suave hover:text-texto p-1 rounded-lg" onclick="closeScheduleModal()" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<form class="p-space-lg flex flex-col gap-space-md" id="schedule-form" onsubmit="saveSchedule(event)">
+<div>
+<label class="block font-label-sm text-label-sm text-texto font-semibold mb-1">Tipo de Reporte a Automatizar</label>
+<select class="w-full h-10 px-3 bg-superficie text-texto font-body-md text-body-md rounded-lg border border-borde focus:outline-none focus:ring-2 focus:ring-marca-500" required="">
+<option value="asistencia">Reporte de Asistencia y Deserción Estudiantil (RF22)</option>
+<option value="notas">Consolidado de Calificaciones y Rendimiento (RF17/RF33)</option>
+<option value="carga">Carga Académica y Horarios Docentes (RF08)</option>
+<option value="actas">Estado de Actas Departamentales (RF34)</option>
+</select>
+</div>
+<div class="grid grid-cols-2 gap-space-md">
+<div>
+<label class="block font-label-sm text-label-sm text-texto font-semibold mb-1">Frecuencia</label>
+<select class="w-full h-10 px-3 bg-superficie text-texto font-body-md text-body-md rounded-lg border border-borde focus:outline-none focus:ring-2 focus:ring-marca-500" required="">
+<option value="semanal">Semanal (Lunes)</option>
+<option value="quincenal">Quincenal (Viernes)</option>
+<option value="mensual">Mensual (Día 1)</option>
+</select>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-texto font-semibold mb-1">Hora (CST)</label>
+<input class="w-full h-10 px-3 bg-superficie text-texto font-body-md text-body-md rounded-lg border border-borde focus:outline-none focus:ring-2 focus:ring-marca-500" required="" type="time" value="07:00"/>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-texto font-semibold mb-1">Destinatarios (@ues.edu.sv)</label>
+<input class="w-full h-10 px-3 bg-superficie text-texto font-body-md text-body-md rounded-lg border border-borde placeholder:text-texto-desactivado focus:outline-none focus:ring-2 focus:ring-marca-500" placeholder="ejemplo: jefatura.isi@ues.edu.sv, decanato@ues.edu.sv" required="" type="text"/>
+<span class="text-[11px] text-texto-suave mt-1 block">Separar múltiples direcciones por coma. Solo dominios institucionales autorizados.</span>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-texto font-semibold mb-1">Formato de Salida</label>
+<div class="grid grid-cols-2 gap-space-sm">
+<label class="flex items-center gap-2 p-2.5 rounded-lg border border-borde cursor-pointer hover:bg-fondo">
+<input checked="" class="text-marca-600 focus:ring-marca-500" name="format" type="radio" value="excel"/>
+<span class="font-label-sm text-label-sm text-texto">Excel (.xlsx)</span>
+</label>
+<label class="flex items-center gap-2 p-2.5 rounded-lg border border-borde cursor-pointer hover:bg-fondo">
+<input class="text-marca-600 focus:ring-marca-500" name="format" type="radio" value="pdf"/>
+<span class="font-label-sm text-label-sm text-texto">PDF con Membrete</span>
+</label>
+</div>
+</div>
+<div class="pt-space-sm flex items-center justify-end gap-space-sm border-t border-borde mt-2">
+<button class="px-4 py-2 rounded-lg bg-fondo text-texto font-label-md text-label-md hover:bg-surface-container transition-colors" onclick="closeScheduleModal()" type="button">
+            Cancelar
+          </button>
+<button class="px-4 py-2 rounded-lg bg-marca-600 text-on-primary font-label-md text-label-md hover:bg-marca-700 transition-colors shadow-sm" type="submit">
+            Guardar Automatización
+          </button>
+</div>
+</form>
+</div>
+</div>
+<script>
+    // State indicator & interactive triggers
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-label-sm font-label-sm transition-all duration-300 transform translate-y-2 opacity-0 ${
+        type === 'success' ? 'bg-inverse-surface text-inverse-on-surface' : 'bg-danger-bg text-danger-text border border-danger-text/20'
+      }`;
+
+      const icon = type === 'success' ? 'check_circle' : 'error';
+      toast.innerHTML = `
+        <span class="material-symbols-outlined text-[18px] text-marca-400">${icon}</span>
+        <span>${message}</span>
+      `;
+
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    function triggerDownload(format, reportKey) {
+      showToast(`Generando archivo ${format} para "${reportKey}"...`, 'success');
+      setTimeout(() => {
+        showToast(`Descarga completada: ${reportKey}.${format === 'Excel' ? 'xlsx' : 'pdf'}`, 'success');
+      }, 1200);
+    }
+
+    function triggerManualDispatch(jobName) {
+      showToast(`Enviando reporte manual para "${jobName}" a los destinatarios configurados...`, 'success');
+    }
+
+    function openScheduleModal() {
+      document.getElementById('schedule-modal').classList.remove('hidden');
+    }
+
+    function closeScheduleModal() {
+      document.getElementById('schedule-modal').classList.add('hidden');
+    }
+
+    function saveSchedule(e) {
+      e.preventDefault();
+      closeScheduleModal();
+      showToast('Automatización programada exitosamente bajo estándar RF25.', 'success');
+    }
+
+    function refreshDownloadLog() {
+      showToast('Bitácora sincronizada con el servidor institucional.', 'success');
+    }
+  </script>
+</div></div></main></div></body></html>

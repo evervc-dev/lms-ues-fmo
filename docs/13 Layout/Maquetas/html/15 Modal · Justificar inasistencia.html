@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"marca-300":"#EE98A3","danger-bg":"#FEF2F2","primary-fixed-dim":"#ffb3b2","success-bg":"#F0FDF4","on-secondary-container":"#6c001a","on-primary-container":"#ffbfbe","warning-text":"#B45309","on-error-container":"#93000a","texto-desactivado":"#ABABAB","on-tertiary-fixed":"#001f25","on-tertiary":"#ffffff","primary-container":"#ae152d","surface-container-highest":"#e8e0e6","superficie":"#FFFFFF","marca-400":"#E05F72","info-text":"#1D4ED8","secondary-container":"#fe6b78","tertiary-fixed-dim":"#8ad2e1","secondary":"#ad2e40","marca-500":"#CB3149","tertiary-container":"#00616f","on-surface":"#1e1a1f","surface":"#fff7fd","error-container":"#ffdad6","success-text":"#15803D","on-error":"#ffffff","marca-600":"#AE152D","background":"#fff7fd","on-tertiary-fixed-variant":"#004e5a","marca-200":"#F6C6CC","inverse-surface":"#332f34","marca-800":"#6E0B10","borde":"#E2E2E2","outline-variant":"#e2bebd","on-tertiary-container":"#92daea","texto":"#1A171B","marca-100":"#FBE4E6","surface-tint":"#b71e33","on-secondary-fixed":"#40000c","surface-container-low":"#f9f1f7","tertiary-fixed":"#a6eefe","marca-700":"#8B0E13","texto-suave":"#696969","surface-container-high":"#eee6ec","outline":"#8e706f","surface-container-lowest":"#ffffff","secondary-fixed-dim":"#ffb3b5","inverse-on-surface":"#f6eef4","primary-fixed":"#ffdad9","surface-variant":"#e8e0e6","tertiary":"#004852","on-secondary":"#ffffff","on-primary":"#ffffff","error":"#ba1a1a","inverse-primary":"#ffb3b2","surface-bright":"#fff7fd","on-primary-fixed-variant":"#920020","on-secondary-fixed-variant":"#8c142a","secondary-fixed":"#ffdada","on-background":"#1e1a1f","on-surface-variant":"#5a4040","on-primary-fixed":"#410008","marca-900":"#520A0D","fondo":"#F8F8F8","marca-50":"#FDF2F3","warning-bg":"#FFFBEB","info-bg":"#EFF6FF","surface-dim":"#dfd8dd","danger-text":"#B91C1C","acento":"#9D2235","primary":"#87001d","surface-container":"#f3ecf1"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-lg":"1.5rem","space-md":"1rem",gutter:"1rem","margin-mobile":"1rem","gutter-mobile":"0.75rem","space-xl":"2rem","space-sm":"0.5rem",margin:"1.5rem","space-xs":"0.25rem"},fontFamily:{"label-nav-header":["Hanken Grotesk"],"body-lg":["Hanken Grotesk"],"label-sm":["Hanken Grotesk"],"headline-lg":["Hanken Grotesk"],"label-md":["Hanken Grotesk"],"body-md":["Hanken Grotesk"],"headline-sm":["Hanken Grotesk"],"display-qr":["Hanken Grotesk"],"headline-md":["Hanken Grotesk"]},fontSize:{"label-nav-header":["12px",{lineHeight:"16px",letterSpacing:"0.05em",fontWeight:"600"}],"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"label-sm":["12px",{lineHeight:"16px",fontWeight:"500"}],"headline-lg":["24px",{lineHeight:"32px",fontWeight:"600"}],"label-md":["14px",{lineHeight:"20px",fontWeight:"500"}],"body-md":["14px",{lineHeight:"21px",fontWeight:"400"}],"headline-sm":["16px",{lineHeight:"22px",fontWeight:"600"}],"display-qr":["36px",{lineHeight:"44px",fontWeight:"600"}],"headline-md":["18px",{lineHeight:"24px",fontWeight:"600"}]}}}};</script></head><body class="bg-fondo text-texto font-body-md"><header class="fixed top-0 left-0 right-0 h-14 bg-superficie z-50 shadow-[0_1px_8px_rgba(26,23,27,0.06)]"><div class="h-14 w-full px-space-md flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-lg bg-marca-600 flex items-center justify-center text-on-primary font-headline-sm text-headline-sm">UES</div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm leading-none text-texto font-bold tracking-tight">UES FMO</span><span class="font-label-sm text-label-sm leading-none text-texto-suave mt-space-xs">Ingeniería de Sistemas</span></div></div><div class="h-6 w-px bg-surface-container-highest mx-space-xs hidden md:block"></div><div class="hidden md:flex items-center gap-space-xs"><span class="font-label-md text-label-md text-texto font-medium">Período 2026-II</span><span class="text-texto-desactivado">·</span><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-medium"><span class="w-1.5 h-1.5 rounded-full bg-success-text"></span>En curso</span></div></div><div class="flex items-center gap-space-md"><button aria-label="Notificaciones" class="relative p-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-marca-600 text-on-primary font-label-sm text-[10px] flex items-center justify-center font-bold leading-none">3</span></button><div class="h-6 w-px bg-surface-container-highest"></div><div class="flex items-center gap-space-sm pl-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden sm:flex flex-col text-left"><span class="font-label-md text-label-md text-texto font-medium leading-none">Dra. Ana Ruiz</span><span class="font-label-sm text-label-sm text-texto-suave leading-none mt-space-xs">Docente Titular</span></div></div></div></div></header><aside class="fixed left-0 top-14 bottom-0 w-64 bg-superficie z-40 overflow-y-auto flex flex-col justify-between py-space-md shadow-[0_1px_8px_rgba(26,23,27,0.04)]"><div class="flex flex-col gap-space-lg"><section class="px-space-md"><p class="px-space-sm mb-space-xs font-label-nav-header text-label-nav-header uppercase tracking-wider text-texto-desactivado">DOCENCIA</p><nav class="flex flex-col gap-1" data-active-classes="bg-primary-container text-on-primary font-medium rounded-lg"><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-2 transition-all bg-primary-container text-on-primary font-medium rounded-lg" data-path="mis-secciones" href="#"><span class="material-symbols-outlined text-[20px]">view_kanban</span><span>Mis secciones</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="pendientes-de-calificar" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">assignment_turned_in</span><span>Pendientes de calificar</span></div><span class="px-2 py-0.5 rounded-full bg-warning-bg text-warning-text font-label-sm text-[11px] font-medium">14</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="bancos-de-preguntas" href="#"><span class="material-symbols-outlined text-[20px]">quiz</span><span>Bancos de preguntas</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="rubricas" href="#"><span class="material-symbols-outlined text-[20px]">fact_check</span><span>Rúbricas</span></a></nav></section><section class="px-space-md"><p class="px-space-sm mb-space-xs font-label-nav-header text-label-nav-header uppercase tracking-wider text-texto-desactivado">CONSULTAS</p><nav class="flex flex-col gap-1" data-active-classes="bg-primary-container text-on-primary font-medium rounded-lg"><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="estudiantes-y-asistencia" href="#"><span class="material-symbols-outlined text-[20px]">group</span><span>Estudiantes y asistencia</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="boletas-de-notas" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span><span>Boletas de notas</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="horarios-academicos" href="#"><span class="material-symbols-outlined text-[20px]">calendar_month</span><span>Horarios académicos</span></a></nav></section><section class="px-space-md"><p class="px-space-sm mb-space-xs font-label-nav-header text-label-nav-header uppercase tracking-wider text-texto-desactivado">CUENTA</p><nav class="flex flex-col gap-1" data-active-classes="bg-primary-container text-on-primary font-medium rounded-lg"><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="perfil-docente" href="#"><span class="material-symbols-outlined text-[20px]">account_circle</span><span>Perfil docente</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="preferencias" href="#"><span class="material-symbols-outlined text-[20px]">tune</span><span>Preferencias</span></a></nav></section></div><div class="px-space-md pt-space-md"><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-danger-text hover:bg-danger-bg hover:text-danger-text transition-all font-label-md text-label-md" data-path="iniciar-sesion" href="#"><span class="material-symbols-outlined text-[20px]">logout</span><span>Cerrar sesión</span></a></div></aside><div class="pl-64"><main class="w-full min-h-screen pt-14 px-space-lg py-space-lg bg-fondo text-texto"><div class="flex flex-col w-full relative">
+<!-- Capa de Contexto Académico / Segundo Plano -->
+<div aria-hidden="true" class="w-full flex flex-col gap-space-lg select-none opacity-40 pointer-events-none filter blur-[1.5px]">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+<div>
+<div class="flex items-center gap-space-sm mb-space-xs">
+<span class="px-2.5 py-0.5 rounded-full bg-marca-100 text-marca-700 font-label-sm text-label-sm font-semibold">PRN115 · Grupo Teórico 01</span>
+<span class="text-texto-desactivado font-body-md text-body-md">/</span>
+<span class="text-texto-suave font-label-md text-label-md">Sesión N° 18</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-texto tracking-tight font-bold">Registro de Asistencia y Participación Aula B-12</h1>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="px-space-md py-2 bg-superficie rounded-lg shadow-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-success-text text-[20px]">verified</span>
+<span class="font-label-md text-label-md text-texto">41 Presentes</span>
+</div>
+<div class="px-space-md py-2 bg-superficie rounded-lg shadow-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-danger-text text-[20px]">cancel</span>
+<span class="font-label-md text-label-md text-texto">4 Inasistencias</span>
+</div>
+</div>
+</div>
+<!-- Mini Card Grid Simulado -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<div class="bg-superficie p-space-md rounded-xl shadow-sm">
+<p class="font-label-sm text-label-sm text-texto-suave uppercase tracking-wider mb-1">Cátedra</p>
+<p class="font-headline-sm text-headline-sm text-texto font-semibold">Programación I</p>
+<p class="font-body-md text-body-md text-texto-suave mt-1">Miércoles 07/10/2026 · 07:00 - 08:40</p>
+</div>
+<div class="bg-superficie p-space-md rounded-xl shadow-sm">
+<p class="font-label-sm text-label-sm text-texto-suave uppercase tracking-wider mb-1">Cuerpo Docente</p>
+<p class="font-headline-sm text-headline-sm text-texto font-semibold">Dra. Ana Ruiz</p>
+<p class="font-body-md text-body-md text-texto-suave mt-1">Docente Titular Cátedra</p>
+</div>
+<div class="bg-superficie p-space-md rounded-xl shadow-sm">
+<p class="font-label-sm text-label-sm text-texto-suave uppercase tracking-wider mb-1">Cierre de Acta</p>
+<p class="font-headline-sm text-headline-sm text-texto font-semibold">Reglamento RCE Art. 48</p>
+<p class="font-body-md text-body-md text-texto-suave mt-1">Plazo hábil: 72 horas</p>
+</div>
+</div>
+<!-- Tabla de alumnos de fondo -->
+<div class="bg-superficie rounded-xl shadow-sm overflow-hidden">
+<div class="bg-fondo px-space-md py-3 flex items-center justify-between">
+<span class="font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider">Estudiante / Carné</span>
+<span class="font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider">Estado Asistencia</span>
+</div>
+<div class="p-space-md flex flex-col gap-3">
+<div class="flex items-center justify-between py-2">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center font-label-md text-label-md font-semibold">CM</div>
+<div>
+<p class="font-label-md text-label-md text-texto font-semibold">Carlos Antonio Martínez Mendoza</p>
+<p class="font-label-sm text-label-sm text-texto-suave">CM05012 · Ing. de Sistemas</p>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-danger-bg text-danger-text font-label-sm text-label-sm font-semibold">Inasistencia Injustificada</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Overlay Backdrop Institucional con desenfoque suave -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-texto/40 backdrop-blur-sm transition-opacity duration-200">
+<!-- Diálogo Modal Institucional UES (Máximo 580px, radio 16px) -->
+<div aria-labelledby="modal-titulo" aria-modal="true" class="w-full max-w-[580px] bg-superficie rounded-[16px] shadow-[0_20px_50px_rgba(26,23,27,0.18)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150" role="dialog">
+<!-- Encabezado del Modal con Identidad UES -->
+<div class="relative px-space-lg pt-space-lg pb-space-md bg-superficie">
+<div class="flex items-start justify-between gap-space-md">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-marca-50 text-marca-600 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">gavel</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-marca-100 text-marca-800 font-semibold tracking-wide">
+                  RCE-UES Art. 48
+                </span>
+<span class="font-label-sm text-label-sm text-texto-suave">Trámite Formal</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-texto font-bold leading-tight mt-1" id="modal-titulo">
+                Justificar Inasistencia · Sesión Presencial
+              </h2>
+</div>
+</div>
+<button aria-label="Cerrar modal" class="w-8 h-8 rounded-lg flex items-center justify-center text-texto-suave hover:bg-fondo hover:text-texto transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Ficha técnica del estudiante (Contexto normativo directo) -->
+<div class="mt-space-md p-space-sm rounded-lg bg-fondo flex flex-col gap-0.5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-marca-600 text-[18px]">account_circle</span>
+<span class="font-label-md text-label-md text-texto font-semibold">Carlos Antonio Martínez Mendoza</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container font-mono text-texto-suave">CM05012</span>
+</div>
+<div class="flex items-center gap-2 text-texto-suave font-label-sm text-label-sm pl-6 flex-wrap">
+<span>Cátedra PRN115 Programación I</span>
+<span>•</span>
+<span>Sesión presencial del 07/10/2026 (07:00)</span>
+</div>
+</div>
+</div>
+<!-- Formulario de 5 Campos Reglamentarios (< 6 campos) -->
+<form class="px-space-lg py-space-sm flex flex-col gap-space-md" onsubmit="event.preventDefault();">
+<!-- Campo 1: Tipo de Justificación -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-texto font-semibold flex items-center justify-between" for="tipo-justificacion">
+<span>1. Tipo de Justificación Reglamentaria</span>
+<span class="font-label-sm text-label-sm text-marca-600 font-medium">Requerido</span>
+</label>
+<div class="relative">
+<select class="w-full h-10 px-3 pr-9 rounded-lg bg-fondo text-texto font-body-md text-body-md focus:bg-superficie focus:outline-none focus:ring-2 focus:ring-marca-500 transition-all appearance-none cursor-pointer" id="tipo-justificacion">
+<option selected="" value="medica">Incapacidad Médica (Bienestar Universitario)</option>
+<option value="laboral">Motivo Laboral Comprobado</option>
+<option value="calamidad">Duelo / Calamidad Doméstica</option>
+<option value="institucional">Representación Institucional UES</option>
+</select>
+<span class="material-symbols-outlined pointer-events-none absolute right-3 top-2.5 text-texto-suave text-[20px]">
+              expand_more
+            </span>
+</div>
+</div>
+<!-- Campos 2 y 3 en Rejilla Compacta -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<!-- Campo 2: Fecha de emisión -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-texto font-semibold" for="fecha-emision">
+              2. Fecha de Emisión
+            </label>
+<div class="relative">
+<input class="w-full h-10 px-3 rounded-lg bg-fondo text-texto font-body-md text-body-md focus:bg-superficie focus:outline-none focus:ring-2 focus:ring-marca-500 transition-all" id="fecha-emision" type="date" value="2026-10-07"/>
+</div>
+<span class="font-label-sm text-label-sm text-texto-suave">Dentro del límite legal de 72 hrs.</span>
+</div>
+<!-- Campo 3: Folio / Expediente -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-texto font-semibold" for="folio-expediente">
+              3. Folio / Ref. Expediente
+            </label>
+<div class="relative">
+<input class="w-full h-10 px-3 rounded-lg bg-fondo text-texto font-body-md text-body-md uppercase font-mono focus:bg-superficie focus:outline-none focus:ring-2 focus:ring-marca-500 transition-all" id="folio-expediente" placeholder="Ej. BU-2026-XXXX" type="text" value="BU-2026-8491"/>
+</div>
+<span class="font-label-sm text-label-sm text-texto-suave">Código de validación médica</span>
+</div>
+</div>
+<!-- Campo 4: Descripción Sucinta del Motivo -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-texto font-semibold flex items-center justify-between" for="descripcion-motivo">
+<span>4. Resumen Sustentatorio</span>
+<span class="font-label-sm text-label-sm text-texto-suave">Máx. 250 caracteres</span>
+</label>
+<textarea class="w-full p-3 rounded-lg bg-fondo text-texto font-body-md text-body-md focus:bg-superficie focus:outline-none focus:ring-2 focus:ring-marca-500 transition-all resize-none placeholder:text-texto-desactivado" id="descripcion-motivo" placeholder="Indique la causa autorizada y pertinencia..." rows="2">El estudiante presentó cuadro gastrointestinal agudo atendido en la Clínica de Bienestar Universitario sede Central FMO; reposo indicado por 24 horas.</textarea>
+</div>
+<!-- Campo 5: Documento Probatorio Oficial -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-texto font-semibold flex items-center justify-between">
+<span>5. Documento Probatorio Oficial</span>
+<span class="font-label-sm text-label-sm text-success-text flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+              Verificado
+            </span>
+</label>
+<!-- Archivo cargado con estilo institucional -->
+<div class="p-3 rounded-xl bg-fondo flex items-center justify-between transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-lg bg-marca-100 text-marca-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-texto font-semibold truncate">Constancia_Medica_BU.pdf</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container text-texto-suave font-label-sm text-[11px]">1.4 MB</span>
+</div>
+<div class="flex items-center gap-1 font-mono text-[11px] text-texto-suave truncate">
+<span>SHA256: 7f83b165...9d2e</span>
+<span class="text-success-text font-bold">· Cripto-firmado</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1 shrink-0 ml-2">
+<button class="p-2 text-texto-suave hover:text-texto rounded-lg hover:bg-superficie transition-colors" title="Previsualizar constancia" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-2 text-texto-suave hover:text-danger-text rounded-lg hover:bg-danger-bg transition-colors" title="Reemplazar archivo" type="button">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Aviso Auditoría Institucional -->
+<div class="flex items-start gap-space-sm p-3 rounded-lg bg-marca-50 text-marca-900 mt-1">
+<span class="material-symbols-outlined text-marca-600 text-[18px] shrink-0 mt-0.5">security</span>
+<p class="font-label-sm text-label-sm leading-snug">
+            Esta resolución modificará el cómputo porcentual de asistencia del estudiante y quedará registrada en la bitácora forense de la cátedra bajo la firma digital de la <strong class="font-semibold text-marca-700">Dra. Ana Ruiz</strong>.
+          </p>
+</div>
+<!-- Acciones Inferiores -->
+<div class="flex items-center justify-end gap-space-md pt-space-sm pb-space-lg">
+<button class="px-space-md py-2.5 rounded-lg bg-superficie text-texto hover:bg-fondo font-label-md text-label-md font-medium transition-colors" type="button">
+            Cancelar
+          </button>
+<button class="px-space-lg py-2.5 rounded-lg bg-marca-600 hover:bg-marca-700 text-on-primary font-label-md text-label-md font-semibold shadow-sm transition-all flex items-center gap-2 active:scale-[0.99]" id="btn-validar" type="button">
+<span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+<span>Registrar justificación y validar</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+<script>
+    // Microinteracción para retroalimentación inmediata de validación
+    document.getElementById('btn-validar')?.addEventListener('click', function() {
+      const btn = this;
+      btn.disabled = true;
+      btn.innerHTML = `
+        <span class="inline-block animate-spin material-symbols-outlined text-[18px]">progress_activity</span>
+        <span>Asentando en acta...</span>
+      `;
+      setTimeout(() => {
+        btn.className = "px-space-lg py-2.5 rounded-lg bg-success-text text-on-primary font-label-md text-label-md font-semibold flex items-center gap-2";
+        btn.innerHTML = `
+          <span class="material-symbols-outlined text-[18px]">check_circle</span>
+          <span>Inasistencia Justificada (Art. 48)</span>
+        `;
+      }, 700);
+    });
+  </script>
+</div></main></div></body></html>

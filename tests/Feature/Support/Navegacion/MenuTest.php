@@ -31,6 +31,14 @@ it('shows a student only the study and account groups', function () {
     ]);
 });
 
+it('gives the department head the academic load and the users screens they are allowed to use', function () {
+    $jefatura = menuDe(usuarioCon('jefe_departamento'))['Jefatura'];
+
+    expect($jefatura)->toContain('carga-academica', 'usuarios')
+        ->and(collect(app(Menu::class)->para(usuarioCon('jefe_departamento'))['grupos'])->firstWhere('titulo', 'Jefatura')['opciones'])
+        ->each(fn ($opcion) => $opcion->url->not->toBeNull());
+});
+
 it('joins the groups of a coordinator who also teaches', function () {
     $menu = menuDe(usuarioCon('coordinador', 'docente'));
 
@@ -63,12 +71,12 @@ it('hides an option when the role loses its permission', function () {
 it('marks options that still lead to an under-construction page', function () {
     config(['navegacion.grupos.0.opciones' => [
         ['clave' => 'inicio', 'etiqueta' => 'Inicio', 'ruta' => 'inicio', 'icono' => 'home'],
-        ['clave' => 'calendario', 'etiqueta' => 'Google Calendar', 'ruta' => 'perfil.google-calendar', 'icono' => 'calendar-days'],
+        ['clave' => 'calendario', 'etiqueta' => 'Vista pendiente', 'ruta' => registrarVistaPendiente(), 'icono' => 'calendar-days'],
     ]]);
     $opciones = collect(app(Menu::class)->para(usuarioCon('docente'))['grupos'][0]['opciones'])->keyBy('clave');
 
     expect($opciones['inicio']->pendiente)->toBeFalse()
-        ->and($opciones['calendario']->url)->toBe(route('perfil.google-calendar'))
+        ->and($opciones['calendario']->url)->toBe(route('vista-pendiente'))
         ->and($opciones['calendario']->pendiente)->toBeTrue();
 });
 

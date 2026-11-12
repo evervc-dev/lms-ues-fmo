@@ -188,3 +188,28 @@ it('CP-RF25-03 los filtros del Excel se escriben en palabras y con fechas DD/MM/
     expect(Exportacion::filtros(['Desde' => '2026-10-01', 'Hasta' => '', 'Acción' => 'Cambio', 'Búsqueda' => null]))->toBe('Desde: 01/10/2026 · Acción: Cambio')
         ->and(Exportacion::filtros(['Desde' => '', 'Búsqueda' => null]))->toBe('Sin filtros');
 });
+
+it('H-01 un PDF de tabla con más de 500 filas lleva las primeras y una nota que manda al Excel o al CSV', function () {
+    $filas = collect(range(1, 822))->map(fn (int $i) => ["Estudiante {$i}", 'ISI', 'Riesgo de reprobar']);
+
+    $datos = Exportacion::recortarParaPdf(['titulo' => 'Estudiantes en riesgo', 'filas' => $filas]);
+
+    expect($datos['filas'])->toHaveCount(Exportacion::FILAS_PDF)
+        ->and($datos['filas'][0][0])->toBe('Estudiante 1')
+        ->and($datos['nota'])->toContain('500 de 822')->toContain('Excel')
+        ->and(Exportacion::recortarParaPdf(['filas' => $filas->take(500)]))->not->toHaveKey('nota')
+        ->and(Exportacion::recortarParaPdf(['libro' => []]))->toBe(['libro' => []]);
+});
+
+it('H-01 exporta a PDF una tabla de cientos de filas sin agotar la memoria', function () {
+    actingAs(usuarioCon('administrador'));
+    $filas = collect(range(1, 900))->map(fn (int $i) => ["Apellido {$i}, Nombre", 'AB'.str_pad((string) $i, 5, '0'), 'ISI', 'PRN115 · 01', 'Riesgo de reprobar', '19/10/2026'])->all();
+
+    $respuesta = Exportacion::pdf('riesgo.pdf', 'exportaciones.tabla', ['titulo' => 'Estudiantes en riesgo', 'subtitulo' => null,
+        'columnas' => ['Estudiante', 'Carné', 'Carrera', 'Sección', 'Alerta', 'Desde'], 'filas' => $filas], 'landscape');
+    ob_start();
+    $respuesta->sendContent();
+    $pdf = (string) ob_get_clean();
+
+    expect($pdf)->toStartWith('%PDF-')->and(substr_count($pdf, '/Type /Page'))->toBeLessThan(30);
+});

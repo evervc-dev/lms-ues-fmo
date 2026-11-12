@@ -338,3 +338,18 @@ it('CP-RF29-13 el docente guarda la descripción desde los contenidos de su secc
 
     expect(DB::table('subjects')->where('id', $e['prn'])->value('description'))->toBe('Fundamentos de programación estructurada.');
 });
+
+it('CP-RF29-08 la lista se agrupa por el ciclo del plan y se busca por código o nombre, sin distinguir tildes', function () {
+    $e = escenario();
+    inscripcionMateria($e, 'MAT225', 2);
+    $avanzada = inscripcionMateria($e, 'PRN315', 4);
+    DbContext::system(fn () => DB::table('subjects')->where('id', $avanzada['asignatura'])->update(['name' => 'Programación Avanzada']));
+    actingAs($e['estudiante']);
+
+    Livewire::test(Inscripcion::class)
+        ->assertSeeInOrder(['Ciclo 2', 'MAT225', 'Ciclo 4', 'Programación Avanzada'])
+        ->set('buscar', 'MAT225')->assertSee('MAT225')->assertDontSee('Programación Avanzada')
+        // Sin tildes y por un trozo del nombre, como en el catálogo (H-10 de la QA del 27/10).
+        ->set('buscar', 'programacion')->assertSee('Programación Avanzada')->assertDontSee('MAT225')
+        ->set('buscar', 'zzz')->assertSee('Ninguna materia coincide con su búsqueda');
+});

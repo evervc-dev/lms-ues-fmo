@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"marca-300":"#EE98A3","danger-bg":"#FEF2F2","primary-fixed-dim":"#ffb3b2","success-bg":"#F0FDF4","on-secondary-container":"#6c001a","on-primary-container":"#ffbfbe","warning-text":"#B45309","on-error-container":"#93000a","texto-desactivado":"#ABABAB","on-tertiary-fixed":"#001f25","on-tertiary":"#ffffff","primary-container":"#ae152d","surface-container-highest":"#e8e0e6","superficie":"#FFFFFF","marca-400":"#E05F72","info-text":"#1D4ED8","secondary-container":"#fe6b78","tertiary-fixed-dim":"#8ad2e1","secondary":"#ad2e40","marca-500":"#CB3149","tertiary-container":"#00616f","on-surface":"#1e1a1f","surface":"#fff7fd","error-container":"#ffdad6","success-text":"#15803D","on-error":"#ffffff","marca-600":"#AE152D","background":"#fff7fd","on-tertiary-fixed-variant":"#004e5a","marca-200":"#F6C6CC","inverse-surface":"#332f34","marca-800":"#6E0B10","borde":"#E2E2E2","outline-variant":"#e2bebd","on-tertiary-container":"#92daea","texto":"#1A171B","marca-100":"#FBE4E6","surface-tint":"#b71e33","on-secondary-fixed":"#40000c","surface-container-low":"#f9f1f7","tertiary-fixed":"#a6eefe","marca-700":"#8B0E13","texto-suave":"#696969","surface-container-high":"#eee6ec","outline":"#8e706f","surface-container-lowest":"#ffffff","secondary-fixed-dim":"#ffb3b5","inverse-on-surface":"#f6eef4","primary-fixed":"#ffdad9","surface-variant":"#e8e0e6","tertiary":"#004852","on-secondary":"#ffffff","on-primary":"#ffffff","error":"#ba1a1a","inverse-primary":"#ffb3b2","surface-bright":"#fff7fd","on-primary-fixed-variant":"#920020","on-secondary-fixed-variant":"#8c142a","secondary-fixed":"#ffdada","on-background":"#1e1a1f","on-surface-variant":"#5a4040","on-primary-fixed":"#410008","marca-900":"#520A0D","fondo":"#F8F8F8","marca-50":"#FDF2F3","warning-bg":"#FFFBEB","info-bg":"#EFF6FF","surface-dim":"#dfd8dd","danger-text":"#B91C1C","acento":"#9D2235","primary":"#87001d","surface-container":"#f3ecf1"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-lg":"1.5rem","space-md":"1rem",gutter:"1rem","margin-mobile":"1rem","gutter-mobile":"0.75rem","space-xl":"2rem","space-sm":"0.5rem",margin:"1.5rem","space-xs":"0.25rem"},fontFamily:{"label-nav-header":["Hanken Grotesk"],"body-lg":["Hanken Grotesk"],"label-sm":["Hanken Grotesk"],"headline-lg":["Hanken Grotesk"],"label-md":["Hanken Grotesk"],"body-md":["Hanken Grotesk"],"headline-sm":["Hanken Grotesk"],"display-qr":["Hanken Grotesk"],"headline-md":["Hanken Grotesk"]},fontSize:{"label-nav-header":["12px",{lineHeight:"16px",letterSpacing:"0.05em",fontWeight:"600"}],"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"label-sm":["12px",{lineHeight:"16px",fontWeight:"500"}],"headline-lg":["24px",{lineHeight:"32px",fontWeight:"600"}],"label-md":["14px",{lineHeight:"20px",fontWeight:"500"}],"body-md":["14px",{lineHeight:"21px",fontWeight:"400"}],"headline-sm":["16px",{lineHeight:"22px",fontWeight:"600"}],"display-qr":["36px",{lineHeight:"44px",fontWeight:"600"}],"headline-md":["18px",{lineHeight:"24px",fontWeight:"600"}]}}}};</script></head><body class="bg-fondo text-texto font-body-md"><header class="fixed top-0 left-0 right-0 h-14 bg-superficie z-50 shadow-[0_1px_8px_rgba(26,23,27,0.06)]"><div class="h-14 w-full px-space-md flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-lg bg-marca-600 flex items-center justify-center text-on-primary font-headline-sm text-headline-sm">UES</div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm leading-none text-texto font-bold tracking-tight">UES FMO</span><span class="font-label-sm text-label-sm leading-none text-texto-suave mt-space-xs">Ingeniería de Sistemas</span></div></div><div class="h-6 w-px bg-surface-container-highest mx-space-xs hidden md:block"></div><div class="hidden md:flex items-center gap-space-xs"><span class="font-label-md text-label-md text-texto font-medium">Período 2026-II</span><span class="text-texto-desactivado">·</span><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-medium"><span class="w-1.5 h-1.5 rounded-full bg-success-text"></span>En curso</span></div></div><div class="flex items-center gap-space-md"><button aria-label="Notificaciones" class="relative p-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-marca-600 text-on-primary font-label-sm text-[10px] flex items-center justify-center font-bold leading-none">3</span></button><div class="h-6 w-px bg-surface-container-highest"></div><div class="flex items-center gap-space-sm pl-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden sm:flex flex-col text-left"><span class="font-label-md text-label-md text-texto font-medium leading-none">Dra. Ana Ruiz</span><span class="font-label-sm text-label-sm text-texto-suave leading-none mt-space-xs">Docente Titular</span></div></div></div></div></header><aside class="fixed left-0 top-14 bottom-0 w-64 bg-superficie z-40 overflow-y-auto flex flex-col justify-between py-space-md shadow-[0_1px_8px_rgba(26,23,27,0.04)]"><div class="flex flex-col gap-space-lg"><section class="px-space-md"><p class="px-space-sm mb-space-xs font-label-nav-header text-label-nav-header uppercase tracking-wider text-texto-desactivado">DOCENCIA</p><nav class="flex flex-col gap-1" data-active-classes="bg-primary-container text-on-primary font-medium rounded-lg"><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-2 transition-all bg-primary-container text-on-primary font-medium rounded-lg" data-path="mis-secciones" href="#"><span class="material-symbols-outlined text-[20px]">view_kanban</span><span>Mis secciones</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="pendientes-de-calificar" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">assignment_turned_in</span><span>Pendientes de calificar</span></div><span class="px-2 py-0.5 rounded-full bg-warning-bg text-warning-text font-label-sm text-[11px] font-medium">14</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="bancos-de-preguntas" href="#"><span class="material-symbols-outlined text-[20px]">quiz</span><span>Bancos de preguntas</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="rubricas" href="#"><span class="material-symbols-outlined text-[20px]">fact_check</span><span>Rúbricas</span></a></nav></section><section class="px-space-md"><p class="px-space-sm mb-space-xs font-label-nav-header text-label-nav-header uppercase tracking-wider text-texto-desactivado">CONSULTAS</p><nav class="flex flex-col gap-1" data-active-classes="bg-primary-container text-on-primary font-medium rounded-lg"><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="estudiantes-y-asistencia" href="#"><span class="material-symbols-outlined text-[20px]">group</span><span>Estudiantes y asistencia</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="boletas-de-notas" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span><span>Boletas de notas</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="horarios-academicos" href="#"><span class="material-symbols-outlined text-[20px]">calendar_month</span><span>Horarios académicos</span></a></nav></section><section class="px-space-md"><p class="px-space-sm mb-space-xs font-label-nav-header text-label-nav-header uppercase tracking-wider text-texto-desactivado">CUENTA</p><nav class="flex flex-col gap-1" data-active-classes="bg-primary-container text-on-primary font-medium rounded-lg"><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="perfil-docente" href="#"><span class="material-symbols-outlined text-[20px]">account_circle</span><span>Perfil docente</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-texto-suave hover:bg-fondo hover:text-texto transition-all font-label-md text-label-md" data-path="preferencias" href="#"><span class="material-symbols-outlined text-[20px]">tune</span><span>Preferencias</span></a></nav></section></div><div class="px-space-md pt-space-md"><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-danger-text hover:bg-danger-bg hover:text-danger-text transition-all font-label-md text-label-md" data-path="iniciar-sesion" href="#"><span class="material-symbols-outlined text-[20px]">logout</span><span>Cerrar sesión</span></a></div></aside><div class="pl-64"><main class="w-full min-h-screen pt-14 px-space-lg py-space-lg bg-fondo text-texto"><div class="flex flex-col w-full">
+<!-- Breadcrumb bar -->
+<nav aria-label="Migas de pan" class="flex items-center gap-space-xs text-label-sm font-label-sm text-texto-suave mb-space-sm">
+<a class="hover:text-marca-600 transition-colors" href="#">Inicio</a>
+<span class="material-symbols-outlined text-[14px] text-texto-desactivado">chevron_right</span>
+<a class="hover:text-marca-600 transition-colors" href="#">Mis secciones</a>
+<span class="material-symbols-outlined text-[14px] text-texto-desactivado">chevron_right</span>
+<span class="px-2 py-0.5 rounded-full bg-marca-50 text-marca-700 font-label-sm text-label-sm font-semibold">PRN115 · GTO 01</span>
+<span class="material-symbols-outlined text-[14px] text-texto-desactivado">chevron_right</span>
+<a class="hover:text-marca-600 transition-colors" href="#">Actividades</a>
+<span class="material-symbols-outlined text-[14px] text-texto-desactivado">chevron_right</span>
+<span class="text-texto font-medium">Laboratorio 3</span>
+<span class="material-symbols-outlined text-[14px] text-texto-desactivado">chevron_right</span>
+<span class="text-marca-600 font-semibold">Editar (view.edit)</span>
+</nav>
+<!-- Sticky Header Action Bar -->
+<div class="bg-superficie rounded-xl shadow-sm p-space-md mb-space-lg flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-marca-50 text-marca-600 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[26px]">edit_document</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs mb-1">
+<span class="px-2.5 py-0.5 rounded-full bg-warning-bg text-warning-text font-label-sm text-label-sm font-medium">Modo Edición</span>
+<span class="text-texto-desactivado font-label-sm text-label-sm">·</span>
+<span class="text-texto-suave font-label-sm text-label-sm">Código interno: PRN115-LAB03-2026-II</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-texto tracking-tight">Editar Tarea de Evaluación · Laboratorio 3: Árboles Binarios y Grafos</h1>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm shrink-0">
+<button class="px-4 py-2 rounded-lg bg-superficie text-texto hover:bg-fondo transition-colors font-label-md text-label-md shadow-sm flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+        Descartar cambios
+      </button>
+<a class="px-4 py-2 rounded-lg bg-info-bg text-info-text hover:bg-info-bg/80 transition-colors font-label-md text-label-md flex items-center gap-1.5 font-medium" href="#">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+        Vista previa de estudiante
+      </a>
+<button class="px-5 py-2 rounded-lg bg-marca-600 hover:bg-marca-700 text-on-primary font-label-md text-label-md transition-colors shadow-sm flex items-center gap-2 font-medium" type="button">
+<span class="material-symbols-outlined text-[18px]">save</span>
+        Guardar y publicar modificaciones
+      </button>
+</div>
+</div>
+<!-- Main 2-Column Responsive Layout -->
+<form class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start" onsubmit="event.preventDefault();">
+<!-- Left Column (65% -> 8 of 12 cols) -->
+<div class="lg:col-span-8 flex flex-col gap-space-lg">
+<!-- Bloque 1: Datos Generales -->
+<section class="bg-superficie rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-marca-600"></span>
+<h2 class="font-headline-md text-headline-md text-texto">1. Datos Generales de la Actividad</h2>
+</div>
+<span class="font-label-sm text-label-sm text-texto-suave">Campos con <span class="text-error font-bold">*</span> son requeridos</span>
+</div>
+<!-- Título de la actividad -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-texto font-medium flex items-center justify-between" for="titulo-tarea">
+<span>Título de la actividad <span class="text-error font-bold">*</span></span>
+<span class="font-label-sm text-label-sm text-texto-suave" id="chars-counter">71/120 caracteres</span>
+</label>
+<input class="h-10 px-3.5 rounded-lg bg-superficie text-texto font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-marca-500 shadow-sm transition-all" id="titulo-tarea" name="titulo-tarea" required="" type="text" value="Laboratorio 3: Implementación de Árboles Binarios de Búsqueda y Grafos"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Pertenencia a Cómputo -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-texto font-medium flex items-center gap-1.5" for="computo">
+<span>Pertenencia a Cómputo <span class="text-error font-bold">*</span></span>
+<span class="material-symbols-outlined text-[16px] text-texto-suave cursor-help" title="Define la ponderación en el cuadro oficial de calificaciones">info</span>
+</label>
+<div class="relative">
+<select class="w-full h-10 px-3.5 pr-9 rounded-lg bg-superficie text-texto font-body-md text-body-md appearance-none focus:outline-none focus:ring-2 focus:ring-marca-500 shadow-sm" id="computo" name="computo">
+<option value="c1">Cómputo I (Ponderación 30%)</option>
+<option selected="" value="c2">Cómputo II (Ponderación 25%)</option>
+<option value="c3">Cómputo III (Ponderación 25%)</option>
+<option value="c4">Laboratorios Especiales (Ponderación 20%)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-texto-suave pointer-events-none text-[20px]">expand_more</span>
+</div>
+</div>
+<!-- Tipo de actividad -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-texto font-medium" for="tipo-evaluacion">
+              Categoría de Evaluación
+            </label>
+<div class="relative">
+<select class="w-full h-10 px-3.5 pr-9 rounded-lg bg-superficie text-texto font-body-md text-body-md appearance-none focus:outline-none focus:ring-2 focus:ring-marca-500 shadow-sm" id="tipo-evaluacion" name="tipo-evaluacion">
+<option selected="" value="practica">Práctica de Laboratorio en Sala</option>
+<option value="investigacion">Investigación y Desarrollo</option>
+<option value="proyecto">Proyecto de Cátedra</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-texto-suave pointer-events-none text-[20px]">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Modalidad de entrega -->
+<div class="flex flex-col gap-1.5 pt-1">
+<span class="font-label-md text-label-md text-texto font-medium">Modalidad de entrega <span class="text-error font-bold">*</span></span>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+<label class="flex items-center gap-space-sm p-3 rounded-lg bg-marca-50/70 text-marca-900 cursor-pointer transition-all shadow-sm">
+<input checked="" class="text-marca-600 focus:ring-marca-500 w-4 h-4" name="modalidad" type="radio" value="individual"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold">Individual</span>
+<span class="font-label-sm text-label-sm text-texto-suave">Entrega por estudiante</span>
+</div>
+</label>
+<label class="flex items-center gap-space-sm p-3 rounded-lg bg-superficie hover:bg-fondo text-texto cursor-pointer transition-all shadow-sm">
+<input class="text-marca-600 focus:ring-marca-500 w-4 h-4" name="modalidad" type="radio" value="parejas"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold">En parejas</span>
+<span class="font-label-sm text-label-sm text-texto-suave">Máximo 2 integrantes</span>
+</div>
+</label>
+<label class="flex items-center gap-space-sm p-3 rounded-lg bg-superficie hover:bg-fondo text-texto cursor-pointer transition-all shadow-sm">
+<input class="text-marca-600 focus:ring-marca-500 w-4 h-4" name="modalidad" type="radio" value="equipos"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold">Equipos de hasta 4</span>
+<span class="font-label-sm text-label-sm text-texto-suave">Grupo de proyecto</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Editor WYSIWYG -->
+<div class="flex flex-col gap-1.5 pt-2">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-texto font-medium flex items-center gap-1">
+<span>Instrucciones y Especificaciones Técnicas <span class="text-error font-bold">*</span></span>
+</label>
+<span class="font-label-sm text-label-sm text-texto-suave">Modo enriquecido (Markdown + Java Syntax)</span>
+</div>
+<!-- WYSIWYG Container -->
+<div class="rounded-xl overflow-hidden shadow-sm bg-superficie">
+<!-- Toolbar -->
+<div class="bg-surface-container-high/60 px-3 py-2 flex flex-wrap items-center gap-1 text-texto-suave">
+<button class="p-1.5 rounded hover:bg-superficie hover:text-texto transition-colors" title="Negrita" type="button"><span class="material-symbols-outlined text-[18px]">format_bold</span></button>
+<button class="p-1.5 rounded hover:bg-superficie hover:text-texto transition-colors" title="Cursiva" type="button"><span class="material-symbols-outlined text-[18px]">format_italic</span></button>
+<button class="p-1.5 rounded hover:bg-superficie hover:text-texto transition-colors" title="Subrayado" type="button"><span class="material-symbols-outlined text-[18px]">format_underlined</span></button>
+<span class="w-px h-4 bg-borde mx-1"></span>
+<button class="p-1.5 rounded hover:bg-superficie hover:text-texto transition-colors" title="Encabezado H2" type="button"><span class="material-symbols-outlined text-[18px]">title</span></button>
+<button class="p-1.5 rounded hover:bg-superficie hover:text-texto transition-colors" title="Lista con viñetas" type="button"><span class="material-symbols-outlined text-[18px]">format_list_bulleted</span></button>
+<button class="p-1.5 rounded hover:bg-superficie hover:text-texto transition-colors" title="Lista numerada" type="button"><span class="material-symbols-outlined text-[18px]">format_list_numbered</span></button>
+<span class="w-px h-4 bg-borde mx-1"></span>
+<button class="p-1.5 rounded bg-superficie text-marca-600 shadow-sm" title="Bloque de código" type="button"><span class="material-symbols-outlined text-[18px]">code</span></button>
+<button class="p-1.5 rounded hover:bg-superficie hover:text-texto transition-colors" title="Insertar enlace" type="button"><span class="material-symbols-outlined text-[18px]">link</span></button>
+<button class="p-1.5 rounded hover:bg-superficie hover:text-texto transition-colors" title="Insertar tabla" type="button"><span class="material-symbols-outlined text-[18px]">table_chart</span></button>
+<div class="ml-auto flex items-center gap-1">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-texto">Java JDK 17 LTS</span>
+</div>
+</div>
+<!-- WYSIWYG Content Area -->
+<div class="p-space-md bg-superficie font-body-md text-body-md text-texto leading-relaxed space-y-3 focus:outline-none">
+<p>Estimados estudiantes: Para la presente evaluación práctica se requiere el desarrollo completo de las clases correspondientes al <strong>Árbol Binario de Búsqueda (BST)</strong> y el algoritmo de recorrido en grafos ponderados (Dijkstra) según el estándar curricular 2026.</p>
+<div class="p-3 rounded-lg bg-fondo text-marca-900 font-label-md text-label-md">
+<p class="font-semibold mb-1">Reglas obligatorias de compilación y empaquetado:</p>
+<ul class="list-disc list-inside space-y-0.5 text-texto-suave">
+<li>Compilador objetivo: <code class="px-1.5 py-0.5 rounded bg-superficie text-marca-700 font-mono">javac 17.0.10</code> o superior.</li>
+<li>Paquete raíz requerido: <code class="px-1.5 py-0.5 rounded bg-superficie text-marca-700 font-mono">edu.ues.fmo.prn115.lab03</code>.</li>
+<li>Nomenclatura del archivo comprimido: <code class="px-1.5 py-0.5 rounded bg-superficie text-marca-700 font-mono">PRN115_Lab03_[Carnet].zip</code> (Ejemplo: <code class="font-mono">PRN115_Lab03_RR21004.zip</code>).</li>
+</ul>
+</div>
+<div class="rounded-lg bg-inverse-surface text-inverse-on-surface p-3 font-mono text-[13px] leading-snug">
+<span class="text-tertiary-fixed font-semibold">// Firma esperada en la clase de grafo</span><br/>
+<span class="text-marca-300">package</span> edu.ues.fmo.prn115.lab03.grafo;<br/><br/>
+<span class="text-marca-300">public class</span> <span class="text-tertiary-fixed">GrafoPonderado</span>&lt;T&gt; {<br/>
+                  <span class="text-marca-300">public</span> List&lt;Vertice&lt;T&gt;&gt; <span class="text-tertiary-fixed">rutaMasCorta</span>(T origen, T destino) {<br/>
+                    <span class="text-texto-desactivado">// Implementación obligatoria de Dijkstra con PriorityQueue</span><br/>
+                  }<br/>
+                }
+              </div>
+</div>
+</div>
+</div>
+<!-- Recursos adjuntos para el estudiante -->
+<div class="flex flex-col gap-space-sm pt-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-texto font-medium">Recursos y Plantillas para el Estudiante</span>
+<span class="px-2 py-0.5 rounded-full bg-marca-100 text-marca-800 font-label-sm text-label-sm">2 archivos</span>
+</div>
+<button class="text-marca-600 hover:text-marca-800 font-label-md text-label-md flex items-center gap-1 font-medium transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">upload_file</span>
+              Adjuntar nuevo recurso
+            </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm">
+<!-- Resource Card 1 -->
+<div class="p-3 rounded-xl bg-superficie shadow-sm flex items-center justify-between group">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-lg bg-danger-bg text-danger-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">picture_as_pdf</span>
+</div>
+<div class="min-w-0 flex flex-col">
+<span class="font-label-md text-label-md text-texto font-medium truncate">Guia_Lab03_Arboles_Grafos.pdf</span>
+<div class="flex items-center gap-2 text-texto-suave font-label-sm text-label-sm">
+<span>1.84 MB</span>
+<span>·</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container font-medium text-texto">Obligatorio</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<button class="p-1 text-texto-suave hover:text-marca-600 transition-colors" title="Descargar" type="button"><span class="material-symbols-outlined text-[20px]">download</span></button>
+<button class="p-1 text-texto-suave hover:text-danger-text transition-colors" title="Eliminar" type="button"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</div>
+<!-- Resource Card 2 -->
+<div class="p-3 rounded-xl bg-superficie shadow-sm flex items-center justify-between group">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-lg bg-info-bg text-info-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">data_object</span>
+</div>
+<div class="min-w-0 flex flex-col">
+<span class="font-label-md text-label-md text-texto font-medium truncate">dataset_ciudades_oriente.json</span>
+<div class="flex items-center gap-2 text-texto-suave font-label-sm text-label-sm">
+<span>340 KB</span>
+<span>·</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container font-medium text-texto">Datos prueba</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<button class="p-1 text-texto-suave hover:text-marca-600 transition-colors" title="Descargar" type="button"><span class="material-symbols-outlined text-[20px]">download</span></button>
+<button class="p-1 text-texto-suave hover:text-danger-text transition-colors" title="Eliminar" type="button"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bloque 2: Criterios de Evaluación y Rúbrica Oficial (RF15) -->
+<section class="bg-superficie rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-marca-600"></span>
+<h2 class="font-headline-md text-headline-md text-texto">2. Criterios de Evaluación y Rúbrica Oficial (RF15)</h2>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-medium">Escala: 0.0 - 10.0</span>
+</div>
+<!-- Rubric selector card -->
+<div class="p-space-md rounded-xl bg-fondo flex flex-col gap-space-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-marca-600 text-[24px] mt-0.5">fact_check</span>
+<div>
+<p class="font-headline-sm text-headline-sm text-texto leading-snug">Rúbrica Institucional para Laboratorios de Algoritmos</p>
+<p class="font-label-sm text-label-sm text-texto-suave">Aprobada por el Comité Técnico de Programación · UES FMO</p>
+</div>
+</div>
+<button class="px-3.5 py-1.5 rounded-lg bg-superficie text-texto font-label-md text-label-md hover:bg-superficie/80 shadow-sm flex items-center gap-1.5 self-start shrink-0 font-medium" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+              Editar matriz de descriptores
+            </button>
+</div>
+<!-- Matriz rápida de descriptores -->
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-md text-body-md">
+<thead>
+<tr class="bg-superficie text-texto-suave font-label-nav-header text-label-nav-header uppercase tracking-wider">
+<th class="py-2.5 px-3 rounded-l-lg">Criterio Institucional</th>
+<th class="py-2.5 px-3">Insuficiente (0-40%)</th>
+<th class="py-2.5 px-3">Bueno (60-80%)</th>
+<th class="py-2.5 px-3">Excelente (100%)</th>
+<th class="py-2.5 px-3 text-right rounded-r-lg">Peso</th>
+</tr>
+</thead>
+<tbody class="text-[13px]">
+<tr class="bg-superficie/40 hover:bg-superficie transition-colors">
+<td class="py-2.5 px-3 font-semibold text-texto">1. Correctitud Algorítmica</td>
+<td class="py-2.5 px-3 text-texto-suave">Falla en casos esquina o recursión infinita.</td>
+<td class="py-2.5 px-3 text-texto-suave">Ejecuta correctamente BST; errores leves en Dijkstra.</td>
+<td class="py-2.5 px-3 text-texto-suave">Pasa 100% de casos de prueba automatizados.</td>
+<td class="py-2.5 px-3 text-right font-bold text-marca-700">4.0 pts</td>
+</tr>
+<tr class="bg-superficie/40 hover:bg-superficie transition-colors">
+<td class="py-2.5 px-3 font-semibold text-texto">2. Modularidad y POO</td>
+<td class="py-2.5 px-3 text-texto-suave">Código espagueti en clase única Main.</td>
+<td class="py-2.5 px-3 text-texto-suave">Separación adecuada de nodos y grafos.</td>
+<td class="py-2.5 px-3 text-texto-suave">Patrones genéricos limpios y desacoplados.</td>
+<td class="py-2.5 px-3 text-right font-bold text-marca-700">2.5 pts</td>
+</tr>
+<tr class="bg-superficie/40 hover:bg-superficie transition-colors">
+<td class="py-2.5 px-3 font-semibold text-texto">3. Manejo de Errores</td>
+<td class="py-2.5 px-3 text-texto-suave">Lanza excepciones NullPointer no capturadas.</td>
+<td class="py-2.5 px-3 text-texto-suave">Validación elemental de entradas vacías.</td>
+<td class="py-2.5 px-3 text-texto-suave">Excepciones personalizadas exhaustivas.</td>
+<td class="py-2.5 px-3 text-right font-bold text-marca-700">2.0 pts</td>
+</tr>
+<tr class="bg-superficie/40 hover:bg-superficie transition-colors">
+<td class="py-2.5 px-3 font-semibold text-texto">4. Estándar Javadoc</td>
+<td class="py-2.5 px-3 text-texto-suave">Sin documentación ni comentarios explicativos.</td>
+<td class="py-2.5 px-3 text-texto-suave">Comentarios mínimos en métodos principales.</td>
+<td class="py-2.5 px-3 text-texto-suave">Tags @param, @return y @throws completos.</td>
+<td class="py-2.5 px-3 text-right font-bold text-marca-700">1.5 pts</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Blind Grading Toggle -->
+<div class="flex items-center justify-between p-space-md rounded-xl bg-marca-50/50">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-marca-600 text-[24px] mt-0.5">visibility_off</span>
+<div>
+<p class="font-label-md text-label-md font-semibold text-texto">Habilitar calificación ciega / anónima</p>
+<p class="font-label-sm text-label-sm text-texto-suave">Oculta automáticamente carné y nombre del estudiante durante la corrección para garantizar total imparcialidad.</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:width-5 after:w-5 after:transition-all peer-checked:bg-marca-600"></div>
+</label>
+</div>
+</section>
+</div>
+<!-- Right Column (35% -> 4 of 12 cols) -->
+<div class="lg:col-span-4 flex flex-col gap-space-lg">
+<!-- Panel 1: Plazos y Calendario Oficial -->
+<section class="bg-superficie rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center gap-2 pb-space-xs">
+<span class="material-symbols-outlined text-marca-600 text-[22px]">calendar_clock</span>
+<h2 class="font-headline-md text-headline-md text-texto">Plazos Oficiales</h2>
+</div>
+<p class="font-label-sm text-label-sm text-texto-suave leading-snug">
+          Conforme al <strong>Reglamento de Evaluación Académica UES (Art. 48)</strong>. Los husos horarios se registran en CST (El Salvador).
+        </p>
+<!-- Fecha apertura -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-texto font-medium" for="fecha-apertura">
+            Fecha de apertura <span class="text-error font-bold">*</span>
+</label>
+<div class="relative">
+<input class="w-full h-10 px-3.5 pr-10 rounded-lg bg-superficie text-texto font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-marca-500 shadow-sm" id="fecha-apertura" name="fecha-apertura" type="text" value="10/10/2026 00:00 CST"/>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-texto-suave text-[20px]">event_available</span>
+</div>
+</div>
+<!-- Fecha límite oficial -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-texto font-medium" for="fecha-limite">
+            Fecha límite de entrega oficial <span class="text-error font-bold">*</span>
+</label>
+<div class="relative">
+<input class="w-full h-10 px-3.5 pr-10 rounded-lg bg-superficie text-texto font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-marca-500 shadow-sm" id="fecha-limite" name="fecha-limite" type="text" value="17/10/2026 23:59 CST"/>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-texto-suave text-[20px]">alarm</span>
+</div>
+</div>
+<!-- Período de gracia reglamentario -->
+<div class="p-3 rounded-lg bg-warning-bg/40 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-semibold text-warning-text flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">percent</span>
+              Período de gracia reglamentario
+            </span>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-warning-text"></div>
+</label>
+</div>
+<p class="font-label-sm text-label-sm text-texto-suave">
+            Permitir entregas tardías con penalización de -10% por cada hora transcurrida (máx. 24 horas de prórroga).
+          </p>
+</div>
+<!-- Fecha cierre definitivo -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-texto font-medium flex items-center justify-between" for="fecha-cierre">
+<span>Fecha de cierre definitivo <span class="text-error font-bold">*</span></span>
+<span class="font-label-sm text-label-sm text-danger-text font-semibold">Buzón sellado</span>
+</label>
+<div class="relative">
+<input class="w-full h-10 px-3.5 pr-10 rounded-lg bg-superficie text-texto font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-marca-500 shadow-sm" id="fecha-cierre" name="fecha-cierre" type="text" value="18/10/2026 23:59 CST"/>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-texto-suave text-[20px]">lock_clock</span>
+</div>
+</div>
+</section>
+<!-- Panel 2: Requisitos Técnicos de Archivo -->
+<section class="bg-superficie rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center gap-2 pb-space-xs">
+<span class="material-symbols-outlined text-marca-600 text-[22px]">folder_zip</span>
+<h2 class="font-headline-md text-headline-md text-texto">Requisitos de Archivo</h2>
+</div>
+<!-- Extensiones permitidas -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-texto font-medium">Extensiones permitidas</label>
+<div class="flex flex-wrap gap-1.5">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-marca-100 text-marca-800 font-label-sm text-label-sm font-semibold">
+              .zip
+              <button class="material-symbols-outlined text-[14px] hover:text-danger-text" type="button">close</button>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-marca-100 text-marca-800 font-label-sm text-label-sm font-semibold">
+              .tar.gz
+              <button class="material-symbols-outlined text-[14px] hover:text-danger-text" type="button">close</button>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-marca-100 text-marca-800 font-label-sm text-label-sm font-semibold">
+              .java
+              <button class="material-symbols-outlined text-[14px] hover:text-danger-text" type="button">close</button>
+</span>
+<button class="px-2.5 py-1 rounded-full bg-fondo text-texto-suave hover:text-texto font-label-sm text-label-sm font-medium flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">add</span>
+              Añadir tipo
+            </button>
+</div>
+</div>
+<!-- Límite de tamaño -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-texto font-medium" for="limite-tamano">Límite de tamaño por entrega</label>
+<div class="relative">
+<select class="w-full h-10 px-3.5 pr-9 rounded-lg bg-superficie text-texto font-body-md text-body-md appearance-none focus:outline-none focus:ring-2 focus:ring-marca-500 shadow-sm" id="limite-tamano" name="limite-tamano">
+<option value="10">10 MB por entrega</option>
+<option selected="" value="25">25 MB por entrega (Recomendado)</option>
+<option value="50">50 MB por entrega</option>
+<option value="100">100 MB por entrega</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-texto-suave pointer-events-none text-[20px]">expand_more</span>
+</div>
+</div>
+<!-- Cantidad máxima de archivos -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-texto font-medium" for="cant-archivos">Número máximo de archivos permitidos</label>
+<div class="relative">
+<select class="w-full h-10 px-3.5 pr-9 rounded-lg bg-superficie text-texto font-body-md text-body-md appearance-none focus:outline-none focus:ring-2 focus:ring-marca-500 shadow-sm" id="cant-archivos" name="cant-archivos">
+<option selected="" value="1">1 archivo comprimido único</option>
+<option value="2">2 archivos</option>
+<option value="5">Hasta 5 archivos</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-texto-suave pointer-events-none text-[20px]">expand_more</span>
+</div>
+</div>
+</section>
+<!-- Panel 3: Notificaciones y Publicación -->
+<section class="bg-superficie rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center gap-2 pb-space-xs">
+<span class="material-symbols-outlined text-marca-600 text-[22px]">notifications_active</span>
+<h2 class="font-headline-md text-headline-md text-texto">Notificaciones</h2>
+</div>
+<div class="space-y-3">
+<label class="flex items-start gap-3 cursor-pointer">
+<input checked="" class="mt-1 text-marca-600 focus:ring-marca-500 w-4 h-4 rounded" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-texto font-medium">Recordatorio de vencimiento</span>
+<span class="font-label-sm text-label-sm text-texto-suave">Enviar correo institucional 24h antes del vencimiento oficial.</span>
+</div>
+</label>
+<label class="flex items-start gap-3 cursor-pointer">
+<input checked="" class="mt-1 text-marca-600 focus:ring-marca-500 w-4 h-4 rounded" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-texto font-medium">Tablón de novedades</span>
+<span class="font-label-sm text-label-sm text-texto-suave">Publicar aviso en el tablón principal de la cátedra PRN115.</span>
+</div>
+</label>
+</div>
+<!-- Alerta institucional -->
+<div class="p-3 rounded-lg bg-info-bg text-info-text flex items-start gap-2.5">
+<span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5">info</span>
+<span class="font-label-sm text-label-sm leading-snug">
+            Cualquier modificación a las fechas notificará a los 42 estudiantes inscritos en el Grupo Teórico 01.
+          </span>
+</div>
+</section>
+</div>
+</form>
+</div></main></div></body></html>

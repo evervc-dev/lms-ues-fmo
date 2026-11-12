@@ -1,0 +1,12 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    # Deuda de tipado heredada (142 errores al adoptar Larastan el 27/10/2026).
+    # No agregue nada aquí: todo error NUEVO debe romper la CI. Ver la Bitácora.
+    - phpstan-baseline.neon
+
+parameters:
+    level: 5
+    paths:
+        - app
+        - database
+    checkModelProperties: false

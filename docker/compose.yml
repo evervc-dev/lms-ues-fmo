@@ -1,0 +1,133 @@
+# Pila completa del LMS UES para Coolify (staging/demo) o cualquier servidor con Docker.
+#
+# Coolify: recurso «Docker Compose», rama main, Base Directory «/», Docker Compose Location
+# «/docker/compose.yml». Coolify ejecuta con --project-directory en la raíz del repositorio,
+# por eso las rutas de build son relativas a la raíz. El dominio se asigna al servicio app (puerto 80).
+#
+# Local, desde la raíz del repositorio:
+#   docker compose --project-directory . -f docker/compose.yml --env-file docker/.env up -d --build
+#
+# Variables obligatorias: APP_KEY (php artisan key:generate --show), DB_PASSWORD y REVERB_APP_SECRET.
+# LMS_DEMO_SEED=true siembra la demo si la base está vacía; LMS_DEV_LOGIN=true activa «Entrar como…»
+# (solo funciona con APP_ENV distinto de production).
+
+x-imagen: &imagen
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+    args:
+      COMPOSER_DEV: ${COMPOSER_DEV:-1}
+      VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-lms-staging-key}
+  image: lms-ues:${IMAGE_TAG:-staging}
+  restart: unless-stopped
+  volumes:
+    - archivos:/var/www/html/storage/app
+  environment: &entorno
+    APP_NAME: "LMS UES"
+    APP_ENV: ${APP_ENV:-staging}
+    APP_KEY: ${APP_KEY}
+    APP_DEBUG: ${APP_DEBUG:-false}
+    APP_URL: ${APP_URL:-http://localhost}
+    APP_LOCALE: es
+    APP_FALLBACK_LOCALE: es
+    APP_FAKER_LOCALE: es_ES
+    APP_TIMEZONE: America/El_Salvador
+    LOG_CHANNEL: stderr
+    LOG_LEVEL: ${LOG_LEVEL:-info}
+    DB_CONNECTION: pgsql
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    DB_DATABASE: lms
+    DB_USERNAME: lms
+    DB_PASSWORD: ${DB_PASSWORD}
+    SESSION_DRIVER: database
+    SESSION_LIFETIME: "30"
+    CACHE_STORE: redis
+    QUEUE_CONNECTION: redis
+    REDIS_CLIENT: predis
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    BROADCAST_CONNECTION: reverb
+    REVERB_APP_ID: ${REVERB_APP_ID:-lms-staging}
+    REVERB_APP_KEY: ${REVERB_APP_KEY:-lms-staging-key}
+    REVERB_APP_SECRET: ${REVERB_APP_SECRET}
+    REVERB_HOST: reverb
+    REVERB_PORT: "8080"
+    REVERB_SCHEME: http
+    FILESYSTEM_DISK: local
+    MAIL_MAILER: ${MAIL_MAILER:-log}
+    MAIL_FROM_ADDRESS: lms@ues.edu.sv
+    MAIL_FROM_NAME: "LMS UES"
+    GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    GOOGLE_ALLOWED_DOMAIN: ues.edu.sv
+    LMS_DEV_LOGIN: ${LMS_DEV_LOGIN:-false}
+    LMS_DEMO_SEED: ${LMS_DEMO_SEED:-false}
+
+services:
+  app:
+    <<: *imagen
+    command: ["web"]
+    expose: ["80"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      # La primera vez migra y siembra la demo.
+      start_period: 600s
+
+  horizon:
+    <<: *imagen
+    command: ["horizon"]
+    depends_on:
+      app: { condition: service_healthy }
+
+  scheduler:
+    <<: *imagen
+    command: ["scheduler"]
+    depends_on:
+      app: { condition: service_healthy }
+
+  reverb:
+    <<: *imagen
+    command: ["reverb"]
+    expose: ["8080"]
+    depends_on:
+      app: { condition: service_healthy }
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lms
+      POSTGRES_USER: lms
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: UTC
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lms -d lms"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  archivos:
+  pgdata:
+  redisdata:

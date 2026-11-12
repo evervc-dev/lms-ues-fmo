@@ -2,65 +2,90 @@
 tipo: manual
 rol: "[[Soporte Técnico]]"
 ayuda_ruta: /ayuda/soporte-tecnico
-estado: esqueleto
+estado: revisado
+capturas: pendientes
 ---
 
 # Manual del Soporte Técnico
 
-Esqueleto por tareas, redactado de **usted**. Las capturas se agregan cuando exista la interfaz. Se publica en la app en `/ayuda/soporte-tecnico` ([[Ayuda en la app]]).
+Como Soporte Técnico, usted ayuda a que los estudiantes puedan usar la plataforma: autoriza los cambios de teléfono para la asistencia, investiga por qué alguien no pudo marcar, y crea o corrige cuentas de estudiantes.
+
+Sus opciones están en el menú, en el grupo **Soporte**: **Solicitudes de dispositivo**, **Diagnóstico de asistencia**, **Usuarios** e **Importar estudiantes**.
 
 ## 1. Ingresar al sistema
 *Requisitos: [[RF01]]*
 
 1. Abra la plataforma y pulse **Iniciar sesión con Google**.
-2. Elija su cuenta institucional **@ues.edu.sv**. Otras cuentas son rechazadas.
-3. Si aparece «Su cuenta no está habilitada», contacte al Administrador: su usuario aún no fue dado de alta.
-4. Su sesión se cierra sola tras 30 minutos sin actividad. Desde **Mi perfil → Sesiones** puede cerrar las sesiones abiertas en otros equipos.
-5. En **Mi perfil → Notificaciones** solo aparecen los avisos que su rol puede recibir: los de las solicitudes de cambio de teléfono. Puede apagar el correo de cada uno; en la plataforma los seguirá viendo en la campana.
+2. Elija su cuenta institucional **@ues.edu.sv**.
+3. La sesión se cierra sola tras **30 minutos sin actividad**.
+4. En **Mi perfil → Notificaciones** verá los avisos de su rol: las solicitudes de cambio de teléfono. Puede apagar el correo; en la plataforma los seguirá viendo en la **campana**.
 
 > [!example] Captura pendiente
 > Pantalla: ingresar al sistema.
 
-## 2. Atender solicitudes de cambio de teléfono
+## 2. Atender las solicitudes de cambio de teléfono
 *Requisitos: [[RF27]]*
 
-1. Cuando un estudiante pide el cambio le llega un **aviso** (campana y correo) y el menú suma esa solicitud al número junto a **Solicitudes de dispositivo**. Ábralo en **Pendientes**: la identidad ya la garantiza la sesión de Google del estudiante.
-2. Revise el motivo y, si hubo un cambio en los últimos 30 días, la justificación adjunta.
-3. Si necesita cruzar información, pulse **Ver su diagnóstico**: abre el diagnóstico de asistencia ya filtrado por ese estudiante.
-4. Pulse **Aprobar** (revoca el dispositivo anterior) o **Rechazar**. Las dos acciones piden confirmación, y para rechazar el **motivo es obligatorio**: es lo que le llega al estudiante.
-5. En **Resueltas** queda el registro: quién la resolvió, cuándo y, si fue rechazada, el motivo que escribió. Si son varias personas en la bandeja, al cerrar una solicitud el resto del equipo recibe el aviso para no trabajarla de nuevo.
+Un estudiante solo puede marcar asistencia desde **un** teléfono registrado. Cuando cambia o pierde el suyo, pide el cambio y usted lo autoriza.
+
+1. Le llega un aviso, y en el menú aparece un número junto a **Solicitudes de dispositivo**. Ábralo en **Pendientes**.
+2. Lea el **motivo**. Si el estudiante ya cambió de teléfono en los últimos 30 días, verá si adjuntó una justificación. En **Historial de teléfonos** están sus registros anteriores.
+3. Si necesita más información, pulse **Ver su diagnóstico**: abre sus intentos de asistencia.
+4. Pulse **Aprobar**: se revoca el teléfono anterior y el estudiante puede registrar el nuevo. O pulse **Rechazar** y escriba el **motivo**, que es lo que le llega al estudiante.
+5. En **Resueltas** queda quién resolvió cada solicitud, cuándo y el motivo de un rechazo. Si hay varias personas en Soporte, al resolver una solicitud el resto recibe un aviso para no atenderla dos veces.
+
+> [!info] No hace falta verificar la identidad
+> La solicitud viene de la sesión de Google del propio estudiante, con su correo @ues.edu.sv.
 
 > [!example] Captura pendiente
-> Pantalla: atender solicitudes de cambio de teléfono.
+> Pantalla: atender las solicitudes de cambio de teléfono.
 
-## 3. Revisar el diagnóstico de asistencia
+## 3. Averiguar por qué alguien no pudo marcar asistencia
 *Requisitos: [[RF20]]*
 
-1. Al abrir **Diagnóstico de asistencia** verá los rechazos de hoy. Busque al estudiante por **correo, carné o nombre**: al buscar por nombre basta el inicio de cualquiera de sus palabras («jan» encuentra a «Jan Carlos Pérez»).
-2. Para ver otros días, fije el **rango de fechas**; con **Hoy** vuelve al día en curso y con **Limpiar filtros**, al inicio.
-3. Con el selector de **resultado** se queda solo con un motivo: código vencido, fuera del área, dispositivo inválido, sin ubicación, sin intentos…
-4. **Exportar CSV** descarga lo que muestran los filtros. Nunca sale la ubicación del estudiante: solo la distancia al área.
-5. Es solo lectura: no puede cambiar asistencia ni matrículas.
+1. Abra **Diagnóstico de asistencia**. Verá los intentos de hoy, con un resumen arriba (por ejemplo, cuántos quedaron **Fuera del área**).
+2. Busque al estudiante por **correo, carné o nombre**. Basta el inicio de cualquiera de sus palabras: «jan» encuentra a «Jan Carlos Pérez».
+3. Para otros días, use **Desde** y **Hasta**. **Limpiar filtros** vuelve a hoy.
+4. Con **Resultado** se queda con un motivo: código vencido, fuera del área, dispositivo inválido, sin ubicación… Con **Solo los rechazos** oculta los registros correctos.
+5. Con **Exportar** descarga en Excel o CSV lo que muestran los filtros. Nunca sale la ubicación del estudiante, solo su distancia al área.
+6. Es solo de consulta: desde aquí no se cambia la asistencia. Si el problema fue de la plataforma, avise al docente para que corrija el registro.
+
+| Resultado | Qué significa | Qué decirle al estudiante |
+|---|---|---|
+| Código vencido | Escaneó un QR viejo, por ejemplo una foto | Que escanee el código que está en pantalla |
+| Fuera del área | Su ubicación quedó fuera de las áreas del campus | Que active el GPS y se acerque; si el aula está fuera del área, avise al Administrador |
+| Dispositivo inválido | Usó un teléfono que no es el registrado | Que use su teléfono o pida el cambio |
+| Sin ubicación | El navegador no dio la ubicación | Que permita la ubicación al navegador |
+| Sin intentos | Ya usó sus 3 intentos de la sesión | Que pida un código temporal a su docente |
 
 > [!example] Captura pendiente
-> Pantalla: revisar el diagnóstico de asistencia.
+> Pantalla: averiguar por qué alguien no pudo marcar asistencia.
 
 ## 4. Crear y corregir cuentas de estudiantes
 *Requisitos: [[RF04]] · [[ADR-037 Jerarquía de creación y asignación de roles]]*
 
-1. Abra **Usuarios**. Los filtros son rol, estado y **teléfono de asistencia**: con «Estudiantes sin teléfono» obtiene a quienes todavía no pueden marcar con QR, con su correo para escribirles. Es el detalle de la tarjeta del mismo nombre de su Inicio.
-2. Con **Nuevo usuario** crea cuentas de **estudiante**. Solo podrá crear docentes si el Administrador le concedió el permiso `usuarios.crear-docente`; nunca administradores, jefes ni coordinadores.
-3. Entre a una cuenta para ver y corregir sus datos, roles y estado. **Desactivar una cuenta es solo del Administrador**: si hay que cerrar un acceso, escríbale.
+1. Abra **Usuarios**. Puede filtrar por rol, estado y **Teléfono de asistencia**. Con **Estudiantes sin teléfono** sabe quiénes todavía no pueden marcar con QR, con su correo para escribirles.
+2. Con **Nuevo usuario** crea cuentas de **estudiante**. Solo puede crear docentes si el Administrador le dio ese permiso; nunca administradores, jefes ni coordinadores.
+3. Entre a una cuenta para ver y corregir sus datos con **Editar datos**. El correo institucional no se puede cambiar.
+4. **Desactivar una cuenta es solo del Administrador.** Si hay que quitarle el acceso a alguien, escríbale.
 
 > [!example] Captura pendiente
-> Pantalla: crear y corregir cuentas.
+> Pantalla: crear y corregir cuentas de estudiantes.
 
-## 5. Importar estudiantes
+## 5. Importar estudiantes desde un archivo
 *Requisitos: [[RF04]] · [[ADR-047 Carreras visibles y carga masiva sin el Coordinador]]*
 
-1. Abra **Importar estudiantes**. Por ahora el archivo se sube en **CSV** (en Excel: Guardar como → CSV UTF-8); solo correos **@ues.edu.sv**.
-2. Revise la **vista previa**: cuántas cuentas se crearán, cuántos duplicados se omiten y qué filas traen error, con su motivo.
-3. Confirme la creación. En **Lotes anteriores** queda cada importación con sus filas creadas y con error.
+1. Abra **Importar estudiantes** y pulse **Descargar plantilla (CSV)**.
+2. Llénela con carné, nombres, apellidos, correo, rol, carrera, plan y ciclo. Si la llena en Excel, use **Guardar como → CSV UTF-8**. Solo se aceptan correos **@ues.edu.sv**.
+3. Suba el archivo y revise la **vista previa**: cuántas cuentas se crearán, cuántos duplicados se omiten y qué filas tienen error, con su motivo.
+4. Confirme. En **Lotes anteriores** queda cada importación con sus filas creadas y con error.
 
 > [!example] Captura pendiente
-> Pantalla: importar estudiantes.
+> Pantalla: importar estudiantes desde un archivo.
+
+## Problemas frecuentes
+| Si le pasa esto… | Haga esto |
+|---|---|
+| Un estudiante borró los datos del navegador y perdió su registro | Que pida el cambio de teléfono, aunque sea el mismo; usted lo aprueba |
+| La importación rechaza filas por la carrera | Revise que el código de carrera y el plan existan en el catálogo |
+| Un docente no tiene cuenta | Si no tiene el permiso de crear docentes, pida la cuenta al Administrador |

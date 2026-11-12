@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"danger-text":"#B91C1C","acento":"#9D2235","on-primary":"#ffffff","secondary":"#ad2e40","tertiary-container":"#00616f","borde":"#E2E2E2","on-background":"#1e1a1f","marca-500":"#CB3149","secondary-fixed-dim":"#ffb3b5","on-secondary":"#ffffff","inverse-surface":"#332f34","on-surface-variant":"#5a4040","tertiary":"#004852","surface-container-high":"#eee6ec","primary-fixed-dim":"#ffb3b2","error-container":"#ffdad6","texto-desactivado":"#ABABAB","marca-300":"#EE98A3","primary-container":"#ae152d","on-tertiary":"#ffffff","marca-50":"#FDF2F3","on-secondary-fixed-variant":"#8c142a","marca-800":"#6E0B10","success-text":"#15803D","outline-variant":"#e2bebd","on-error":"#ffffff","fondo":"#F8F8F8","info-text":"#1D4ED8","on-error-container":"#93000a","surface-container-lowest":"#ffffff","marca-600":"#AE152D","tertiary-fixed-dim":"#8ad2e1","surface-container-low":"#f9f1f7","surface-container":"#f3ecf1","inverse-primary":"#ffb3b2","inverse-on-surface":"#f6eef4","danger-bg":"#FEF2F2","outline":"#8e706f","on-tertiary-fixed":"#001f25","surface-variant":"#e8e0e6","background":"#fff7fd","info-bg":"#EFF6FF","on-primary-fixed":"#410008","primary-fixed":"#ffdad9","marca-700":"#8B0E13","surface-bright":"#fff7fd","surface-dim":"#dfd8dd","surface":"#fff7fd","texto":"#1A171B","primary":"#87001d","marca-200":"#F6C6CC","marca-400":"#E05F72","on-secondary-fixed":"#40000c","secondary-fixed":"#ffdada","on-primary-container":"#ffbfbe","on-secondary-container":"#6c001a","texto-suave":"#696969","on-tertiary-container":"#92daea","on-surface":"#1e1a1f","tertiary-fixed":"#a6eefe","marca-100":"#FBE4E6","marca-900":"#520A0D","warning-bg":"#FFFBEB","surface-tint":"#b71e33","superficie":"#FFFFFF","secondary-container":"#fe6b78","success-bg":"#F0FDF4","surface-container-highest":"#e8e0e6","warning-text":"#B45309","on-tertiary-fixed-variant":"#004e5a","error":"#ba1a1a","on-primary-fixed-variant":"#920020"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"gutter":"1rem","space-xs":"0.25rem","margin":"1.5rem","margin-mobile":"1rem","space-md":"1rem","gutter-mobile":"0.75rem","space-xl":"2rem","space-lg":"1.5rem","space-sm":"0.5rem"},fontFamily:{"headline-lg":["Hanken Grotesk"],"display-qr":["Hanken Grotesk"],"headline-md":["Hanken Grotesk"],"label-sm":["Hanken Grotesk"],"body-lg":["Hanken Grotesk"],"label-nav-header":["Hanken Grotesk"],"body-md":["Hanken Grotesk"],"label-md":["Hanken Grotesk"],"headline-sm":["Hanken Grotesk"]},fontSize:{"headline-lg":["24px",{lineHeight:"32px",fontWeight:"600"}],"display-qr":["36px",{lineHeight:"44px",fontWeight:"600"}],"headline-md":["18px",{lineHeight:"24px",fontWeight:"600"}],"label-sm":["12px",{lineHeight:"16px",fontWeight:"500"}],"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"label-nav-header":["12px",{lineHeight:"16px",letterSpacing:"0.05em",fontWeight:"600"}],"body-md":["14px",{lineHeight:"21px",fontWeight:"400"}],"label-md":["14px",{lineHeight:"20px",fontWeight:"500"}],"headline-sm":["16px",{lineHeight:"22px",fontWeight:"600"}]}}}};</script></head><body class="bg-fondo font-body-md text-texto min-h-screen"><header class="fixed top-0 left-0 right-0 h-14 bg-superficie border-b border-borde z-50 flex items-center justify-between px-margin"><div class="flex items-center gap-space-md"><button aria-label="Alternar menú de navegación" class="p-space-xs text-texto hover:text-marca-700 hover:bg-fondo rounded transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">menu</span></button><div class="flex items-center gap-space-sm"><div class="h-9 w-9 bg-primary-container rounded flex items-center justify-center p-1"><img alt="Logo UES" class="h-7 w-auto object-contain brightness-0 invert" src="https://lh3.googleusercontent.com/aida/AEtjO1XDS48mTMd5DibJc8K3dAGjpKfF0FdyiXqicWk1OWOJWUfa82_GiimnGHpp9GGXQNKt-QznrdrYoFxotA-frHBBGtpNqOAqf8mIALR55j8Ia9K1Hffa9M3Jqw0odz8cuW0hF1zCphTKDgftuG59900UnDiOkGj9UeVP1i125LwSLJraUA1TZTaiHafYb_2Hu8Ox5sA2u4FGara1MOubqV806LwebkJEB17cVjZRTizefHhWmAJ4arQcc5U"/></div><span class="font-headline-sm text-headline-sm text-texto font-bold tracking-tight select-none">LMS UES FMO</span></div><div class="hidden md:flex items-center gap-space-xs px-2.5 py-1 bg-marca-50 text-marca-700 border border-marca-200 rounded-full font-label-sm text-label-sm select-none"><span class="w-1.5 h-1.5 rounded-full bg-marca-600"></span><span>Período 2026-II · en curso</span></div></div><div class="flex items-center gap-space-md"><button class="relative p-1.5 text-texto-suave hover:text-texto hover:bg-fondo rounded-full transition-colors" title="Notificaciones institucionales" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-marca-600 font-label-sm text-[10px] font-semibold text-superficie">3</span></button><div class="h-6 w-px bg-borde mx-1"></div><div class="flex items-center gap-space-sm cursor-pointer group"><img alt="Foto de perfil" class="w-8 h-8 rounded-full object-cover border border-borde" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsKpytg_2UHt-LW_vr_bYVC9cRUgQuqxFieuP659Ax8rKys5Z2TICRdMkCUb9jyu9D9TFQoBGGj2EKqjLgK4CRe8X2tLAgzJaeTV9Y9aZKwlLZPKtwJmtai3wFUuyFILMr14sDm5epbtCmqG-ZNcmE4Q5o2GXrIZ3D4K1bJFKJbxBvGETRrMvg29Od4wC4k10-bVbA54ktsCggJo531usPCKJgEiUTx72I74p8723PueFX3Vvj0n4i5w"/><div class="hidden xl:flex flex-col text-left"><span class="font-label-md text-label-md font-semibold text-texto leading-none group-hover:text-marca-700 transition-colors">Ing. Roberto Menjívar</span><span class="font-label-sm text-[11px] text-texto-suave leading-tight mt-0.5">Jefe de Depto. Computación</span></div><span class="material-symbols-outlined text-[16px] text-texto-suave">expand_more</span></div></div></header><aside class="fixed left-0 top-14 bottom-0 w-64 bg-superficie border-r border-borde z-40 overflow-y-auto"><nav class="py-space-md flex flex-col gap-space-md" data-active-classes="bg-marca-50 text-marca-700 font-semibold border-l-4 border-marca-600 pl-3"><div class="px-space-md"><a class="flex items-center px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md rounded" data-path="inicio" href="#">Inicio</a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Jefatura</div><a class="flex items-center px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md rounded" data-path="secciones-del-departamento" href="#">Secciones del departamento</a><a class="flex items-center px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md rounded" data-path="cierre-del-periodo" href="#">Cierre del período</a><a class="flex items-center px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md rounded" data-path="desempeno-docente" href="#">Desempeño docente</a></div><div class="flex flex-col gap-1"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Consultas</div><a class="flex items-center px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md rounded" data-path="reportes" href="#">Reportes</a><a class="flex items-center px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md rounded" data-path="estadisticas-de-oferta" href="#">Estadísticas de oferta</a><a class="flex items-center px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md rounded" data-path="auditoria" href="#">Auditoría</a></div><div class="flex flex-col gap-1 pt-2 border-t border-borde"><div class="px-space-md py-1 font-label-nav-header text-label-nav-header text-texto-suave uppercase tracking-wider select-none">Cuenta</div><a class="flex items-center px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md rounded" data-path="mi-perfil" href="#">Mi perfil</a><a class="flex items-center px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md rounded" data-path="ayuda" href="#">Ayuda</a><a class="flex items-center px-space-md py-1.5 text-texto-suave hover:text-texto hover:bg-fondo transition-colors font-body-md text-body-md rounded" data-path="cerrar-sesion" href="#">Cerrar sesión</a></div></nav></aside><div class="pl-64"><main class="w-full pt-14 px-margin bg-fondo min-h-screen"><div class="flex flex-col w-full pb-space-xl">
+<!-- 1. Migas de Pan -->
+<nav aria-label="Ruta de navegación" class="flex items-center gap-space-xs text-texto-suave font-label-sm text-label-sm mb-space-sm">
+<a class="hover:text-marca-700 transition-colors flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[16px]">home</span>
+<span>Inicio</span>
+</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-texto font-semibold">Panel de Jefatura de Departamento</span>
+</nav>
+<!-- 2. Encabezado Principal y Acciones -->
+<header class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-space-md mb-space-lg">
+<div class="flex flex-col gap-1 max-w-3xl">
+<div class="flex flex-wrap items-center gap-space-sm mb-1">
+<h1 class="font-headline-lg text-headline-lg text-texto tracking-tight">Panel de Control Departamental</h1>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-marca-50 text-marca-800 border border-marca-200">
+<span class="w-1.5 h-1.5 rounded-full bg-marca-600"></span>
+          Ingeniería de Sistemas Informáticos · Ciclo 2026-II
+        </span>
+</div>
+<p class="font-body-md text-body-md text-texto-suave">
+        Monitoreo institucional de actas de calificaciones, cumplimiento y desempeño docente, matrícula departamental y trazabilidad de auditoría.
+      </p>
+</div>
+<!-- Botones de Acción -->
+<div class="flex items-center gap-space-sm shrink-0">
+<button class="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg bg-superficie border border-borde text-texto hover:bg-fondo transition-colors font-label-md text-label-md shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px] text-texto-suave">picture_as_pdf</span>
+<span>Descargar Informe Departamental (.pdf)</span>
+</button>
+<a class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-marca-600 hover:bg-marca-700 text-superficie transition-colors font-label-md text-label-md font-semibold shadow-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>Supervisar Cierre del Período</span>
+</a>
+</div>
+</header>
+<!-- 3. KPIs y Métricas Departamentales -->
+<section aria-label="Métricas de jefatura" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md mb-space-lg">
+<!-- KPI 1: Cierre de Actas -->
+<div class="bg-superficie rounded-xl border border-borde p-space-md shadow-sm flex flex-col justify-between hover:border-marca-300 transition-colors">
+<div class="flex items-start justify-between gap-space-sm mb-3">
+<div>
+<span class="font-label-nav-header text-label-nav-header text-texto-suave uppercase">Estado de Actas (RF34)</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-qr text-display-qr text-texto tracking-tight">18 / 24</span>
+</div>
+</div>
+<div class="p-2 rounded-lg bg-marca-50 text-marca-700">
+<span class="material-symbols-outlined text-[22px]">assignment_turned_in</span>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between font-label-sm text-label-sm mb-1.5">
+<span class="text-texto-suave">Avance institucional</span>
+<span class="font-semibold text-marca-700">75.0%</span>
+</div>
+<div class="w-full bg-borde rounded-full h-1.5 overflow-hidden mb-2">
+<div class="bg-marca-600 h-1.5 rounded-full" style="width: 75%"></div>
+</div>
+<p class="font-label-sm text-label-sm text-warning-text flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">info</span>
+          6 pendientes de validación por coordinación
+        </p>
+</div>
+</div>
+<!-- KPI 2: Desempeño Docente -->
+<div class="bg-superficie rounded-xl border border-borde p-space-md shadow-sm flex flex-col justify-between hover:border-marca-300 transition-colors">
+<div class="flex items-start justify-between gap-space-sm mb-3">
+<div>
+<span class="font-label-nav-header text-label-nav-header text-texto-suave uppercase">Desempeño Docente (RF33)</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-qr text-display-qr text-texto tracking-tight">94.2%</span>
+</div>
+</div>
+<div class="p-2 rounded-lg bg-success-bg text-success-text">
+<span class="material-symbols-outlined text-[22px]">workspace_premium</span>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between font-label-sm text-label-sm mb-1.5">
+<span class="text-texto-suave">Puntualidad y asistencia</span>
+<span class="font-semibold text-success-text">24 / 26 al día</span>
+</div>
+<div class="w-full bg-borde rounded-full h-1.5 overflow-hidden mb-2">
+<div class="bg-success-text h-1.5 rounded-full" style="width: 92.3%"></div>
+</div>
+<p class="font-label-sm text-label-sm text-texto-suave flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-texto-desactivado">schedule</span>
+          Promedio entrega de notas: 2.8 días
+        </p>
+</div>
+</div>
+<!-- KPI 3: Matrícula y Retención -->
+<div class="bg-superficie rounded-xl border border-borde p-space-md shadow-sm flex flex-col justify-between hover:border-marca-300 transition-colors">
+<div class="flex items-start justify-between gap-space-sm mb-3">
+<div>
+<span class="font-label-nav-header text-label-nav-header text-texto-suave uppercase">Matrícula y Retención</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-qr text-display-qr text-texto tracking-tight">1,248</span>
+</div>
+</div>
+<div class="p-2 rounded-lg bg-info-bg text-info-text">
+<span class="material-symbols-outlined text-[22px]">groups</span>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between font-label-sm text-label-sm mb-1.5">
+<span class="text-texto-suave">Retención activa</span>
+<span class="font-semibold text-texto">91.4%</span>
+</div>
+<div class="w-full bg-borde rounded-full h-1.5 overflow-hidden mb-2">
+<div class="bg-tertiary h-1.5 rounded-full" style="width: 91.4%"></div>
+</div>
+<p class="font-label-sm text-label-sm text-danger-text flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+          38 casos en bajo rendimiento (&lt; 6.0)
+        </p>
+</div>
+</div>
+<!-- KPI 4: Auditoría y RLS -->
+<div class="bg-superficie rounded-xl border border-borde p-space-md shadow-sm flex flex-col justify-between hover:border-marca-300 transition-colors">
+<div class="flex items-start justify-between gap-space-sm mb-3">
+<div>
+<span class="font-label-nav-header text-label-nav-header text-texto-suave uppercase">Auditoría RLS (RF05)</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-qr text-display-qr text-texto tracking-tight">0</span>
+<span class="font-label-md text-label-md text-success-text font-semibold">Incidentes</span>
+</div>
+</div>
+<div class="p-2 rounded-lg bg-marca-50 text-marca-800">
+<span class="material-symbols-outlined text-[22px]">policy</span>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between font-label-sm text-label-sm mb-1.5">
+<span class="text-texto-suave">Trazabilidad de actas</span>
+<span class="font-semibold text-texto">42 eventos</span>
+</div>
+<div class="w-full bg-borde rounded-full h-1.5 overflow-hidden mb-2">
+<div class="bg-marca-500 h-1.5 rounded-full" style="width: 100%"></div>
+</div>
+<p class="font-label-sm text-label-sm text-texto-suave flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-success-text">verified_user</span>
+          Firmas y RLS departamental verificado
+        </p>
+</div>
+</div>
+</section>
+<!-- 4. Cuadrícula Asimétrica Principal (65% / 35%) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- COLUMNA IZQUIERDA (65% -> 8 de 12 columnas en desktop) -->
+<div class="lg:col-span-8 flex flex-col gap-space-lg">
+<!-- SUBSECCIÓN A: Avance de Actas por Carrera y Asignatura -->
+<section aria-labelledby="heading-actas" class="bg-superficie rounded-xl border border-borde shadow-sm overflow-hidden">
+<div class="p-space-md border-b border-borde flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm bg-fondo/50">
+<div>
+<h2 class="font-headline-md text-headline-md text-texto" id="heading-actas">Avance de Actas por Carrera y Asignatura</h2>
+<p class="font-body-md text-body-md text-texto-suave">Estado de recepción y ratificación para habilitación de cierre final</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-texto-suave bg-superficie border border-borde px-2.5 py-1 rounded">
+              Periodo 2026-II
+            </span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-fondo border-b border-borde font-label-nav-header text-label-nav-header text-texto-suave uppercase">
+<th class="py-3 px-space-md" scope="col">Asignatura &amp; Grupo</th>
+<th class="py-3 px-space-md" scope="col">Docente Responsable</th>
+<th class="py-3 px-space-md" scope="col">Carrera</th>
+<th class="py-3 px-space-md" scope="col">Estado de Acta</th>
+<th class="py-3 px-space-md text-right" scope="col">Acción</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-borde font-body-md text-body-md">
+<!-- Fila 1 -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-space-md">
+<div class="font-semibold text-texto">PRN115 · Programación I</div>
+<div class="font-label-sm text-label-sm text-texto-suave">Grupo Teórico 01 (GTO 01)</div>
+</td>
+<td class="py-3.5 px-space-md text-texto">
+                  Ing. Carlos Martínez
+                </td>
+<td class="py-3.5 px-space-md text-texto-suave font-label-sm text-label-sm">
+                  Ing. de Sistemas
+                </td>
+<td class="py-3.5 px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-success-bg text-success-text border border-success-text/20">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                    Validada Coord. ISI
+                  </span>
+</td>
+<td class="py-3.5 px-space-md text-right">
+<button class="text-marca-700 hover:text-marca-900 font-label-sm text-label-sm font-semibold hover:underline" type="button">
+                    Ver acta
+                  </button>
+</td>
+</tr>
+<!-- Fila 2 -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-space-md">
+<div class="font-semibold text-texto">BAD115 · Bases de Datos I</div>
+<div class="font-label-sm text-label-sm text-texto-suave">Grupo Teórico 01 (GTO 01)</div>
+</td>
+<td class="py-3.5 px-space-md text-texto">
+                  Lic. Mario Benítez
+                </td>
+<td class="py-3.5 px-space-md text-texto-suave font-label-sm text-label-sm">
+                  Ing. de Sistemas
+                </td>
+<td class="py-3.5 px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-success-bg text-success-text border border-success-text/20">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                    Validada Coord. ISI
+                  </span>
+</td>
+<td class="py-3.5 px-space-md text-right">
+<button class="text-marca-700 hover:text-marca-900 font-label-sm text-label-sm font-semibold hover:underline" type="button">
+                    Ver acta
+                  </button>
+</td>
+</tr>
+<!-- Fila 3 -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-space-md">
+<div class="font-semibold text-texto">SIO115 · Sistemas Operativos</div>
+<div class="font-label-sm text-label-sm text-texto-suave">Grupo Teórico 01 (GTO 01)</div>
+</td>
+<td class="py-3.5 px-space-md text-texto">
+                  Ing. David Castillo
+                </td>
+<td class="py-3.5 px-space-md text-texto-suave font-label-sm text-label-sm">
+                  Ing. de Sistemas
+                </td>
+<td class="py-3.5 px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-warning-bg text-warning-text border border-warning-text/20">
+<span class="material-symbols-outlined text-[14px]">hourglass_top</span>
+                    Espera Coord.
+                  </span>
+</td>
+<td class="py-3.5 px-space-md text-right">
+<button class="text-marca-700 hover:text-marca-900 font-label-sm text-label-sm font-semibold hover:underline" type="button">
+                    Revisar
+                  </button>
+</td>
+</tr>
+<!-- Fila 4 -->
+<tr class="hover:bg-fondo/60 transition-colors">
+<td class="py-3.5 px-space-md">
+<div class="font-semibold text-texto">DSI115 · Diseño de Sistemas I</div>
+<div class="font-label-sm text-label-sm text-texto-suave">Grupo Teórico 01 (GTO 01)</div>
+</td>
+<td class="py-3.5 px-space-md text-texto">
+                  Ing. Nelson Quintanilla
+                </td>
+<td class="py-3.5 px-space-md text-texto-suave font-label-sm text-label-sm">
+                  Lic. Computación
+                </td>
+<td class="py-3.5 px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-fondo text-texto-suave border border-borde">
+<span class="material-symbols-outlined text-[14px] text-danger-text">schedule</span>
+                    Borrador (Vence 48h)
+                  </span>
+</td>
+<td class="py-3.5 px-space-md text-right">
+<button class="text-marca-700 hover:text-marca-900 font-label-sm text-label-sm font-semibold hover:underline" type="button">
+                    Notificar
+                  </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-space-md border-t border-borde bg-fondo/30 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-texto-suave">Mostrando 4 de 24 secciones departamentales registradas</span>
+<a class="inline-flex items-center gap-1 font-label-md text-label-md font-semibold text-marca-700 hover:text-marca-900 transition-colors" href="#">
+<span>Ver matriz completa de cierre y autorizaciones</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+</div>
+</section>
+<!-- SUBSECCIÓN B: Monitoreo de Desempeño y Puntualidad Docente -->
+<section aria-labelledby="heading-desempeno" class="bg-superficie rounded-xl border border-borde shadow-sm p-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm mb-space-md">
+<div>
+<h2 class="font-headline-md text-headline-md text-texto" id="heading-desempeno">Monitoreo de Desempeño y Puntualidad Docente (RF33)</h2>
+<p class="font-body-md text-body-md text-texto-suave">Control de regularidad académica, asistencia a clases y plazos de calificación</p>
+</div>
+<a class="inline-flex items-center gap-1 font-label-md text-label-md font-semibold text-marca-700 hover:text-marca-900 transition-colors shrink-0" href="#">
+<span>Métricas detalladas</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md mb-space-sm">
+<!-- Docente 1 -->
+<div class="bg-fondo border border-borde rounded-lg p-space-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-success-bg text-success-text font-semibold">Excelente</span>
+<span class="font-label-sm text-label-sm text-texto-suave">PRN115</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-texto mb-1">Ing. Carlos Martínez</h3>
+<p class="font-label-sm text-label-sm text-texto-suave mb-3">Cátedra de Programación</p>
+<div class="space-y-2 font-body-md text-body-md">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-texto-suave">Puntualidad en clase:</span>
+<span class="font-semibold text-texto">98.0%</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-texto-suave">Actas al día:</span>
+<span class="font-semibold text-success-text">100%</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-texto-suave">Tiempo de revisión:</span>
+<span class="font-medium text-texto">2.4 días prom.</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-borde/80 flex items-center justify-between font-label-sm text-label-sm text-texto-suave">
+<span>2 evaluaciones resueltas</span>
+<span class="material-symbols-outlined text-success-text text-[18px]">verified</span>
+</div>
+</div>
+<!-- Docente 2 -->
+<div class="bg-fondo border border-borde rounded-lg p-space-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-success-bg text-success-text font-semibold">Excelente</span>
+<span class="font-label-sm text-label-sm text-texto-suave">TSI115</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-texto mb-1">Msc. Elena Rivas</h3>
+<p class="font-label-sm text-label-sm text-texto-suave mb-3">Teoría de Sistemas</p>
+<div class="space-y-2 font-body-md text-body-md">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-texto-suave">Puntualidad en clase:</span>
+<span class="font-semibold text-texto">96.0%</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-texto-suave">Actas al día:</span>
+<span class="font-semibold text-success-text">100%</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-texto-suave">Tiempo de revisión:</span>
+<span class="font-medium text-texto">2.1 días prom.</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-borde/80 flex items-center justify-between font-label-sm text-label-sm text-texto-suave">
+<span>Asistencia 100% QR</span>
+<span class="material-symbols-outlined text-success-text text-[18px]">verified</span>
+</div>
+</div>
+<!-- Docente 3 -->
+<div class="bg-fondo border border-borde rounded-lg p-space-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-warning-bg text-warning-text font-semibold">Regular</span>
+<span class="font-label-sm text-label-sm text-texto-suave">PRN115 GTO 02</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-texto mb-1">Licda. Beatriz Morán</h3>
+<p class="font-label-sm text-label-sm text-texto-suave mb-3">Cátedra de Programación</p>
+<div class="space-y-2 font-body-md text-body-md">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-texto-suave">Puntualidad en clase:</span>
+<span class="font-semibold text-warning-text">88.0%</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-texto-suave">Actas al día:</span>
+<span class="font-semibold text-texto">Al día</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-texto-suave">Tiempo de revisión:</span>
+<span class="font-medium text-texto">3.9 días prom.</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-borde/80 flex items-center justify-between font-label-sm text-label-sm text-warning-text">
+<span class="truncate">1 sesión justificada (Reprog.)</span>
+<span class="material-symbols-outlined text-[18px]">info</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- COLUMNA DERECHA (35% -> 4 de 12 columnas en desktop) -->
+<div class="lg:col-span-4 flex flex-col gap-space-lg">
+<!-- SUBSECCIÓN C: Atención Prioritaria y Cierre de Período -->
+<section aria-labelledby="heading-prioridades" class="flex flex-col gap-space-md">
+<h2 class="sr-only" id="heading-prioridades">Atención Prioritaria y Alertas del Departamento</h2>
+<!-- Tarjeta: Rendimiento Estudiantil Crítico -->
+<div class="bg-superficie rounded-xl border border-borde p-space-md shadow-sm border-l-4 border-l-marca-600">
+<div class="flex items-start gap-space-sm mb-2">
+<span class="material-symbols-outlined text-danger-text text-[22px] shrink-0">emergency_home</span>
+<div>
+<span class="font-label-sm text-label-sm font-semibold text-danger-text uppercase tracking-wide">Alerta de Rendimiento</span>
+<h3 class="font-headline-sm text-headline-sm text-texto mt-0.5">2 Secciones en Riesgo Académico</h3>
+</div>
+</div>
+<p class="font-body-md text-body-md text-texto-suave mb-3">
+            Más del 25% del estudiantado activo en estas asignaturas presenta promedio inferior a 6.0 en las evaluaciones sumativas acumuladas.
+          </p>
+<div class="bg-fondo rounded p-2.5 mb-3 text-label-sm font-label-sm text-texto space-y-1">
+<div class="flex justify-between items-center">
+<span class="font-medium">MAT115 · Matemática Discreta</span>
+<span class="text-danger-text font-semibold">28.4% en riesgo</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-medium">EST115 · Estadística Aplicada</span>
+<span class="text-danger-text font-semibold">26.1% en riesgo</span>
+</div>
+</div>
+<button class="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-marca-300 text-marca-800 hover:bg-marca-50 font-label-sm text-label-sm font-semibold transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">groups</span>
+<span>Convocar reunión de cátedra extraordinaria</span>
+</button>
+</div>
+<!-- Tarjeta: Condición de Cierre de Período -->
+<div class="bg-superficie rounded-xl border border-borde p-space-md shadow-sm">
+<div class="flex items-center gap-2 mb-2 text-marca-800">
+<span class="material-symbols-outlined text-[20px]">lock_clock</span>
+<h3 class="font-headline-sm text-headline-sm text-texto">Requisito para Autorizar Cierre</h3>
+</div>
+<p class="font-body-md text-body-md text-texto-suave mb-3">
+            Para habilitar el cierre administrativo y firma de actas finales, las 24 asignaturas del ciclo deben estar validadas por sus respectivas coordinaciones.
+          </p>
+<div class="bg-warning-bg/60 border border-warning-text/20 rounded-lg p-2.5 mb-3 flex items-start gap-2 text-warning-text">
+<span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5">lock</span>
+<div class="font-label-sm text-label-sm">
+<span class="font-bold">Botón bloqueado:</span> Faltan 6 actas por aprobación de coordinación de carrera.
+            </div>
+</div>
+<button class="w-full py-2.5 px-3 rounded-lg bg-fondo text-texto-desactivado border border-borde font-label-md text-label-md font-semibold cursor-not-allowed inline-flex items-center justify-center gap-2" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span>Autorizar Cierre Departamental</span>
+</button>
+</div>
+</section>
+<!-- SUBSECCIÓN D: Auditoría Departamental (RLS / ADR-029) -->
+<section aria-labelledby="heading-auditoria" class="bg-superficie rounded-xl border border-borde shadow-sm p-space-md">
+<div class="flex items-center justify-between gap-space-sm mb-space-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-marca-700 text-[20px]">security</span>
+<h2 class="font-headline-sm text-headline-sm text-texto" id="heading-auditoria">Auditoría Departamental (RLS)</h2>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 bg-marca-50 text-marca-800 rounded-full font-medium">RF05</span>
+</div>
+<p class="font-label-sm text-label-sm text-texto-suave mb-3">
+          Trazabilidad en tiempo real de operaciones críticas en el departamento de sistemas:
+        </p>
+<!-- Timeline de eventos -->
+<div class="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-borde">
+<!-- Evento 1 -->
+<div class="relative">
+<div class="absolute -left-[23px] top-1 w-3.5 h-3.5 rounded-full border-2 border-superficie bg-marca-600 shadow-sm"></div>
+<div class="font-label-sm text-label-sm text-texto font-semibold">Modificación justificada de nota</div>
+<div class="font-label-sm text-label-sm text-texto-suave mt-0.5">PRN115 · Ing. Carlos Martínez</div>
+<p class="font-label-sm text-[12px] text-texto-suave mt-1 bg-fondo p-1.5 rounded">
+              Motivo: Corrección de sumatoria en parcial 2 (Resolución C-04).
+            </p>
+<span class="font-label-sm text-[11px] text-texto-desactivado mt-1 block">Hoy, 10:42 AM</span>
+</div>
+<!-- Evento 2 -->
+<div class="relative">
+<div class="absolute -left-[23px] top-1 w-3.5 h-3.5 rounded-full border-2 border-superficie bg-tertiary shadow-sm"></div>
+<div class="font-label-sm text-label-sm text-texto font-semibold">Reasignación de aula física</div>
+<div class="font-label-sm text-label-sm text-texto-suave mt-0.5">BAD115 (GTO 02) → Aula B-12</div>
+<span class="font-label-sm text-[11px] text-texto-desactivado mt-1 block">Ayer, 16:15 PM</span>
+</div>
+<!-- Evento 3 -->
+<div class="relative">
+<div class="absolute -left-[23px] top-1 w-3.5 h-3.5 rounded-full border-2 border-superficie bg-warning-text shadow-sm"></div>
+<div class="font-label-sm text-label-sm text-texto font-semibold">Suspensión y reprogramación</div>
+<div class="font-label-sm text-label-sm text-texto-suave mt-0.5">TSI115 · Aprobación de causal de fuerza mayor</div>
+<span class="font-label-sm text-[11px] text-texto-desactivado mt-1 block">18/10/2026, 09:30 AM</span>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-borde text-center">
+<a class="inline-flex items-center gap-1 font-label-md text-label-md font-semibold text-marca-700 hover:text-marca-900 transition-colors" href="#">
+<span>Consultar bitácora completa de auditoría</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</section>
+</div>
+</div>
+</div></main></div></body></html>

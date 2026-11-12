@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_blank" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"error":"#ba1a1a","on-primary-fixed-variant":"#920020","acento":"#9D2235","warning-text":"#B45309","success-text":"#15803D","borde":"#E2E2E2","marca-300":"#EE98A3","fondo":"#F8F8F8","primary":"#87001d","on-tertiary":"#ffffff","surface-container-low":"#f9f1f7","superficie":"#FFFFFF","texto-suave":"#696969","warning-bg":"#FFFBEB","inverse-on-surface":"#f6eef4","surface-bright":"#fff7fd","on-tertiary-fixed":"#001f25","background":"#fff7fd","on-error-container":"#93000a","surface-container":"#f3ecf1","secondary-fixed":"#ffdada","on-background":"#1e1a1f","info-text":"#1D4ED8","inverse-primary":"#ffb3b2","on-secondary":"#ffffff","primary-container":"#ae152d","on-secondary-fixed-variant":"#8c142a","tertiary":"#004852","on-error":"#ffffff","on-surface":"#1e1a1f","surface-container-highest":"#e8e0e6","surface-variant":"#e8e0e6","danger-bg":"#FEF2F2","marca-800":"#6E0B10","secondary":"#ad2e40","on-primary":"#ffffff","marca-50":"#FDF2F3","on-tertiary-fixed-variant":"#004e5a","tertiary-container":"#00616f","marca-100":"#FBE4E6","marca-600":"#AE152D","on-primary-fixed":"#410008","primary-fixed-dim":"#ffb3b2","on-secondary-fixed":"#40000c","outline-variant":"#e2bebd","inverse-surface":"#332f34","texto":"#1A171B","surface-tint":"#b71e33","on-surface-variant":"#5a4040","tertiary-fixed":"#a6eefe","outline":"#8e706f","surface":"#fff7fd","on-primary-container":"#ffbfbe","info-bg":"#EFF6FF","marca-200":"#F6C6CC","secondary-fixed-dim":"#ffb3b5","surface-container-high":"#eee6ec","tertiary-fixed-dim":"#8ad2e1","surface-dim":"#dfd8dd","danger-text":"#B91C1C","error-container":"#ffdad6","secondary-container":"#fe6b78","texto-desactivado":"#ABABAB","marca-900":"#520A0D","primary-fixed":"#ffdad9","surface-container-lowest":"#ffffff","on-secondary-container":"#6c001a","marca-500":"#CB3149","success-bg":"#F0FDF4","marca-700":"#8B0E13","marca-400":"#E05F72","on-tertiary-container":"#92daea"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"margin":"1.5rem","space-sm":"0.5rem","space-lg":"1.5rem","space-xl":"2rem","gutter":"1rem","space-xs":"0.25rem","space-md":"1rem","gutter-mobile":"0.75rem","margin-mobile":"1rem"},fontFamily:{"body-lg":["Hanken Grotesk"],"label-nav-header":["Hanken Grotesk"],"label-md":["Hanken Grotesk"],"headline-md":["Hanken Grotesk"],"body-md":["Hanken Grotesk"],"headline-sm":["Hanken Grotesk"],"label-sm":["Hanken Grotesk"],"headline-lg":["Hanken Grotesk"],"display-qr":["Hanken Grotesk"]},fontSize:{"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"label-nav-header":["12px",{lineHeight:"16px",letterSpacing:"0.05em",fontWeight:"600"}],"label-md":["14px",{lineHeight:"20px",fontWeight:"500"}],"headline-md":["18px",{lineHeight:"24px",fontWeight:"600"}],"body-md":["14px",{lineHeight:"21px",fontWeight:"400"}],"headline-sm":["16px",{lineHeight:"22px",fontWeight:"600"}],"label-sm":["12px",{lineHeight:"16px",fontWeight:"500"}],"headline-lg":["24px",{lineHeight:"32px",fontWeight:"600"}],"display-qr":["36px",{lineHeight:"44px",fontWeight:"600"}]}}}};</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-fondo font-body-md text-texto min-h-screen flex items-center justify-center"><main class="w-full"><div class="flex flex-col w-full max-w-[390px] mx-auto px-4 pb-6 select-none">
+<!-- Cabecera de Navegación Compacta -->
+<header class="flex items-center justify-between py-3 mb-2">
+<button aria-label="Volver al panel" class="flex items-center justify-center w-10 h-10 rounded-xl bg-superficie text-texto shadow-sm active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">arrow_back</span>
+</button>
+<div class="flex flex-col items-center text-center">
+<h1 class="font-headline-sm text-headline-sm text-texto leading-tight">Registro de Asistencia</h1>
+<span class="font-label-sm text-label-sm text-texto-suave">PRN115 · Aula A-101</span>
+</div>
+<button aria-label="Ayuda de asistencia" class="flex items-center justify-center w-10 h-10 rounded-xl bg-superficie text-texto-suave shadow-sm active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+</header>
+<!-- Visor de Escaneo de Cámara Nativo Simulado -->
+<section class="relative w-full aspect-[4/5] bg-marca-900 rounded-xl overflow-hidden flex flex-col justify-between p-4 shadow-md">
+<!-- Simulación de fondo de lente / ambientación del aula -->
+<div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 pointer-events-none"></div>
+<!-- Indicador Superior en Pantalla: Geocerca y Estado de Sesión -->
+<div class="relative z-10 flex items-center justify-between w-full">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-superficie/90 backdrop-blur-sm text-on-surface shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-success-text" style="font-variation-settings: 'FILL' 1;">my_location</span>
+<span class="font-label-sm text-label-sm font-medium">Campus FMO · GPS Activo</span>
+</div>
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/40 text-superficie backdrop-blur-sm font-label-sm text-label-sm">
+<span class="w-2 h-2 rounded-full bg-marca-400 animate-ping"></span>
+<span>En vivo</span>
+</div>
+</div>
+<!-- Retícula / Marco Central de Enfoque con Micro-interacción -->
+<div class="relative z-10 self-center w-64 h-64 flex items-center justify-center my-auto">
+<!-- Esquinas del escáner en rojo institucional UES -->
+<div class="absolute top-0 left-0 w-8 h-8 rounded-tl-lg shadow-sm" style="background: linear-gradient(to right, #CB3149 3px, transparent 3px), linear-gradient(to bottom, #CB3149 3px, transparent 3px);"></div>
+<div class="absolute top-0 right-0 w-8 h-8 rounded-tr-lg shadow-sm" style="background: linear-gradient(to left, #CB3149 3px, transparent 3px), linear-gradient(to bottom, #CB3149 3px, transparent 3px);"></div>
+<div class="absolute bottom-0 left-0 w-8 h-8 rounded-bl-lg shadow-sm" style="background: linear-gradient(to right, #CB3149 3px, transparent 3px), linear-gradient(to top, #CB3149 3px, transparent 3px);"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 rounded-br-lg shadow-sm" style="background: linear-gradient(to left, #CB3149 3px, transparent 3px), linear-gradient(to top, #CB3149 3px, transparent 3px);"></div>
+<!-- Haz láser de escaneo dinámico -->
+<div class="w-full h-0.5 bg-gradient-to-r from-transparent via-marca-400 to-transparent shadow-[0_0_8px_#E05F72] animate-[bounce_2.5s_infinite]"></div>
+<!-- Icono central orientador cuando no hay lectura -->
+<div class="absolute flex flex-col items-center text-center opacity-60">
+<span class="material-symbols-outlined text-[36px] text-superficie mb-1">qr_code_scanner</span>
+<span class="font-label-sm text-label-sm text-superficie tracking-wider uppercase">Alinear código</span>
+</div>
+</div>
+<!-- Indicaciones Inferiores dentro del Visor -->
+<div class="relative z-10 flex flex-col items-center text-center gap-1.5 pb-1">
+<p class="font-label-md text-label-md text-superficie font-medium drop-shadow-sm">
+        Apunte al código QR rotativo proyectado en la pizarra del aula
+      </p>
+<div class="flex items-center gap-2 font-label-sm text-label-sm text-marca-200">
+<span class="material-symbols-outlined text-[15px]">verified_user</span>
+<span>Validación de geocerca estricta (Radio: 80 m)</span>
+</div>
+</div>
+</section>
+<!-- Tarjeta de Estado del Sistema y Contador de Intentos -->
+<section class="mt-3 bg-superficie rounded-xl p-3.5 shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-marca-50 flex items-center justify-center text-marca-600">
+<span class="material-symbols-outlined text-[20px]">pin</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-texto-suave">Sesión programada</span>
+<span class="font-headline-sm text-headline-sm text-texto">07:00 – 08:40</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-sm text-label-sm text-texto-suave">Tolerancia RF20</span>
+<span class="px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-warning-bg text-warning-text font-medium">
+        Intentos: 3 de 3
+      </span>
+</div>
+</section>
+<!-- Pestañas de Interacción para Visualizar Estados Posibles (Demostración de Feedback UX) -->
+<div class="mt-4 flex flex-col gap-2">
+<div class="flex items-center justify-between px-1">
+<span class="font-label-sm text-label-sm font-semibold text-texto-suave uppercase tracking-wider">Resultado de la verificación</span>
+<span class="font-label-sm text-label-sm text-texto-desactivado">Modo interactivo</span>
+</div>
+<!-- Contenedor dinámico de estados -->
+<div class="space-y-2" id="status-container">
+<!-- Tarjeta 1: Caso de Éxito Validador (Visible por defecto) -->
+<div class="bg-superficie rounded-xl p-4 shadow-sm relative overflow-hidden transition-all duration-300" id="card-success">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-success-text"></div>
+<div class="flex items-start gap-3 pl-1">
+<div class="w-8 h-8 rounded-full bg-success-bg text-success-text flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-texto">Asistencia registrada</span>
+<span class="px-2 py-0.5 rounded-full bg-success-bg text-success-text font-label-sm text-label-sm font-medium">Presente</span>
+</div>
+<p class="font-body-md text-body-md text-texto-suave mt-0.5">
+              Registrado con éxito hoy a las <strong>07:14</strong>. Su comprobante digital ha sido emitido bajo el folio <span class="font-mono text-texto font-medium">#UES-8831</span>.
+            </p>
+</div>
+</div>
+</div>
+<!-- Tarjeta 2: Caso de Advertencia / Rechazo por Geocerca (Visualización colapsada / botón de prueba) -->
+<div class="hidden bg-superficie rounded-xl p-4 shadow-sm relative overflow-hidden transition-all duration-300" id="card-error">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-danger-text"></div>
+<div class="flex items-start gap-3 pl-1">
+<div class="w-8 h-8 rounded-full bg-danger-bg text-danger-text flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[18px]">location_off</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-texto">Ubicación inválida</span>
+<span class="px-2 py-0.5 rounded-full bg-danger-bg text-danger-text font-label-sm text-label-sm font-medium">Rechazado</span>
+</div>
+<p class="font-body-md text-body-md text-texto-suave mt-0.5">
+              Usted se encuentra fuera del aula designada. <strong>Distancia detectada: 420 m</strong> al nodo del Campus FMO.
+            </p>
+<div class="mt-2.5 flex items-center gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-marca-50 text-marca-700 font-label-sm text-label-sm font-medium flex items-center gap-1 active:scale-95 transition-transform" id="btn-reintentar" type="button">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+                Reintentar geolocalización
+              </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Conmutador didáctico de estados de validación para simulación rápida -->
+<div class="flex items-center justify-center gap-2 pt-1">
+<button class="px-2.5 py-1 rounded-md text-label-sm font-label-sm bg-marca-100 text-marca-800 font-medium" id="toggle-success" type="button">
+        Ver Estado: Presente
+      </button>
+<button class="px-2.5 py-1 rounded-md text-label-sm font-label-sm bg-surface-container text-texto-suave font-medium" id="toggle-error" type="button">
+        Ver Estado: Fuera de Zona
+      </button>
+</div>
+</div>
+<!-- Botón Alternativo de Contingencia (RF28: Código de 6 dígitos) -->
+<section class="mt-4 pt-2 flex flex-col items-center">
+<div class="relative w-full flex items-center justify-center py-2">
+<div class="w-full h-px bg-surface-container-highest"></div>
+<span class="absolute bg-fondo px-3 font-label-sm text-label-sm text-texto-desactivado uppercase tracking-wider">O también</span>
+</div>
+<button class="w-full mt-2 py-3 px-4 rounded-lg bg-superficie text-texto font-label-md text-label-md shadow-sm active:bg-marca-50 flex items-center justify-center gap-2 transition-colors" id="open-pin-btn" type="button">
+<span class="material-symbols-outlined text-[20px] text-marca-600">password</span>
+<span>Ingresar código temporal de 6 dígitos (RF28)</span>
+</button>
+<p class="font-label-sm text-label-sm text-texto-suave text-center mt-2 px-2">
+      Si la cámara de su dispositivo presenta dificultades, solicite la clave dinámica al docente titular.
+    </p>
+</section>
+<!-- Modal Desplegable / Diálogo para Ingreso de Código PIN (RF28) -->
+<div class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-end justify-center p-4" id="pin-modal">
+<div class="w-full max-w-[360px] bg-superficie rounded-xl p-5 shadow-xl flex flex-col gap-4 animate-[fade-in_0.2s_ease-out]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-marca-700">
+<span class="material-symbols-outlined text-[22px]">dialpad</span>
+<h2 class="font-headline-sm text-headline-sm text-texto">Clave Temporal RF28</h2>
+</div>
+<button class="w-8 h-8 rounded-full bg-fondo text-texto-suave flex items-center justify-center" id="close-pin-btn" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<p class="font-body-md text-body-md text-texto-suave">
+        Ingrese el código alfanumérico generado para esta sesión por la cátedra:
+      </p>
+<div class="flex justify-between gap-1.5 py-1">
+<input class="w-11 h-12 text-center font-headline-lg text-headline-lg rounded-lg bg-fondo text-texto focus:bg-superficie focus:outline-none focus:text-marca-600" maxlength="1" type="text" value="7"/>
+<input class="w-11 h-12 text-center font-headline-lg text-headline-lg rounded-lg bg-fondo text-texto focus:bg-superficie focus:outline-none focus:text-marca-600" maxlength="1" type="text" value="4"/>
+<input class="w-11 h-12 text-center font-headline-lg text-headline-lg rounded-lg bg-fondo text-texto focus:bg-superficie focus:outline-none focus:text-marca-600" maxlength="1" type="text" value="9"/>
+<input class="w-11 h-12 text-center font-headline-lg text-headline-lg rounded-lg bg-fondo text-texto focus:bg-superficie focus:outline-none focus:text-marca-600" maxlength="1" placeholder="·" type="text"/>
+<input class="w-11 h-12 text-center font-headline-lg text-headline-lg rounded-lg bg-fondo text-texto focus:bg-superficie focus:outline-none focus:text-marca-600" maxlength="1" placeholder="·" type="text"/>
+<input class="w-11 h-12 text-center font-headline-lg text-headline-lg rounded-lg bg-fondo text-texto focus:bg-superficie focus:outline-none focus:text-marca-600" maxlength="1" placeholder="·" type="text"/>
+</div>
+<button class="w-full py-2.5 rounded-lg bg-marca-600 text-on-primary font-label-md text-label-md shadow-sm active:bg-marca-700 transition-colors" id="confirm-pin-btn" type="button">
+        Validar asistencia manual
+      </button>
+</div>
+</div>
+</div>
+<script>
+  // Control interactivo para conmutar demostración de estados
+  const cardSuccess = document.getElementById('card-success');
+  const cardError = document.getElementById('card-error');
+  const toggleSuccess = document.getElementById('toggle-success');
+  const toggleError = document.getElementById('toggle-error');
+  const pinModal = document.getElementById('pin-modal');
+  const openPinBtn = document.getElementById('open-pin-btn');
+  const closePinBtn = document.getElementById('close-pin-btn');
+  const confirmPinBtn = document.getElementById('confirm-pin-btn');
+  const btnReintentar = document.getElementById('btn-reintentar');
+
+  toggleSuccess?.addEventListener('click', () => {
+    cardSuccess.classList.remove('hidden');
+    cardError.classList.add('hidden');
+    toggleSuccess.className = 'px-2.5 py-1 rounded-md text-label-sm font-label-sm bg-marca-100 text-marca-800 font-medium';
+    toggleError.className = 'px-2.5 py-1 rounded-md text-label-sm font-label-sm bg-surface-container text-texto-suave font-medium';
+  });
+
+  toggleError?.addEventListener('click', () => {
+    cardError.classList.remove('hidden');
+    cardSuccess.classList.add('hidden');
+    toggleError.className = 'px-2.5 py-1 rounded-md text-label-sm font-label-sm bg-marca-100 text-marca-800 font-medium';
+    toggleSuccess.className = 'px-2.5 py-1 rounded-md text-label-sm font-label-sm bg-surface-container text-texto-suave font-medium';
+  });
+
+  btnReintentar?.addEventListener('click', () => {
+    btnReintentar.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span> Verificando GPS...';
+    setTimeout(() => {
+      btnReintentar.innerHTML = '<span class="material-symbols-outlined text-[16px]">refresh</span> Reintentar geolocalización';
+    }, 1200);
+  });
+
+  openPinBtn?.addEventListener('click', () => {
+    pinModal.classList.remove('hidden');
+  });
+
+  closePinBtn?.addEventListener('click', () => {
+    pinModal.classList.add('hidden');
+  });
+
+  confirmPinBtn?.addEventListener('click', () => {
+    pinModal.classList.add('hidden');
+    toggleSuccess.click();
+  });
+</script></main></body></html>
