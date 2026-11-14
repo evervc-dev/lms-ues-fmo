@@ -303,7 +303,7 @@ class DemoAcademicSeeder extends Seeder
         $banks = [];
         $items = [
             1 => [['Tarea 1', 'assignment', 40, '2026-08-03 07:00', '2026-08-24 23:59', 'strict'], ['Parcial 1', 'quiz', 60, '2026-09-01 08:00', '2026-09-01 10:00', null]],
-            2 => [['Tarea 2', 'assignment', 40, '2026-09-21 07:00', '2026-10-16 23:59', 'grace_penalty'], ['Parcial 2', 'quiz', 60, '2026-10-20 08:00', '2026-10-20 10:00', null]],
+            2 => [['Tarea 2', 'assignment', 40, '2026-09-21 07:00', '2026-10-16 23:59', 'grace_penalty'], ['Parcial 2', 'quiz', 60, '2026-10-15 08:00', '2026-10-15 10:00', null]],
             3 => [['Proyecto final', 'assignment', 50, '2026-10-26 07:00', '2026-11-30 23:59', 'grace'], ['Parcial 3', 'quiz', 50, '2026-12-01 08:00', '2026-12-01 10:00', null]],
         ];
 
@@ -421,7 +421,10 @@ class DemoAcademicSeeder extends Seeder
             if (mt_rand(1, 1000) > $share * 1000) {
                 continue;
             }
-            $at = now()->parse($opens)->addMinutes(mt_rand(60, (int) now()->parse($opens)->diffInMinutes($isOpen ? now() : now()->parse($closes))));
+            // Hasta el cierre, aunque la tarea siga «abierta» en la siembra: con now() salían entregas a tiempo
+            // posteriores al cierre (QA 04/11, D-07).
+            $hasta = $isOpen ? now()->min(now()->parse($closes)) : now()->parse($closes);
+            $at = now()->parse($opens)->addMinutes(mt_rand(60, max(60, (int) now()->parse($opens)->diffInMinutes($hasta))));
             $submissionId = DB::table('submissions')->insertGetId(['ulid' => (string) Str::ulid(), 'assessment_id' => $assessmentId, 'section_id' => $section->id,
                 'enrollment_id' => $enrollment->id, 'attempt_number' => 1, 'status' => 'submitted', 'is_late' => false, 'late_penalty_applied' => 0, 'submitted_at' => $at] + $this->stamps($at));
             DB::table('submission_files')->insert(['submission_id' => $submissionId, 'path' => "entregas/{$assessmentId}/{$submissionId}.pdf", 'original_name' => Str::slug($title).'.pdf', 'bytes' => mt_rand(80_000, 3_000_000)] + $this->stamps($at));
@@ -703,7 +706,7 @@ class DemoAcademicSeeder extends Seeder
      */
     private function seedCalendarAndIntegrations(Collection $sections): void
     {
-        foreach ([['Primer parcial', '2026-09-01 08:00'], ['Segundo parcial', '2026-10-20 08:00'], ['Tercer parcial', '2026-12-01 08:00'], ['Cierre de notas', '2026-12-11 23:59']] as [$title, $at]) {
+        foreach ([['Primer parcial', '2026-09-01 08:00'], ['Segundo parcial', '2026-10-15 08:00'], ['Tercer parcial', '2026-12-01 08:00'], ['Cierre de notas', '2026-12-11 23:59']] as [$title, $at]) {
             $eventId = DB::table('period_calendar_events')->insertGetId(['period_id' => $this->period, 'title' => $title, 'starts_at' => $at] + $this->stamps(now()->parse('2026-07-20')));
             DB::table('google_sync_refs')->insert(['entity_type' => 'period_calendar_event', 'entity_id' => $eventId, 'provider' => 'google_calendar', 'external_id' => Str::random(26), 'sync_status' => 'synced'] + $this->stamps());
         }
@@ -716,8 +719,8 @@ class DemoAcademicSeeder extends Seeder
 
         DB::table('integrations')->insert(['key' => 'google_workspace', 'settings' => Crypt::encryptString(json_encode(['client_id' => 'pendiente-ti-ues', 'allowed_domain' => 'ues.edu.sv']))] + $this->stamps());
         DB::table('scheduled_reports')->insert([
-            ['user_id' => $this->dev['coordinador'], 'report_type' => 'attendance_by_section', 'filters' => json_encode(['career' => 'ISI']), 'frequency' => 'weekly', 'next_run_at' => now()->next('Monday')->setTime(7, 0)] + $this->stamps(),
-            ['user_id' => $this->dev['jefe'], 'report_type' => 'teacher_kpis', 'filters' => json_encode(['department' => 'DIA']), 'frequency' => 'monthly', 'next_run_at' => now()->addMonth()->startOfMonth()->setTime(7, 0)] + $this->stamps(),
+            ['user_id' => $this->dev['coordinador'], 'report_type' => 'asistencia', 'filters' => json_encode(['career' => 'ISI']), 'frequency' => 'weekly', 'next_run_at' => now()->next('Monday')->setTime(7, 0)] + $this->stamps(),
+            ['user_id' => $this->dev['jefe'], 'report_type' => 'carga_docente', 'filters' => json_encode(['department' => 'DIA']), 'frequency' => 'monthly', 'next_run_at' => now()->addMonth()->startOfMonth()->setTime(7, 0)] + $this->stamps(),
         ]);
         DB::table('exports')->insert([
             ['ulid' => (string) Str::ulid(), 'user_id' => $this->dev['docente'], 'export_type' => 'gradebook', 'path' => 'exportaciones/libro-notas-prn115-01.xlsx', 'status' => 'ready'] + $this->stamps(now()->subDays(2)),

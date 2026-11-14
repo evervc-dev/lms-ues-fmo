@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Academica\Services\PeriodoService;
 use App\Modules\Asistencia\Services\AsistenciaService;
 use App\Support\Alcance;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -190,7 +191,8 @@ class PanelService
     {
         return DB::table('attendance_sessions as a')->join('enrollments as e', 'e.section_id', '=', 'a.section_id')
             ->join('sections as s', 's.id', '=', 'a.section_id')->join('subjects as m', 'm.id', '=', 's.subject_id')
-            ->where('e.student_id', $u->id)->where('e.status', 'active')->where('a.status', 'open')
+            ->where('e.student_id', $u->id)->where('e.status', 'active')
+            ->tap(fn ($q) => AsistenciaService::soloVigentes($q, 'a'))
             ->orderByDesc('a.opened_at')
             ->first(['m.code', 'm.name', 's.ulid as seccion']);
     }
@@ -207,20 +209,36 @@ class PanelService
         return [
             'clasesHoy' => DB::table('section_schedules as h')->join('sections', 'sections.id', '=', 'h.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
                 ->leftJoin('classrooms', 'classrooms.id', '=', 'h.classroom_id')->whereIn('h.section_id', $secciones)->where('h.weekday', $dia)->orderBy('h.start_time')
-                ->get(['sections.ulid', 'sections.code as grupo', 'subjects.code', 'subjects.name', 'h.start_time', 'h.end_time', 'classrooms.code as aula',
-                    DB::raw("(select s.ulid from attendance_sessions s where s.section_id = sections.id and s.status = 'open' limit 1) as sesion_abierta")]),
+                ->select(['sections.ulid', 'sections.code as grupo', 'subjects.code', 'subjects.name', 'h.start_time', 'h.end_time', 'classrooms.code as aula'])
+                // Solo la sesión vigente de hoy: una abierta de otro día ya venció y no es la de esta clase.
+                ->selectSub(fn ($q) => AsistenciaService::soloVigentes($q->from('attendance_sessions as s')->whereColumn('s.section_id', 'sections.id')
+                    ->whereDate('s.session_date', now()->toDateString()), 's')->orderByDesc('s.opened_at')->limit(1)->select('s.ulid'), 'sesion_abierta')
+                ->get(),
             'porCalificar' => DB::table('submissions as s')->join('assessments as a', 'a.id', '=', 's.assessment_id')
                 ->leftJoin('grades as g', fn ($j) => $j->on('g.enrollment_id', '=', 's.enrollment_id')->on('g.grade_item_id', '=', 'a.grade_item_id'))
                 ->whereIn('s.section_id', $secciones)->where('s.status', 'submitted')->whereNull('g.id')->count()
                 + DB::table('quiz_attempts as q')->join('assessments as a', 'a.id', '=', 'q.assessment_id')->whereIn('a.section_id', $secciones)->where('q.status', 'pending_grading')->count(),
             'matricula' => DB::table('enrollments')->whereIn('section_id', $secciones)->where('status', 'active')->count(),
             'secciones' => $secciones->count(),
-            'alertas' => DB::table('academic_alerts as a')->join('enrollments as e', 'e.id', '=', 'a.enrollment_id')->join('users as u', 'u.id', '=', 'e.student_id')
-                ->join('sections', 'sections.id', '=', 'e.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
-                // El preventivo (85 %) solo avisa al estudiante; el docente ve desde el crítico (RF22, Flujo Alerta de inasistencias).
-                ->whereIn('e.section_id', $secciones)->whereNull('a.closed_at')->where('a.alert_type', '!=', 'attendance_85')->orderByDesc('a.opened_at')->limit(5)
-                ->get(['a.alert_type', 'u.first_name', 'u.last_name', 'subjects.code']),
+            'enAlerta' => $this->alertas($secciones)->getCountForPagination(),
+            'alertas' => $this->alertas($secciones)->limit(5)->get()
+                ->each(fn (object $a) => $a->alert_type = AsistenciaService::alertaDeGravedad((int) $a->gravedad)),
         ];
+    }
+
+    /**
+     * Una fila por matrícula con alerta abierta, con su alerta más grave (RF22). El preventivo (85 %) solo avisa al
+     * estudiante; el personal ve desde el crítico (Flujo Alerta de inasistencias).
+     */
+    private function alertas(Collection $secciones): Builder
+    {
+        return DB::table('academic_alerts as a')->join('enrollments as e', 'e.id', '=', 'a.enrollment_id')->join('users as u', 'u.id', '=', 'e.student_id')
+            ->join('sections', 'sections.id', '=', 'e.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
+            ->whereIn('e.section_id', $secciones)->whereNull('a.closed_at')->whereIn('a.alert_type', AsistenciaService::ALERTAS_DEL_PERSONAL)
+            ->groupBy('a.enrollment_id', 'u.first_name', 'u.last_name', 'subjects.code')
+            ->select(['a.enrollment_id', 'u.first_name', 'u.last_name', 'subjects.code'])
+            ->selectRaw('max('.AsistenciaService::gravedadSql().') as gravedad, max(a.opened_at) as desde')
+            ->orderByDesc('gravedad')->orderByDesc('desde');
     }
 
     /**

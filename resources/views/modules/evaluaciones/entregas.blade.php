@@ -4,7 +4,16 @@
     <x-ui.card ajustar :titulo="__('Entregas · :t', ['t' => $tarea->title])" :descripcion="$anonima ? __('Calificación anónima: los nombres aparecen al publicar las notas.') : null">
         <x-slot:acciones>
             <livewire:evaluaciones.prorrogas :seccion="$seccion" :actividad="$tarea->ulid" :key="'prorrogas-'.$tarea->ulid" />
-            @unless ($tarea->is_published)<x-ui.button tamano="sm" wire:click="publicar" wire:confirm="{{ __('Los estudiantes verán sus notas. ¿Publicar?') }}">{{ __('Publicar notas') }}</x-ui.button>@else<x-ui.badge color="verde">{{ __('Notas publicadas') }}</x-ui.badge>@endunless
+            @unless ($tarea->is_published)
+                @php
+                    $sinCalificar = $entregas->whereNull('score')->count();
+                    $confirmar = collect([
+                        trans_choice('{0} Las :total entregas están calificadas.|{1} Falta calificar 1 de :total entregas: quedará sin nota.|[2,*] Faltan calificar :count de :total entregas: quedarán sin nota.', $sinCalificar, ['total' => $entregas->count()]),
+                        $anonima ? __('Al publicar se revelan los nombres de quienes entregaron.') : null,
+                        __('Los estudiantes verán sus notas. ¿Publicar?'),
+                    ])->filter()->implode(' ');
+                @endphp
+                <x-ui.button tamano="sm" wire:click="publicar" wire:confirm="{{ $confirmar }}">{{ __('Publicar notas') }}</x-ui.button>@else<x-ui.badge color="verde">{{ __('Notas publicadas') }}</x-ui.badge>@endunless
         </x-slot:acciones>
         <x-ui.table ajustar :vacio="__('Aún no hay entregas.')">
             <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Entregada') }}</th><th>{{ __('Archivo') }}</th><th class="text-right">{{ __('Nota') }}</th><th></th></x-slot:cabecera>

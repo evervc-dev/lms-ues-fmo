@@ -53,11 +53,11 @@
                 <a href="{{ route('secciones.pesos', ['seccion' => $seccion]) }}" wire:navigate class="mt-2 inline-block font-semibold underline hover:no-underline">{{ __('Ajustar los pesos') }}</a>
             </x-ui.alert>
         @endif
-        <x-ui.card :titulo="__('Libro de calificaciones')" :descripcion="$libro['cerrado'] ? __('Período cerrado: solo el Coordinador corrige, con motivo.') : __('Nota final = suma de los cómputos según su peso. Sin nota cuenta 0.')">
+        <x-ui.card :titulo="__('Libro de calificaciones')" :descripcion="$libro['cerrado'] ? __('Período cerrado: solo el Coordinador corrige, con motivo.') : __('Nota acumulada = suma de los cómputos según su peso, con lo calificado hasta hoy; sin nota cuenta 0. Es la final al cerrar el período.')">
             <x-slot:acciones>
                 @if ($puedeMensajear)
                     <x-ui.button tamano="sm" variante="secundario" :href="route('secciones.mensajes', ['seccion' => $seccion])">{{ __('Mensajes enviados') }}</x-ui.button>
-                    <x-ui.button tamano="sm" variante="secundario" icono="inbox-stack" :href="route('secciones.mensajes.crear', ['seccion' => $seccion])">{{ __('Mensajear a estudiantes que…') }}</x-ui.button>
+                    <x-ui.button tamano="sm" variante="secundario" icono="inbox-stack" :href="route('secciones.mensajes.crear', ['seccion' => $seccion])">{{ __('Escribir a estudiantes según su entrega o nota') }}</x-ui.button>
                 @endif
                 @if ($gestiona)<x-ui.button tamano="sm" variante="secundario" :href="route('secciones.pesos', ['seccion' => $seccion])">{{ __('Pesos') }}</x-ui.button>@endif
                 @if ($gestiona)<x-ui.button tamano="sm" variante="secundario" :href="route('secciones.acta', ['seccion' => $seccion])">{{ __('Acta') }}</x-ui.button>@endif
@@ -68,7 +68,7 @@
                     <thead class="bg-zinc-50 text-xs text-texto-suave">
                         <tr><th rowspan="2" class="sticky left-0 bg-zinc-50 p-2 text-left">{{ __('Estudiante') }}</th>
                             @foreach ($libro['computos'] as $c)<th colspan="{{ max(1, $c->items->count()) }}" class="border-l border-borde p-2">{{ $c->name }} ({{ rtrim(rtrim(number_format((float) $c->weight_percent, 2, '.', ''), '0'), '.') }} %)</th>@endforeach
-                            <th rowspan="2" class="border-l border-borde p-2">{{ __('Final') }}</th></tr>
+                            <th rowspan="2" class="border-l border-borde p-2" @unless ($libro['cerrado']) title="{{ __('Suma de lo calificado hasta hoy: con el período abierto no es la nota final.') }}" @endunless>{{ $libro['cerrado'] ? __('Final') : __('Acumulada') }}</th></tr>
                         <tr>@foreach ($libro['computos'] as $c)
                                 @forelse ($c->items as $i)
                                     <th class="border-l border-borde p-2 font-normal"><span class="block max-w-28 truncate" title="{{ $i->title }}">{{ $i->title }}</span>
@@ -100,7 +100,7 @@
                                         @empty<td class="border-l border-borde p-2"></td>@endforelse
                                     @endif
                                 @endforeach
-                                <td @class(['border-l border-borde p-2 text-center font-semibold', 'text-red-700' => $f->final < $minima])>{{ $fmt($f->final) }}
+                                <td @class(['border-l border-borde p-2 text-center font-semibold', 'text-red-700' => $libro['cerrado'] && $f->final < $minima])>{{ $fmt($f->final) }}
                                     @if ($conHerencia)<x-ui.badge color="azul" class="ml-1 font-normal" :title="__('Incluye cómputos traídos del grupo anterior.')">{{ __('con herencia') }}</x-ui.badge>@endif
                                 </td>
                             </tr>

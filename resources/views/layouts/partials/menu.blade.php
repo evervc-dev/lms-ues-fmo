@@ -1,7 +1,9 @@
 {{--
     Menú unificado (ADR-034). Recibe $menu de App\Support\Navegacion\Menu.
     $compacto = true en el menú fijo (se contrae a íconos con $store.menu.contraido); false en el panel móvil.
-    La opción activa la marca wire:current, porque el menú fijo persiste entre páginas (ADR-035).
+    La opción activa la marca wire:current, porque el menú fijo persiste entre páginas (ADR-035). wire:current
+    compara solo la ruta, sin la consulta: «Mis secciones» y «Supervisión de aulas» (/secciones?ambito=…) se
+    resaltaban juntas, así que las opciones con consulta comparan la URL completa con Alpine.
 
     Las opciones «secundarias» (una acción de la anterior, como Importar estudiantes bajo Usuarios) van con
     sangría y una guía vertical, para que se vea de qué opción cuelgan. Al navegar, la opción activa se trae
@@ -29,17 +31,22 @@
             @endif
             @foreach ($grupo['opciones'] as $opcion)
                 @if ($opcion->disponible())
+                    @php($conConsulta = str_contains((string) $opcion->url, '?'))
                     <a
                         href="{{ $opcion->url }}"
-                        @if (! $opcion->externa) wire:navigate wire:current="{{ $clasesActiva }}" @else target="_blank" rel="noopener" @endif
-                        @if ($opcion->activa) aria-current="page" @endif
+                        @if ($opcion->externa) target="_blank" rel="noopener"
+                        @elseif ($conConsulta) wire:navigate
+                            x-data="{ actual: false, comparar() { const h = new URL(this.$el.href), p = new URLSearchParams(location.search); this.actual = location.pathname === h.pathname && [...h.searchParams].every(([k, v]) => p.get(k) === v) } }"
+                            x-init="comparar()" x-on:livewire:navigated.window="comparar()" x-bind:aria-current="actual ? 'page' : null"
+                        @else wire:navigate wire:current="{{ $clasesActiva }}" @endif
+                        @if ($opcion->activa && ! $conConsulta) aria-current="page" @endif
                         :title="{{ $contraido }} ? @js($opcion->etiqueta) : null"
                         @class([
                             'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-texto transition hover:bg-zinc-100',
                             'ml-3 border-l border-borde pl-4' => $opcion->secundaria,
-                            $clasesActiva => $opcion->activa,
+                            $clasesActiva => $opcion->activa && ! $conConsulta,
                         ])
-                        :class="{{ $contraido }} && @js($opcion->secundaria) ? '!ml-0 !border-l-0 !pl-3' : null"
+                        :class="[{{ $contraido }} && @js($opcion->secundaria) ? '!ml-0 !border-l-0 !pl-3' : '', @js($conConsulta) && actual ? @js($clasesActiva) : '']"
                     >
                         <x-ui.icon :name="$opcion->icono" class="text-texto-suave group-hover:text-texto" />
                         <span x-show="! {{ $contraido }}" class="flex-1 truncate">{{ $opcion->etiqueta }}</span>

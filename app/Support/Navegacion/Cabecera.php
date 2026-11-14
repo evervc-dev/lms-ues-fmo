@@ -3,6 +3,7 @@
 namespace App\Support\Navegacion;
 
 use App\Models\User;
+use App\Modules\Asistencia\Services\AsistenciaService;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -47,7 +48,7 @@ class Cabecera
             ->join('sections', 'sections.id', '=', 'attendance_sessions.section_id')
             ->join('subjects', 'subjects.id', '=', 'sections.subject_id')
             ->where('enrollments.student_id', $usuario->id)->where('enrollments.status', 'active')
-            ->where('attendance_sessions.status', 'open')
+            ->tap(fn ($q) => AsistenciaService::soloVigentes($q))
             ->orderByDesc('attendance_sessions.opened_at')
             ->value('subjects.code');
     }

@@ -1,6 +1,6 @@
 {{-- Secciones por ámbito. --}}
 <div class="flex flex-col gap-5">
-    <x-ui.encabezado :titulo="$titulo" :subtitulo="$soloLectura ? __('Secciones de su carrera en el período en curso, en modo de solo lectura.') : __('Secciones del período en curso.')" />
+    <x-ui.encabezado :titulo="$titulo" :subtitulo="$soloLectura ? __('Secciones de su carrera en el período en curso. Puede consultar sus contenidos, notas, asistencia y progreso sin modificarlos, y gestionar la matrícula de sus estudiantes.') : __('Secciones del período en curso.')" />
 
     @if ($pestanas)
         <x-ui.tabs :pestanas="$pestanas" />
@@ -21,7 +21,7 @@
                             <h2 class="mt-2 font-semibold text-texto">{{ $s->name }}</h2>
                         </div>
                         @if ($s->alertas > 0)
-                            <x-ui.badge color="rojo">{{ trans_choice('{1} 1 alerta|[2,*] :count alertas', $s->alertas) }}</x-ui.badge>
+                            <x-ui.badge color="rojo">{{ trans_choice('{1} 1 estudiante en alerta|[2,*] :count estudiantes en alerta', $s->alertas) }}</x-ui.badge>
                         @endif
                     </div>
                     <p class="text-sm text-texto-suave">{{ $s->docente ?? __('Sin docente') }}{{ $s->horario ? ' · '.$s->horario : '' }}</p>

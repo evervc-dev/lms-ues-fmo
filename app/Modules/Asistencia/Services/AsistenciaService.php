@@ -9,6 +9,7 @@ use App\Modules\Asistencia\Jobs\EvaluarAlertasAsistencia;
 use App\Support\Alcance;
 use App\Support\DbContext;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -33,10 +34,35 @@ class AsistenciaService
     /** Las que avisan al estudiante: preventiva y crítica. Bajo el mínimo solo se marca «en riesgo» (Flujo Alerta de inasistencias). */
     public const ALERTAS_CON_AVISO = ['attendance_85', 'attendance_78'];
 
+    /**
+     * Alertas que ve el personal, de la más grave a la menos grave (RF22, RF17). El preventivo (85 %) solo avisa al
+     * estudiante. Las alertas se guardan por umbral y cómputo, así que un estudiante puede tener varias abiertas a
+     * la vez; las pantallas del personal muestran una por matrícula, la más grave, y cuentan estudiantes.
+     */
+    public const ALERTAS_DEL_PERSONAL = ['attendance_75', 'grade_risk', 'attendance_78'];
+
+    /** Gravedad de una alerta del personal (3 la más grave, 0 si no es del personal), para `max()` en SQL. */
+    public static function gravedadSql(string $tabla = 'a'): string
+    {
+        $casos = collect(self::ALERTAS_DEL_PERSONAL)->reverse()->values()
+            ->map(fn (string $tipo, int $i) => "when '{$tipo}' then ".($i + 1))->implode(' ');
+
+        return "case {$tabla}.alert_type {$casos} else 0 end";
+    }
+
+    /** Tipo de alerta de una gravedad calculada con gravedadSql(). */
+    public static function alertaDeGravedad(int $gravedad): ?string
+    {
+        return array_reverse(self::ALERTAS_DEL_PERSONAL)[$gravedad - 1] ?? null;
+    }
+
     /** Vértices de un área por polígono (RF26): con menos no hay superficie; con más, el dibujo ya no es un aula ni un edificio. */
     public const VERTICES_MIN = 3;
 
     public const VERTICES_MAX = 50;
+
+    /** Vigencia máxima de una sesión QR (5 a 15 min, ADR-028): una sesión abierta hace más tiempo ya venció. */
+    public const VIGENCIA_MAXIMA_MINUTOS = 15;
 
     public function __construct(private Alcance $alcance, private GeocercaService $geocerca) {}
 
@@ -130,6 +156,10 @@ class AsistenciaService
         $this->exigirEnSeccion($docente, 'asistencia.sesion.abrir', $seccionId);
         if ($minutos < 5 || $minutos > 15) {
             throw ValidationException::withMessages(['minutos' => __('La sesión dura entre 5 y 15 minutos.')]);
+        }
+        // Una sesión olvidada de otro día no debe impedir abrir la de hoy: se cierra antes de comprobar.
+        foreach ($this->vencidas($seccionId) as $vencida) {
+            $this->cerrar($docente, $seccionId, $vencida->ulid);
         }
         if (DB::table('attendance_sessions')->where('section_id', $seccionId)->where('status', 'open')->exists()) {
             throw ValidationException::withMessages(['minutos' => __('Ya hay una sesión de asistencia abierta en esta sección.')]);
@@ -277,17 +307,65 @@ class AsistenciaService
         if (! $sesion) {
             return;
         }
-        DbContext::run(function () use ($sesion, $seccionId) {
-            $faltan = DB::table('enrollments')->where('section_id', $seccionId)->where('status', 'active')
-                ->whereNotIn('id', DB::table('attendance_records')->where('session_id', $sesion->id)->select('enrollment_id'))->pluck('id');
-            foreach ($faltan as $matricula) {
-                DB::table('attendance_records')->insert(['session_id' => $sesion->id, 'section_id' => $seccionId, 'enrollment_id' => $matricula, 'status' => 'absent',
-                    'method' => 'manual', 'recorded_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
-            }
-            DB::table('attendance_sessions')->where('id', $sesion->id)->update(['status' => 'closed', 'closed_at' => now(), 'updated_at' => now()]);
-        }, 'attendance_session.closed');
+        DbContext::run(fn () => $this->registrarCierre($sesion), 'attendance_session.closed');
 
         EvaluarAlertasAsistencia::dispatch($seccionId);
+    }
+
+    /**
+     * Cierra las sesiones abiertas cuya vigencia ya pasó, como si el docente las hubiera cerrado. Idempotente: solo
+     * toma sesiones todavía abiertas. Sin este cierre, una sesión olvidada seguía «abierta» días después: el inicio
+     * la ofrecía como la de hoy y no dejaba abrir otra.
+     */
+    public function cerrarVencidas(): int
+    {
+        $vencidas = $this->vencidas();
+        foreach ($vencidas as $sesion) {
+            DbContext::system(fn () => $this->registrarCierre($sesion), 'attendance_session.closed');
+        }
+        $vencidas->pluck('section_id')->unique()->each(fn ($seccion) => EvaluarAlertasAsistencia::dispatch((int) $seccion));
+
+        return $vencidas->count();
+    }
+
+    /**
+     * Sesiones abiertas cuya vigencia ya pasó.
+     *
+     * @return Collection<int, \stdClass>
+     */
+    private function vencidas(?int $seccionId = null): Collection
+    {
+        return DB::table('attendance_sessions')->where('status', 'open')
+            ->when($seccionId, fn ($q) => $q->where('section_id', $seccionId))
+            ->get(['id', 'ulid', 'section_id', 'opened_at', 'qr_validity_minutes'])
+            ->filter(fn (object $s) => now()->gt(Carbon::parse($s->opened_at)->addMinutes((int) $s->qr_validity_minutes)))
+            ->values();
+    }
+
+    /**
+     * Quienes no marcaron quedan ausentes y la sesión pasa a cerrada. Va dentro del DbContext de quien la llama.
+     */
+    private function registrarCierre(object $sesion): void
+    {
+        $faltan = DB::table('enrollments')->where('section_id', $sesion->section_id)->where('status', 'active')
+            ->whereNotIn('id', DB::table('attendance_records')->where('session_id', $sesion->id)->select('enrollment_id'))->pluck('id');
+        foreach ($faltan as $matricula) {
+            DB::table('attendance_records')->insert(['session_id' => $sesion->id, 'section_id' => $sesion->section_id, 'enrollment_id' => $matricula, 'status' => 'absent',
+                'method' => 'manual', 'recorded_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+        }
+        DB::table('attendance_sessions')->where('id', $sesion->id)->where('status', 'open')->update(['status' => 'closed', 'closed_at' => now(), 'updated_at' => now()]);
+    }
+
+    /**
+     * Restringe una consulta de `attendance_sessions` a las que siguen vigentes: abiertas y de los últimos
+     * 15 minutos. El cierre de las vencidas corre cada minuto; esto evita mostrar una vieja mientras tanto.
+     *
+     * @param  Builder  $consulta
+     */
+    public static function soloVigentes($consulta, string $tabla = 'attendance_sessions'): mixed
+    {
+        return $consulta->where("{$tabla}.status", 'open')
+            ->where("{$tabla}.opened_at", '>=', now()->subMinutes(self::VIGENCIA_MAXIMA_MINUTOS));
     }
 
     public function justificar(User $estudiante, int $registroId, string $motivo, ?UploadedFile $documento): void

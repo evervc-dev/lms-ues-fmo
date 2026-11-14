@@ -11,6 +11,7 @@ use App\Modules\Evaluaciones\Livewire\Intento;
 use App\Modules\Evaluaciones\Livewire\NuevaPregunta;
 use App\Modules\Evaluaciones\Livewire\NuevaTarea;
 use App\Modules\Evaluaciones\Livewire\NuevoCuestionario;
+use App\Modules\Evaluaciones\Livewire\Prorrogas;
 use App\Modules\Evaluaciones\Livewire\Tarea;
 use App\Modules\Evaluaciones\Services\ActividadService;
 use App\Modules\Evaluaciones\Services\CuestionarioService;
@@ -131,6 +132,22 @@ it('CP-RF15-07 CP-RF17-10 oculta los nombres en la calificación anónima hasta 
 
     actingAs($e['estudiante']);
     Livewire::test(NotasSeccion::class, ['seccion' => $e['ulid']])->assertSee('Mi boleta')->assertSee('9.0');
+});
+
+it('las prórrogas de una tarea anónima usan los mismos seudónimos que Entregas hasta publicar las notas', function () {
+    $e = escenario();
+    $tarea = tareaDe($e, computos($e)[0], ['anonima' => true]);
+    actingAs($e['estudiante']);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->set('archivo', UploadedFile::fake()->create('a.pdf', 10))->call('entregar');
+
+    actingAs($e['docente']);
+    $nombre = $e['estudiante']->last_name.', '.$e['estudiante']->first_name;
+    Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $tarea])->assertSee('Estudiante 1')->assertDontSee($nombre)
+        ->set('matricula', $e['matricula'])->set('tipo', 'submission')->set('hasta', now()->addDays(3)->format('Y-m-d\\TH:i'))->set('motivo', 'Constancia médica')
+        ->call('conceder')->assertHasNoErrors()->assertDontSee($nombre);
+
+    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->call('publicar');
+    Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $tarea])->assertSee($nombre)->assertDontSee('Estudiante 1');
 });
 
 it('runs a quiz attempt in the exam layout and grades it automatically', function () {
@@ -369,4 +386,20 @@ it('shows whole weights and rubric points without cutting their trailing zeros',
     Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->assertSee('Contenido (10 pts)')->assertSeeHtml('<td class="text-right">10</td>');
 
     actingAs($e['estudiante'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()->assertSeeText(['Cómputo 3 · 40 %', '(50 %)']);
+});
+
+it('con el período abierto el libro llama «Acumulada» a la nota y no la marca en rojo', function () {
+    $e = escenario();
+    computos($e);
+    actingAs($e['docente']);
+
+    Livewire::test(NotasSeccion::class, ['seccion' => $e['ulid']])->assertSee('Acumulada')->assertDontSeeHtml('text-center font-semibold text-red-700');
+});
+
+it('propone abrir la tarea nueva a la próxima media hora en punto', function () {
+    $e = escenario();
+    $this->travelTo(now()->parse('2026-11-04 01:03:27'));
+    actingAs($e['docente']);
+
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->assertSet('abre', '2026-11-04T01:30');
 });

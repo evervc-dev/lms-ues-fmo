@@ -67,7 +67,11 @@
                 @if ($archivos->isEmpty())
                     <p class="text-sm text-texto-suave">{{ __('Esta carpeta ya no tiene archivos disponibles.') }}</p>
                 @else
-                    <x-ui.button :href="route('secciones.recurso.zip', ['seccion' => $resumen['ulid'], 'recurso' => $recurso->ulid])" :navegar="false" icono="rectangle-stack">{{ __('Descargar todo (.zip)') }}</x-ui.button>
+                    @if ($disponible)
+                        <x-ui.button :href="route('secciones.recurso.zip', ['seccion' => $resumen['ulid'], 'recurso' => $recurso->ulid])" :navegar="false" icono="rectangle-stack">{{ __('Descargar todo (.zip)') }}</x-ui.button>
+                    @else
+                        <x-ui.alert tipo="aviso" :titulo="__('Los archivos no están disponibles')">{{ __('La carpeta lista sus archivos, pero no se encuentran en el servidor. Avise a su docente para que los vuelva a subir.') }}</x-ui.alert>
+                    @endif
                     <div class="mt-3 flex flex-col gap-3">
                         @foreach ($arbol as $directorio => $contenido)
                             <div>
@@ -91,7 +95,9 @@
                 @break
             @default
                 @php($esPdf = $recurso->file_path && \Illuminate\Support\Str::endsWith(mb_strtolower((string) $recurso->file_path), '.pdf'))
-                @if ($recurso->file_path)
+                @if ($recurso->file_path && ! $disponible)
+                    <x-ui.alert tipo="aviso" :titulo="__('El archivo no está disponible')">{{ __('No se encuentra en el servidor. Avise a su docente para que lo vuelva a subir.') }}</x-ui.alert>
+                @elseif ($recurso->file_path)
                     @php($archivoUrl = route('secciones.recurso.archivo', ['seccion' => $resumen['ulid'], 'recurso' => $recurso->ulid]))
                     @if ($esPdf && $recurso->pdf_mode === 'viewer')
                         {{-- Visor incrustado: el archivo se sirve en línea desde el disco privado (RF11). --}}

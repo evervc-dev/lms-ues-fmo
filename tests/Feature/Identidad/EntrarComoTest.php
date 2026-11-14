@@ -71,3 +71,17 @@ it('links the login page to the development login only when enabled', function (
     config(['lms.dev_login' => false]);
     $this->get(route('login'))->assertOk()->assertDontSeeText('Entrar como…');
 });
+
+it('marca «Ambiente de pruebas» en todas las pantallas mientras «Entrar como…» está activo', function () {
+    $e = escenario();
+
+    config(['lms.dev_login' => true]);
+    $this->actingAs($e['docente'])->get(route('inicio'))->assertOk()->assertSee('Ambiente de pruebas');
+
+    config(['lms.dev_login' => false]);
+    $this->actingAs($e['docente'])->get(route('inicio'))->assertOk()->assertDontSee('Ambiente de pruebas');
+});
+
+it('no ofrece la Ayuda en el login, que pide sesión', function () {
+    $this->get(route('login'))->assertOk()->assertDontSee(route('ayuda'), false);
+});

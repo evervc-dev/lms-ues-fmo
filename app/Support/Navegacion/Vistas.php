@@ -3,6 +3,8 @@
 namespace App\Support\Navegacion;
 
 use App\Models\User;
+use App\Modules\Academica\Services\SeccionService;
+use App\Support\Alcance;
 use Illuminate\Routing\Route as RutaRegistrada;
 use Illuminate\Support\Facades\Route;
 
@@ -117,11 +119,17 @@ class Vistas
     /**
      * Pestañas de la Vista de sección que el usuario puede ver (docs/13 Layout/Vista de sección.md).
      *
+     * No basta con tener el permiso: debe tenerlo con alcance sobre esta sección. Un Coordinador que también
+     * es docente tiene `foros.participar` por sus propias secciones, pero no en las que supervisa, y la
+     * pestaña Foro terminaba en un 403.
+     *
      * @return array<int, array{nombre: string, etiqueta: string, url: string, activa: bool}>
      */
     public static function pestanas(User $usuario, string $seccion, string $actual): array
     {
         $activa = self::vista($actual)['pestana'] ?? $actual;
+        $seccionId = app(SeccionService::class)->idPorUlid($seccion);
+        $alcance = app(Alcance::class);
         $pestanas = [];
 
         foreach (self::todas() as $nombre => $vista) {
@@ -129,7 +137,7 @@ class Vistas
                 continue;
             }
             $permisos = explode('|', (string) $vista['permiso']);
-            if (! collect($permisos)->contains(fn (string $permiso) => $usuario->checkPermissionTo($permiso))) {
+            if (! collect($permisos)->contains(fn (string $permiso) => $usuario->checkPermissionTo($permiso) && $alcance->puedeEnSeccion($usuario, $permiso, $seccionId))) {
                 continue;
             }
             $pestanas[] = ['nombre' => $nombre, 'etiqueta' => __($vista['titulo']), 'url' => route($nombre, ['seccion' => $seccion]), 'activa' => $nombre === $activa];

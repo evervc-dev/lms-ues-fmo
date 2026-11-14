@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Asistencia\Jobs\CerrarSesionesVencidas;
 use App\Modules\Asistencia\Livewire\AreasAsistencia;
 use App\Modules\Asistencia\Livewire\AsistenciaSeccion;
 use App\Modules\Asistencia\Livewire\ClasesCanceladas;
@@ -34,6 +35,47 @@ it('opens a session between 5 and 15 minutes, only one at a time', function () {
     Livewire::test(AsistenciaSeccion::class, ['seccion' => $e['ulid']])->set('minutos', 10)->call('abrir')->assertRedirect();
 
     expect(fn () => sesionAbierta($e))->toThrow(ValidationException::class);
+});
+
+it('cierra las sesiones vencidas y deja ausentes a quienes no marcaron', function () {
+    $e = escenario();
+    $sesion = sesionAbierta($e, 10);
+
+    $this->travel(5)->minutes();
+    (new CerrarSesionesVencidas)->handle(app(AsistenciaService::class));
+    expect(DB::table('attendance_sessions')->where('ulid', $sesion)->value('status'))->toBe('open');
+
+    $this->travel(6)->minutes();
+    (new CerrarSesionesVencidas)->handle(app(AsistenciaService::class));
+
+    expect(DB::table('attendance_sessions')->where('ulid', $sesion)->value('status'))->toBe('closed')
+        ->and(DB::table('attendance_records')->where('enrollment_id', $e['matricula'])->value('status'))->toBe('absent')
+        ->and(app(AsistenciaService::class)->cerrarVencidas())->toBe(0);
+});
+
+it('una sesión olvidada de otro día no impide abrir la de hoy', function () {
+    $e = escenario();
+    $vieja = sesionAbierta($e);
+    $this->travel(8)->days();
+
+    $nueva = sesionAbierta($e);
+
+    expect(DB::table('attendance_sessions')->where('ulid', $vieja)->value('status'))->toBe('closed')
+        ->and(DB::table('attendance_sessions')->where('ulid', $nueva)->value('status'))->toBe('open');
+});
+
+it('el inicio del docente no ofrece como abierta una sesión de otro día', function () {
+    $e = escenario();
+    $this->travelTo(now()->parse('2026-10-26 07:05'));
+    sesionAbierta($e);
+    $this->travelTo(now()->parse('2026-11-02 07:05'));
+
+    actingAs($e['docente'])->get(route('inicio'))->assertOk()
+        ->assertDontSee('Ver sesión abierta')->assertSee('Abrir asistencia');
+
+    $hoy = sesionAbierta($e);
+    actingAs($e['docente'])->get(route('inicio'))->assertOk()
+        ->assertSee('Ver sesión abierta')->assertSee(route('secciones.asistencia.sesion', ['seccion' => $e['ulid'], 'sesion' => $hoy]), false);
 });
 
 it('CP-RF28-03 registra la asistencia con el código temporal y no deja reutilizarlo', function () {
@@ -414,4 +456,31 @@ it('CP-RF32-02 un cambio de modalidad de otro día, pendiente o de otra sección
     app(AsistenciaService::class)->abrir($e['docente'], $e['seccion'], 10);
 
     expect(DB::table('attendance_sessions')->value('modality'))->toBe('in_person');
+});
+
+it('el Coordinador que también imparte la sección abre la asistencia desde Clases de hoy', function () {
+    $e = escenario();
+    DbContext::system(function () use ($e) {
+        $e['coordinador']->assignRole('docente');
+        DB::table('teaching_assignments')->insert(['section_id' => $e['seccion'], 'teacher_id' => $e['coordinador']->id, 'is_responsible' => false, 'started_at' => '2026-07-01', 'created_at' => now(), 'updated_at' => now()]);
+    });
+    $coordinador = $e['coordinador']->fresh();
+    $this->travelTo(now()->parse('2026-11-02 07:05'));
+
+    actingAs($coordinador)->get(route('inicio'))->assertOk()
+        ->assertSee(route('secciones.asistencia', ['seccion' => $e['ulid']]), false);
+    actingAs($coordinador)->get(route('secciones.asistencia', ['seccion' => $e['ulid']]))->assertOk()
+        ->assertSee('wire:submit="abrir"', false);
+});
+
+it('señala las solicitudes de cancelación por aprobar cuya fecha ya pasó', function () {
+    $e = escenario();
+    actingAs($e['docente']);
+    app(AsistenciaService::class)->solicitarCancelacion($e['docente'], $e['seccion'], now()->addDay()->toDateString(), 'cancellation', 'Fumigación del edificio.');
+    actingAs($e['coordinador']);
+
+    Livewire::test(ClasesCanceladas::class)->assertSee('Fumigación del edificio.')->assertDontSee('Fecha pasada');
+
+    $this->travel(3)->days();
+    Livewire::test(ClasesCanceladas::class)->assertSee('Fecha pasada')->assertSee('Cancelaciones y cambios de modalidad');
 });

@@ -114,4 +114,36 @@ class PerfilService
             'solicitud' => DB::table('device_change_requests')->where('student_id', $usuario->id)->orderByDesc('created_at')->first(['status', 'reason', 'created_at', 'resolved_at']),
         ];
     }
+
+    /**
+     * El navegador y el sistema de un user-agent, en palabras: «Chrome en Windows». Sin reconocerlo, «Navegador
+     * desconocido». En Mi perfil › Sesiones salía el texto crudo («Mozilla/5.0 (Windows NT 10.0…»).
+     */
+    public static function navegador(?string $agente): string
+    {
+        $agente = (string) $agente;
+        $navegador = match (true) {
+            str_contains($agente, 'Edg/') => 'Edge',
+            str_contains($agente, 'OPR/') || str_contains($agente, 'Opera') => 'Opera',
+            str_contains($agente, 'Firefox/') => 'Firefox',
+            str_contains($agente, 'Chrome/') || str_contains($agente, 'CriOS/') => 'Chrome',
+            str_contains($agente, 'Safari/') => 'Safari',
+            default => null,
+        };
+        $sistema = match (true) {
+            str_contains($agente, 'Android') => 'Android',
+            str_contains($agente, 'iPhone') || str_contains($agente, 'iPad') => 'iOS',
+            str_contains($agente, 'Windows') => 'Windows',
+            str_contains($agente, 'Mac OS X') || str_contains($agente, 'Macintosh') => 'macOS',
+            str_contains($agente, 'CrOS') => 'ChromeOS',
+            str_contains($agente, 'Linux') => 'Linux',
+            default => null,
+        };
+
+        return match (true) {
+            $navegador !== null && $sistema !== null => __(':n en :s', ['n' => $navegador, 's' => $sistema]),
+            $navegador !== null => $navegador,
+            default => __('Navegador desconocido'),
+        };
+    }
 }

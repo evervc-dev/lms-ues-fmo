@@ -4,7 +4,7 @@
 --}}
 @props(['seccion'])
 
-<section {{ $attributes->class(['rounded-xl bg-white ring-1 ring-borde']) }}>
+<section {{ $attributes->class(['shrink-0 rounded-xl bg-white ring-1 ring-borde']) }}>
     <div class="flex flex-wrap items-start justify-between gap-4 p-4 sm:p-5">
         <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">

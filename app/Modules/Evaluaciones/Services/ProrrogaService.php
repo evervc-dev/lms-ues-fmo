@@ -55,14 +55,40 @@ class ProrrogaService
         $tipos = array_filter(self::TIPOS, fn (string $tipo) => $this->puede($docente, $seccionId, $actividad, $tipo), ARRAY_FILTER_USE_KEY);
         abort_if($tipos === [], 403);
 
+        $seudonimos = $this->seudonimos($actividad);
+        $orden = array_flip(array_keys($seudonimos));
+        $nombre = fn (object $f) => $seudonimos[(int) $f->matricula] ?? $f->last_name.', '.$f->first_name;
+
         return [
             'datosActividad' => $actividad,
             'prorrogas' => DB::table('assessment_extensions as x')->join('enrollments as e', 'e.id', '=', 'x.enrollment_id')->join('users as u', 'u.id', '=', 'e.student_id')
-                ->where('x.assessment_id', $actividad->id)->orderByDesc('x.until')->get(['x.id', 'x.kind', 'x.until', 'x.reason', 'u.first_name', 'u.last_name']),
+                ->where('x.assessment_id', $actividad->id)->orderByDesc('x.until')->get(['x.id', 'x.kind', 'x.until', 'x.reason', 'e.id as matricula', 'u.first_name', 'u.last_name'])
+                ->each(fn (object $p) => $p->nombre = $nombre($p)),
             'estudiantes' => DB::table('enrollments as e')->join('users as u', 'u.id', '=', 'e.student_id')->where('e.section_id', $seccionId)->where('e.status', 'active')
-                ->orderBy('u.last_name')->orderBy('u.first_name')->get(['e.id', 'u.first_name', 'u.last_name']),
+                ->orderBy('u.last_name')->orderBy('u.first_name')->get(['e.id', 'e.id as matricula', 'u.first_name', 'u.last_name'])
+                ->each(fn (object $e) => $e->nombre = $nombre($e))
+                // Primero los nombres y después los seudónimos en su orden, como en Entregas.
+                ->sortBy(fn (object $e) => isset($orden[(int) $e->id]) ? 1 + $orden[(int) $e->id] : 0)->values(),
             'tipos' => $tipos,
         ];
+    }
+
+    /**
+     * Seudónimos de quienes ya entregaron mientras la calificación es anónima y las notas no se publican (ADR-006):
+     * los mismos «Estudiante N» de Entregas, para que el selector de prórrogas no revele quién entregó qué.
+     *
+     * @return array<int, string> matrícula => seudónimo
+     */
+    private function seudonimos(object $actividad): array
+    {
+        $anonima = DB::table('assessments as a')->leftJoin('grade_items as g', 'g.id', '=', 'a.grade_item_id')->where('a.id', $actividad->id)
+            ->where('a.is_anonymous', true)->where(fn ($q) => $q->whereNull('g.is_published')->orWhere('g.is_published', false))->exists();
+        if (! $anonima) {
+            return [];
+        }
+
+        return DB::table('submissions')->where('assessment_id', $actividad->id)->where('status', 'submitted')->orderBy('submitted_at')->get(['enrollment_id'])
+            ->values()->mapWithKeys(fn (object $s, int $i) => $s->enrollment_id === null ? [] : [(int) $s->enrollment_id => __('Estudiante :n', ['n' => $i + 1])])->all();
     }
 
     /**

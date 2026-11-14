@@ -4,6 +4,7 @@ namespace App\Support;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
@@ -150,11 +151,16 @@ final class Exportacion
         ])] + $datos;
     }
 
-    /** Deja un nombre de archivo sin acentos, espacios ni signos: `PRN115 · 01` → `prn115-01`. */
+    /**
+     * Deja un nombre de archivo sin acentos, espacios ni signos: `PRN115 · 01` → `prn115-01`.
+     *
+     * Translitera con `Str::ascii()` y no con `iconv(…//TRANSLIT)`: la imagen del servidor usa musl, que no
+     * soporta `//TRANSLIT`, y la exportación de Notas terminaba en un error 500.
+     */
     public static function nombre(string $texto): string
     {
         return trim(preg_replace('/-+/', '-', preg_replace('/[^a-z0-9]+/', '-', mb_strtolower(
-            iconv('UTF-8', 'ASCII//TRANSLIT', $texto) ?: $texto
+            Str::ascii($texto)
         ))), '-') ?: 'exportacion';
     }
 }

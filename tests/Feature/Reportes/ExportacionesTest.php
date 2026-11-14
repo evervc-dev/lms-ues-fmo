@@ -152,6 +152,7 @@ it('CP-RF05-08 exporta la auditoría a Excel, sin ofrecer PDF', function () {
 
 it('deja el nombre del archivo sin acentos ni signos', function () {
     expect(Exportacion::nombre('PRN115 · 01 — Programación I'))->toBe('prn115-01-programacion-i')
+        ->and(Exportacion::nombre('Diseño de Sistemas · Niñez y Pingüinos'))->toBe('diseno-de-sistemas-ninez-y-pinguinos')
         ->and(Exportacion::nombre('¿¡!'))->toBe('exportacion');
 });
 
