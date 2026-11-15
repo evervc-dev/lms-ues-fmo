@@ -17,6 +17,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Escenarios de prueba
+    |--------------------------------------------------------------------------
+    |
+    | Preparar un escenario siembra datos y asigna roles, así que en staging no
+    | puede quedar al alcance de cualquiera que abra la URL. Con esta clave
+    | puesta, el wizard la pide una vez por sesión; sin ella, solo un
+    | Administrador con sesión iniciada puede preparar o limpiar escenarios.
+    | Ver la página del escenario (enlaces y checklist) nunca pide clave: el
+    | código del escenario, que es largo y no se adivina, hace de permiso.
+    |
+    */
+
+    'escenarios_clave' => (string) env('LMS_ESCENARIOS_CLAVE', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Área de asistencia de los seeders
     |--------------------------------------------------------------------------
     |

@@ -15,9 +15,15 @@
         @endif
 
         @if (app(\App\Modules\Identidad\Services\AccesoDesarrolloService::class)->habilitado())
-            <x-ui.alert tipo="aviso" titulo="{{ __('Entorno de desarrollo') }}">
-                <a href="{{ route('dev.entrar-como') }}" class="font-medium underline">{{ __('Entrar como…') }}</a>
-                {{ __('un usuario sembrado, sin Google.') }}
+            <x-ui.alert tipo="aviso" titulo="{{ __('Entorno de pruebas') }}">
+                <p>
+                    <a href="{{ route('dev.escenarios') }}" class="font-medium underline">{{ __('Escenarios de prueba') }}</a>
+                    {{ __('— prepare el estado para probar un flujo y obtenga los enlaces y la checklist.') }}
+                </p>
+                <p class="mt-1">
+                    <a href="{{ route('dev.entrar-como') }}" class="font-medium underline">{{ __('Entrar como…') }}</a>
+                    {{ __('un usuario sembrado, sin Google.') }}
+                </p>
             </x-ui.alert>
         @endif
     </div>

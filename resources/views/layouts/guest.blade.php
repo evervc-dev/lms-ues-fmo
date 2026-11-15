@@ -1,6 +1,7 @@
 {{--
-    Layout Invitado: inicio de sesión, «Entrar como…», acceso de emergencia y páginas de error.
-    <x-layouts::guest title="Iniciar sesión">contenido de la tarjeta</x-layouts::guest>
+    Layout Invitado: inicio de sesión, «Entrar como…», escenarios de prueba, acceso de emergencia y
+    páginas de error.
+    <x-layouts::guest title="Iniciar sesión" ancho="md|lg|xl">contenido de la tarjeta</x-layouts::guest>
 --}}
 @props(['title' => null, 'ancho' => 'md'])
 
@@ -17,7 +18,11 @@
         </div>
         <div @class([
             'w-full rounded-2xl bg-white p-6 shadow-sm ring-1 ring-zinc-200 sm:p-8',
-            $ancho === 'lg' ? 'max-w-2xl' : 'max-w-md',
+            match ($ancho) {
+                'xl' => 'max-w-5xl',
+                'lg' => 'max-w-2xl',
+                default => 'max-w-md',
+            },
         ])>
             @if ($title)
                 <h1 class="mb-4 text-xl font-semibold text-zinc-900">{{ $title }}</h1>
