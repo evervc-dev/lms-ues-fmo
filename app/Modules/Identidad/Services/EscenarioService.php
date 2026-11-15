@@ -121,23 +121,37 @@ class EscenarioService
         $correos = array_map(fn (string $due) => "{$due}@ues.edu.sv", array_keys($testers));
         $existentes = DB::table('users')->whereIn('institutional_email', $correos)->pluck('id', 'institutional_email');
 
-        $personas = [];
+        $faltantes = [];
         foreach ($testers as $due => $datos) {
             $correo = "{$due}@ues.edu.sv";
-            $id = $existentes[$correo] ?? null;
 
-            if ($id === null) {
-                $id = DB::table('users')->insertGetId([
+            if (! $existentes->has($correo)) {
+                $faltantes[] = [
                     'institutional_email' => $correo,
                     'first_name' => $datos['nombre'],
                     'last_name' => $datos['apellido'],
                     'is_active' => true,
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
-                ]);
+                ];
             }
+        }
 
-            $personas[] = new Tester((int) $id, $due, $correo, "{$datos['nombre']} {$datos['apellido']}");
+        if ($faltantes !== []) {
+            /*
+             * `users` es una tabla auditada: en PostgreSQL el trigger `fn_audit_row()` rechaza con AC900
+             * cualquier escritura sin actor (ADR-027). Sembrar las cuentas del equipo es trabajo del
+             * sistema, no de la persona que abre el wizard, así que va dentro de `DbContext::system()`.
+             */
+            DbContext::system(fn () => DB::table('users')->insert($faltantes), 'escenario.testers');
+
+            $existentes = DB::table('users')->whereIn('institutional_email', $correos)->pluck('id', 'institutional_email');
+        }
+
+        $personas = [];
+        foreach ($testers as $due => $datos) {
+            $correo = "{$due}@ues.edu.sv";
+            $personas[] = new Tester((int) $existentes[$correo], $due, $correo, "{$datos['nombre']} {$datos['apellido']}");
         }
 
         return collect($personas)->sortBy('nombre')->values();

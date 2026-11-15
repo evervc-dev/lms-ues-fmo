@@ -212,3 +212,22 @@ it('crea las cuentas de los testers del equipo una sola vez', function () {
         ->and($primera->pluck('correo')->every(fn (string $c) => str_ends_with($c, '@ues.edu.sv')))->toBeTrue()
         ->and(DB::table('users')->where('institutional_email', 'vc21033@ues.edu.sv')->count())->toBe(1);
 });
+
+it('siembra las cuentas de los testers con actor del sistema, sin chocar con el trigger de auditoría', function () {
+    baseDeEscenarios();
+
+    // Sin `DbContext`, este insert en `users` muere con AC900: «Escritura en users sin actor».
+    $testers = motor()->testers();
+
+    expect($testers)->toHaveCount(20);
+
+    $registro = DB::table('audit_logs')
+        ->where('entity_type', 'users')
+        ->where('action', 'insert')
+        ->orderByDesc('id')
+        ->first();
+
+    expect($registro)->not->toBeNull()
+        ->and($registro->event_type)->toBe('escenario.testers')
+        ->and($registro->actor_user_id)->toBeNull();
+})->skip(fn () => DB::connection()->getDriverName() !== 'pgsql', 'La auditoría por triggers solo existe en PostgreSQL.');
