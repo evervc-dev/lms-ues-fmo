@@ -2,6 +2,8 @@
 
 use App\Modules\Identidad\Livewire\CrearUsuario;
 use App\Modules\Identidad\Livewire\EntrarComo;
+use App\Modules\Identidad\Livewire\EscenarioDetalle;
+use App\Modules\Identidad\Livewire\Escenarios;
 use App\Modules\Identidad\Livewire\ImportarUsuarios;
 use App\Modules\Identidad\Livewire\Integraciones;
 use App\Modules\Identidad\Livewire\LoteImportacion;
@@ -52,6 +54,14 @@ Route::middleware('guest')->group(function (): void {
         return redirect()->intended(route('inicio'));
     })->name('auth.google.callback');
 });
+
+/*
+ * Escenarios de prueba (solo local y staging). Van fuera de los grupos `guest` y `auth` a propósito: la
+ * página de un escenario se comparte con el grupo y se abre antes o después de iniciar sesión. Los
+ * componentes abortan con 404 si LMS_DEV_LOGIN está apagado o si el entorno es producción.
+ */
+Route::livewire('/dev/escenarios', Escenarios::class)->name('dev.escenarios');
+Route::livewire('/dev/escenarios/{codigo}', EscenarioDetalle::class)->name('dev.escenarios.show');
 
 Route::post('/logout', function (Request $request) {
     Auth::logout();
