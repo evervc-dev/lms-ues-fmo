@@ -211,11 +211,11 @@ class Escenario extends Command
         if ($this->option('todos')) {
             $total = 0;
             foreach ($escenarios->lista('ready') as $escenario) {
-                $filas = $escenarios->limpiar((int) $escenario->id);
-                $this->line("  {$escenario->code}: {$filas} filas borradas.");
-                $total += $filas;
+                $cuenta = $escenarios->limpiar((int) $escenario->id);
+                $this->line("  {$escenario->code}: {$this->resumen($cuenta)}.");
+                $total += $cuenta['borradas'] + $cuenta['retiradas'];
             }
-            $this->info("Listo: {$total} filas borradas.");
+            $this->info("Listo: {$total} filas borradas o retiradas.");
 
             return self::SUCCESS;
         }
@@ -242,10 +242,21 @@ class Escenario extends Command
             return self::FAILURE;
         }
 
-        $filas = $escenarios->limpiar((int) $escenario->id);
-        $this->info("Escenario {$escenario->code} limpiado: {$filas} filas borradas.");
+        $cuenta = $escenarios->limpiar((int) $escenario->id);
+        $this->info("Escenario {$escenario->code} limpiado: {$this->resumen($cuenta)}.");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * El resultado de limpiar, en palabras. Lo retirado y lo conservado es lo que ADR-027 no deja
+     * borrar: matrículas retiradas, cuentas desactivadas y los historiales, las notas y la asistencia.
+     *
+     * @param  array{borradas: int, retiradas: int, conservadas: int}  $cuenta
+     */
+    private function resumen(array $cuenta): string
+    {
+        return "{$cuenta['borradas']} filas borradas, {$cuenta['retiradas']} retiradas y {$cuenta['conservadas']} conservadas";
     }
 
     private function invalida(): int

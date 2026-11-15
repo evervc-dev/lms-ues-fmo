@@ -94,7 +94,14 @@ class EscenarioDetalle extends Component
             return;
         }
 
-        $escenarios->limpiar((int) $this->escenario()->id);
+        $cuenta = $escenarios->limpiar((int) $this->escenario()->id);
+
+        session()->flash('escenarios.limpieza', __('Escenario :codigo limpiado: :borradas filas borradas, :retiradas retiradas y :conservadas conservadas. Lo retirado y lo conservado es lo que la auditoría no deja borrar (ADR-027).', [
+            'codigo' => $this->escenario()->code,
+            'borradas' => $cuenta['borradas'],
+            'retiradas' => $cuenta['retiradas'],
+            'conservadas' => $cuenta['conservadas'],
+        ]));
 
         $this->redirectRoute('dev.escenarios', navigate: true);
     }

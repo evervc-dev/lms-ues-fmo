@@ -16,6 +16,7 @@ use Database\Seeders\Escenarios\Reparto;
 use Database\Seeders\Escenarios\RolesYAjustes;
 use Database\Seeders\Escenarios\SesionVirtualYCalendario;
 use Database\Seeders\Escenarios\Tester;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +59,42 @@ class EscenarioService
         'estudiante' => 'Estudiante',
         'soporte_tecnico' => 'Soporte técnico',
     ];
+
+    /**
+     * Tablas que ADR-027 protege contra `DELETE`: al limpiar no se borran, se retiran.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    private const RETIRAR = [
+        'enrollments' => ['status' => 'withdrawn'],
+        'users' => ['is_active' => false],
+    ];
+
+    /**
+     * Tablas que no se borran ni se cambian: las notas, la asistencia, el período y los historiales
+     * inmutables de ADR-027 se quedan como están y limpiar solo cuenta cuántas filas dejó en su sitio.
+     *
+     * @var array<int, string>
+     */
+    private const CONSERVAR = [
+        'grades',
+        'attendance_records',
+        'academic_periods',
+        'audit_logs',
+        'enrollment_changes',
+        'attendance_scan_attempts',
+        'login_history',
+        'submission_events',
+        'device_events',
+    ];
+
+    /**
+     * Los SQLSTATE que al limpiar significan «esta fila se queda»: la inmutabilidad de ADR-027 (AC902)
+     * y la fila que algo retenido todavía necesita (23503 en PostgreSQL, 23000 en SQLite).
+     *
+     * @var array<int, string>
+     */
+    private const SE_QUEDA = ['AC902', '23503', '23000'];
 
     public function __construct(private CasosDePruebaService $casos) {}
 
@@ -214,17 +251,25 @@ class EscenarioService
     }
 
     /**
-     * Deshace un escenario: borra lo que sembró, al revés de como lo creó, y lo deja marcado.
+     * Deshace un escenario, al revés de como lo creó, y lo deja marcado.
      *
-     * @return int cuántas filas se borraron
+     * No todo se puede borrar: ADR-027 prohíbe el `DELETE` en `users`, `enrollments`, `grades`,
+     * `attendance_records` y `academic_periods`, y vuelve inmutables los historiales. Así que las
+     * matrículas se retiran (`withdrawn`), las cuentas se desactivan, y las notas, la asistencia, el
+     * período y los historiales se quedan. Lo demás sí se borra, salvo la fila que algo retenido
+     * todavía necesita (la sección de una matrícula retirada, por ejemplo), que también se queda.
+     *
+     * @return array{borradas: int, retiradas: int, conservadas: int}
      */
-    public function limpiar(int $escenarioId): int
+    public function limpiar(int $escenarioId): array
     {
         $this->exigirHabilitado();
 
-        return DbContext::system(function () use ($escenarioId): int {
+        return DbContext::system(function () use ($escenarioId): array {
             $objetos = DB::table('test_scenario_objects')->where('scenario_id', $escenarioId)->orderByDesc('id')->get();
             $borradas = 0;
+            $retiradas = 0;
+            $conservadas = 0;
 
             foreach ($objetos as $objeto) {
                 /** @var array<string, mixed> $clave */
@@ -234,7 +279,30 @@ class EscenarioService
                     continue;
                 }
 
-                $borradas += DB::table($objeto->table_name)->where($clave)->delete();
+                $tabla = (string) $objeto->table_name;
+
+                if (in_array($tabla, self::CONSERVAR, true)) {
+                    $conservadas += DB::table($tabla)->where($clave)->count();
+
+                    continue;
+                }
+
+                if (array_key_exists($tabla, self::RETIRAR)) {
+                    $retiradas += DB::table($tabla)->where($clave)->update(self::RETIRAR[$tabla] + ['updated_at' => Carbon::now()]);
+
+                    continue;
+                }
+
+                try {
+                    // Cada borrado va en su propio savepoint: si la fila se queda, el resto de la limpieza sigue.
+                    $borradas += DB::transaction(fn (): int => DB::table($tabla)->where($clave)->delete());
+                } catch (QueryException $excepcion) {
+                    if (! in_array((string) $excepcion->getCode(), self::SE_QUEDA, true)) {
+                        throw $excepcion;
+                    }
+
+                    $conservadas += DB::table($tabla)->where($clave)->count();
+                }
             }
 
             DB::table('test_scenario_objects')->where('scenario_id', $escenarioId)->delete();
@@ -244,7 +312,7 @@ class EscenarioService
                 'updated_at' => Carbon::now(),
             ]);
 
-            return $borradas;
+            return ['borradas' => $borradas, 'retiradas' => $retiradas, 'conservadas' => $conservadas];
         }, 'test_scenario.cleaned');
     }
 

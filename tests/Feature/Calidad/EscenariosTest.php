@@ -160,7 +160,7 @@ it('se puede preparar dos veces el mismo flujo con las mismas personas', functio
         ->and(DB::table('enrollments')->where('student_id', $e['estudiante']->id)->where('status', 'active')->count())->toBe(3);
 });
 
-it('limpiar borra lo del escenario y deja lo demás en pie', function () {
+it('limpiar retira lo que ADR-027 no deja borrar, borra el resto y deja lo demás en pie', function () {
     $e = baseDeEscenarios();
     $antesUsuarios = DB::table('users')->count();
     $antesSecciones = DB::table('sections')->count();
@@ -170,17 +170,22 @@ it('limpiar borra lo del escenario y deja lo demás en pie', function () {
     expect(DB::table('sections')->count())->toBe($antesSecciones + 1)
         ->and(DB::table('users')->count())->toBe($antesUsuarios + 3);
 
-    $borradas = motor()->limpiar($escenario->id);
+    $seccion = (int) DB::table('sections')->orderByDesc('id')->value('id');
+    $cuenta = motor()->limpiar($escenario->id);
 
-    expect($borradas)->toBeGreaterThan(0)
-        ->and(DB::table('sections')->count())->toBe($antesSecciones)
-        ->and(DB::table('users')->count())->toBe($antesUsuarios)
-        ->and(DB::table('assessments')->count())->toBe(0)
+    expect($cuenta['borradas'])->toBeGreaterThan(0)
+        ->and($cuenta['retiradas'])->toBeGreaterThan(0)
+        // Las matrículas no se borran (AC902): quedan retiradas.
+        ->and(DB::table('enrollments')->where('section_id', $seccion)->pluck('status')->unique()->all())->toBe(['withdrawn'])
+        // Las cuentas de relleno tampoco: siguen ahí, desactivadas.
+        ->and(DB::table('users')->count())->toBe($antesUsuarios + 3)
+        ->and(DB::table('users')->where('is_active', false)->count())->toBe(3)
         ->and(DB::table('test_scenarios')->where('id', $escenario->id)->value('status'))->toBe('cleaned')
         ->and(DB::table('test_scenario_objects')->where('scenario_id', $escenario->id)->count())->toBe(0);
 
-    // La persona del equipo sobrevive con su perfil: otro escenario puede estar usándolo.
+    // La persona del equipo sobrevive activa y con su perfil: otro escenario puede estar usándolo.
     expect(DB::table('users')->where('id', $e['docente']->id)->exists())->toBeTrue()
+        ->and((bool) DB::table('users')->where('id', $e['docente']->id)->value('is_active'))->toBeTrue()
         ->and(DB::table('teacher_profiles')->where('user_id', $e['docente']->id)->exists())->toBeTrue();
 });
 

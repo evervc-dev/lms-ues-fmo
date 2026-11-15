@@ -5,6 +5,12 @@
         <a href="{{ route('login') }}" class="font-medium underline" wire:navigate>{{ __('Volver al inicio de sesión') }}</a>
     </x-ui.alert>
 
+    @if (session('escenarios.limpieza'))
+        <x-ui.alert tipo="exito" titulo="{{ __('Escenario limpiado') }}">
+            {{ session('escenarios.limpieza') }}
+        </x-ui.alert>
+    @endif
+
     @if (! $autorizado)
         @if ($pideClave)
             <section class="flex flex-col gap-3">
