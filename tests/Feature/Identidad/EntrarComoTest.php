@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Identidad\Livewire\CambioRapido;
 use App\Modules\Identidad\Livewire\EntrarComo;
 use App\Support\DbContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -84,4 +85,83 @@ it('marca «Ambiente de pruebas» en todas las pantallas mientras «Entrar como�
 
 it('no ofrece la Ayuda en el login, que pide sesión', function () {
     $this->get(route('login'))->assertOk()->assertDontSee(route('ayuda'), false);
+});
+
+/**
+ * Cambio de rol al vuelo (herramienta de desarrollo): reemplaza los roles de la cuenta elegida, los guarda
+ * para restaurarlos y respeta la cuenta de emergencia.
+ */
+it('reemplaza los roles de la cuenta y entra con el rol elegido', function () {
+    config(['lms.dev_login' => true]);
+    $estudiante = usuarioCon('estudiante');
+
+    Livewire::test(EntrarComo::class)
+        ->call('seleccionar', $estudiante->id)
+        ->set('rol', 'docente')
+        ->call('confirmar')
+        ->assertRedirect(route('inicio'));
+
+    $this->assertAuthenticatedAs($estudiante);
+    expect($estudiante->fresh()->roles->pluck('name')->all())->toBe(['docente']);
+});
+
+it('entra sin tocar los roles cuando no se elige ninguno', function () {
+    config(['lms.dev_login' => true]);
+    $estudiante = usuarioCon('estudiante');
+
+    Livewire::test(EntrarComo::class)
+        ->call('seleccionar', $estudiante->id)
+        ->call('confirmar')
+        ->assertRedirect(route('inicio'));
+
+    expect($estudiante->fresh()->roles->pluck('name')->all())->toBe(['estudiante']);
+});
+
+it('restaura los roles que el cambio de rol reemplazó', function () {
+    config(['lms.dev_login' => true]);
+    $usuario = usuarioCon('coordinador', 'docente');
+
+    Livewire::test(EntrarComo::class)->call('seleccionar', $usuario->id)->set('rol', 'estudiante')->call('confirmar');
+    expect($usuario->fresh()->roles->pluck('name')->all())->toBe(['estudiante']);
+
+    Livewire::test(CambioRapido::class)->call('restaurar');
+
+    expect($usuario->fresh()->roles->pluck('name')->sort()->values()->all())->toBe(['coordinador', 'docente']);
+});
+
+it('no cambia los roles de la cuenta de emergencia', function () {
+    config(['lms.dev_login' => true]);
+    $emergencia = usuarioCon('administrador');
+    DbContext::system(fn () => $emergencia->forceFill(['is_emergency' => true])->save());
+
+    Livewire::test(EntrarComo::class)
+        ->call('seleccionar', $emergencia->id)
+        ->set('rol', 'estudiante')
+        ->call('confirmar')
+        ->assertHasErrors('rol');
+
+    expect($emergencia->fresh()->roles->pluck('name')->all())->toBe(['administrador']);
+    $this->assertGuest();
+});
+
+it('no permite el cambio de rol con el inicio de sesión de desarrollo apagado', function () {
+    config(['lms.dev_login' => true]);
+    $estudiante = usuarioCon('estudiante');
+    $componente = Livewire::test(EntrarComo::class)->call('seleccionar', $estudiante->id)->set('rol', 'docente');
+
+    config(['lms.dev_login' => false]);
+    $componente->call('confirmar')->assertNotFound();
+
+    expect($estudiante->fresh()->roles->pluck('name')->all())->toBe(['estudiante']);
+    $this->assertGuest();
+});
+
+it('ofrece «Entrar como…» en el menú de usuario solo en desarrollo', function () {
+    $e = escenario();
+
+    config(['lms.dev_login' => true]);
+    $this->actingAs($e['docente'])->get(route('inicio'))->assertOk()->assertSeeText('Entrar como…');
+
+    config(['lms.dev_login' => false]);
+    $this->actingAs($e['docente'])->get(route('inicio'))->assertOk()->assertDontSeeText('Entrar como…');
 });

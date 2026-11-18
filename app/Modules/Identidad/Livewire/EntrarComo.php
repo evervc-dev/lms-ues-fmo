@@ -2,6 +2,7 @@
 
 namespace App\Modules\Identidad\Livewire;
 
+use App\Modules\Identidad\Livewire\Concerns\ConCambioDeRol;
 use App\Modules\Identidad\Services\AccesoDesarrolloService;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -12,13 +13,16 @@ use Livewire\Component;
 #[Title('Entrar como…')]
 class EntrarComo extends Component
 {
-    public string $buscar = '';
+    use ConCambioDeRol;
 
     public function mount(AccesoDesarrolloService $acceso): void
     {
         abort_unless($acceso->habilitado(), 404);
     }
 
+    /**
+     * Las cuentas de desarrollo ya son una por rol: entran directo, sin preguntar el rol.
+     */
     public function entrar(int $usuario, AccesoDesarrolloService $acceso): void
     {
         $acceso->entrarComo($usuario);
@@ -31,6 +35,8 @@ class EntrarComo extends Component
         return view('modules.identidad.entrar-como', [
             'cuentas' => $acceso->cuentasDeDesarrollo(),
             'resultados' => $acceso->buscar($this->buscar),
+            'elegida' => $this->cuentaElegida(),
+            'roles' => $acceso->rolesDisponibles(),
         ]);
     }
 }

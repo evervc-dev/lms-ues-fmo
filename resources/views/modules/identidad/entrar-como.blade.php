@@ -22,17 +22,28 @@
     </section>
 
     <section class="flex flex-col gap-3">
-        <x-ui.field etiqueta="{{ __('Otro usuario') }}" para="buscar" ayuda="{{ __('Busque por correo o nombre (mínimo 2 letras).') }}">
+        <x-ui.field etiqueta="{{ __('Otro usuario') }}" para="buscar" ayuda="{{ __('Busque por correo o nombre (mínimo 2 letras). Al elegir una cuenta podrá entrar con otro rol.') }}">
             <x-ui.input id="buscar" type="search" wire:model.live.debounce.300ms="buscar" placeholder="ej. gs21004" />
         </x-ui.field>
         @foreach ($resultados as $resultado)
             <div wire:key="resultado-{{ $resultado->id }}" class="flex items-center justify-between gap-3 rounded-lg px-3 py-2 ring-1 ring-zinc-200">
                 <div class="min-w-0">
                     <p class="truncate text-sm font-medium text-zinc-900">{{ $resultado->fullName() }}</p>
-                    <p class="truncate text-xs text-zinc-500">{{ $resultado->institutional_email }} · {{ $resultado->roles->map(fn ($rol) => __('roles.'.$rol->name))->join(', ') }}</p>
+                    <p class="truncate text-xs text-zinc-500">{{ $resultado->institutional_email }} · {{ $resultado->roles->map(fn ($rol) => __('roles.'.$rol->name))->join(', ') ?: __('Sin rol') }}</p>
                 </div>
-                <x-ui.button tamano="sm" variante="fantasma" wire:click="entrar({{ $resultado->id }})" wire:confirm="{{ __('¿Entrar como :n? Todo lo que haga quedará registrado a su nombre en la auditoría.', ['n' => $resultado->fullName()]) }}">{{ __('Entrar') }}</x-ui.button>
+                <x-ui.button tamano="sm" variante="fantasma" wire:click="seleccionar({{ $resultado->id }})">{{ __('Entrar…') }}</x-ui.button>
             </div>
         @endforeach
     </section>
+
+    <x-ui.modal :nombre="\App\Modules\Identidad\Livewire\EntrarComo::MODAL" :titulo="__('Entrar como…')">
+        @if ($elegida)
+            @include('modules.identidad.partials.cambio-de-rol', ['cuenta' => $elegida, 'roles' => $roles])
+        @endif
+
+        <x-slot:pie>
+            <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', '{{ \App\Modules\Identidad\Livewire\EntrarComo::MODAL }}')">{{ __('Cancelar') }}</x-ui.button>
+            <x-ui.button wire:click="confirmar" :disabled="! $elegida">{{ __('Entrar') }}</x-ui.button>
+        </x-slot:pie>
+    </x-ui.modal>
 </div>

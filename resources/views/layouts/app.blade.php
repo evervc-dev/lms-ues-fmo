@@ -101,6 +101,9 @@
                         </div>
                         <x-ui.dropdown.item :href="route('perfil')" icono="user-circle">{{ __('Mi perfil') }}</x-ui.dropdown.item>
                         <x-ui.dropdown.item :href="route('ayuda')" icono="question-mark-circle">{{ __('Ayuda') }}</x-ui.dropdown.item>
+                        @if (app(\App\Modules\Identidad\Services\AccesoDesarrolloService::class)->habilitado())
+                            <x-ui.dropdown.item icono="arrows-right-left" x-on:click="$dispatch('abrir-modal', '{{ \App\Modules\Identidad\Livewire\CambioRapido::MODAL }}')">{{ __('Entrar como…') }}</x-ui.dropdown.item>
+                        @endif
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-ui.dropdown.item type="submit" icono="arrow-right-start-on-rectangle">{{ __('Cerrar sesión') }}</x-ui.dropdown.item>
@@ -232,6 +235,12 @@
                     </footer>
                 </div>
             </div>
+        @endif
+
+        {{-- El modal de «Entrar como…» del menú de usuario va en la raíz: dentro del desplegable se cerraría con él,
+             y dentro del <header> quedaría atrapado en su contexto de apilamiento. --}}
+        @if (app(\App\Modules\Identidad\Services\AccesoDesarrolloService::class)->habilitado())
+            <livewire:identidad.cambio-rapido />
         @endif
 
         <x-ui.toasts />

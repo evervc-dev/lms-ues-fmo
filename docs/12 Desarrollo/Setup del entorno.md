@@ -159,6 +159,14 @@ Con `LMS_DEV_LOGIN=true` aparece **«Entrar como…»** para elegir un usuario s
 | `estudiante.dev@ues.edu.sv` | Estudiante, ciclo 5, carné DE26001 | 5 materias, notas, alertas y notificaciones |
 | `soporte.dev@ues.edu.sv` | Soporte técnico | Solicitudes de cambio de teléfono |
 
+### Cambio de rol al vuelo
+En el buscador de «Otro usuario» el botón **Entrar…** abre un modal que pregunta con qué rol entrar; la misma pantalla está dentro de la aplicación, en el **menú de usuario › Entrar como…**, para no volver al login.
+
+- «Dejar sus roles actuales» entra sin tocar la cuenta. Al elegir un rol se **reemplazan** los roles de esa cuenta por ese único rol (`syncRoles`), sin pasar por `UsuarioService` ni por la jerarquía de [[ADR-037 Jerarquía de creación y asignación de roles]].
+- **No crea asignaciones**: con Docente, Coordinador o Jefe la cuenta puede quedar sin secciones, carrera ni departamento, así que verá las pantallas de ese rol vacías.
+- Los roles originales se guardan en la sesión del navegador; **menú de usuario › Entrar como… › Restaurar sus roles** se los devuelve. Si cierra la sesión antes de restaurar, la cuenta se queda con el rol que le puso.
+- La cuenta de emergencia ([[ADR-007 Inicio de sesión con Google]]) no admite el cambio. Los dos cambios quedan en la auditoría como `user.dev_roles_replaced` y `user.dev_roles_restored`.
+
 ## Google Calendar (RF21)
 Usa el mismo cliente OAuth del inicio de sesión ([[ADR-018 Calendar con OAuth del docente]]). En la consola de Google Cloud: habilite la **Google Calendar API** y agregue la URI de redirección `${APP_URL}/perfil/google-calendar/callback`; si la pantalla de consentimiento es «Externa» en modo de prueba, agregue a los docentes como usuarios de prueba. En el `.env`:
 
