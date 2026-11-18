@@ -168,8 +168,11 @@ class CalificacionService
      */
     public function estructura(int $seccionId): Collection
     {
-        $items = DB::table('grade_items')->leftJoin('units', 'units.id', '=', 'grade_items.unit_id')->where('grade_items.section_id', $seccionId)
-            ->orderBy('grade_items.id')->get(['grade_items.*', 'units.title as unidad']);
+        // El ulid de la actividad viene para poder enlazarla desde la boleta (la tarea o el examen que la originó).
+        $items = DB::table('grade_items')->leftJoin('units', 'units.id', '=', 'grade_items.unit_id')
+            ->leftJoin('assessments as act', 'act.grade_item_id', '=', 'grade_items.id')
+            ->where('grade_items.section_id', $seccionId)
+            ->orderBy('grade_items.id')->get(['grade_items.*', 'units.title as unidad', 'act.ulid as actividad_ulid']);
 
         return DB::table('grading_components')->where('section_id', $seccionId)->orderBy('number')->get()
             ->each(fn ($c) => $c->items = $items->where('component_id', $c->id)->values());
@@ -278,7 +281,26 @@ class CalificacionService
                 $m->final = $b['final'];
                 $m->computos = $b['computos']->map(fn ($c) => (object) ['nombre' => $c->name, 'peso' => (float) $c->weight_percent,
                     'nota' => $this->notaComputo($c, $b['notas'], true, $b['heredadas']),
+                    'pendiente' => $this->computoPendiente($c, $b['notas'], $b['heredadas']),
                     'heredadoDe' => $b['heredadas']->get((int) $c->number)?->grupo]);
+                // Actividad por actividad, para ver qué puso el docente sin entrar a cada tarea (QA 17/11).
+                /** @var array<int, object> $actividades */
+                $actividades = [];
+                foreach ($b['computos'] as $c) {
+                    foreach ($c->items as $i) {
+                        if (! (bool) $i->is_published) {
+                            continue;
+                        }
+                        $actividades[] = (object) [
+                            'titulo' => $i->title,
+                            'computo' => $c->name,
+                            'tipo' => $i->item_type,
+                            'ulid' => $i->actividad_ulid ?? null,
+                            'nota' => isset($b['notas'][$i->id]) ? (float) $b['notas'][$i->id]->score : null,
+                        ];
+                    }
+                }
+                $m->actividades = collect($actividades);
 
                 return $m;
             });
@@ -623,9 +645,37 @@ class CalificacionService
      */
     public function notaFinal(Collection $computos, Collection $notas, bool $soloPublicadas, ?Collection $cadena = null): float
     {
-        $pesos = $computos->sum(fn ($c) => (float) $c->weight_percent) ?: 100;
+        /*
+         * Acumulada (período abierto): solo entra lo calificado. Un cómputo sin ninguna nota publicada queda
+         * «Pendiente» y no se promedia, igual que dentro de un cómputo no se promedia la actividad sin nota.
+         * Antes contaba como 0 y hundía la acumulada, que es lo que no cuadraba (QA 17/11).
+         * Al cerrar (soloPublicadas = false) cuentan todos los cómputos y lo que falte vale 0.
+         */
+        $cuentan = $soloPublicadas
+            ? $computos->reject(fn ($c) => $this->computoPendiente($c, $notas, $cadena))
+            : $computos;
 
-        return self::redondear($computos->sum(fn ($c) => (float) $c->weight_percent * $this->notaComputo($c, $notas, $soloPublicadas, $cadena)) / $pesos);
+        $pesos = $cuentan->sum(fn ($c) => (float) $c->weight_percent) ?: 100;
+
+        return self::redondear($cuentan->sum(fn ($c) => (float) $c->weight_percent * $this->notaComputo($c, $notas, $soloPublicadas, $cadena)) / $pesos);
+    }
+
+    /**
+     * ¿El cómputo no tiene todavía ninguna nota publicada (ni heredada)? Entonces no se muestra como 0: se
+     * muestra «Pendiente» y no entra en la acumulada.
+     *
+     * @template TNota of object
+     *
+     * @param  Collection<int|string, TNota>  $notas
+     */
+    public function computoPendiente(object $computo, Collection $notas, ?Collection $cadena = null): bool
+    {
+        if ($cadena?->get((int) $computo->number) !== null && ! self::tieneNotasDelComputo($computo, $notas)) {
+            return false;
+        }
+
+        return collect($computo->items)->filter(fn ($i) => (bool) $i->is_published)
+            ->sum(fn ($i) => (float) $i->weight_percent) <= 0;
     }
 
     /**

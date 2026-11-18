@@ -16,7 +16,15 @@
         'envioFallo' => __('No se pudo enviar al servidor.'),
     ]), @js((bool) config('app.debug')))"
     x-on:dispositivo-registrado.window="guardarToken($event.detail.token)">
-    <x-ui.encabezado :titulo="__('Registro de asistencia')" :subtitulo="__('Escanee el QR que proyecta su docente o ingrese el código temporal que le dictó.')" />
+    <x-ui.encabezado :titulo="__('Registro de asistencia')" :subtitulo="$yaRegistrada ? __('Su asistencia de esta clase ya quedó registrada.') : __('Escanee el QR que proyecta su docente o ingrese el código temporal que le dictó.')" />
+
+    {{-- Ya marcó en la sesión abierta: no se ofrece el lector ni el código (QA 17/11). --}}
+    @if ($yaRegistrada)
+        <x-ui.alert tipo="exito" :titulo="__('Asistencia registrada')">
+            {{ $yaRegistrada->code }} · {{ $yaRegistrada->name }} · {{ \Illuminate\Support\Carbon::parse($yaRegistrada->hora)->timezone('America/El_Salvador')->format('H:i') }}
+        </x-ui.alert>
+        <x-ui.button variante="secundario" :href="route('mi-asistencia')">{{ __('Ver mi asistencia') }}</x-ui.button>
+    @else
 
     <div class="relative flex aspect-square flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl bg-marca-950 p-6 text-center text-white">
         <video id="lector-qr-video" x-ref="video" x-show="estado === 'leyendo'" x-cloak muted playsinline class="absolute inset-0 size-full object-cover"></video>
@@ -108,4 +116,5 @@
         </form>
         <p class="mt-2 text-xs text-texto-suave">{{ __('El código vence a los 30 segundos y solo sirve para usted.') }}</p>
     </x-ui.card>
+    @endif
 </div>

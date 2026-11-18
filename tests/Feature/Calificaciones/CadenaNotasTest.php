@@ -141,8 +141,9 @@ it('CP-RF09-08 la nota del grupo nuevo manda sobre la heredada en cuanto el doce
     $computo1 = $boleta['computos']->firstWhere('number', 1);
     expect($boleta['heredadas']->has(1))->toBeFalse()
         ->and(cadenaServicio()->notaComputo($computo1, $boleta['notas'], true, $boleta['heredadas']))->toEqual(5.0)
-        // Con la heredada (8.0) la final sería 4.0; manda la del grupo nuevo: (50 × 5 + 50 × 0) / 100.
-        ->and($boleta['final'])->toEqual(2.5)
+        // Con la heredada (8.0) la acumulada sería 8.0; manda la del grupo nuevo. El cómputo 2 está pendiente,
+        // así que no se promedia: la acumulada es la del cómputo 1 (ADR-065 · QA 17/11).
+        ->and($boleta['final'])->toEqual(5.0)
         // La cadena cruda sigue trayendo el cómputo: lo que desaparece es la herencia efectiva.
         ->and(cadenaServicio()->notasDeCadena($nueva)->get(1)->nota)->toEqual(8.0);
 
@@ -169,7 +170,8 @@ it('CP-RF09-08 una nota en borrador del grupo anterior no se hereda; publicarla 
     $boleta = cadenaServicio()->boleta($e['estudiante'], $dos);
     expect($boleta['heredadas']->get(1)->nota)->toEqual(8.0)
         ->and($boleta['heredadas']->get(1)->grupo)->toBe('01')
-        ->and($boleta['final'])->toEqual(4.0);
+        // Solo el cómputo 1 tiene nota (heredada): el 2 está pendiente y no se promedia.
+        ->and($boleta['final'])->toEqual(8.0);
 });
 
 it('CP-RF09-08 sin cambio de grupo la cadena está vacía y la nota final es la de siempre', function () {
@@ -202,14 +204,14 @@ it('CP-RF09-08 con dos cambios de grupo hereda del grupo más reciente que tenga
     expect(cadenaServicio()->cadena($enTres)->pluck('grupo')->all())->toBe(['02', '01'])
         ->and(cadenaServicio()->boleta($e['estudiante'], $tres)['heredadas']->get(1))
         ->nota->toEqual(8.0)->grupo->toBe('01')
-        ->and(cadenaServicio()->boleta($e['estudiante'], $tres)['final'])->toEqual(4.0);
+        ->and(cadenaServicio()->boleta($e['estudiante'], $tres)['final'])->toEqual(8.0);
 
     // El docente del grupo 02 califica el cómputo 1 que allí había quedado sin nota: pasa a ser el más reciente.
     cadenaNota($e, $delDos[1], $enDos, 4);
 
     $boleta = cadenaServicio()->boleta($e['estudiante'], $tres);
     expect($boleta['heredadas']->get(1))->nota->toEqual(4.0)->grupo->toBe('02')
-        ->and($boleta['final'])->toEqual(2.0);
+        ->and($boleta['final'])->toEqual(4.0);
 });
 
 it('CP-RF09-08 CP-RF34-08 congela la nota final con la herencia y anota en el policy_snapshot de qué grupo viene', function () {

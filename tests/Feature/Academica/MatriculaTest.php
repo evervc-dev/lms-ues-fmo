@@ -419,7 +419,8 @@ it('CP-RF09-08 el cambio aprobado hereda el cómputo publicado, deja el historia
     $boleta = app(CalificacionService::class)->boleta($e['estudiante'], $dos);
     expect($boleta['heredadas']->get(1))->nota->toEqual(8.0)->grupo->toBe('01')->seccion_id->toBe($e['seccion'])->matricula_id->toBe($e['matricula'])
         ->and(app(CalificacionService::class)->notaComputo($boleta['computos']->firstWhere('number', 1), $boleta['notas'], true, $boleta['heredadas']))->toEqual(8.0)
-        ->and($boleta['final'])->toEqual(4.0);
+        // Acumulada: el cómputo 2 todavía no tiene notas, queda pendiente y no se promedia (QA 17/11).
+        ->and($boleta['final'])->toEqual(8.0);
 
     // 2. El historial: la matrícula vieja queda trasladada y enlazada con la nueva.
     $vieja = DB::table('enrollments')->where('id', $e['matricula'])->first();

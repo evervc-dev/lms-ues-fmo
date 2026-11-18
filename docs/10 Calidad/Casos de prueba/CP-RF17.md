@@ -26,5 +26,6 @@ Casos derivados de los criterios de aceptación de [[RF17]]. Nivel: **feature**.
 | CP-RF17-10 | **Dado** una evaluación con calificación anónima, **entonces** los nombres se revelan al publicar las notas. | automatizado |
 | CP-RF17-11 | **Dado** el cierre del período, **entonces** las notas pasan por el acta de la sección ([[RF34]]). | automatizado |
 | CP-RF17-12 | **Dado** el libro de calificaciones, **cuando** se exporta, **entonces** sale en Excel, PDF y CSV, con una columna por actividad y la nota final; el estudiante matriculado recibe 403 ([[ADR-049 Exportación a Excel y PDF]]). | pasa |
+| CP-RF17-13 | **Dado** el período abierto y un cómputo sin ninguna nota publicada, **cuando** el estudiante ve su boleta, **entonces** ese cómputo sale «Pendiente» y no entra en la nota acumulada; al cerrar, cuenta como 0. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF17-01 …')`.

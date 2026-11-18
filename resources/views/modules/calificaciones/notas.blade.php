@@ -5,7 +5,7 @@
 
     @if ($esEstudiante)
         <div class="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-            <x-ui.card :titulo="__('Mi boleta')" :descripcion="__('Solo cuentan las notas publicadas. Las actividades sin nota cuentan como 0.')">
+            <x-ui.card :titulo="__('Mi boleta')" :descripcion="__('Nota acumulada con lo calificado hasta hoy: lo que aún no tiene nota no se promedia. Al cerrar el período, lo que quede sin nota contará como 0.')">
                 @foreach ($boleta['computos'] as $c)
                     {{-- Un cómputo sin notas en este grupo conserva el del grupo anterior (ADR-062). --}}
                     @php($heredado = $boleta['heredadas'][(int) $c->number] ?? null)
@@ -13,7 +13,9 @@
                         <div class="mb-2 flex items-center justify-between gap-2 text-sm font-semibold">
                             <span>{{ $c->name }} · {{ rtrim(rtrim(number_format((float) $c->weight_percent, 2, '.', ''), '0'), '.') }} %
                                 @if ($heredado)<x-ui.badge color="azul">{{ __('del grupo :g', ['g' => $heredado->grupo]) }}</x-ui.badge>@endif</span>
-                            <span>{{ $fmt($servicio->notaComputo($c, $boleta['notas'], true, $boleta['heredadas'])) }}</span>
+                            {{-- Sin ninguna nota publicada el cómputo está «Pendiente»: no es un cero. --}}
+                            @php($pendiente = $servicio->computoPendiente($c, $boleta['notas'], $boleta['heredadas']))
+                            <span @class(['text-texto-suave' => $pendiente])>{{ $pendiente ? __('Pendiente') : $fmt($servicio->notaComputo($c, $boleta['notas'], true, $boleta['heredadas'])) }}</span>
                         </div>
                         @if ($heredado)
                             <p class="text-xs text-texto-suave">{{ __('Esta nota la trae del grupo :g, donde cursó este cómputo antes del cambio de grupo.', ['g' => $heredado->grupo]) }}</p>
@@ -54,7 +56,7 @@
                 <a href="{{ route('secciones.pesos', ['seccion' => $seccion]) }}" wire:navigate class="mt-2 inline-block font-semibold underline hover:no-underline">{{ __('Ajustar los pesos') }}</a>
             </x-ui.alert>
         @endif
-        <x-ui.card :titulo="__('Libro de calificaciones')" :descripcion="$libro['cerrado'] ? __('Período cerrado: solo el Coordinador corrige, con motivo.') : __('Nota acumulada = suma de los cómputos según su peso, con lo calificado hasta hoy; sin nota cuenta 0. Es la final al cerrar el período.')">
+        <x-ui.card :titulo="__('Libro de calificaciones')" :descripcion="$libro['cerrado'] ? __('Período cerrado: solo el Coordinador corrige, con motivo.') : __('Nota acumulada = los cómputos ya calificados, según su peso. Lo que aún no tiene nota no se promedia; al cerrar el período contará como 0.')">
             <x-slot:acciones>
                 @if ($puedeMensajear)
                     <x-ui.button tamano="sm" variante="secundario" :href="route('secciones.mensajes', ['seccion' => $seccion])">{{ __('Mensajes enviados') }}</x-ui.button>

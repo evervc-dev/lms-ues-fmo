@@ -64,7 +64,11 @@
 
                     <x-ui.card :titulo="__('Próximas videoconferencias')">
                         @forelse ($b['clasesVirtuales'] as $v)
-                            <p class="py-1 text-sm">{{ $v->code }} · {{ $v->topic }} <span class="text-texto-suave">{{ $fecha($v->starts_at)->format('d/m H:i') }}</span></p>
+                            {{-- El enlace de Meet ya venía en la consulta y no se pintaba: el estudiante no podía entrar. --}}
+                            <p class="flex items-center justify-between gap-2 py-1 text-sm">
+                                <span>{{ $v->code }} · {{ $v->topic }} <span class="text-texto-suave">{{ $fecha($v->starts_at)->format('d/m H:i') }}</span></span>
+                                @if ($v->meet_url)<a href="{{ $v->meet_url }}" target="_blank" rel="noopener" class="shrink-0 font-medium text-marca-700 hover:underline">{{ __('Unirse') }}</a>@endif
+                            </p>
                         @empty
                             <p class="text-sm text-texto-suave">{{ __('No hay clases virtuales programadas.') }}</p>
                         @endforelse

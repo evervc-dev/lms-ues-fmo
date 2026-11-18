@@ -15,13 +15,37 @@
                     </div>
                     <dl class="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
                         {{-- Un cómputo sin notas en el grupo nuevo conserva el del grupo anterior (ADR-062). --}}
-                        @foreach ($m->computos as $c)<div class="rounded-lg bg-zinc-50 p-2"><dt class="text-texto-suave">{{ $c->nombre }} · {{ rtrim(rtrim(number_format($c->peso, 2), '0'), '.') }} %</dt><dd class="text-sm font-semibold">{{ $fmt($c->nota) }}</dd>
+                        @foreach ($m->computos as $c)<div class="rounded-lg bg-zinc-50 p-2"><dt class="text-texto-suave">{{ $c->nombre }} · {{ rtrim(rtrim(number_format($c->peso, 2), '0'), '.') }} %</dt><dd @class(['text-sm font-semibold', 'font-normal text-texto-suave' => $c->pendiente])>{{ $c->pendiente ? __('Pendiente') : $fmt($c->nota) }}</dd>
                             @if ($c->heredadoDe)<dd class="mt-1"><x-ui.badge color="azul" :title="__('Esta nota la trae de su grupo anterior.')">{{ __('del grupo :g', ['g' => $c->heredadoDe]) }}</x-ui.badge></dd>@endif
                         </div>@endforeach
                     </dl>
                 </a>
             @endforeach
         </div>
+
+        {{-- Actividad por actividad: qué puso el docente y dónde ver su retroalimentación (QA 17/11). --}}
+        <x-ui.card :titulo="__('Notas por actividad')" :descripcion="__('Cada nota publicada en el período. Abra una actividad para ver su retroalimentación y su rúbrica.')">
+            <x-ui.table :vacio="__('Todavía no le han publicado ninguna nota.')">
+                <x-slot:cabecera><th>{{ __('Asignatura') }}</th><th>{{ __('Actividad') }}</th><th>{{ __('Cómputo') }}</th><th class="text-right">{{ __('Nota') }}</th></x-slot:cabecera>
+                @foreach ($materias as $m)
+                    @foreach ($m->actividades as $a)
+                        <tr wire:key="act-{{ $m->seccion_id }}-{{ $loop->index }}">
+                            <td class="text-texto-suave">{{ $m->code }}</td>
+                            <td>
+                                @php([$ruta, $parametro] = $a->tipo === 'quiz' ? ['secciones.cuestionarios.show', 'cuestionario'] : ['secciones.tareas.show', 'tarea'])
+                                @if ($a->ulid)
+                                    <a href="{{ route($ruta, ['seccion' => $m->ulid, $parametro => $a->ulid]) }}" wire:navigate class="text-marca-700 hover:underline">{{ $a->titulo }}</a>
+                                @else
+                                    {{ $a->titulo }}
+                                @endif
+                            </td>
+                            <td class="text-texto-suave">{{ $a->computo }}</td>
+                            <td @class(['text-right font-semibold', 'text-emerald-700' => $a->nota !== null && $a->nota >= $minima, 'text-red-700' => $a->nota !== null && $a->nota < $minima])>{{ $a->nota === null ? '—' : $fmt($a->nota) }}</td>
+                        </tr>
+                    @endforeach
+                @endforeach
+            </x-ui.table>
+        </x-ui.card>
     @endif
 
     <x-ui.card :titulo="__('Historial')" :descripcion="__('Notas finales de los períodos cerrados.')">

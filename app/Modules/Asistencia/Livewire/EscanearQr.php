@@ -6,6 +6,7 @@ use App\Modules\Asistencia\Services\AsistenciaQrService;
 use App\Modules\Asistencia\Services\AsistenciaService;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -87,6 +88,28 @@ class EscanearQr extends Component
 
     public function render(): View
     {
-        return $this->pagina('modules.asistencia.escanear');
+        return $this->pagina('modules.asistencia.escanear', ['yaRegistrada' => $this->yaRegistrada()]);
+    }
+
+    /**
+     * La asistencia que ya tiene registrada en la sesión abierta de alguna de sus secciones, si la hay. Mientras
+     * exista, no se ofrece volver a marcar: antes la pantalla seguía mostrando el lector y el código (QA 17/11).
+     *
+     * @return object{code: string, name: string, hora: string}|null
+     */
+    private function yaRegistrada(): ?object
+    {
+        /** @var object{code: string, name: string, hora: string}|null $fila */
+        $fila = DB::table('attendance_records as r')
+            ->join('attendance_sessions as a', 'a.id', '=', 'r.session_id')
+            ->join('enrollments as e', 'e.id', '=', 'r.enrollment_id')
+            ->join('sections as s', 's.id', '=', 'a.section_id')
+            ->join('subjects as m', 'm.id', '=', 's.subject_id')
+            ->where('e.student_id', auth()->id())
+            ->tap(fn ($q) => AsistenciaService::soloVigentes($q, 'a'))
+            ->orderByDesc('a.opened_at')
+            ->first(['m.code', 'm.name', 'r.recorded_at as hora']);
+
+        return $fila;
     }
 }

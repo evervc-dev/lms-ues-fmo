@@ -189,10 +189,13 @@ class PanelService
      */
     private function sesionAbierta(User $u): ?object
     {
+        // Si ya marcó en esa sesión, el aviso desaparece: seguía invitando a marcar después de hacerlo (QA 17/11).
         return DB::table('attendance_sessions as a')->join('enrollments as e', 'e.section_id', '=', 'a.section_id')
             ->join('sections as s', 's.id', '=', 'a.section_id')->join('subjects as m', 'm.id', '=', 's.subject_id')
             ->where('e.student_id', $u->id)->where('e.status', 'active')
             ->tap(fn ($q) => AsistenciaService::soloVigentes($q, 'a'))
+            ->whereNotExists(fn ($q) => $q->from('attendance_records as r')
+                ->whereColumn('r.session_id', 'a.id')->whereColumn('r.enrollment_id', 'e.id'))
             ->orderByDesc('a.opened_at')
             ->first(['m.code', 'm.name', 's.ulid as seccion']);
     }

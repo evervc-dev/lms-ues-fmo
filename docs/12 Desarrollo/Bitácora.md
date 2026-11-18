@@ -18,6 +18,20 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-18 · RF17, RF20, RF21 · Nota acumulada, asistencia ya marcada y enlace de Meet
+- **Autor:** IA (Claude Code), a pedido del usuario
+- **OpenProject:** OP# pendiente · **PR:** → test
+- **Hecho:** segunda tanda del informe de QA del 17/11 (lo que va después de «parte 2»). La nota acumulada
+  deja de hundirse con los cómputos sin calificar: mientras el período está abierto solo se promedia lo
+  calificado, en los dos niveles, y un cómputo sin notas sale «Pendiente». «Mis notas» gana una tabla de
+  notas por actividad, con enlace a cada tarea o examen. El aviso de asistencia abierta y la pantalla de
+  escaneo desaparecen una vez marcada la asistencia. El inicio del estudiante ya ofrece el enlace de la
+  próxima clase virtual, que venía en la consulta y no se pintaba.
+- **CP cubiertos:** CP-RF17-13 (nuevo).
+- **Decisiones:** la regla «nota faltante = 0» se aplica **al cerrar**, no a la acumulada del período abierto
+  (decisión del usuario del 18/11/2026, anotada en [[RF17]]).
+- **Pendiente:** nada de esta tanda; sigue fuera el `token_expired` del QR.
+
 ### 2026-11-18 · RF15, RF35 · Rúbrica sin niveles y correcciones de QA
 - **Autor:** IA (Claude Code), a pedido del usuario
 - **OpenProject:** OP#429 · **PR:** → test

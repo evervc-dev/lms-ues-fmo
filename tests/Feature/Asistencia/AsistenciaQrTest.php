@@ -790,3 +790,21 @@ it('CP-RF20-02 la proyección tiene una salida a la sesión, abierta o cerrada',
     Livewire::actingAs($e['docente'])->test(ProyectarQr::class, ['seccion' => $e['ulid'], 'sesion' => $e['sesion']])
         ->assertSee(__('La sesión de asistencia está cerrada'))->assertSeeHtml($volver);
 });
+
+it('con la asistencia ya registrada la pantalla no vuelve a ofrecer el lector ni el código', function () {
+    $e = escenario();
+    $e['sesion'] = abrirSesionQr($e);
+    actingAs($e['estudiante']);
+
+    // Antes de marcar: se ofrece escanear y el código temporal.
+    Livewire::test(EscanearQr::class)->assertSee('Escanear QR')->assertSee('Ingresar código temporal');
+
+    DbContext::system(fn () => DB::table('attendance_records')->insert([
+        'session_id' => DB::table('attendance_sessions')->value('id'), 'section_id' => $e['seccion'], 'enrollment_id' => $e['matricula'],
+        'status' => 'present', 'method' => 'qr', 'recorded_at' => now(), 'created_at' => now(), 'updated_at' => now()]));
+
+    Livewire::test(EscanearQr::class)
+        ->assertSee('Su asistencia de esta clase ya quedó registrada.')
+        ->assertDontSee('Escanear QR')
+        ->assertDontSee('Ingresar código temporal');
+});

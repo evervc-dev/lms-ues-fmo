@@ -109,6 +109,13 @@ it('anuncia la sesión de asistencia abierta de una de sus materias', function (
         'opened_at' => now(), 'qr_validity_minutes' => 10, 'created_at' => now(), 'updated_at' => now()]));
 
     expect(panelDelEstudiante($e)['sesionAbierta']->code)->toBe('PRN115');
+
+    // Una vez marcada, el aviso desaparece: seguía invitando a marcar después de hacerlo (QA 17/11).
+    $sesion = (int) DB::table('attendance_sessions')->value('id');
+    DbContext::system(fn () => DB::table('attendance_records')->insert(['session_id' => $sesion, 'section_id' => $e['seccion'], 'enrollment_id' => $e['matricula'],
+        'status' => 'present', 'method' => 'qr', 'recorded_at' => now(), 'created_at' => now(), 'updated_at' => now()]));
+
+    expect(panelDelEstudiante($e)['sesionAbierta'])->toBeNull();
 });
 
 it('dibuja el acordeón solo cuando el usuario tiene más de un rol', function () {
@@ -119,4 +126,17 @@ it('dibuja el acordeón solo cuando el usuario tiene más de un rol', function (
 
     DbContext::system(fn () => $e['estudiante']->assignRole('docente'));
     actingAs($e['estudiante']->fresh())->get(route('inicio'))->assertSee('acordeon-', false);
+});
+
+it('el inicio ofrece el enlace de la próxima clase virtual', function () {
+    $e = escenario();
+    DbContext::system(fn () => DB::table('video_sessions')->insert(['section_id' => $e['seccion'], 'topic' => 'Clase de prueba',
+        'starts_at' => now()->addDay(), 'duration_minutes' => 60, 'status' => 'scheduled', 'meet_url' => 'https://meet.google.com/abc-defg-hij',
+        'created_at' => now(), 'updated_at' => now()]));
+
+    actingAs($e['estudiante']);
+    expect(panelDelEstudiante($e)['clasesVirtuales']->sole()->meet_url)->toBe('https://meet.google.com/abc-defg-hij');
+
+    // El enlace se pinta: antes venía en la consulta y la vista solo mostraba tema y fecha (QA 17/11).
+    $this->get(route('inicio'))->assertOk()->assertSee('https://meet.google.com/abc-defg-hij', escape: false);
 });
