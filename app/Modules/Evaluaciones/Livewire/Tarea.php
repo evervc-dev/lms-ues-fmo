@@ -2,6 +2,7 @@
 
 namespace App\Modules\Evaluaciones\Livewire;
 
+use App\Modules\Calificaciones\Services\CalificacionService;
 use App\Modules\Evaluaciones\Services\ActividadService;
 use App\Support\Navegacion\PaginaDeSeccion;
 use Illuminate\Contracts\View\View;
@@ -49,6 +50,10 @@ class Tarea extends Component
     {
         $datos = $actividades->tarea(auth()->user(), $this->seccionId(), $this->tareaUlid);
 
-        return $this->paginaDeSeccion('modules.evaluaciones.tarea', $datos + ['politicas' => ActividadService::POLITICAS]);
+        return $this->paginaDeSeccion('modules.evaluaciones.tarea', $datos + [
+            'politicas' => ActividadService::POLITICAS,
+            // La nota se colorea como en la boleta: verde si aprueba, rojo si no (QA: «sale en rojo aunque sea mayor a 6»).
+            'minima' => CalificacionService::notaMinima(),
+        ]);
     }
 }

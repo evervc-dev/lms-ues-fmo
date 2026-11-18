@@ -515,7 +515,6 @@ erDiagram
   submission_rubric_scores {
     bigint submission_id FK
     bigint criterion_id FK
-    bigint level_id FK
     numeric points
   }
   rubrics {
@@ -528,12 +527,6 @@ erDiagram
     bigint rubric_id FK
     varchar name
     numeric max_points
-  }
-  rubric_levels {
-    bigint id PK
-    bigint criterion_id FK
-    varchar name
-    numeric points
   }
   question_banks {
     bigint id PK
@@ -599,7 +592,6 @@ erDiagram
   submissions ||--o{ submission_feedback : receives
   submissions ||--o{ submission_rubric_scores : scored
   rubrics ||--o{ rubric_criteria : has
-  rubric_criteria ||--o{ rubric_levels : has
   question_banks ||--o{ questions : contains
   question_banks ||--o{ question_bank_shares : "shared with"
   questions ||--o{ question_options : has

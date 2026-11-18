@@ -355,7 +355,7 @@ class DemoAcademicSeeder extends Seeder
     }
 
     /**
-     * @return array{id: int, criteria: array<int, array{id: int, max: float, levels: array<int, array{id: int, points: float}>}>}
+     * @return array{id: int, criteria: array<int, array{id: int, max: float}>}
      */
     private function rubric(int $teacher, string $title): array
     {
@@ -363,11 +363,7 @@ class DemoAcademicSeeder extends Seeder
         $criteria = [];
         foreach ([['Contenido y exactitud', 4], ['Formato y presentación', 3], ['Puntualidad y orden', 3]] as $position => [$name, $max]) {
             $criterionId = DB::table('rubric_criteria')->insertGetId(['rubric_id' => $rubricId, 'name' => $name, 'max_points' => $max, 'position' => $position] + $this->stamps());
-            $levels = [];
-            foreach ([['Excelente', 1.0], ['Bueno', 0.7], ['Regular', 0.4]] as [$level, $factor]) {
-                $levels[] = ['id' => DB::table('rubric_levels')->insertGetId(['criterion_id' => $criterionId, 'name' => $level, 'points' => $max * $factor] + $this->stamps()), 'points' => $max * $factor];
-            }
-            $criteria[] = ['id' => $criterionId, 'max' => (float) $max, 'levels' => $levels];
+            $criteria[] = ['id' => $criterionId, 'max' => (float) $max];
         }
 
         return ['id' => $rubricId, 'criteria' => $criteria];
@@ -407,7 +403,7 @@ class DemoAcademicSeeder extends Seeder
 
     /**
      * @param  Collection<int, object>  $enrollments
-     * @param  array{id: int, criteria: array<int, array{id: int, max: float, levels: array<int, array{id: int, points: float}>}>}|null  $rubric
+     * @param  array{id: int, criteria: array<int, array{id: int, max: float}>}|null  $rubric
      */
     private function submissions(int $assessmentId, object $section, int $itemId, Collection $enrollments, string $title, string $opens, string $closes, ?array $rubric, int $teacher): void
     {
@@ -437,10 +433,11 @@ class DemoAcademicSeeder extends Seeder
             $points = 0.0;
             $scores = [];
             foreach ($rubric['criteria'] ?? [] as $criterion) {
-                $level = $skill > 0.8 ? 0 : ($skill > 0.55 ? 1 : 2);
-                $level = max(0, min(2, $level + (mt_rand(1, 5) === 1 ? 1 : 0)));
-                $points += $criterion['levels'][$level]['points'];
-                $scores[] = ['submission_id' => $submissionId, 'criterion_id' => $criterion['id'], 'level_id' => $criterion['levels'][$level]['id'], 'points' => $criterion['levels'][$level]['points']];
+                // Los puntos del criterio salen de la destreza del estudiante, con algo de ruido, y nunca pasan del máximo.
+                $fraccion = min(1.0, max(0.2, $skill + (mt_rand(-10, 10) / 100)));
+                $valor = round($criterion['max'] * $fraccion * 2) / 2;
+                $points += $valor;
+                $scores[] = ['submission_id' => $submissionId, 'criterion_id' => $criterion['id'], 'points' => $valor];
             }
             $this->insertRows('submission_rubric_scores', $scores);
             if (mt_rand(1, 3) === 1) {

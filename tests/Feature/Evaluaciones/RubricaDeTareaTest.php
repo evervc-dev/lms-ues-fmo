@@ -39,7 +39,7 @@ function tareaInforme(array $e, array $cambios = []): string
         'starts_on' => '2026-07-27', 'ends_on' => '2026-12-11', 'weight_percent' => 100, 'created_at' => now(), 'updated_at' => now()]));
     actingAs($e['docente']);
     $prueba = Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->set('titulo', 'Informe')->set('componente', $componente)->set('peso', 50)
-        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', 'pdf');
+        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', ['pdf']);
     foreach ($cambios as $propiedad => $valor) {
         $prueba->set($propiedad, $valor);
     }
@@ -57,22 +57,27 @@ function entregaInforme(array $e, string $tarea): int
     return (int) DB::table('submissions')->value('id');
 }
 
-it('CP-RF15-06 el docente arma la rúbrica al crear la tarea y la nota es la suma de los niveles', function () {
+it('CP-RF15-06 el docente arma la rúbrica al crear la tarea y la nota es la suma de los puntos por criterio', function () {
     $e = escenario();
     $tarea = tareaInforme($e, ['conRubrica' => true, 'criterios' => [['nombre' => 'Contenido', 'maximo' => 6], ['nombre' => 'Forma', 'maximo' => 4]]]);
 
     $rubrica = DB::table('assessments')->where('ulid', $tarea)->value('rubric_id');
     expect(DB::table('rubrics')->where('id', $rubrica)->value('title'))->toBe('Informe')
-        ->and(DB::table('rubric_criteria')->where('rubric_id', $rubrica)->orderBy('position')->pluck('max_points')->map(fn ($p) => (float) $p)->all())->toBe([6.0, 4.0])
-        ->and(DB::table('rubric_levels')->join('rubric_criteria', 'rubric_criteria.id', '=', 'rubric_levels.criterion_id')->where('rubric_criteria.name', 'Contenido')
-            ->orderByDesc('points')->pluck('points')->map(fn ($p) => (float) $p)->all())->toBe([6.0, 4.2, 2.4]);
+        ->and(DB::table('rubric_criteria')->where('rubric_id', $rubrica)->orderBy('position')->pluck('max_points')->map(fn ($p) => (float) $p)->all())->toBe([6.0, 4.0]);
 
     $entrega = entregaInforme($e, $tarea);
     actingAs($e['docente']);
-    $bueno = DB::table('rubric_levels')->where('name', 'Bueno')->pluck('id', 'criterion_id')->all();
-    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->call('abrir', $entrega)->set('niveles', $bueno)->call('calificar');
+    $criterios = DB::table('rubric_criteria')->pluck('id', 'name')->all();
+    $pantalla = Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->call('abrir', $entrega);
 
-    expect((float) DB::table('grades')->value('score'))->toEqual(7.0);
+    // Ningún criterio pasa de su máximo: «Contenido» llega hasta 6.
+    $pantalla->set('puntos', [$criterios['Contenido'] => 7, $criterios['Forma'] => 2])->call('calificar')
+        ->assertHasErrors(['puntos.'.$criterios['Contenido']]);
+
+    $pantalla->set('puntos', [$criterios['Contenido'] => 4.2, $criterios['Forma'] => 2.8])->call('calificar')->assertHasNoErrors();
+
+    expect((float) DB::table('grades')->value('score'))->toEqual(7.0)
+        ->and(DB::table('submission_rubric_scores')->where('criterion_id', $criterios['Contenido'])->value('points'))->toEqual(4.2);
 });
 
 it('CP-RF15-06 rechaza una rúbrica cuyos puntos no suman 10', function () {
@@ -81,7 +86,7 @@ it('CP-RF15-06 rechaza una rúbrica cuyos puntos no suman 10', function () {
         'starts_on' => '2026-07-27', 'ends_on' => '2026-12-11', 'weight_percent' => 100, 'created_at' => now(), 'updated_at' => now()]));
 
     actingAs($e['docente']);
-    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->set('titulo', 'Informe')->set('componente', $componente)->set('peso', 50)->set('extensiones', 'pdf')
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->set('titulo', 'Informe')->set('componente', $componente)->set('peso', 50)->set('extensiones', ['pdf'])
         ->set('conRubrica', true)->set('criterios', [['nombre' => 'Contenido', 'maximo' => 6], ['nombre' => 'Forma', 'maximo' => 3]])
         ->call('guardar')->assertHasErrors('criterios');
 
@@ -110,8 +115,8 @@ it('CP-RF15-06 la rúbrica se agrega, se cambia o se quita en la tarea hasta la 
     $pantalla->call('abrirRubrica')->set('criteriosRubrica', [['nombre' => 'Contenido', 'maximo' => 10]])->call('guardarRubrica');
     $entrega = entregaInforme($e, $tarea);
     actingAs($e['docente']);
-    $excelente = DB::table('rubric_levels')->where('name', 'Excelente')->pluck('id', 'criterion_id')->all();
-    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->call('abrir', $entrega)->set('niveles', $excelente)->call('calificar')
+    $criterio = (int) DB::table('rubric_criteria')->value('id');
+    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->call('abrir', $entrega)->set('puntos', [$criterio => 10])->call('calificar')
         ->assertSee('la rúbrica quedó fija')->assertDontSee('Editar rúbrica');
 
     expect(fn () => app(RubricaService::class)->guardar($e['docente'], $e['seccion'], $tarea, [['nombre' => 'Otro', 'maximo' => 10]]))

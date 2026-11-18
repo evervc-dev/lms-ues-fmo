@@ -28,10 +28,15 @@ class Entregas extends Component
 
     public ?int $entregaId = null;
 
+    /** ULID y nombre del archivo de la entrega abierta, para el visor del modal. */
+    public string $entregaUlid = '';
+
+    public ?string $entregaArchivo = null;
+
     public ?float $nota = null;
 
-    /** @var array<int|string, int|string> criterio => nivel */
-    public array $niveles = [];
+    /** @var array<int|string, float|int|string> criterio => puntos */
+    public array $puntos = [];
 
     public string $comentario = '';
 
@@ -54,23 +59,39 @@ class Entregas extends Component
         $this->tareaUlid = $tarea;
     }
 
-    public function abrir(int $entrega): void
+    /**
+     * Abre la calificación de una entrega. Recibe también su ULID y su archivo para mostrar el documento junto
+     * al formulario: antes el docente calificaba sin poder abrir lo que estaba calificando (QA 17/11).
+     */
+    public function abrir(int $entrega, string $ulid = '', ?string $archivo = null): void
     {
-        $this->reset('nota', 'niveles', 'comentario');
+        $this->reset('nota', 'puntos', 'comentario');
         $this->entregaId = $entrega;
+        $this->entregaUlid = $ulid;
+        $this->entregaArchivo = $archivo;
         $this->resetValidation();
         $this->dispatch('abrir-modal', 'calificar');
     }
 
     public function calificar(ActividadService $actividades): void
     {
+        $this->resetValidation();
+
         try {
             $final = $actividades->calificarEntrega(auth()->user(), $this->seccionId(), (int) $this->entregaId, $this->nota,
-                array_map('intval', array_filter($this->niveles)), $this->comentario ?: null);
+                $this->puntos, $this->comentario ?: null);
             $this->dispatch('cerrar-modal', 'calificar');
             $this->dispatch('aviso', tipo: 'exito', mensaje: __('Calificada con :n.', ['n' => number_format($final, 2)]));
         } catch (ValidationException $e) {
-            $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
+            // El rechazo de un criterio se ve junto a su campo; lo que no pertenece al formulario, como aviso.
+            $delFormulario = false;
+            foreach ($e->errors() as $campo => $mensajes) {
+                $this->addError($campo, (string) $mensajes[0]);
+                $delFormulario = $delFormulario || $campo === 'nota' || str_starts_with($campo, 'puntos.');
+            }
+            if (! $delFormulario) {
+                $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
+            }
         }
     }
 

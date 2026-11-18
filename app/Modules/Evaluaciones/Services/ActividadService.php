@@ -26,6 +26,31 @@ class ActividadService
 {
     public const POLITICAS = ['strict' => 'Cierre estricto', 'grace' => 'Gracia sin penalización', 'grace_penalty' => 'Gracia con penalización'];
 
+    /**
+     * Extensiones que el docente puede aceptar en una entrega, agrupadas para el formulario (RF15). Se eligen de
+     * esta lista, no se escriben: un «.pfd» mal tecleado rechazaba entregas correctas sin que nadie lo notara.
+     *
+     * @var array<string, array<int, string>>
+     */
+    public const EXTENSIONES = [
+        'Documentos' => ['pdf', 'docx', 'doc', 'odt', 'rtf', 'txt'],
+        'Hojas de cálculo' => ['xlsx', 'xls', 'ods', 'csv'],
+        'Presentaciones' => ['pptx', 'ppt', 'odp'],
+        'Comprimidos' => ['zip', 'rar', '7z'],
+        'Imágenes' => ['png', 'jpg', 'jpeg', 'webp'],
+        'Código y datos' => ['sql', 'java', 'py', 'ipynb', 'js', 'php', 'json', 'xml'],
+    ];
+
+    /**
+     * Las extensiones del catálogo en una sola lista, para validar.
+     *
+     * @return array<int, string>
+     */
+    public static function extensionesValidas(): array
+    {
+        return array_merge(...array_values(self::EXTENSIONES));
+    }
+
     public function __construct(private Alcance $alcance, private ProrrogaService $prorrogas, private CalificacionService $calificaciones, private EquipoService $equipos, private RubricaService $rubricas) {}
 
     /**
@@ -246,6 +271,42 @@ class ActividadService
     }
 
     /**
+     * El archivo de una entrega, para verlo o descargarlo (RF15). Lo abre el docente que califica la sección
+     * (alcance S) y el estudiante dueño de la entrega, la suya o la de su equipo; a nadie más.
+     *
+     * En una tarea anónima sin notas publicadas se devuelve un nombre neutro: el nombre original del archivo
+     * («informe-juan-perez.pdf») delata a quien ADR-006 manda ocultar.
+     *
+     * @return array{ruta: string, nombre: string}
+     */
+    public function archivoDeEntrega(User $usuario, int $seccionId, string $ulid): array
+    {
+        $entrega = DB::table('submissions as s')->join('assessments as a', 'a.id', '=', 's.assessment_id')
+            ->join('grade_items as g', 'g.id', '=', 'a.grade_item_id')
+            ->where('s.ulid', $ulid)->where('s.section_id', $seccionId)
+            ->first(['s.id', 's.enrollment_id', 's.team_id', 's.attempt_number', 'a.id as tarea', 'a.is_anonymous', 'g.is_published']) ?? abort(404);
+
+        if (! $this->alcance->puedeEnSeccion($usuario, 'calificaciones.gestionar', $seccionId)) {
+            $matricula = $this->matricula($usuario, $seccionId);
+            $suya = $matricula !== null && ($entrega->team_id !== null
+                ? $this->equipos->equipoDe((int) $entrega->tarea, $matricula)?->id === $entrega->team_id
+                : (int) $entrega->enrollment_id === $matricula);
+            abort_unless($suya && $usuario->can('tareas.entregar'), 403);
+        }
+
+        $archivo = DB::table('submission_files')->where('submission_id', $entrega->id)->first(['path', 'original_name']) ?? abort(404);
+        $anonima = (bool) $entrega->is_anonymous && ! $entrega->is_published
+            && $this->alcance->puedeEnSeccion($usuario, 'calificaciones.gestionar', $seccionId);
+
+        return [
+            'ruta' => (string) $archivo->path,
+            'nombre' => $anonima
+                ? __('Entrega :n', ['n' => $entrega->attempt_number]).'.'.pathinfo((string) $archivo->original_name, PATHINFO_EXTENSION)
+                : (string) $archivo->original_name,
+        ];
+    }
+
+    /**
      * Entregas para calificar. En evaluaciones anónimas, sin nombres hasta publicar las notas (ADR-006).
      *
      * @return array{tarea: object, entregas: Collection<int, \stdClass>, anonima: bool, rubrica: Collection<int, \stdClass>, rubricaEditable: bool}
@@ -261,7 +322,7 @@ class ActividadService
             ->leftJoin('teams as t', 't.id', '=', 's.team_id')
             ->leftJoin('grades as g', fn ($j) => $j->on('g.enrollment_id', '=', 's.enrollment_id')->where('g.grade_item_id', $tarea->item_id))
             ->where('s.assessment_id', $tarea->id)->where('s.status', 'submitted')->orderBy('s.submitted_at')
-            ->get(['s.id', 's.enrollment_id', 's.team_id', 's.submitted_at', 's.is_late', 's.late_penalty_applied', 'u.first_name', 'u.last_name', 't.name as equipo',
+            ->get(['s.id', 's.ulid', 's.enrollment_id', 's.team_id', 's.submitted_at', 's.is_late', 's.late_penalty_applied', 'u.first_name', 'u.last_name', 't.name as equipo',
                 'g.score', 'g.status as estado_nota', DB::raw('(select f.original_name from submission_files f where f.submission_id = s.id limit 1) as archivo')]);
 
         // RF15: la entrega de un equipo muestra a sus integrantes con la nota de cada uno (puede ajustarse a uno solo).
@@ -276,6 +337,10 @@ class ActividadService
                 $s->nombre = $anonima ? __('Equipo :n', ['n' => $i + 1]) : __('Equipo :e', ['e' => $s->equipo]);
             } else {
                 $s->nombre = $anonima ? __('Estudiante :n', ['n' => $i + 1]) : $s->first_name.' '.$s->last_name;
+            }
+            // El nombre del archivo también delata: «informe-juan-perez.pdf» en una tarea anónima (ADR-006).
+            if ($anonima && $s->archivo) {
+                $s->archivo = $s->nombre.'.'.pathinfo((string) $s->archivo, PATHINFO_EXTENSION);
             }
         });
 
@@ -316,11 +381,11 @@ class ActividadService
     }
 
     /**
-     * Califica una entrega: con rúbrica (suma de los niveles elegidos) o nota directa; aplica la penalización de tardía.
+     * Califica una entrega: con rúbrica (suma de los puntos de cada criterio) o nota directa; aplica la penalización de tardía.
      *
-     * @param  array<int, int>  $niveles  criterio => nivel
+     * @param  array<int, float|int|string>  $puntos  criterio => puntos (de 0 al máximo del criterio)
      */
-    public function calificarEntrega(User $docente, int $seccionId, int $entregaId, ?float $nota, array $niveles, ?string $comentario): float
+    public function calificarEntrega(User $docente, int $seccionId, int $entregaId, ?float $nota, array $puntos, ?string $comentario): float
     {
         abort_unless($this->alcance->puedeEnSeccion($docente, 'calificaciones.gestionar', $seccionId), 403);
         $this->calificaciones->exigirActaAbierta($seccionId);
@@ -328,12 +393,20 @@ class ActividadService
         $tarea = DB::table('assessments')->join('grade_items', 'grade_items.id', '=', 'assessments.grade_item_id')->where('assessments.id', $entrega->assessment_id)
             ->first(['assessments.rubric_id', 'grade_items.id as item_id', 'grade_items.is_published']);
 
-        $puntos = [];
-        if ($tarea->rubric_id && $niveles !== []) {
-            $nivelesValidos = DB::table('rubric_levels')->join('rubric_criteria', 'rubric_criteria.id', '=', 'rubric_levels.criterion_id')
-                ->where('rubric_criteria.rubric_id', $tarea->rubric_id)->whereIn('rubric_levels.id', array_values($niveles))->get(['rubric_levels.id', 'rubric_levels.points', 'rubric_levels.criterion_id']);
-            $puntos = $nivelesValidos->all();
-            $nota = (float) $nivelesValidos->sum('points');
+        $porCriterio = [];
+        // Con rúbrica y puntos, la nota es su suma; sin puntos se admite la nota directa, como antes.
+        if ($tarea->rubric_id && $puntos !== []) {
+            // RF15: la nota es la suma de los puntos escritos, y ninguno pasa del máximo de su criterio.
+            $criterios = DB::table('rubric_criteria')->where('rubric_id', $tarea->rubric_id)->orderBy('position')->get(['id', 'name', 'max_points']);
+            foreach ($criterios as $criterio) {
+                $valor = $puntos[$criterio->id] ?? null;
+                if (! is_numeric($valor) || (float) $valor < 0 || (float) $valor > (float) $criterio->max_points) {
+                    throw ValidationException::withMessages(["puntos.{$criterio->id}" => __('«:c» va de 0 a :m.', [
+                        'c' => $criterio->name, 'm' => rtrim(rtrim(number_format((float) $criterio->max_points, 2, '.', ''), '0'), '.')])]);
+                }
+                $porCriterio[(int) $criterio->id] = round((float) $valor, 2);
+            }
+            $nota = array_sum($porCriterio);
         }
         if ($nota === null || $nota < 0 || $nota > 10) {
             throw ValidationException::withMessages(['nota' => __('Escriba una nota entre 0 y 10 o complete la rúbrica.')]);
@@ -345,10 +418,10 @@ class ActividadService
             throw ValidationException::withMessages(['nota' => __('El equipo no tiene integrantes matriculados.')]);
         }
 
-        DbContext::run(function () use ($docente, $entrega, $tarea, $nota, $final, $puntos, $comentario, $matriculas) {
+        DbContext::run(function () use ($docente, $entrega, $tarea, $nota, $final, $porCriterio, $comentario, $matriculas) {
             DB::table('submission_rubric_scores')->where('submission_id', $entrega->id)->delete();
-            foreach ($puntos as $p) {
-                DB::table('submission_rubric_scores')->insert(['submission_id' => $entrega->id, 'criterion_id' => $p->criterion_id, 'level_id' => $p->id, 'points' => $p->points]);
+            foreach ($porCriterio as $criterioId => $valor) {
+                DB::table('submission_rubric_scores')->insert(['submission_id' => $entrega->id, 'criterion_id' => $criterioId, 'points' => $valor]);
             }
             // Una retroalimentación por docente y entrega: al recalificar se reemplaza, no se duplica.
             if ($comentario) {
@@ -435,9 +508,9 @@ class ActividadService
      */
     public function desgloseRubrica(int $entregaId): Collection
     {
-        return DB::table('submission_rubric_scores as s')->join('rubric_criteria as c', 'c.id', '=', 's.criterion_id')->join('rubric_levels as l', 'l.id', '=', 's.level_id')
+        return DB::table('submission_rubric_scores as s')->join('rubric_criteria as c', 'c.id', '=', 's.criterion_id')
             ->where('s.submission_id', $entregaId)->orderBy('c.position')
-            ->get(['c.id', 'c.name as criterio', 'l.name as nivel', 's.points', DB::raw('(select max(x.points) from rubric_levels x where x.criterion_id = c.id) as maximo')]);
+            ->get(['c.id', 'c.name as criterio', 's.points', 'c.max_points as maximo']);
     }
 
     public function estado(object $actividad): string

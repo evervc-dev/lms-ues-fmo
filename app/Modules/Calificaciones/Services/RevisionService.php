@@ -152,7 +152,7 @@ class RevisionService
     }
 
     /**
-     * Detalle para resolver: cada ítem con su contexto (pregunta y respuesta, criterio y niveles, o nota general).
+     * Detalle para resolver: cada ítem con su contexto (pregunta y respuesta, criterio y su máximo, o nota general).
      *
      * @return array{solicitud: object, items: Collection<int, object>, puedeResolver: bool}
      */
@@ -216,10 +216,9 @@ class RevisionService
                         if ($entrega === null) {
                             throw ValidationException::withMessages(["decisiones.{$item->id}.valor" => __('La tarea no tiene una entrega a la que aplicar la rúbrica.')]);
                         }
-                        $nivel = DB::table('rubric_levels')->where('id', (int) $valor)->first(['id', 'points']);
                         DB::table('submission_rubric_scores')->updateOrInsert(['submission_id' => $entrega->id, 'criterion_id' => $item->rubric_criterion_id],
-                            ['level_id' => $nivel->id, 'points' => $nivel->points]);
-                        $puntosDespues = (float) $nivel->points;
+                            ['points' => round((float) $valor, 2)]);
+                        $puntosDespues = round((float) $valor, 2);
                     } else {
                         $general = (float) $valor;
                         $puntosDespues = $general;
@@ -361,9 +360,22 @@ class RevisionService
                     : collect(json_decode((string) $i->accepted_answers, true) ?: [])->join(' · ');
             }
             if ($i->tipo === 'criterio') {
-                $i->niveles = DB::table('rubric_levels')->where('criterion_id', $i->rubric_criterion_id)->orderByDesc('points')->get(['id', 'name', 'points']);
+                $i->maximo = (float) DB::table('rubric_criteria')->where('id', $i->rubric_criterion_id)->value('max_points');
             }
         });
+    }
+
+    /**
+     * Comprueba las decisiones sin resolver, para que el error salga en el paso donde está el campo y no al
+     * final, detrás del resumen (QA: «el botón Resolver no hace nada»).
+     *
+     * @param  array<int|string, array{cambiar?: bool|string|null, valor?: float|int|string|null, respuesta?: string|null}>  $decisiones
+     *
+     * @throws ValidationException
+     */
+    public function exigirDecisionesValidas(User $docente, int $seccionId, string $ulid, array $decisiones): void
+    {
+        $this->validarDecisiones($this->detalle($docente, $seccionId, $ulid)['items'], $decisiones);
     }
 
     /**
@@ -388,19 +400,20 @@ class RevisionService
             $valor = $decision['valor'] ?? null;
             $valido = match ($item->tipo) {
                 'pregunta' => is_numeric($valor) && (float) $valor >= 0 && (float) $valor <= 1,
-                'criterio' => is_numeric($valor) && DB::table('rubric_levels')->where('id', (int) $valor)->where('criterion_id', $item->rubric_criterion_id)->exists(),
+                'criterio' => is_numeric($valor) && (float) $valor >= 0
+                    && (float) $valor <= (float) DB::table('rubric_criteria')->where('id', $item->rubric_criterion_id)->value('max_points'),
                 default => is_numeric($valor) && (float) $valor >= 0 && (float) $valor <= 10,
             };
             if (! $valido) {
                 $errores["decisiones.{$item->id}.valor"] = match ($item->tipo) {
                     'pregunta' => __('Los puntos de la pregunta van de 0 a 1.'),
-                    'criterio' => __('Elija un nivel de este criterio.'),
+                    'criterio' => __('Los puntos del criterio van de 0 a :m.', ['m' => rtrim(rtrim(number_format((float) DB::table('rubric_criteria')->where('id', $item->rubric_criterion_id)->value('max_points'), 2, '.', ''), '0'), '.')]),
                     default => __('La nota va de 0 a 10.'),
                 };
 
                 continue;
             }
-            $cambios[(int) $item->id] = $item->tipo === 'criterio' ? (int) $valor : round((float) $valor, 2);
+            $cambios[(int) $item->id] = round((float) $valor, 2);
         }
         if ($errores !== []) {
             throw ValidationException::withMessages($errores);

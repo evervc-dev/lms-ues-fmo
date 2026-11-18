@@ -97,7 +97,7 @@ function tareaConRubricaCalificada(array $e, bool $publicar = true): array
 {
     actingAs($e['docente']);
     Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->set('titulo', 'Informe')->set('componente', computoUnico($e))->set('peso', 50)
-        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', 'pdf')
+        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', ['pdf'])
         ->set('conRubrica', true)->set('criterios', [['nombre' => 'Contenido', 'maximo' => 6], ['nombre' => 'Forma', 'maximo' => 4]])
         ->call('guardar')->assertHasNoErrors();
     $ulid = (string) DB::table('assessments')->where('title', 'Informe')->value('ulid');
@@ -106,10 +106,11 @@ function tareaConRubricaCalificada(array $e, bool $publicar = true): array
     Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $ulid])->set('archivo', UploadedFile::fake()->create('informe.pdf', 50))->call('entregar')->assertHasNoErrors();
     $entrega = (int) DB::table('submissions')->value('id');
     $criterios = DB::table('rubric_criteria')->pluck('id', 'name')->map(fn ($id) => (int) $id)->all();
-    $bueno = DB::table('rubric_levels')->where('name', 'Bueno')->pluck('id', 'criterion_id')->all();
+    // «Bueno» era el 70 % del máximo: Contenido 4.2 de 6 y Forma 2.8 de 4 (7.0 en total).
+    $bueno = DB::table('rubric_criteria')->pluck('max_points', 'id')->map(fn ($m) => round((float) $m * 0.7, 2))->all();
 
     actingAs($e['docente']);
-    $prueba = Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $ulid])->call('abrir', $entrega)->set('niveles', $bueno)->set('comentario', 'Buen análisis, mejore la forma.')->call('calificar');
+    $prueba = Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $ulid])->call('abrir', $entrega)->set('puntos', $bueno)->set('comentario', 'Buen análisis, mejore la forma.')->call('calificar');
     if ($publicar) {
         $prueba->call('publicar');
     }
@@ -130,7 +131,7 @@ it('CP-RF15-06 shows the student the rubric breakdown and the feedback only once
 
     actingAs($e['estudiante']);
     Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $t['ulid']])
-        ->assertSeeText(['7.0', 'Buen análisis, mejore la forma.', 'Contenido', 'Bueno', '4.2 / 6', '2.8 / 4']);
+        ->assertSeeText(['7.0', 'Buen análisis, mejore la forma.', 'Contenido', '4.2 / 6', '2.8 / 4']);
 });
 
 it('replaces the feedback when the teacher grades again instead of duplicating it', function () {
@@ -273,7 +274,7 @@ it('CP-RF35-04 lets the teacher change a rubric criterion and recalculates the t
     actingAs($e['estudiante']);
     $ulid = app(RevisionService::class)->solicitar($e['estudiante'], $e['seccion'], $t['ulid'], 'El contenido cumple todo lo pedido.', ['criterio-'.$t['criterios']['Contenido'] => 'Incluí todos los puntos del enunciado.']);
     $item = (int) DB::table('grade_review_items')->value('id');
-    $excelente = (int) DB::table('rubric_levels')->where('criterion_id', $t['criterios']['Contenido'])->where('name', 'Excelente')->value('id');
+    $excelente = (float) DB::table('rubric_criteria')->where('id', $t['criterios']['Contenido'])->value('max_points');
 
     actingAs($e['docente']);
     app(RevisionService::class)->resolver($e['docente'], $e['seccion'], $ulid, [$item => ['cambiar' => true, 'valor' => $excelente, 'respuesta' => 'Correcto, merece Excelente.']], null);
@@ -384,7 +385,7 @@ it('CP-RF35-04 recalculates a rubric with the late penalty', function () {
     actingAs($e['estudiante']);
     $ulid = $revisiones->solicitar($e['estudiante'], $e['seccion'], $t['ulid'], 'El contenido cumple todo lo pedido.', ['criterio-'.$t['criterios']['Contenido'] => 'Incluí todos los puntos.']);
     $item = (int) DB::table('grade_review_items')->value('id');
-    $excelente = (int) DB::table('rubric_levels')->where('criterion_id', $t['criterios']['Contenido'])->where('name', 'Excelente')->value('id');
+    $excelente = (float) DB::table('rubric_criteria')->where('id', $t['criterios']['Contenido'])->value('max_points');
 
     actingAs($e['docente']);
     $revisiones->resolver($e['docente'], $e['seccion'], $ulid, [$item => ['cambiar' => true, 'valor' => $excelente, 'respuesta' => 'Merece Excelente.']], null);
@@ -473,4 +474,32 @@ it('CP-RF15-08 only lets the section teacher grant extensions, and no submission
         ->and(fn () => $prorrogas->conceder($e['docente'], $e['seccion'], $c['ulid'], $e['matricula'], 'submission', $hasta, 'Motivo válido'))->toThrow(HttpException::class)
         ->and(fn () => $prorrogas->conceder($e['docente'], $e['seccion'], $c['ulid'], $e['matricula'], 'review', now()->subDay()->toIso8601String(), 'Motivo válido'))->toThrow(ValidationException::class)
         ->and(DB::table('assessment_extensions')->count())->toBe(0);
+});
+
+it('la revisión no avanza con una nota fuera de rango y el error sale donde está el campo', function () {
+    $e = escenario();
+    $c = cuestionarioCalificado($e);
+    actingAs($e['estudiante']);
+    $ulid = app(RevisionService::class)->solicitar($e['estudiante'], $e['seccion'], $c['ulid'], 'Quiero que revise mi nota general.', ['general' => 'Estudié mucho para este parcial.']);
+    $item = (int) DB::table('grade_review_items')->value('id');
+
+    actingAs($e['docente']);
+    $prueba = Livewire::test(Revision::class, ['seccion' => $e['ulid'], 'revision' => $ulid])
+        ->call('siguiente')
+        ->set("decisiones.{$item}.cambiar", true)
+        ->set("decisiones.{$item}.valor", 104)
+        ->set("decisiones.{$item}.respuesta", 'Revisé el intento y le corresponde más.')
+        ->call('siguiente');
+
+    // No pasa del paso de las decisiones y el mensaje queda junto al campo que falla.
+    $prueba->assertHasErrors(["decisiones.{$item}.valor"])->assertSet('paso', 2);
+
+    // Si el valor se estropea ya en el resumen, «Resolver» devuelve al paso 2 en vez de no hacer nada.
+    $prueba->set("decisiones.{$item}.valor", 9)->call('siguiente')->assertSet('paso', 3)
+        ->set("decisiones.{$item}.valor", 50)->call('resolver')
+        ->assertHasErrors(["decisiones.{$item}.valor"])->assertSet('paso', 2);
+
+    $prueba->set("decisiones.{$item}.valor", 9)->call('siguiente')->call('resolver')->assertHasNoErrors();
+
+    expect((float) DB::table('grades')->value('score'))->toEqual(9.0);
 });

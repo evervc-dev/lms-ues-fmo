@@ -6,6 +6,7 @@ use App\Modules\Evaluaciones\Services\ActividadService;
 use App\Support\Navegacion\PaginaDeSeccion;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -36,7 +37,8 @@ class NuevaTarea extends Component
 
     public int $penalizacion = 10;
 
-    public string $extensiones = 'pdf, docx, zip';
+    /** @var array<int, string> extensiones elegidas del catálogo de ActividadService::EXTENSIONES */
+    public array $extensiones = ['pdf', 'docx'];
 
     public int $mb = 10;
 
@@ -78,13 +80,14 @@ class NuevaTarea extends Component
             'abre' => 'required|date', 'cierra' => 'required|date', 'politica' => 'required|in:strict,grace,grace_penalty',
             'gracia' => 'nullable|required_unless:politica,strict|date', 'penalizacion' => 'integer|min:0|max:100',
             'mb' => 'required|integer|min:1|max:100', 'intentos' => 'required|integer|min:1|max:10',
+            'extensiones' => 'required|array|min:1', 'extensiones.*' => ['required', 'string', Rule::in(ActividadService::extensionesValidas())],
             'criterios.*.nombre' => 'exclude_unless:conRubrica,true|required|string|max:150', 'criterios.*.maximo' => 'exclude_unless:conRubrica,true|required|numeric|min:0.5|max:10',
-        ], [], ['titulo' => 'título', 'componente' => 'cómputo', 'gracia' => 'fecha de gracia', 'criterios.*.nombre' => 'criterio', 'criterios.*.maximo' => 'puntos']);
+        ], [], ['titulo' => 'título', 'componente' => 'cómputo', 'gracia' => 'fecha de gracia', 'extensiones' => 'extensiones permitidas', 'criterios.*.nombre' => 'criterio', 'criterios.*.maximo' => 'puntos']);
 
         $ulid = $actividades->crearTarea(auth()->user(), $this->seccionId(), [
             'componente' => (int) $this->componente, 'titulo' => $this->titulo, 'instrucciones' => $this->instrucciones ?: null,
             'abre' => $this->abre, 'cierra' => $this->cierra, 'peso' => $this->peso, 'politica' => $this->politica, 'gracia' => $this->gracia ?: null,
-            'penalizacion' => $this->penalizacion, 'extensiones' => array_values(array_filter(array_map(fn ($e) => strtolower(trim($e, " .\t")), explode(',', $this->extensiones)))),
+            'penalizacion' => $this->penalizacion, 'extensiones' => array_values($this->extensiones),
             'mb' => $this->mb, 'intentos' => $this->intentos, 'anonima' => $this->anonima, 'grupal' => $this->grupal,
             'criterios' => $this->conRubrica ? array_map(fn ($c) => ['nombre' => $c['nombre'], 'maximo' => (float) $c['maximo']], $this->criterios) : [],
         ]);
@@ -97,6 +100,7 @@ class NuevaTarea extends Component
         return $this->paginaDeSeccion('modules.evaluaciones.nueva-tarea', [
             'computos' => DB::table('grading_components')->where('section_id', $this->seccionId())->orderBy('number')->get(),
             'politicas' => ActividadService::POLITICAS,
+            'catalogoExtensiones' => ActividadService::EXTENSIONES,
         ]);
     }
 }

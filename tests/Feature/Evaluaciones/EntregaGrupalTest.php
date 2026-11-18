@@ -47,7 +47,7 @@ function escenarioGrupal(): array
     actingAs($e['docente']);
     Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->set('titulo', 'Proyecto en equipo')
         ->set('componente', (int) DB::table('grading_components')->where('section_id', $e['seccion'])->value('id'))->set('peso', 100)
-        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', 'pdf')
+        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', ['pdf'])
         ->set('grupal', true)->call('guardar')->assertHasNoErrors();
     $e['tarea'] = (string) DB::table('assessments')->where('title', 'Proyecto en equipo')->value('ulid');
     $e['tareaId'] = (int) DB::table('assessments')->where('title', 'Proyecto en equipo')->value('id');

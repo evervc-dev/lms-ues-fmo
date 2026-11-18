@@ -13,5 +13,5 @@
     @error('criterios')<p class="text-xs font-medium text-red-700">{{ $message }}</p>@enderror
     @error($modelo.'.*')<p class="text-xs font-medium text-red-700">{{ $message }}</p>@enderror
     <div><x-ui.button variante="fantasma" tamano="sm" icono="plus" wire:click="agregarCriterio">{{ __('Agregar criterio') }}</x-ui.button></div>
-    <p class="text-xs text-texto-suave">{{ __('Cada criterio tiene tres niveles: Excelente (100 %), Bueno (70 %) y Regular (40 %) de su máximo. La nota es la suma de los niveles elegidos.') }}</p>
+    <p class="text-xs text-texto-suave">{{ __('Al calificar, usted escribe los puntos de cada criterio, de 0 a su máximo. La nota es la suma.') }}</p>
 </div>

@@ -11,6 +11,11 @@ fuentes: ["Decisión del usuario del 01/11/2026", "[[ADR-006 Rúbricas y calific
 
 > [!info] Pendiente de aceptar por el equipo. **Implementada** el 01/11/2026 por decisión del usuario, en la rama `evaluaciones-rf15-rubricas`.
 
+> [!warning] Enmendada el 18/11/2026: la rúbrica ya no tiene niveles
+> Al calificar, el docente **escribe los puntos de cada criterio**, de 0 a su máximo, en vez de elegir Excelente (100 %), Bueno (70 %) o Regular (40 %). Los tres niveles encajonaban la nota en tres valores por criterio y el docente no podía reconocer un trabajo que queda entre dos. Lo demás de esta ADR no cambia.
+>
+> **Consecuencias:** se elimina la tabla `rubric_levels` y la columna `submission_rubric_scores.level_id` (migración `2026_11_18_000000_drop_rubric_levels`). Las notas ya puestas se conservan, porque `points` siempre guardó los puntos; lo que se pierde es la etiqueta del nivel en el desglose histórico que ve el estudiante. La revisión de [[RF35]] también pasa a puntos por criterio.
+
 ## Contexto
 [[ADR-006 Rúbricas y calificación anónima]] metió las rúbricas en el alcance, pero no dijo dónde se arman. La primera versión las hizo **del docente**: una página aparte, `/rubricas`, con el permiso `rubricas.gestionar`, donde se creaba una lista de rúbricas que después se elegía al crear la tarea.
 
@@ -25,7 +30,7 @@ Además, una rúbrica compartida entre tareas tiene un problema: cambiarla para 
 
 ## Decisión
 **B**, decidida por el usuario el 01/11/2026:
-1. **La rúbrica se arma en la tarea:** al crearla («Calificar con rúbrica») o después, en su pantalla de entregas. Se mantiene la regla de antes: los máximos de los criterios suman 10, y cada criterio tiene tres niveles, Excelente (100 %), Bueno (70 %) y Regular (40 %).
+1. **La rúbrica se arma en la tarea:** al crearla («Calificar con rúbrica») o después, en su pantalla de entregas. Los máximos de los criterios suman 10.
 2. **Solo las tareas la llevan.** Los exámenes no: se califican por pregunta ([[RF16]]).
 3. **Queda fija desde la primera calificación.** Mientras ninguna entrega tenga nota, se puede agregar, cambiar o quitar; después no, para que todas las entregas se califiquen con la misma.
 4. **Desaparecen la página Rúbricas y el permiso `rubricas.gestionar`.** La rúbrica se gestiona con `tareas.gestionar` (alcance S).

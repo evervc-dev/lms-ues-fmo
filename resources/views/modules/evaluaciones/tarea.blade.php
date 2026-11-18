@@ -32,16 +32,21 @@
                     @endif
                     @if ($entrega)
                         <x-ui.alert :tipo="$entrega->is_late ? 'aviso' : 'exito'" :titulo="$entrega->is_late ? __('Entregada tarde') : __('Entregada')">
-                            {{ $fecha($entrega->submitted_at) }} · {{ $archivos->pluck('original_name')->join(', ') }}
+                            {{-- El estudiante vuelve a abrir lo que entregó: antes solo veía el nombre (RF15). --}}
+                            {{ $fecha($entrega->submitted_at) }}@if ($archivos->isNotEmpty()) ·
+                                <a href="{{ route('secciones.entregas.archivo', ['seccion' => $seccion, 'entrega' => $entrega->ulid]) }}" target="_blank" rel="noopener" class="font-medium underline">{{ $archivos->pluck('original_name')->join(', ') }}</a>
+                            @endif
                             @if ($entrega->late_penalty_applied > 0) · {{ __('penalización :p %', ['p' => rtrim(rtrim(number_format((float) $entrega->late_penalty_applied, 2, '.', ''), '0'), '.')]) }}@endif
                         </x-ui.alert>
                         @if ($estado === 'abierta')<x-ui.button variante="peligro" tamano="sm" wire:click="cancelar" wire:confirm="{{ __('¿Cancelar su entrega?') }}">{{ __('Cancelar entrega') }}</x-ui.button>@endif
                     @endif
 
                     @if ($nota)
-                        <div class="rounded-lg bg-marca-50 p-4 text-center ring-1 ring-marca-200">
+                        @php($aprueba = (float) $nota->score >= $minima)
+                        <div @class(['rounded-lg p-4 text-center ring-1', 'bg-emerald-50 ring-emerald-200' => $aprueba, 'bg-red-50 ring-red-200' => ! $aprueba])>
                             <p class="text-xs uppercase text-texto-suave">{{ __('Nota') }}</p>
-                            <p class="text-3xl font-semibold text-marca-700">{{ number_format((float) $nota->score, 1) }}</p>
+                            <p @class(['text-3xl font-semibold', 'text-emerald-700' => $aprueba, 'text-red-700' => ! $aprueba])>{{ number_format((float) $nota->score, 1) }}</p>
+                            <p class="mt-1 text-xs text-texto-suave">{{ __('Se aprueba con :m.', ['m' => number_format($minima, 1)]) }}</p>
                             @if ($nota->score_before_penalty !== null && (float) $nota->score_before_penalty > (float) $nota->score)
                                 <p class="mt-1 text-xs text-texto-suave">{{ __(':antes antes de la penalización por entrega tardía', ['antes' => number_format((float) $nota->score_before_penalty, 1)]) }}</p>
                             @endif
@@ -49,9 +54,9 @@
                     @endif
                     @if ($desglose->isNotEmpty())
                         <x-ui.table>
-                            <x-slot:cabecera><th>{{ __('Criterio') }}</th><th>{{ __('Nivel') }}</th><th class="text-right">{{ __('Puntos') }}</th></x-slot:cabecera>
+                            <x-slot:cabecera><th>{{ __('Criterio') }}</th><th class="text-right">{{ __('Puntos') }}</th></x-slot:cabecera>
                             @foreach ($desglose as $fila)
-                                <tr wire:key="desglose-{{ $fila->id }}"><td>{{ $fila->criterio }}</td><td>{{ $fila->nivel }}</td><td class="text-right">{{ rtrim(rtrim(number_format((float) $fila->points, 2), '0'), '.') }} / {{ rtrim(rtrim(number_format((float) $fila->maximo, 2), '0'), '.') }}</td></tr>
+                                <tr wire:key="desglose-{{ $fila->id }}"><td>{{ $fila->criterio }}</td><td class="text-right">{{ rtrim(rtrim(number_format((float) $fila->points, 2), '0'), '.') }} / {{ rtrim(rtrim(number_format((float) $fila->maximo, 2), '0'), '.') }}</td></tr>
                             @endforeach
                         </x-ui.table>
                     @endif

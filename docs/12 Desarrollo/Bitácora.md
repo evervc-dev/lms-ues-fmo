@@ -18,6 +18,21 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-18 · RF15, RF35 · Rúbrica sin niveles y correcciones de QA
+- **Autor:** IA (Claude Code), a pedido del usuario
+- **OpenProject:** OP#429 · **PR:** → test
+- **Hecho:** la rúbrica se califica escribiendo los puntos de cada criterio (de 0 a su máximo) en vez de elegir
+  Excelente/Bueno/Regular; se elimina `rubric_levels` y `submission_rubric_scores.level_id`. Además, siete
+  correcciones del informe de QA del 17/11: el docente y el estudiante ya pueden abrir el archivo de una entrega
+  (con visor al calificar), la revisión no admite valores fuera de rango y su rechazo deja de ser invisible, las
+  extensiones permitidas se eligen de un catálogo, la nota del estudiante se colorea según la mínima y las
+  actividades se ven anidadas bajo su cómputo.
+- **CP cubiertos:** CP-RF15-06, CP-RF35-04.
+- **Decisiones:** enmienda a [[ADR-065 La rúbrica es parte de la tarea]] (la rúbrica ya no tiene niveles).
+- **Pendiente:**
+  - El `token_expired` del QR del informe de QA queda sin diagnosticar, por decisión del usuario.
+  - El nombre de la cuenta solo se toma de Google al crearla: si la cuenta ya existía, conserva el nombre viejo.
+
 ---
 
 ### 2026-11-01 · RF06 · Calendario de evaluaciones por ámbito (Jefe y Coordinador)

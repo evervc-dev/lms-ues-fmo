@@ -31,7 +31,24 @@
                     @if ($politica === 'grace_penalty')
                         <x-ui.field :etiqueta="__('Penalización (%)')" para="penalizacion" error="penalizacion"><x-ui.input id="penalizacion" type="number" wire:model="penalizacion" /></x-ui.field>
                     @endif
-                    <x-ui.field :etiqueta="__('Extensiones permitidas')" para="extensiones" :ayuda="__('Separadas por coma.')"><x-ui.input id="extensiones" wire:model="extensiones" /></x-ui.field>
+                    {{-- Se eligen del catálogo, no se escriben: una extensión mal tecleada rechazaba entregas correctas. --}}
+                    <x-ui.field :etiqueta="__('Extensiones permitidas')" para="extensiones" error="extensiones" :ayuda="__('Marque las que acepta. Al menos una.')" requerido>
+                        <div class="flex flex-col gap-2" id="extensiones">
+                            @foreach ($catalogoExtensiones as $grupo => $exts)
+                                <div wire:key="ext-{{ $loop->index }}">
+                                    <p class="text-xs font-medium text-texto-suave">{{ __($grupo) }}</p>
+                                    <div class="flex flex-wrap gap-x-4 gap-y-1">
+                                        @foreach ($exts as $ext)
+                                            <label class="flex items-center gap-1.5 text-sm">
+                                                <input type="checkbox" value="{{ $ext }}" wire:model="extensiones" class="size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
+                                                {{ $ext }}
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </x-ui.field>
                     <div class="grid grid-cols-2 gap-4">
                         <x-ui.field :etiqueta="__('Peso máx. (MB)')" para="mb" error="mb"><x-ui.input id="mb" type="number" wire:model="mb" /></x-ui.field>
                         <x-ui.field :etiqueta="__('Intentos')" para="intentos" error="intentos"><x-ui.input id="intentos" type="number" wire:model="intentos" /></x-ui.field>

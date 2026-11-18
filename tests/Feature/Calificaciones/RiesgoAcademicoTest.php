@@ -105,7 +105,7 @@ function riesgoTareaEntregada(array $e): array
 {
     actingAs($e['docente']);
     Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->set('titulo', 'Informe')->set('componente', riesgoComputo($e))->set('peso', 100)
-        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', 'pdf')
+        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', ['pdf'])
         ->call('guardar')->assertHasNoErrors();
     $tarea = DB::table('assessments')->where('title', 'Informe')->first(['ulid', 'grade_item_id']);
 
