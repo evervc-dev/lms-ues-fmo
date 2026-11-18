@@ -19,7 +19,7 @@ Casos derivados de los criterios de aceptación de [[RF15]]. Nivel: **browser + 
 | CP-RF15-03 | **Dado** una tarea con gracia y penalización de X %, **cuando** se califica una entrega tardía, **entonces** se descuenta X % automáticamente y se muestra al estudiante. | automatizado |
 | CP-RF15-04 | **Dado** un archivo con una extensión o un peso no permitidos, **entonces** se rechaza con un mensaje claro. | automatizado |
 | CP-RF15-05 | **Dado** una entrega grupal, **cuando** un integrante entrega, **entonces** cuenta para todo el equipo. | automatizado |
-| CP-RF15-06 | **Dado** una rúbrica, **cuando** el docente marca los niveles, **entonces** la nota se calcula automáticamente. | pasa |
+| CP-RF15-06 | **Dado** una rúbrica, **cuando** el docente escribe los puntos de cada criterio, **entonces** la nota se calcula automáticamente y ningún criterio admite más de su máximo. | pasa |
 | CP-RF15-07 | **Dado** una tarea con **calificación anónima** activada, **cuando** el docente califica, **entonces** ve «Estudiante 1, 2…» en vez de los nombres hasta que publica las notas ([[ADR-032 Ajustes por el documento de roles]]). | pasa |
 | CP-RF15-08 | **Dado** una tarea cerrada, **cuando** el docente da una prórroga de entrega a un estudiante, **entonces** ese estudiante entrega hasta la fecha a tiempo y sin penalización; solo el docente de la sección la da, y no existe para cuestionarios ([[ADR-040 Solicitud de revisión de calificaciones]]). | pasa |
 

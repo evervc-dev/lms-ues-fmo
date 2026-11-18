@@ -42,7 +42,7 @@ function tareaDe(array $e, int $componente, array $cambios = []): string
 {
     actingAs($e['docente']);
     $t = Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->set('titulo', 'Tarea 1')->set('componente', $componente)->set('peso', 50)
-        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', 'pdf');
+        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', ['pdf']);
     foreach ($cambios as $k => $v) {
         $t->set($k, $v);
     }
@@ -383,7 +383,7 @@ it('shows whole weights and rubric points without cutting their trailing zeros',
     $this->get(route('secciones.tareas.show', ['seccion' => $e['ulid'], 'tarea' => $tarea]))->assertOk()->assertSeeText('50 % del cómputo');
     $this->get(route('secciones.tareas.crear', ['seccion' => $e['ulid']]))->assertOk()->assertSeeText('(30 %)');
     $this->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()->assertSeeText('Cómputo 3 (40 %)');
-    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->assertSee('Contenido (10 pts)')->assertSeeHtml('<td class="text-right">10</td>');
+    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->assertSee('De 0 a 10.')->assertSeeHtml('<td class="text-right">10</td>');
 
     actingAs($e['estudiante'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()->assertSeeText(['Cómputo 3 · 40 %', '(50 %)']);
 });
@@ -402,4 +402,55 @@ it('propone abrir la tarea nueva a la próxima media hora en punto', function ()
     actingAs($e['docente']);
 
     Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->assertSet('abre', '2026-11-04T01:30');
+});
+
+it('las extensiones permitidas se eligen del catálogo y no se escriben', function () {
+    $e = escenario();
+    $componente = computos($e)[0];
+    actingAs($e['docente']);
+
+    $tarea = fn (array $extensiones) => Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])
+        ->set('titulo', 'Informe')->set('componente', $componente)->set('peso', 50)
+        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))
+        ->set('extensiones', $extensiones)->call('guardar');
+
+    // Lo que no está en el catálogo se rechaza, igual que quedarse sin ninguna.
+    $tarea(['exe'])->assertHasErrors(['extensiones.0']);
+    $tarea([])->assertHasErrors(['extensiones']);
+    $tarea(['pdf', 'docx'])->assertHasNoErrors();
+
+    $guardadas = DB::table('assignment_settings')->where('assessment_id', DB::table('assessments')->where('title', 'Informe')->value('id'))->value('allowed_extensions');
+    expect(json_decode((string) $guardadas, true))->toBe(['pdf', 'docx']);
+});
+
+it('el docente abre el archivo de una entrega y un ajeno no', function () {
+    $e = escenario();
+    $tarea = tareaDe($e, computos($e)[0]);
+
+    actingAs($e['estudiante']);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])
+        ->set('archivo', UploadedFile::fake()->create('informe.pdf', 100))->call('entregar')->assertHasNoErrors();
+
+    $entrega = (string) DB::table('submissions')->value('ulid');
+    $url = route('secciones.entregas.archivo', ['seccion' => $e['ulid'], 'entrega' => $entrega]);
+
+    // El docente de la sección y el estudiante dueño sí; otro estudiante de la misma sección, no.
+    actingAs($e['docente'])->get($url)->assertOk();
+    actingAs($e['estudiante'])->get($url)->assertOk();
+
+    $companiero = usuarioCon('estudiante');
+    actingAs($companiero)->get($url)->assertForbidden();
+});
+
+it('en una tarea anónima el nombre del archivo no delata al estudiante', function () {
+    $e = escenario();
+    $tarea = tareaDe($e, computos($e)[0], ['anonima' => true]);
+
+    actingAs($e['estudiante']);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])
+        ->set('archivo', UploadedFile::fake()->create('informe-de-juan-perez.pdf', 100))->call('entregar')->assertHasNoErrors();
+
+    actingAs($e['docente']);
+    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])
+        ->assertDontSee('informe-de-juan-perez.pdf')->assertSee('Estudiante 1.pdf');
 });

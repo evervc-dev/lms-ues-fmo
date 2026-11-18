@@ -76,11 +76,31 @@ class Revision extends Component
         ];
     }
 
+    /**
+     * El paso de las decisiones no avanza con un valor fuera de rango ni con un nivel que no es del criterio:
+     * las reglas de formato no conocen el tope de cada ítem, así que lo exige el Service.
+     */
+    protected function validarPaso(int $paso): void
+    {
+        if ($paso === 2 && $this->puedeResolver) {
+            app(RevisionService::class)->exigirDecisionesValidas(auth()->user(), $this->seccionId(), $this->solicitud, $this->decisiones);
+        }
+    }
+
     public function resolver(RevisionService $revisiones): void
     {
         $this->validarTodosLosPasos();
 
-        $revisiones->resolver(auth()->user(), $this->seccionId(), $this->solicitud, $this->decisiones, $this->respuesta);
+        // guardarPorPasos: si el Service rechaza un valor, el error se ve en el paso 2 y no detrás del resumen.
+        $resuelta = $this->guardarPorPasos(function () use ($revisiones): bool {
+            $revisiones->resolver(auth()->user(), $this->seccionId(), $this->solicitud, $this->decisiones, $this->respuesta);
+
+            return true;
+        });
+
+        if ($resuelta !== true) {
+            return;
+        }
 
         session()->flash('aviso', ['tipo' => 'exito', 'mensaje' => __('Solicitud resuelta. Se avisó al estudiante.')]);
         $this->redirectRoute('secciones.revisiones', ['seccion' => $this->seccion], navigate: true);

@@ -24,7 +24,7 @@ it('keeps the closing time the teacher types when the student sees the task', fu
     actingAs($e['docente']);
 
     Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->set('titulo', 'Informe')->set('componente', $componente)->set('peso', 50)
-        ->set('abre', now()->subHour()->format('Y-m-d\TH:i'))->set('cierra', $cierre->format('Y-m-d\TH:i'))->set('extensiones', 'pdf')
+        ->set('abre', now()->subHour()->format('Y-m-d\TH:i'))->set('cierra', $cierre->format('Y-m-d\TH:i'))->set('extensiones', ['pdf'])
         ->call('guardar')->assertHasNoErrors();
 
     actingAs($e['estudiante']);

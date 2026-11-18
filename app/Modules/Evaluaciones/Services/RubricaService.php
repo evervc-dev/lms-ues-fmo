@@ -11,14 +11,12 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Rúbrica de una tarea (RF15, ADR-006, ADR-065). Se arma dentro de la tarea, no en una lista aparte, y solo la llevan
- * las tareas: los exámenes se califican por pregunta. Cada criterio tiene tres niveles (Excelente 100 %, Bueno 70 %
- * y Regular 40 % de su máximo) y los máximos suman 10. Queda fija desde la primera calificación.
+ * las tareas: los exámenes se califican por pregunta. Cada criterio tiene su puntaje máximo y los máximos suman 10;
+ * al calificar, el docente escribe los puntos de cada criterio, de 0 a ese máximo. Queda fija desde la primera
+ * calificación.
  */
 class RubricaService
 {
-    /** @var array<int, array{0: string, 1: float}> nivel y fracción del máximo del criterio */
-    public const NIVELES = [['Excelente', 1.0], ['Bueno', 0.7], ['Regular', 0.4]];
-
     public function __construct(private Alcance $alcance) {}
 
     /**
@@ -37,7 +35,7 @@ class RubricaService
     }
 
     /**
-     * Inserta la rúbrica con sus criterios y niveles. Va dentro de la transacción de quien la llama.
+     * Inserta la rúbrica con sus criterios. Va dentro de la transacción de quien la llama.
      *
      * @param  array<int, array{nombre: string, maximo: float}>  $criterios
      */
@@ -45,17 +43,14 @@ class RubricaService
     {
         $rubrica = DB::table('rubrics')->insertGetId(['owner_id' => $autorId, 'title' => $titulo, 'created_at' => now(), 'updated_at' => now()]);
         foreach (array_values($criterios) as $i => $c) {
-            $criterio = DB::table('rubric_criteria')->insertGetId(['rubric_id' => $rubrica, 'name' => $c['nombre'], 'max_points' => $c['maximo'], 'position' => $i, 'created_at' => now(), 'updated_at' => now()]);
-            foreach (self::NIVELES as [$nivel, $fraccion]) {
-                DB::table('rubric_levels')->insert(['criterion_id' => $criterio, 'name' => $nivel, 'points' => round($c['maximo'] * $fraccion, 2), 'created_at' => now(), 'updated_at' => now()]);
-            }
+            DB::table('rubric_criteria')->insert(['rubric_id' => $rubrica, 'name' => $c['nombre'], 'max_points' => $c['maximo'], 'position' => $i, 'created_at' => now(), 'updated_at' => now()]);
         }
 
         return $rubrica;
     }
 
     /**
-     * Criterios de la rúbrica, cada uno con sus niveles de mayor a menor.
+     * Criterios de la rúbrica, en orden, con su puntaje máximo.
      *
      * @return Collection<int, \stdClass>
      */
@@ -65,8 +60,7 @@ class RubricaService
             return collect();
         }
 
-        return DB::table('rubric_criteria')->where('rubric_id', $rubricaId)->orderBy('position')->get()
-            ->each(fn ($c) => $c->niveles = DB::table('rubric_levels')->where('criterion_id', $c->id)->orderByDesc('points')->get());
+        return DB::table('rubric_criteria')->where('rubric_id', $rubricaId)->orderBy('position')->get();
     }
 
     /**
@@ -106,7 +100,7 @@ class RubricaService
         DbContext::run(function () use ($docente, $tarea, $anterior, $criterios) {
             $nueva = $criterios === [] ? null : $this->insertar($docente->id, $tarea->title, $criterios);
             DB::table('assessments')->where('id', $tarea->id)->update(['rubric_id' => $nueva, 'updated_at' => now()]);
-            // La anterior se borra si ninguna otra tarea la usa; sus criterios y niveles caen en cascada.
+            // La anterior se borra si ninguna otra tarea la usa; sus criterios caen en cascada.
             if ($anterior !== null && ! DB::table('assessments')->where('rubric_id', $anterior)->exists()) {
                 DB::table('rubrics')->where('id', $anterior)->delete();
             }

@@ -175,7 +175,7 @@ class EntregaDeTarea extends Escenario
             ->nota("Sección {$materia->code}-01 de «{$materia->name}».")
             ->nota('La tarea abrió hace 2 días y cierra en 2; con prórroga de 2 días más y 10 % de penalización.')
             ->nota("Ya hay {$entregadas} entregas del relleno esperando nota; los del equipo entregan en vivo.")
-            ->nota('La rúbrica tiene 3 criterios (10 puntos en total) y 3 niveles cada uno.');
+            ->nota('La rúbrica tiene 3 criterios que suman 10 puntos; al calificar se escriben los puntos de cada uno.');
     }
 
     private function rubrica(int $docente, Esqueleto $esqueleto): int
@@ -186,20 +186,12 @@ class EntregaDeTarea extends Escenario
         ] + $esqueleto->sellos());
 
         foreach ([['Contenido y exactitud', 4], ['Formato y presentación', 3], ['Puntualidad y orden', 3]] as $posicion => [$nombre, $maximo]) {
-            $criterioId = $esqueleto->registro->insertar('rubric_criteria', [
+            $esqueleto->registro->insertar('rubric_criteria', [
                 'rubric_id' => $rubricaId,
                 'name' => $nombre,
                 'max_points' => $maximo,
                 'position' => $posicion,
             ] + $esqueleto->sellos());
-
-            foreach ([['Excelente', 1.0], ['Bueno', 0.7], ['Regular', 0.4]] as [$nivel, $factor]) {
-                $esqueleto->registro->insertar('rubric_levels', [
-                    'criterion_id' => $criterioId,
-                    'name' => $nivel,
-                    'points' => $maximo * $factor,
-                ] + $esqueleto->sellos());
-            }
         }
 
         return $rubricaId;

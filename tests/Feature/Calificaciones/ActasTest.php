@@ -239,7 +239,7 @@ function actaTareaEntregada(array $e): array
     ]));
     actingAs($e['docente']);
     Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])->set('titulo', 'Informe')->set('componente', $componente)->set('peso', 50)
-        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', 'pdf')
+        ->set('abre', now()->subDay()->format('Y-m-d\TH:i'))->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))->set('extensiones', ['pdf'])
         ->call('guardar')->assertHasNoErrors();
     $ulid = (string) DB::table('assessments')->where('title', 'Informe')->value('ulid');
 

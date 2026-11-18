@@ -18,7 +18,8 @@
                         @if ($heredado)
                             <p class="text-xs text-texto-suave">{{ __('Esta nota la trae del grupo :g, donde cursó este cómputo antes del cambio de grupo.', ['g' => $heredado->grupo]) }}</p>
                         @endif
-                        <ul class="divide-y divide-borde text-sm">
+                        {{-- Sangría y filete: las actividades se leen como hijas de su cómputo, no como una línea más. --}}
+                        <ul class="ml-3 divide-y divide-borde border-l-2 border-borde pl-3 text-sm">
                             @foreach ($c->items as $i)
                                 <li class="flex justify-between py-1.5"><span>{{ $i->title }} <span class="text-xs text-texto-suave">({{ rtrim(rtrim(number_format((float) $i->weight_percent, 2, '.', ''), '0'), '.') }} %)</span></span>
                                     <span>{{ $i->is_published ? $fmt($boleta['notas'][$i->id]->score ?? 0) : __('Pendiente') }}</span></li>

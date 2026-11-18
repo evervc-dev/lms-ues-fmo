@@ -46,12 +46,9 @@
                                 {{ __('Ajustar') }}
                             </label>
                             @if ($decisiones[$item->id]['cambiar'] ?? false)
-                                <x-ui.field :etiqueta="match ($item->tipo) { 'pregunta' => __('Puntos de la pregunta (0 a 1)'), 'criterio' => __('Nivel'), default => __('Nota (0 a 10)') }" :para="'valor-'.$item->id" :error="'decisiones.'.$item->id.'.valor'" requerido>
-                                    @if ($item->tipo === 'criterio')
-                                        <x-ui.select :id="'valor-'.$item->id" wire:model="decisiones.{{ $item->id }}.valor"><option value="">{{ __('Elija nivel…') }}</option>@foreach ($item->niveles as $n)<option value="{{ $n->id }}">{{ $n->name }} · {{ $num($n->points) }}</option>@endforeach</x-ui.select>
-                                    @else
-                                        <x-ui.input :id="'valor-'.$item->id" type="number" step="0.01" min="0" :max="$item->tipo === 'pregunta' ? 1 : 10" wire:model="decisiones.{{ $item->id }}.valor" />
-                                    @endif
+                                @php($tope = match ($item->tipo) { 'pregunta' => 1, 'criterio' => (float) $item->maximo, default => 10 })
+                                <x-ui.field :etiqueta="match ($item->tipo) { 'pregunta' => __('Puntos de la pregunta (0 a 1)'), 'criterio' => __('Puntos del criterio (0 a :m)', ['m' => $num($tope)]), default => __('Nota (0 a 10)') }" :para="'valor-'.$item->id" :error="'decisiones.'.$item->id.'.valor'" requerido>
+                                    <x-ui.input :id="'valor-'.$item->id" type="number" step="0.01" min="0" :max="$tope" wire:model="decisiones.{{ $item->id }}.valor" />
                                 </x-ui.field>
                             @endif
                             <x-ui.field :etiqueta="__('Respuesta al estudiante')" :para="'resp-'.$item->id" :error="'decisiones.'.$item->id.'.respuesta'" requerido>
