@@ -14,6 +14,7 @@ use App\Modules\Calificaciones\Events\NotasPublicadas;
 use App\Modules\Calificaciones\Events\RevisionResuelta;
 use App\Modules\Calificaciones\Events\RevisionSolicitada;
 use App\Modules\Calificaciones\Events\RiesgoAcademicoDetectado;
+use App\Modules\Comunicacion\Events\HiloPublicado;
 use App\Modules\Comunicacion\Events\RespuestaPublicada;
 use App\Modules\Comunicacion\Listeners\EnviarAvisos;
 use App\Modules\Comunicacion\Listeners\RegistrarEntregas;
@@ -48,6 +49,7 @@ class ComunicacionServiceProvider extends ModuloServiceProvider
         Event::listen(HorarioCambiado::class, [EnviarAvisos::class, 'horarioCambiado']);
         Event::listen(MatriculaCambiada::class, [EnviarAvisos::class, 'matriculaCambiada']);
         Event::listen(PeriodoReabierto::class, [EnviarAvisos::class, 'periodoReabierto']);
+        Event::listen(HiloPublicado::class, [EnviarAvisos::class, 'hiloPublicado']);
         Event::listen(RespuestaPublicada::class, [EnviarAvisos::class, 'respuestaPublicada']);
         Event::listen(ClaseCancelada::class, [EnviarAvisos::class, 'claseCancelada']);
         Event::listen(AlertaAsistenciaAbierta::class, [EnviarAvisos::class, 'alertaAsistencia']);

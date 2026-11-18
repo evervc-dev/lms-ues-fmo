@@ -98,6 +98,7 @@ class BaseSystemSeeder extends Seeder
             'device_request.pending' => 'Nueva solicitud de cambio de teléfono',
             'device_request.resolved' => 'Solicitud de cambio de teléfono resuelta',
             'class.cancelled' => 'Clase cancelada o cambio de modalidad',
+            'forum.thread' => 'Tema nuevo en un foro',
             'forum.reply' => 'Respuesta en un foro',
             'mass_message.sent' => 'Mensaje del docente',
             'grade_review.requested' => 'Solicitud de revisión de una nota',

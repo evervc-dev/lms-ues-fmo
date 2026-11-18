@@ -19,10 +19,16 @@
         <div class="flex flex-col gap-5">
             <x-ui.card :titulo="__('Preguntas')">
                 <div class="flex flex-col gap-4">
-                    <x-ui.field :etiqueta="__('Banco')" para="bancoC" error="banco" requerido><x-ui.select id="bancoC" wire:model="banco"><option value="">{{ __('Elija…') }}</option>@foreach ($bancos as $b)<option value="{{ $b->id }}">{{ $b->name }} ({{ $b->preguntas }})</option>@endforeach</x-ui.select></x-ui.field>
+                    <x-ui.field :etiqueta="__('Banco')" para="bancoC" error="banco" requerido><x-ui.select id="bancoC" wire:model.live="banco"><option value="">{{ __('Elija…') }}</option>@foreach ($bancos as $b)<option value="{{ $b->id }}">{{ $b->name }} ({{ $b->preguntas }})</option>@endforeach</x-ui.select></x-ui.field>
                     <div class="grid grid-cols-2 gap-4">
-                        <x-ui.field :etiqueta="__('Cantidad al azar')" para="cantidad" error="cantidad"><x-ui.input id="cantidad" type="number" wire:model="cantidad" /></x-ui.field>
-                        <x-ui.field :etiqueta="__('Tema (opcional)')" para="temaC"><x-ui.input id="temaC" wire:model="tema" /></x-ui.field>
+                        <x-ui.field :etiqueta="__('Cantidad al azar')" para="cantidad" error="cantidad" :ayuda="__('0 = todas las del banco.')"><x-ui.input id="cantidad" type="number" min="0" wire:model="cantidad" /></x-ui.field>
+                        {{-- El tema se elige de los que existen en el banco: escribirlo dejaba el filtro en 0 preguntas. --}}
+                        <x-ui.field :etiqueta="__('Tema (opcional)')" para="temaC" :ayuda="$banco && $temas->isEmpty() ? __('Este banco no tiene temas.') : null">
+                            <x-ui.select id="temaC" wire:model.live="tema" :disabled="! $banco || $temas->isEmpty()">
+                                <option value="">{{ __('Todos los temas') }}</option>
+                                @foreach ($temas as $t)<option value="{{ $t }}">{{ $t }}</option>@endforeach
+                            </x-ui.select>
+                        </x-ui.field>
                     </div>
                 </div>
             </x-ui.card>

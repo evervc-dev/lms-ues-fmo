@@ -193,7 +193,8 @@ it('CP-RF30-04 avisa al autor del mensaje respondido por push y correo, pero no 
 
     Notification::assertSentTo($e['estudiante'], Aviso::class, fn (Aviso $aviso, array $canales) => $aviso->evento === 'forum.reply'
         && str_contains($aviso->cuerpo, 'respondió en «Duda de recursividad»') && $canales === ['broadcast', 'mail']);
-    Notification::assertNotSentTo($e['docente'], Aviso::class);
+    // Al docente le llegó el aviso del tema nuevo, pero no el de la respuesta: la escribió él.
+    Notification::assertNotSentTo($e['docente'], Aviso::class, fn (Aviso $aviso) => $aviso->evento === 'forum.reply');
 
     // El estudiante responde en su propio hilo: el aviso va al autor del hilo, que es él mismo, así que no sale.
     actingAs($e['estudiante']);
@@ -214,4 +215,20 @@ it('CP-RF30-04 respeta la preferencia: con el correo de foros desactivado el avi
 
     Notification::assertSentTo($e['estudiante'], Aviso::class, fn (Aviso $aviso, array $canales) => $aviso->evento === 'forum.reply' && $canales === ['broadcast']);
     expect(DB::table('notifications')->where('notifiable_id', $e['estudiante']->id)->where('event_code', 'forum.reply')->count())->toBe(1);
+});
+
+it('CP-RF30-05 avisa del tema nuevo a los demás de la sección, menos a quien lo abre', function () {
+    Notification::fake();
+    $e = escenario();
+    actingAs($e['estudiante']);
+
+    app(ForoService::class)->crearHilo($e['estudiante'], $e['seccion'], 'Dudas del parcial', '¿Entra el tema 3?');
+
+    // El docente de la sección se entera; quien abrió el hilo, no.
+    Notification::assertSentTo($e['docente'], Aviso::class, fn (Aviso $aviso) => $aviso->evento === 'forum.thread'
+        && str_contains($aviso->cuerpo, 'abrió «Dudas del parcial»'));
+    Notification::assertNotSentTo($e['estudiante'], Aviso::class);
+
+    // Un estudiante de otra sección no recibe nada.
+    Notification::assertNotSentTo(usuarioCon('estudiante'), Aviso::class);
 });

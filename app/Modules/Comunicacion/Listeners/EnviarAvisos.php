@@ -15,6 +15,7 @@ use App\Modules\Calificaciones\Events\NotasPublicadas;
 use App\Modules\Calificaciones\Events\RevisionResuelta;
 use App\Modules\Calificaciones\Events\RevisionSolicitada;
 use App\Modules\Calificaciones\Events\RiesgoAcademicoDetectado;
+use App\Modules\Comunicacion\Events\HiloPublicado;
 use App\Modules\Comunicacion\Events\RespuestaPublicada;
 use App\Modules\Comunicacion\Notifications\Aviso;
 use App\Modules\Comunicacion\Services\NotificacionService;
@@ -170,6 +171,29 @@ class EnviarAvisos
      * Avisa al autor del mensaje respondido, o al autor del hilo si la respuesta va al hilo (RF30). Nadie recibe
      * aviso de su propia respuesta, ni de una respuesta que el docente ya ocultó.
      */
+    /**
+     * Hilo nuevo en el foro de una sección (RF30): se avisa a los estudiantes matriculados y a los docentes,
+     * menos a quien lo abrió. Antes solo se avisaba de las respuestas y el hilo pasaba inadvertido (QA 17/11).
+     */
+    public function hiloPublicado(HiloPublicado $evento): void
+    {
+        $t = DB::table('forum_threads as t')->join('sections', 'sections.id', '=', 't.section_id')
+            ->join('users as u', 'u.id', '=', 't.author_id')->where('t.id', $evento->hiloId)
+            ->first(['t.id', 't.title', 't.author_id', 't.section_id', 'sections.ulid', 'u.first_name', 'u.last_name']);
+
+        if ($t === null) {
+            return;
+        }
+
+        $destinatarios = DB::table('enrollments')->where('section_id', $t->section_id)->where('status', 'active')->pluck('student_id')
+            ->concat(DB::table('teaching_assignments')->where('section_id', $t->section_id)->whereNull('ended_at')->pluck('teacher_id'))
+            ->map(fn ($id) => (int) $id)->unique()->reject(fn (int $id) => $id === (int) $t->author_id)->values();
+
+        $this->enviar($destinatarios->all(), new Aviso('forum.thread', __('Tema nuevo en el foro: :t', ['t' => $t->title]),
+            __(':n abrió «:t» en el foro de su materia.', ['n' => trim($t->first_name.' '.$t->last_name), 't' => $t->title]),
+            route('secciones.foro.hilo', ['seccion' => $t->ulid, 'hilo' => $t->id]), 'forum.thread:'.$t->id));
+    }
+
     public function respuestaPublicada(RespuestaPublicada $evento): void
     {
         $r = DB::table('forum_posts as p')->join('forum_threads as t', 't.id', '=', 'p.thread_id')->join('sections', 'sections.id', '=', 't.section_id')

@@ -41,6 +41,64 @@ class CuestionarioService
             ->orderBy('b.name')->get();
     }
 
+    /**
+     * Renombra el banco o le cambia la asignatura. Solo el dueño: un banco compartido no se edita desde fuera.
+     */
+    public function renombrarBanco(User $docente, int $bancoId, string $nombre, ?int $asignaturaId): void
+    {
+        $this->exigirDuenoDelBanco($docente, $bancoId);
+
+        DbContext::run(fn () => DB::table('question_banks')->where('id', $bancoId)
+            ->update(['name' => $nombre, 'subject_id' => $asignaturaId, 'updated_at' => now()]), 'question_bank.updated');
+    }
+
+    /**
+     * Borra el banco con sus preguntas. Solo el dueño, y nunca si algún cuestionario lo sortea: esas preguntas
+     * son las que ya respondieron o van a responder los estudiantes.
+     *
+     * @throws ValidationException
+     */
+    public function eliminarBanco(User $docente, int $bancoId): void
+    {
+        $this->exigirDuenoDelBanco($docente, $bancoId);
+
+        if (DB::table('quiz_question_rules')->where('bank_id', $bancoId)->exists()) {
+            throw ValidationException::withMessages(['banco' => __('No se puede borrar: hay cuestionarios que sortean preguntas de este banco.')]);
+        }
+
+        DbContext::run(function () use ($bancoId) {
+            $preguntas = DB::table('questions')->where('bank_id', $bancoId)->pluck('id');
+            DB::table('question_options')->whereIn('question_id', $preguntas)->delete();
+            DB::table('questions')->where('bank_id', $bancoId)->delete();
+            DB::table('question_bank_shares')->where('bank_id', $bancoId)->delete();
+            DB::table('question_banks')->where('id', $bancoId)->delete();
+        }, 'question_bank.deleted');
+    }
+
+    /**
+     * El dueño del banco, o 403. Compartirlo da acceso de lectura, no de administración.
+     */
+    private function exigirDuenoDelBanco(User $docente, int $bancoId): void
+    {
+        $this->alcance->exigir($docente, 'banco-preguntas.gestionar');
+        $banco = DB::table('question_banks')->where('id', $bancoId)->first(['owner_id']) ?? abort(404);
+        abort_unless((int) $banco->owner_id === $docente->id, 403);
+    }
+
+    /**
+     * Los temas que de verdad existen en un banco, para elegirlos en vez de escribirlos.
+     *
+     * @return Collection<int, string>
+     */
+    public function temasDelBanco(User $docente, int $bancoId): Collection
+    {
+        // bancos() ya filtra por los suyos y los compartidos con él; si no está, 404.
+        $this->bancos($docente)->firstWhere('id', $bancoId) ?? abort(404);
+
+        return DB::table('questions')->where('bank_id', $bancoId)->whereNotNull('topic')->where('topic', '!=', '')
+            ->distinct()->orderBy('topic')->pluck('topic');
+    }
+
     public function crearBanco(User $docente, string $nombre, ?int $asignaturaId): int
     {
         $this->alcance->exigir($docente, 'banco-preguntas.gestionar');
@@ -113,7 +171,11 @@ class CuestionarioService
         $this->bancos($docente)->contains('id', $datos['banco']) || abort(403);
         $this->actividades->validarPeso((int) $datos['componente'], $seccionId, (float) $datos['peso']);
         $disponibles = DB::table('questions')->where('bank_id', $datos['banco'])->when($datos['tema'] ?? null, fn ($q, $t) => $q->where('topic', $t))->count();
-        if ($disponibles < $datos['cantidad']) {
+        // Cantidad 0 = todas las del banco con ese tema; el intento las sortea al empezar.
+        if ($disponibles === 0) {
+            throw ValidationException::withMessages(['cantidad' => __('El banco no tiene preguntas con ese tema. Elija otro tema o agregue preguntas al banco.')]);
+        }
+        if ($datos['cantidad'] > 0 && $disponibles < $datos['cantidad']) {
             throw ValidationException::withMessages(['cantidad' => __('El banco solo tiene :n preguntas con ese filtro.', ['n' => $disponibles])]);
         }
         if (Carbon::parse($datos['cierra'])->lte(Carbon::parse($datos['abre']))) {
@@ -208,7 +270,9 @@ class CuestionarioService
             $posicion = 0;
             foreach (DB::table('quiz_question_rules')->where('assessment_id', $c->id)->get() as $regla) {
                 $ids = DB::table('questions')->where('bank_id', $regla->bank_id)->when($regla->topic, fn ($q, $t) => $q->where('topic', $t))
-                    ->when($regla->difficulty, fn ($q, $d) => $q->where('difficulty', $d))->pluck('id')->shuffle()->take((int) $regla->quantity);
+                    ->when($regla->difficulty, fn ($q, $d) => $q->where('difficulty', $d))->pluck('id')->shuffle();
+                // Con cantidad 0 entran todas las del banco; si no, solo las que diga la regla.
+                $ids = (int) $regla->quantity > 0 ? $ids->take((int) $regla->quantity) : $ids;
                 foreach ($ids as $id) {
                     DB::table('attempt_answers')->insert(['attempt_id' => $intento, 'question_id' => $id, 'position' => $posicion++]);
                 }

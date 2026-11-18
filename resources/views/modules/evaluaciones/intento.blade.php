@@ -74,7 +74,7 @@
     @endif
 
     <div class="flex flex-wrap items-center justify-between gap-2">
-        @if (! $lineal)<x-ui.button variante="secundario" wire:click="ir({{ $actual - 1 }})" :disabled="$actual === 0">{{ __('◀ Anterior') }}</x-ui.button>@else<span></span>@endif
+        @if (! $lineal)<x-ui.button variante="secundario" wire:click="ir({{ $actual - 1 }})" :disabled="$actual === 0">{{ __('Anterior') }}</x-ui.button>@else<span></span>@endif
         <nav class="flex flex-wrap gap-1" aria-label="{{ __('Preguntas') }}">
             @foreach ($preguntas as $i => $p)
                 <button type="button" @if (! $lineal) wire:click="ir({{ $i }})" @endif @disabled($lineal)
@@ -82,7 +82,7 @@
             @endforeach
         </nav>
         @if ($actual < $preguntas->count() - 1)
-            <x-ui.button wire:click="ir({{ $actual + 1 }})">{{ __('Siguiente ▶') }}</x-ui.button>
+            <x-ui.button wire:click="ir({{ $actual + 1 }})">{{ __('Siguiente') }}</x-ui.button>
         @elseif (! $terminado)
             <x-ui.button x-on:click="saliendo = true" wire:click="terminar" wire:confirm="{{ $sinResponder ? __('Le quedan :n preguntas sin responder. ¿Terminar el intento?', ['n' => $sinResponder]) : __('¿Terminar el intento?') }}">{{ __('Terminar intento') }}</x-ui.button>
         @endif

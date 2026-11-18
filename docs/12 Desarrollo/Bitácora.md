@@ -18,6 +18,19 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-18 · RF16, RF30 · Banco de preguntas, aviso de tema nuevo y detalles de interfaz
+- **Autor:** IA (Claude Code), a pedido del usuario
+- **OpenProject:** OP# pendiente · **PR:** → test
+- **Hecho:** tercera tanda del informe de QA del 17/11. En el cuestionario, la cantidad al azar admite **0 =
+  todas** y el **tema se elige** de los que existen en el banco (escribirlo dejaba el filtro en 0 preguntas).
+  Los bancos de preguntas se pueden **renombrar y borrar** desde su lista, solo el dueño y solo si ningún
+  cuestionario los sortea. Al **abrir un hilo del foro** se avisa a los demás de la sección (`forum.thread`),
+  que antes solo se avisaba de las respuestas. Se quitaron los emojis de los botones del examen.
+- **CP cubiertos:** CP-RF16-06 y CP-RF30-05 (nuevos).
+- **Decisiones:** ninguna ADR nueva.
+- **Pendiente:** del informe quedan fuera, por decisión del usuario, el `token_expired` del QR y el nombre que
+  no se refresca desde Google.
+
 ### 2026-11-18 · RF17, RF20, RF21 · Nota acumulada, asistencia ya marcada y enlace de Meet
 - **Autor:** IA (Claude Code), a pedido del usuario
 - **OpenProject:** OP# pendiente · **PR:** → test

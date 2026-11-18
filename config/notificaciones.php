@@ -34,6 +34,7 @@ return [
         'device_request.pending' => ['soporte_tecnico'],
         'device_request.resolved' => ['estudiante', 'soporte_tecnico'],
         'class.cancelled' => ['estudiante', 'docente'],
+        'forum.thread' => ['estudiante', 'docente'],
         'forum.reply' => ['estudiante', 'docente'],
         'mass_message.sent' => ['estudiante'],
         'grade_review.requested' => ['docente'],

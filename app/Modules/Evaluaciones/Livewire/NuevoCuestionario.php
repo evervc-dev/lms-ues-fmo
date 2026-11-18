@@ -37,9 +37,15 @@ class NuevoCuestionario extends Component
 
     public ?int $banco = null;
 
+    /** Preguntas al azar por intento; 0 significa todas las del banco con el tema elegido. */
     public int $cantidad = 10;
 
     public string $tema = '';
+
+    public function updatedBanco(): void
+    {
+        $this->tema = '';
+    }
 
     public function mount(): void
     {
@@ -52,7 +58,7 @@ class NuevoCuestionario extends Component
         $this->validate([
             'titulo' => 'required|string|max:200', 'componente' => 'required|integer', 'peso' => 'required|numeric|min:1|max:100', 'abre' => 'required|date', 'cierra' => 'required|date',
             'minutos' => 'required|integer|min:1|max:600', 'intentos' => 'required|integer|min:1|max:10', 'navegacion' => 'required|in:free,linear',
-            'banco' => 'required|integer', 'cantidad' => 'required|integer|min:1|max:200',
+            'banco' => 'required|integer', 'cantidad' => 'required|integer|min:0|max:200',
         ], [], ['titulo' => 'título', 'componente' => 'cómputo', 'banco' => 'banco']);
         $ulid = $cuestionarios->crearCuestionario(auth()->user(), $this->seccionId(), [
             'componente' => (int) $this->componente, 'titulo' => $this->titulo, 'instrucciones' => $this->instrucciones ?: null, 'abre' => $this->abre, 'cierra' => $this->cierra,
@@ -68,6 +74,8 @@ class NuevoCuestionario extends Component
         return $this->paginaDeSeccion('modules.evaluaciones.nuevo-cuestionario', [
             'computos' => DB::table('grading_components')->where('section_id', $this->seccionId())->orderBy('number')->get(),
             'bancos' => $cuestionarios->bancos(auth()->user()),
+            // Los temas del banco elegido: antes era texto libre y una palabra mal escrita dejaba el filtro en 0.
+            'temas' => $this->banco === null ? collect() : $cuestionarios->temasDelBanco(auth()->user(), (int) $this->banco),
         ]);
     }
 }

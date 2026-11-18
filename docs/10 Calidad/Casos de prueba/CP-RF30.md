@@ -18,5 +18,6 @@ Casos derivados de los criterios de aceptación de [[RF30]]. Nivel: **feature**.
 | CP-RF30-02 | **Dado** el docente, **cuando** oculta un mensaje, **entonces** deja de verse para los estudiantes y queda registrado. | automatizado |
 | CP-RF30-03 | **Dado** un hilo cerrado, **entonces** no admite respuestas nuevas. | pasa |
 | CP-RF30-04 | **Dado** un mensaje nuevo, **entonces** se notifica según las preferencias ([[RF23]]). | automatizado |
+| CP-RF30-05 | **Dado** un hilo nuevo, **entonces** se avisa a los demás participantes de la sección, menos a quien lo abrió (aviso `forum.thread`). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF30-01 …')`.

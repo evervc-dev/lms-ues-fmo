@@ -5,6 +5,7 @@ use App\Modules\Calificaciones\Livewire\ActasPorValidar;
 use App\Modules\Calificaciones\Livewire\Cierre;
 use App\Modules\Calificaciones\Livewire\NotasSeccion;
 use App\Modules\Calificaciones\Services\CalificacionService;
+use App\Modules\Evaluaciones\Livewire\Bancos;
 use App\Modules\Evaluaciones\Livewire\Cuestionario;
 use App\Modules\Evaluaciones\Livewire\Entregas;
 use App\Modules\Evaluaciones\Livewire\Intento;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 use function Pest\Laravel\actingAs;
 
@@ -503,4 +505,61 @@ it('«Mis notas» lista cada actividad calificada con su nota', function () {
         ->and($materia->actividades[0]->ulid)->toBe($tarea);
 
     $this->get(route('mis-notas'))->assertOk()->assertSeeText(['Notas por actividad', 'Tarea 1', '9.3']);
+});
+
+it('CP-RF16-06 con cantidad 0 el intento trae todas las preguntas del banco, y el tema se elige de las que hay', function () {
+    $e = escenario();
+    $c = computos($e);
+    actingAs($e['docente']);
+    $banco = app(CuestionarioService::class)->crearBanco($e['docente'], 'Banco Agrícola', $e['prn']);
+    DbContext::system(fn () => collect(range(1, 4))->each(fn (int $n) => DB::table('questions')->insert([
+        'bank_id' => $banco, 'question_type' => 'true_false', 'statement' => "Afirmación {$n}", 'topic' => $n <= 2 ? 'Suelos' : null,
+        'created_at' => now(), 'updated_at' => now()])));
+
+    // Los temas salen del banco: ya no se escriben a mano.
+    expect(app(CuestionarioService::class)->temasDelBanco($e['docente'], $banco)->all())->toBe(['Suelos']);
+
+    $nuevo = fn (string $titulo, int $cantidad, ?string $tema = null) => Livewire::test(NuevoCuestionario::class, ['seccion' => $e['ulid']])
+        ->set('titulo', $titulo)->set('componente', $c[1])->set('banco', $banco)->set('cantidad', $cantidad)->set('tema', $tema ?? '')
+        ->set('abre', now()->subHour()->format('Y-m-d\TH:i'))->set('cierra', now()->addHour()->format('Y-m-d\TH:i'))->call('guardar');
+
+    // 5 de un banco de 4 se rechaza; 0 se acepta y significa «todas».
+    $nuevo('Parcial 2', 5)->assertHasErrors(['cantidad']);
+    $nuevo('Parcial 1', 0)->assertHasNoErrors();
+
+    $ulid = (string) DB::table('assessments')->where('title', 'Parcial 1')->value('ulid');
+    actingAs($e['estudiante']);
+    $intento = app(CuestionarioService::class)->iniciar($e['estudiante'], $e['seccion'], $ulid);
+
+    expect(DB::table('attempt_answers')->join('quiz_attempts', 'quiz_attempts.id', '=', 'attempt_answers.attempt_id')
+        ->where('quiz_attempts.ulid', $intento)->count())->toBe(4);
+});
+
+it('el dueño renombra y borra su banco; con un cuestionario que lo usa, no', function () {
+    $e = escenario();
+    actingAs($e['docente']);
+    $servicio = app(CuestionarioService::class);
+    $banco = $servicio->crearBanco($e['docente'], 'Banco PRN', $e['prn']);
+    DbContext::system(fn () => DB::table('questions')->insert(['bank_id' => $banco, 'question_type' => 'true_false',
+        'statement' => 'Afirmación', 'created_at' => now(), 'updated_at' => now()]));
+
+    Livewire::test(Bancos::class)->call('abrirEdicion', $banco)->assertSet('nombre', 'Banco PRN')
+        ->set('nombre', 'Banco de Programación')->call('guardarEdicion');
+    expect(DB::table('question_banks')->where('id', $banco)->value('name'))->toBe('Banco de Programación');
+
+    // Un docente ajeno no lo toca.
+    $ajeno = docenteAjeno($e);
+    expect(fn () => $servicio->renombrarBanco($ajeno, $banco, 'Mío', null))->toThrow(HttpException::class)
+        ->and(fn () => $servicio->eliminarBanco($ajeno, $banco))->toThrow(HttpException::class);
+
+    // Con un cuestionario que sortea de él, no se borra.
+    $c = computos($e);
+    Livewire::test(NuevoCuestionario::class, ['seccion' => $e['ulid']])->set('titulo', 'Parcial 1')->set('componente', $c[1])->set('banco', $banco)->set('cantidad', 1)
+        ->set('abre', now()->subHour()->format('Y-m-d\TH:i'))->set('cierra', now()->addHour()->format('Y-m-d\TH:i'))->call('guardar')->assertHasNoErrors();
+    expect(fn () => $servicio->eliminarBanco($e['docente'], $banco))->toThrow(ValidationException::class);
+
+    DbContext::system(fn () => DB::table('quiz_question_rules')->where('bank_id', $banco)->delete());
+    $servicio->eliminarBanco($e['docente'], $banco);
+    expect(DB::table('question_banks')->where('id', $banco)->exists())->toBeFalse()
+        ->and(DB::table('questions')->where('bank_id', $banco)->exists())->toBeFalse();
 });

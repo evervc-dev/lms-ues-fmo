@@ -3,6 +3,7 @@
 namespace App\Modules\Comunicacion\Services;
 
 use App\Models\User;
+use App\Modules\Comunicacion\Events\HiloPublicado;
 use App\Modules\Comunicacion\Events\RespuestaPublicada;
 use App\Support\Alcance;
 use App\Support\DbContext;
@@ -47,12 +48,17 @@ class ForoService
     {
         $this->exigir($this->puedeParticipar($usuario, $seccionId));
 
-        return DbContext::run(function () use ($usuario, $seccionId, $titulo, $mensaje) {
+        $hilo = (int) DbContext::run(function () use ($usuario, $seccionId, $titulo, $mensaje) {
             $hilo = DB::table('forum_threads')->insertGetId(['section_id' => $seccionId, 'author_id' => $usuario->id, 'title' => $titulo, 'is_closed' => false, 'is_pinned' => false, 'created_at' => now(), 'updated_at' => now()]);
             DB::table('forum_posts')->insert(['thread_id' => $hilo, 'author_id' => $usuario->id, 'body_html' => $mensaje, 'is_hidden' => false, 'created_at' => now(), 'updated_at' => now()]);
 
             return $hilo;
         }, 'forum.thread_created');
+
+        // RF30: los demás participantes de la sección se enteran del hilo nuevo, no solo de las respuestas.
+        HiloPublicado::dispatch($hilo);
+
+        return $hilo;
     }
 
     /**

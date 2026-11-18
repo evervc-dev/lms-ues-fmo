@@ -21,5 +21,6 @@ Casos derivados de los criterios de aceptación de [[RF16]]. Nivel: **browser + 
 | CP-RF16-05 | **Dado** un cuestionario cerrado, **entonces** el docente ve el porcentaje de aciertos por pregunta. | pasa |
 | CP-RF16-06 | **Dado** un intento cuyo tiempo venció sin envío, **entonces** se cierra y se corrige solo una vez ([[ADR-042 Flujo del examen sin depender de Reverb]]). | pasa |
 | CP-RF16-07 | **Dado** un cuestionario en curso, **entonces** el docente ve el estado de cada estudiante, cierra intentos y da minutos extra a uno, varios o todos, hasta 30 min después del cierre; la corrección espera al último intento; otro docente, el estudiante o el coordinador reciben 403. | pasa |
+| CP-RF16-06 | **Dado** un banco de 4 preguntas, **cuando** el cuestionario pide 0, **entonces** el intento recibe las 4; si pide 5, se rechaza. El tema se elige de los del banco. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF16-01 …')`.
