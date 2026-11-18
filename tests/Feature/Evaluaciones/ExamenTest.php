@@ -51,6 +51,29 @@ function verdaderoDe(int $respuesta): int
     return (int) DB::table('question_options')->where('question_id', DB::table('attempt_answers')->where('id', $respuesta)->value('question_id'))->where('text', 'Verdadero')->value('id');
 }
 
+it('sortea todas las preguntas del banco cuando la cantidad al azar es 0', function () {
+    $e = escenario();
+    $cuestionarios = app(CuestionarioService::class);
+    $componente = DbContext::system(fn () => DB::table('grading_components')->insertGetId([
+        'section_id' => $e['seccion'], 'number' => 1, 'name' => 'Cómputo 1', 'starts_on' => '2026-07-27', 'ends_on' => '2026-12-11', 'weight_percent' => 100, 'created_at' => now(), 'updated_at' => now(),
+    ]));
+    actingAs($e['docente']);
+    $banco = $cuestionarios->crearBanco($e['docente'], 'Banco PRN', $e['prn']);
+    foreach (['PHP es interpretado', 'Laravel es un lenguaje', 'SQL es declarativo'] as $enunciado) {
+        $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => $enunciado, 'correcta' => 0]);
+    }
+
+    // En PostgreSQL esto además pasa por el CHECK de quantity, que antes exigía >= 1 y rechazaba el 0 (ADR-071).
+    $ulid = $cuestionarios->crearCuestionario($e['docente'], $e['seccion'], ['titulo' => 'Parcial 1', 'instrucciones' => null, 'componente' => $componente, 'peso' => 50,
+        'abre' => now()->subMinutes(5), 'cierra' => now()->addMinutes(20), 'intentos' => 1, 'minutos' => 20, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 0, 'tema' => null]);
+
+    actingAs($e['estudiante']);
+    $cuestionarios->iniciar($e['estudiante'], $e['seccion'], $ulid);
+
+    expect(DB::table('quiz_question_rules')->where('assessment_id', DB::table('assessments')->where('ulid', $ulid)->value('id'))->value('quantity'))->toBe(0)
+        ->and(DB::table('attempt_answers')->count())->toBe(3);
+});
+
 it('CP-RF16-06 closes and grades attempts whose time ran out without being sent, once', function () {
     $e = escenario();
     $x = examenEnCurso($e);
