@@ -87,15 +87,15 @@
                     <p class="text-sm text-texto-suave">{{ __('Sin rechazos.') }}</p>
                 @endforelse
             </x-ui.card>
-            <x-ui.card :titulo="__('Justificaciones pendientes')">
+            <x-ui.card :titulo="__('Justificaciones de esta sesión')">
                 @forelse ($justificaciones as $j)
                     <div class="border-b border-borde py-2 text-sm last:border-0" wire:key="just-{{ $j->id }}">
-                        <p class="font-medium">{{ $j->first_name }} {{ $j->last_name }} · {{ \Illuminate\Support\Carbon::parse($j->session_date)->format('d/m') }}</p>
+                        <p class="font-medium">{{ $j->first_name }} {{ $j->last_name }}</p>
                         <p class="text-texto-suave">{{ $j->reason }}</p>
                         <div class="mt-1 flex gap-2"><x-ui.button tamano="sm" wire:click="revisar({{ $j->id }}, true)">{{ __('Aceptar') }}</x-ui.button><x-ui.button tamano="sm" variante="peligro" wire:click="revisar({{ $j->id }}, false)">{{ __('Rechazar') }}</x-ui.button></div>
                     </div>
                 @empty
-                    <p class="text-sm text-texto-suave">{{ __('No hay justificaciones por revisar.') }}</p>
+                    <p class="text-sm text-texto-suave">{{ __('No hay justificaciones por revisar en esta sesión.') }}</p>
                 @endforelse
             </x-ui.card>
         </div>

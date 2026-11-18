@@ -18,6 +18,20 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-17 · RF21, RF19 · El informe real de Meet no trae la fecha, y las justificaciones por sesión
+- **Autor:** IA (Claude Code), a pedido del usuario
+- **OpenProject:** OP#453 · **PR:** → test
+- **Hecho:** el informe que exporta Meet en español solo trae la **hora** («9:51 p. m.»), nunca la fecha, y su
+  encabezado de entrada es «Hora a la que se unió», que no estaba entre los alias: **toda** subida real se
+  rechazaba con «No se encontró la fecha de la reunión en el reporte». Ahora la fecha sale del contenido o, si no
+  la hay, del nombre con que Google guarda el archivo, con un día de tolerancia; sin fecha no se bloquea y la vista
+  previa lo advierte. Las justificaciones pendientes de la vista de sesión se limitan a **esa** sesión y hay un
+  panel con todas las de la sección en Asistencia.
+- **CP cubiertos:** CP-RF21-08 (fecha del nombre, tolerancia y sin fecha), CP-RF19-03 (justificaciones por sesión).
+- **Decisiones:** [[ADR-070 Fecha del informe de Meet desde el nombre del archivo]] (pendiente). Columna nueva
+  `meet_reports.meeting_date`.
+- **Pendiente:** aceptar la ADR-070 en la reunión del equipo.
+
 ### 2026-11-18 · RF16, RF30 · Banco de preguntas, aviso de tema nuevo y detalles de interfaz
 - **Autor:** IA (Claude Code), a pedido del usuario
 - **OpenProject:** OP# pendiente · **PR:** → test

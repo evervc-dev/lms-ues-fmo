@@ -37,6 +37,9 @@ class ReporteMeetService
 
     public const EXTENSIONES = ['csv', 'txt', 'xlsx'];
 
+    /** Días de diferencia que se toleran cuando la fecha sale del nombre del archivo (una clase puede cruzar la medianoche). */
+    public const TOLERANCIA_DIAS = 1;
+
     public const ESTADOS = ['scheduled' => 'Programada', 'in_progress' => 'En curso', 'finished' => 'Finalizada'];
 
     /** Encabezados que se reconocen (normalizados: minúsculas y sin tildes), en español e inglés. */
@@ -45,7 +48,8 @@ class ReporteMeetService
         'nombre' => ['first name', 'nombre', 'name', 'nombre completo', 'participante', 'participant'],
         'apellido' => ['last name', 'apellido', 'apellidos'],
         'duracion' => ['duration', 'duracion', 'tiempo', 'tiempo de asistencia', 'attended duration'],
-        'entrada' => ['time joined', 'joined', 'joined at', 'first seen', 'hora de entrada', 'hora en que se unio', 'primera vez visto'],
+        'entrada' => ['time joined', 'joined', 'joined at', 'first seen', 'hora de entrada', 'hora en que se unio', 'hora a la que se unio',
+            'hora en la que se unio', 'hora de union', 'primera vez visto'],
     ];
 
     private const MESES = ['ene' => 1, 'jan' => 1, 'feb' => 2, 'mar' => 3, 'abr' => 4, 'apr' => 4, 'may' => 5, 'jun' => 6, 'jul' => 7,
@@ -150,10 +154,15 @@ class ReporteMeetService
 
         [$filas, $fecha] = $this->interpretar($hoja);
         $diaClase = $this->local($clase->starts_at)->toDateString();
+        // El informe de Meet en español solo trae la hora («9:51 p. m.»); la fecha está en el nombre del archivo
+        // «Informe de asistencia a poc-tbuu-xpb (2026-11-17 21:49).xlsx», que es cuando Google lo generó: por eso
+        // se tolera un día de diferencia. Si no hay fecha por ninguna vía, no se bloquea y la vista previa avisa.
+        $tolerancia = 0;
         if ($fecha === null) {
-            throw ValidationException::withMessages(['archivo' => __('No se encontró la fecha de la reunión en el reporte.')]);
+            $fecha = self::fechaDeNombre((string) $archivo->getClientOriginalName());
+            $tolerancia = self::TOLERANCIA_DIAS;
         }
-        if ($fecha !== $diaClase) {
+        if ($fecha !== null && abs($this->diferenciaEnDias($fecha, $diaClase)) > $tolerancia) {
             throw ValidationException::withMessages(['archivo' => __('El reporte es del :r y la clase es del :c. Revise que sea el reporte de esta clase.', [
                 'r' => Carbon::parse($fecha)->format('d/m/Y'), 'c' => Carbon::parse($diaClase)->format('d/m/Y')])]);
         }
@@ -168,13 +177,13 @@ class ReporteMeetService
         }
 
         try {
-            $id = (int) DbContext::run(function () use ($docente, $claseId, $ruta, $filas, $matriculas, $anteriores) {
+            $id = (int) DbContext::run(function () use ($docente, $claseId, $ruta, $filas, $fecha, $matriculas, $anteriores) {
                 if ($anteriores->isNotEmpty()) {
                     DB::table('meet_report_rows')->whereIn('meet_report_id', $anteriores->pluck('id'))->delete();
                     DB::table('meet_reports')->whereIn('id', $anteriores->pluck('id'))->delete();
                 }
                 $id = DB::table('meet_reports')->insertGetId(['video_session_id' => $claseId, 'file_path' => $ruta, 'uploaded_by' => $docente->id,
-                    'confirmed_at' => null, 'is_current' => false, 'created_at' => now(), 'updated_at' => now()]);
+                    'meeting_date' => $fecha, 'confirmed_at' => null, 'is_current' => false, 'created_at' => now(), 'updated_at' => now()]);
                 foreach (array_chunk($filas, 200) as $lote) {
                     DB::table('meet_report_rows')->insert(array_map(function (array $f) use ($id, $matriculas) {
                         $matricula = $f['correo'] !== null ? $matriculas->get($f['correo']) : null;
@@ -374,6 +383,21 @@ class ReporteMeetService
     }
 
     /**
+     * Día (Y-m-d) del nombre del archivo que genera Google: «Informe de asistencia a poc-tbuu-xpb (2026-11-17 21:49).xlsx»,
+     * con la hora separada por «:» o por «_» (Windows). Si no trae esa marca, se intenta leer una fecha suelta del
+     * nombre. Null si no hay ninguna.
+     */
+    public static function fechaDeNombre(string $nombre): ?string
+    {
+        $texto = Str::of($nombre)->ascii()->lower()->squish()->toString();
+        if (preg_match('/\((\d{4})-(\d{1,2})-(\d{1,2})[ t_]+\d{1,2}[:_.]/', $texto, $m) && checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
+            return sprintf('%04d-%02d-%02d', (int) $m[1], (int) $m[2], (int) $m[3]);
+        }
+
+        return self::fechaDe(pathinfo($texto, PATHINFO_FILENAME));
+    }
+
+    /**
      * Ubica la fila de encabezados, agrupa las filas por persona sumando los minutos y obtiene la fecha del reporte.
      *
      * @param  list<list<string>>  $hoja
@@ -512,6 +536,14 @@ class ReporteMeetService
         $fecha = Carbon::createFromFormat('Y-m-d H:i', $valor, (string) config('app.timezone'));
 
         return $fecha instanceof Carbon && $fecha->format('Y-m-d H:i') === $valor ? $fecha->startOfMinute() : null;
+    }
+
+    /**
+     * Días completos entre dos fechas Y-m-d (negativo si la primera es anterior).
+     */
+    private function diferenciaEnDias(string $fecha, string $otra): int
+    {
+        return (int) Carbon::parse($fecha)->startOfDay()->diffInDays(Carbon::parse($otra)->startOfDay());
     }
 
     /**

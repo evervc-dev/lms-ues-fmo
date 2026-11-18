@@ -169,6 +169,28 @@ it('CP-RF19-03 lets the student justify an absence and the teacher accept it', f
     expect(DB::table('attendance_records')->where('id', $registro)->value('status'))->toBe('justified');
 });
 
+it('CP-RF19-03 solo muestra en la sesión las justificaciones de esa sesión, y todas en la sección', function () {
+    $e = escenario();
+    $primera = sesionAbierta($e);
+    app(AsistenciaService::class)->cerrar($e['docente'], $e['seccion'], $primera);
+    $registro = (int) DB::table('attendance_records')->value('id');
+    actingAs($e['estudiante']);
+    Livewire::test(AsistenciaSeccion::class, ['seccion' => $e['ulid']])
+        ->call('pedirJustificacion', $registro)->set('motivoJustificacion', 'Cita médica en el ISSS.')->call('justificar')->assertHasNoErrors();
+
+    $segunda = sesionAbierta($e);
+    app(AsistenciaService::class)->cerrar($e['docente'], $e['seccion'], $segunda);
+
+    actingAs($e['docente']);
+    // La sesión nueva no arrastra la justificación de la anterior; el panel de la sección sí las reúne todas.
+    Livewire::test(SesionAsistencia::class, ['seccion' => $e['ulid'], 'sesion' => $segunda])->assertDontSee('Cita médica');
+    Livewire::test(SesionAsistencia::class, ['seccion' => $e['ulid'], 'sesion' => $primera])->assertSee('Cita médica');
+    Livewire::test(AsistenciaSeccion::class, ['seccion' => $e['ulid']])->assertSee('Cita médica')
+        ->call('revisar', (int) DB::table('attendance_justifications')->value('id'), true);
+
+    expect(DB::table('attendance_records')->where('id', $registro)->value('status'))->toBe('justified');
+});
+
 it('counts a late arrival as half when computing the percentage', function () {
     $e = escenario();
     foreach (['present', 'late'] as $estado) {

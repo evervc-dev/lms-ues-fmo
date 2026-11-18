@@ -90,7 +90,7 @@ function claseVirtual(array $e, array $datos = []): int
  * @param  list<array{0: string, 1: string, 2: string}>  $filas
  * @param  list<string>  $encabezados
  */
-function reporteCsv(array $filas, array $encabezados = ['Nombre', 'Correo electrónico', 'Duración', 'Hora en que se unió'], string $entrada = '2026-10-23 07:02:00'): UploadedFile
+function reporteCsv(array $filas, array $encabezados = ['Nombre', 'Correo electrónico', 'Duración', 'Hora en que se unió'], string $entrada = '2026-10-23 07:02:00', string $nombre = 'reporte.csv'): UploadedFile
 {
     $salida = fopen('php://temp', 'r+');
     fputcsv($salida, $encabezados, escape: '');
@@ -99,7 +99,26 @@ function reporteCsv(array $filas, array $encabezados = ['Nombre', 'Correo electr
     }
     rewind($salida);
 
-    return UploadedFile::fake()->createWithContent('reporte.csv', (string) stream_get_contents($salida));
+    return UploadedFile::fake()->createWithContent($nombre, (string) stream_get_contents($salida));
+}
+
+/**
+ * Informe tal como lo exporta Google Meet en español: sin la fecha de la reunión en el contenido (solo la hora) y
+ * con la fecha en el nombre del archivo. Cada fila es [nombre completo, correo, duración].
+ *
+ * @param  list<array{0: string, 1: string, 2: string}>  $filas
+ */
+function informeMeetReal(array $filas, string $nombre = 'Informe de asistencia a poc-tbuu-xpb (2026-10-23 08:41).csv'): UploadedFile
+{
+    $salida = fopen('php://temp', 'r+');
+    fputcsv($salida, ['Nombre', 'Apellido', 'Correo electrónico', 'Duración', 'Hora a la que se unió', 'Hora a la que abandonó la reunión'], escape: '');
+    foreach ($filas as [$completo, $correo, $duracion]) {
+        [$primero, $apellido] = array_pad(explode(' ', $completo, 2), 2, '');
+        fputcsv($salida, [$primero, $apellido, $correo, $duracion, '7:02 a.m.', '8:40 a.m.'], escape: '');
+    }
+    rewind($salida);
+
+    return UploadedFile::fake()->createWithContent($nombre, (string) stream_get_contents($salida));
 }
 
 /**
@@ -351,12 +370,44 @@ it('CP-RF21-08 rechaza con un aviso el reporte cuya fecha no coincide con la de 
         ->and(Storage::disk('local')->allFiles('meet'))->toBeEmpty();
 })->with(['csv', 'xlsx']);
 
-it('rechaza un reporte que no trae la fecha de la reunión', function () {
+it('acepta el reporte sin fecha por ninguna vía y deja constancia de que no se pudo verificar', function () {
     $e = escenarioMeet();
-    $archivo = reporteCsv([['Ana Gómez', 'gs21004@ues.edu.sv', '80 min']], ['Nombre', 'Correo electrónico', 'Duración']);
+    $archivo = reporteCsv([['Ana Gómez', 'gs21004@ues.edu.sv', '80 min']], ['Nombre', 'Correo electrónico', 'Duración'], nombre: 'reporte.csv');
+
+    $reporte = subirMeet($e, claseVirtual($e), $archivo);
+
+    expect(DB::table('meet_reports')->where('id', $reporte)->value('meeting_date'))->toBeNull()
+        ->and(DB::table('meet_report_rows')->where('meet_report_id', $reporte)->count())->toBe(1);
+});
+
+it('lee el informe que exporta Meet en español, con la fecha solo en el nombre del archivo', function () {
+    $e = escenarioMeet();
+    $archivo = informeMeetReal([['Ana Gómez', 'gs21004@ues.edu.sv', '80 min'], ['Mario Rivas', 'mr21011@ues.edu.sv', '6 min']]);
+
+    $reporte = subirMeet($e, claseVirtual($e), $archivo);
+
+    expect(DB::table('meet_reports')->where('id', $reporte)->value('meeting_date'))->toStartWith('2026-10-23')
+        ->and(DB::table('meet_report_rows')->where('meet_report_id', $reporte)->pluck('minutes', 'email')->all())
+        ->toBe(['gs21004@ues.edu.sv' => 80, 'mr21011@ues.edu.sv' => 6])
+        ->and(DB::table('meet_report_rows')->where('meet_report_id', $reporte)->where('status', 'matched')->count())->toBe(2);
+});
+
+it('CP-RF21-08 tolera un día de diferencia en la fecha del nombre, porque la clase pudo cruzar la medianoche', function () {
+    $e = escenarioMeet();
+    $archivo = informeMeetReal([['Ana Gómez', 'gs21004@ues.edu.sv', '80 min']], 'Informe de asistencia a poc-tbuu-xpb (2026-10-24 00:12).csv');
+
+    $reporte = subirMeet($e, claseVirtual($e), $archivo);
+
+    expect(DB::table('meet_reports')->where('id', $reporte)->value('meeting_date'))->toStartWith('2026-10-24');
+});
+
+it('CP-RF21-08 rechaza el informe cuyo nombre trae una fecha de otro día', function () {
+    $e = escenarioMeet();
+    $archivo = informeMeetReal([['Ana Gómez', 'gs21004@ues.edu.sv', '80 min']], 'Informe de asistencia a poc-tbuu-xpb (2026-10-16 08:41).csv');
 
     expect(erroresDeValidacion(fn () => subirMeet($e, claseVirtual($e), $archivo)))->toHaveKey('archivo')
-        ->and(DB::table('meet_reports')->count())->toBe(0);
+        ->and(DB::table('meet_reports')->count())->toBe(0)
+        ->and(Storage::disk('local')->allFiles('meet'))->toBeEmpty();
 });
 
 it('rechaza un archivo sin las columnas del reporte de Meet e indica las que espera', function () {

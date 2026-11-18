@@ -66,6 +66,25 @@
                 @endforeach
             </x-ui.table>
         </x-ui.card>
+        @if ($corrige)
+            <x-ui.card :titulo="__('Justificaciones pendientes')" :descripcion="__('De todas las sesiones de la sección.')">
+                @forelse ($justificaciones as $j)
+                    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-borde py-3 text-sm last:border-0" wire:key="just-sec-{{ $j->id }}">
+                        <div>
+                            <p class="font-medium">{{ $j->first_name }} {{ $j->last_name }} · {{ \Illuminate\Support\Carbon::parse($j->session_date)->format('d/m/Y') }}</p>
+                            <p class="text-texto-suave">{{ $j->reason }}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <x-ui.button tamano="sm" variante="fantasma" :href="route('secciones.asistencia.sesion', ['seccion' => $seccion, 'sesion' => $j->sesion_ulid])">{{ __('Ver sesión') }}</x-ui.button>
+                            <x-ui.button tamano="sm" wire:click="revisar({{ $j->id }}, true)">{{ __('Aceptar') }}</x-ui.button>
+                            <x-ui.button tamano="sm" variante="peligro" wire:click="revisar({{ $j->id }}, false)">{{ __('Rechazar') }}</x-ui.button>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-sm text-texto-suave">{{ __('No hay justificaciones por revisar.') }}</p>
+                @endforelse
+            </x-ui.card>
+        @endif
     @endif
 
     <livewire:asistencia.clases-virtuales :seccion-id="$seccionId" :key="'clases-virtuales-'.$seccionId" />

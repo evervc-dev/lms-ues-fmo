@@ -54,11 +54,21 @@ class AsistenciaSeccion extends Component
         $this->dispatch('aviso', tipo: 'exito', mensaje: __('Justificación enviada a su docente.'));
     }
 
+    /**
+     * Acepta o rechaza una justificación desde el panel de la sección (RF19).
+     */
+    public function revisar(int $justificacion, bool $aceptar, AsistenciaService $asistencia): void
+    {
+        $asistencia->revisarJustificacion(auth()->user(), $this->seccionId(), $justificacion, $aceptar);
+        $this->dispatch('aviso', tipo: 'exito', mensaje: $aceptar ? __('Justificación aceptada.') : __('Justificación rechazada.'));
+    }
+
     public function render(AsistenciaService $asistencia, Alcance $alcance): View
     {
         $usuario = auth()->user();
         $seccion = $this->seccionId();
         $esEstudiante = $alcance->de($usuario, 'asistencia.ver') === 'P';
+        $corrige = ! $esEstudiante && $alcance->puedeEnSeccion($usuario, 'asistencia.corregir', $seccion);
         $modalidadHoy = $esEstudiante ? null : $asistencia->modalidadAprobada($seccion, now()->toDateString());
         if ($modalidadHoy !== null) {
             $this->modalidad = $modalidadHoy;
@@ -70,6 +80,8 @@ class AsistenciaSeccion extends Component
             'historial' => $esEstudiante ? $asistencia->historial($usuario, $seccion) : null,
             'sesiones' => $esEstudiante ? collect() : $asistencia->sesiones($usuario, $seccion),
             'abre' => $alcance->puedeEnSeccion($usuario, 'asistencia.sesion.abrir', $seccion),
+            'corrige' => $corrige,
+            'justificaciones' => $corrige ? $asistencia->justificacionesPendientes($usuario, $seccion) : collect(),
             'modalidadHoy' => $modalidadHoy,
             'estados' => AsistenciaService::ESTADOS,
             'metodos' => AsistenciaService::METODOS,

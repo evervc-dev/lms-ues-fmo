@@ -134,7 +134,7 @@ class SesionAsistencia extends Component
         $datos = $asistencia->sesion(auth()->user(), $this->seccionId(), $this->sesionUlid);
 
         return $this->paginaDeSeccion('modules.asistencia.sesion', $datos + [
-            'justificaciones' => $asistencia->justificacionesPendientes(auth()->user(), $this->seccionId()),
+            'justificaciones' => $asistencia->justificacionesPendientes(auth()->user(), $this->seccionId(), (int) $datos['sesion']->id),
             'estados' => AsistenciaService::ESTADOS,
             'metodos' => AsistenciaService::METODOS,
         ]);

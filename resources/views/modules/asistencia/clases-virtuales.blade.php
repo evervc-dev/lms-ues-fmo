@@ -61,6 +61,9 @@
             </x-slot:acciones>
 
             @error('reporte')<x-ui.alert tipo="error" class="mb-4">{{ $message }}</x-ui.alert>@enderror
+            @if ($previa['reporte']->meeting_date === null)
+                <x-ui.alert tipo="aviso" class="mb-4">{{ __('El informe no indica la fecha de la reunión, así que no se pudo verificar que sea el de esta clase. Revísela antes de confirmar.') }}</x-ui.alert>
+            @endif
             @if ($borrador && $previa['sin_asociar']->isNotEmpty())
                 <x-ui.alert tipo="aviso" class="mb-4">{{ __('Asigne o descarte las filas sin asociar para poder confirmar.') }}</x-ui.alert>
             @endif
@@ -133,7 +136,7 @@
         <x-ui.modal nombre="subir-reporte" :titulo="__('Subir reporte de Meet')">
             <form wire:submit="subir" id="form-subir-reporte" class="flex flex-col gap-4">
                 <x-ui.field :etiqueta="__('Reporte de asistencia')" para="virtual-archivo" error="archivo" requerido
-                    :ayuda="__('Descargue el reporte de asistencia de Meet (Hoja de cálculo de Google) como CSV o Excel (.xlsx). Máximo 5 MB.')">
+                    :ayuda="__('Descargue el reporte de asistencia de Meet (Hoja de cálculo de Google) como CSV o Excel (.xlsx), sin cambiarle el nombre: la fecha de la reunión viene en él. Máximo 5 MB.')">
                     <input id="virtual-archivo" type="file" wire:model="archivo" accept=".csv,.txt,.xlsx" class="text-sm">
                 </x-ui.field>
                 <p class="text-xs text-texto-suave">{{ __('Si la clase ya tenía un reporte, el nuevo lo reemplaza al confirmarlo.') }}</p>

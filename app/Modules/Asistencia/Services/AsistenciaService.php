@@ -385,18 +385,21 @@ class AsistenciaService
     }
 
     /**
-     * Justificaciones pendientes de la sección (docente).
+     * Justificaciones pendientes del docente: las de una sesión concreta si se indica `$sesionId`, o las de toda la
+     * sección si no (RF19).
      *
      * @return Collection<int, object>
      */
-    public function justificacionesPendientes(User $docente, int $seccionId): Collection
+    public function justificacionesPendientes(User $docente, int $seccionId, ?int $sesionId = null): Collection
     {
         $this->exigirEnSeccion($docente, 'asistencia.corregir', $seccionId);
 
         return DB::table('attendance_justifications as j')->join('attendance_records as r', 'r.id', '=', 'j.record_id')->join('attendance_sessions as s', 's.id', '=', 'r.session_id')
             ->join('enrollments as e', 'e.id', '=', 'r.enrollment_id')->join('users as u', 'u.id', '=', 'e.student_id')
-            ->where('r.section_id', $seccionId)->where('j.status', 'pending')->orderBy('j.created_at')
-            ->get(['j.id', 'j.reason', 'j.file_path', 's.session_date', 'u.first_name', 'u.last_name']);
+            ->where('r.section_id', $seccionId)->where('j.status', 'pending')
+            ->when($sesionId !== null, fn ($q) => $q->where('r.session_id', $sesionId))
+            ->orderBy('j.created_at')
+            ->get(['j.id', 'j.reason', 'j.file_path', 's.ulid as sesion_ulid', 's.session_date', 'u.first_name', 'u.last_name']);
     }
 
     public function revisarJustificacion(User $docente, int $seccionId, int $justificacionId, bool $aceptar): void

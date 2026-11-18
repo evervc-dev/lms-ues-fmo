@@ -21,6 +21,6 @@ Casos derivados de los criterios de aceptación de [[RF21]]. Nivel: **browser + 
 | CP-RF21-05 | **Dado** un estudiante matriculado que no aparece en el reporte, **entonces** queda Ausente. | automatizado |
 | CP-RF21-06 | **Dado** un porcentaje igual o mayor a 70 % de la duración programada, **entonces** queda Presente; si es menor, Ausente. | automatizado |
 | CP-RF21-07 | **Dado** un reporte que ya se subió para esa sesión, **cuando** se sube otro, **entonces** reemplaza al anterior y el cambio queda en la auditoría. | automatizado |
-| CP-RF21-08 | **Dado** un reporte cuya fecha no coincide con la sesión, **entonces** se rechaza con un aviso. | automatizado |
+| CP-RF21-08 | **Dado** un reporte cuya fecha no coincide con la sesión, **entonces** se rechaza con un aviso. La fecha sale del contenido o del nombre del archivo, con un día de tolerancia; si no hay ninguna, se avisa en la vista previa y no se bloquea ([[ADR-070 Fecha del informe de Meet desde el nombre del archivo]]). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF21-01 …')`.

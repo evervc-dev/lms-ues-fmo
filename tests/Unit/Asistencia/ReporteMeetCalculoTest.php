@@ -36,3 +36,19 @@ it('obtiene el día de la reunión en los formatos de fecha del reporte', functi
 it('no inventa una fecha a partir de una hora sola', function () {
     expect(ReporteMeetService::fechaDe('07:02'))->toBeNull();
 });
+
+it('obtiene el día del nombre con que Google guarda el informe de asistencia', function (string $nombre) {
+    expect(ReporteMeetService::fechaDeNombre($nombre))->toBe('2026-10-23');
+})->with([
+    'con dos puntos' => ['Informe de asistencia a poc-tbuu-xpb (2026-10-23 21:49).xlsx'],
+    'guardado en Windows' => ['Informe de asistencia a poc-tbuu-xpb (2026-10-23 21_49).xlsx'],
+    'en inglés' => ['Attendance report for abc-defg-hij (2026-10-23 09.05).csv'],
+    'fecha suelta en el nombre' => ['asistencia 2026-10-23.csv'],
+]);
+
+it('devuelve null si el nombre del archivo no trae fecha', function (string $nombre) {
+    expect(ReporteMeetService::fechaDeNombre($nombre))->toBeNull();
+})->with([
+    'sin marca' => ['reporte.csv'],
+    'solo el código de la reunión' => ['Informe de asistencia a poc-tbuu-xpb.xlsx'],
+]);
