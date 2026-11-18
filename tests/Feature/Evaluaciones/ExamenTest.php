@@ -38,7 +38,7 @@ function examenEnCurso(array $e): array
     $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'PHP es interpretado', 'correcta' => 0]);
     $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'Laravel es un lenguaje', 'correcta' => 1]);
     $ulid = $cuestionarios->crearCuestionario($e['docente'], $e['seccion'], ['titulo' => 'Parcial 1', 'instrucciones' => null, 'componente' => $componente, 'peso' => 50,
-        'abre' => now()->subMinutes(5), 'cierra' => now()->addMinutes(20), 'intentos' => 1, 'minutos' => 20, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 2, 'tema' => null, 'dificultad' => null]);
+        'abre' => now()->subMinutes(5), 'cierra' => now()->addMinutes(20), 'intentos' => 1, 'minutos' => 20, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 2, 'tema' => null]);
 
     actingAs($e['estudiante']);
     $intento = $cuestionarios->iniciar($e['estudiante'], $e['seccion'], $ulid);

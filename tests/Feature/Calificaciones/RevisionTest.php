@@ -55,7 +55,7 @@ function cuestionarioCalificado(array $e, bool $publicar = true): array
     $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'PHP es interpretado', 'correcta' => 0, 'justificacion' => 'PHP se interpreta en tiempo de ejecución.']);
     $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'Laravel es un lenguaje', 'correcta' => 1]);
     $ulid = $cuestionarios->crearCuestionario($e['docente'], $e['seccion'], ['titulo' => 'Parcial 1', 'instrucciones' => null, 'componente' => computoUnico($e), 'peso' => 50,
-        'abre' => now()->subHour(), 'cierra' => now()->addHour(), 'intentos' => 1, 'minutos' => 30, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 2, 'tema' => null, 'dificultad' => null]);
+        'abre' => now()->subHour(), 'cierra' => now()->addHour(), 'intentos' => 1, 'minutos' => 30, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 2, 'tema' => null]);
 
     actingAs($e['estudiante']);
     $intentoUlid = $cuestionarios->iniciar($e['estudiante'], $e['seccion'], $ulid);

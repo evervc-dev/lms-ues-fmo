@@ -125,7 +125,7 @@ class CuestionarioService
     }
 
     /**
-     * @param  array{tipo: string, enunciado: string, tema?: string|null, dificultad?: string|null, opciones?: array<int, string>, correcta?: int|string|null, aceptadas?: string|null, justificacion?: string|null}  $datos
+     * @param  array{tipo: string, enunciado: string, tema?: string|null, opciones?: array<int, string>, correcta?: int|string|null, aceptadas?: string|null, justificacion?: string|null}  $datos
      */
     public function agregarPregunta(User $docente, int $bancoId, array $datos): void
     {
@@ -146,7 +146,7 @@ class CuestionarioService
         DbContext::run(function () use ($bancoId, $datos, $opciones, $correcta) {
             $aceptadas = array_values(array_filter(array_map('trim', explode(',', (string) ($datos['aceptadas'] ?? '')))));
             $id = DB::table('questions')->insertGetId(['bank_id' => $bancoId, 'question_type' => $datos['tipo'], 'statement' => $datos['enunciado'], 'topic' => $datos['tema'] ?? null,
-                'difficulty' => $datos['dificultad'] ?? null, 'accepted_answers' => $datos['tipo'] === 'short_answer' ? json_encode($aceptadas) : null,
+                'accepted_answers' => $datos['tipo'] === 'short_answer' ? json_encode($aceptadas) : null,
                 'justification' => $datos['justificacion'] ?? null, 'created_at' => now(), 'updated_at' => now()]);
             foreach ($opciones as $i => $texto) {
                 DB::table('question_options')->insert(['question_id' => $id, 'text' => $texto, 'is_correct' => $i === $correcta, 'position' => $i, 'created_at' => now(), 'updated_at' => now()]);
@@ -269,8 +269,8 @@ class CuestionarioService
                 'started_at' => $inicio, 'deadline_at' => $limite->min(Carbon::parse($c->closes_at)), 'status' => 'in_progress', 'created_at' => now(), 'updated_at' => now()]);
             $posicion = 0;
             foreach (DB::table('quiz_question_rules')->where('assessment_id', $c->id)->get() as $regla) {
-                $ids = DB::table('questions')->where('bank_id', $regla->bank_id)->when($regla->topic, fn ($q, $t) => $q->where('topic', $t))
-                    ->when($regla->difficulty, fn ($q, $d) => $q->where('difficulty', $d))->pluck('id')->shuffle();
+                $ids = DB::table('questions')->where('bank_id', $regla->bank_id)
+                    ->when($regla->topic, fn ($q, $t) => $q->where('topic', $t))->pluck('id')->shuffle();
                 // Con cantidad 0 entran todas las del banco; si no, solo las que diga la regla.
                 $ids = (int) $regla->quantity > 0 ? $ids->take((int) $regla->quantity) : $ids;
                 foreach ($ids as $id) {

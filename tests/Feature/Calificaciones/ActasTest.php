@@ -270,7 +270,7 @@ function actaCuestionario(array $e, string $tipo, bool $enviar): array
         ? ['tipo' => 'essay', 'enunciado' => 'Explique el patrón MVC']
         : ['tipo' => 'true_false', 'enunciado' => 'PHP es interpretado', 'correcta' => 0]);
     $ulid = $cuestionarios->crearCuestionario($e['docente'], $e['seccion'], ['titulo' => 'Parcial 1', 'instrucciones' => null, 'componente' => $componente, 'peso' => 50,
-        'abre' => now()->subHour(), 'cierra' => now()->addHour(), 'intentos' => 1, 'minutos' => 30, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 1, 'tema' => null, 'dificultad' => null]);
+        'abre' => now()->subHour(), 'cierra' => now()->addHour(), 'intentos' => 1, 'minutos' => 30, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 1, 'tema' => null]);
 
     actingAs($e['estudiante']);
     $intento = $cuestionarios->iniciar($e['estudiante'], $e['seccion'], $ulid);

@@ -20,7 +20,7 @@ fuente: Roles y permisos.pdf p.3–4
 - Carpetas descargables en .zip, editor de páginas HTML y papelera con 30 días de retención ([[RF11]]).
 - Reutilizar contenidos de períodos anteriores ([[RF14]]).
 ### Evaluación y calificaciones
-- Banco de preguntas por categoría, tema y dificultad ([[RF16]]).
+- Banco de preguntas por categoría y tema ([[RF16]], [[ADR-071 Las preguntas del banco no llevan dificultad]]).
 - Tareas, rúbricas y cuestionarios con extracción aleatoria ([[RF15]], [[RF16]]).
 - Política de entrega tardía por tarea ([[ADR-008 Entregas tardías]]).
 - Notas por ponderación y cómputo ([[RF17]]).

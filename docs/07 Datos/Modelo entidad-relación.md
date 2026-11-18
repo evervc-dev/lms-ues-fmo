@@ -40,6 +40,7 @@ Las restricciones y la auditoría viven en PostgreSQL; las operaciones de varios
 | `2026_10_17_234710_add_avatar_url_to_users_table` | `users.avatar_url`: enlace a la foto de Google; no se descarga ([[ADR-039 Foto de perfil enlazada desde Google]]) |
 | `2026_10_25_121116_add_resolution_note_to_device_change_requests` | `device_change_requests.resolution_note`: el motivo con que Soporte rechaza un cambio de teléfono, para poder mostrarlo en «Resueltas»; también siembra el evento de aviso `device_request.pending` ([[RF27]]) |
 | `2026_11_17_222634_add_meeting_date_to_meet_reports` | `meet_reports.meeting_date`: la fecha de la reunión que se detectó en el informe de Meet (contenido o nombre del archivo); null si no trae ninguna ([[RF21]]) |
+| `2026_11_17_230458_drop_question_difficulty` | Se van `questions.difficulty` y `quiz_question_rules.difficulty`; el índice de `questions` pasa a (bank_id, topic) y el CHECK de `quantity` admite 0 = todas ([[ADR-071 Las preguntas del banco no llevan dificultad]]) |
 
 > [!note] Ajustes al implementar
 > - **`notifications`** es **compatible con el canal `database` de Laravel**: `uuid` como id, `notifiable` polimórfico, `data` y `read_at`. Se le agregan `event_code` y `dedup_key`, con un único parcial (`notifiable_type`, `notifiable_id`, `dedup_key`). `notification_deliveries.notification_id` es uuid.
@@ -545,7 +546,6 @@ erDiagram
     varchar question_type "multiple_choice, true_false, short_answer, essay"
     text statement
     varchar topic
-    varchar difficulty "en desuso: la pantalla ya no la pide (QA 17/11)"
     text justification "deferred feedback"
   }
   question_options {
@@ -559,7 +559,6 @@ erDiagram
     bigint assessment_id FK
     bigint bank_id FK
     varchar topic
-    varchar difficulty "en desuso: el cuestionario no filtra por dificultad"
     smallint quantity "random pick"
   }
   quiz_attempts {

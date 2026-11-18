@@ -30,7 +30,10 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
   Con la revisión del informe de QA del 17/11 se cerraron además tres puntos que seguían abiertos: el chip
   «Asistencia abierta · Marcar» de la cabecera ya no aparece después de marcar (el panel de inicio sí lo
   comprobaba, la cabecera no), una clase virtual finalizada deja de ofrecer «Unirse a Meet» y conserva la
-  grabación, y el formulario de pregunta ya no pide la dificultad (la columna queda en desuso).
+  grabación, y el formulario de pregunta ya no pide la dificultad: se borran `questions.difficulty` y
+  `quiz_question_rules.difficulty` ([[ADR-071 Las preguntas del banco no llevan dificultad]]). En esa migración
+  se arregla además el CHECK `quantity >= 1`, que en PostgreSQL habría rechazado la regla «cantidad al azar = 0
+  (todas)» habilitada el 17/11; en SQLite el CHECK no existe y las pruebas no lo veían.
 - **CP cubiertos:** CP-RF21-08 (fecha del nombre, tolerancia y sin fecha), CP-RF19-03 (justificaciones por sesión).
 - **Decisiones:** [[ADR-070 Fecha del informe de Meet desde el nombre del archivo]] (pendiente). Columna nueva
   `meet_reports.meeting_date`.

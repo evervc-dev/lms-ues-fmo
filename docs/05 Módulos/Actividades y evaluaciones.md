@@ -12,7 +12,7 @@ estado: borrador
 - **Tareas** individuales o grupales (una entrega por equipo), con fechas, intentos, extensiones y pesos permitidos.
 - **Política de entrega por tarea**: cierre estricto, gracia sin penalización, o gracia con penalización de X %.
 - **Rúbricas** con cálculo automático de la nota.
-- **Bancos de preguntas** por tema y dificultad; **4 tipos** (opción múltiple, V/F, respuesta corta, ensayo).
+- **Bancos de preguntas** por tema ([[ADR-071 Las preguntas del banco no llevan dificultad]]); **4 tipos** (opción múltiple, V/F, respuesta corta, ensayo).
 - **Cuestionarios** con extracción aleatoria, tiempo límite, intentos, navegación lineal o libre, **autoguardado cada 30 s** y reconexión sin pérdidas.
 - Retroalimentación diferida con justificación de la respuesta correcta y estadísticas por pregunta.
 

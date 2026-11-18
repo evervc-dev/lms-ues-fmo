@@ -52,7 +52,7 @@ class ReutilizacionService
                         DB::table('question_bank_shares')->insertOrIgnore(['bank_id' => $regla->bank_id, 'user_id' => $docente->id]);
                         $accesibles[(int) $regla->bank_id] = true;
                     }
-                    DB::table('quiz_question_rules')->insert(['assessment_id' => $id, 'bank_id' => $regla->bank_id, 'topic' => $regla->topic, 'difficulty' => $regla->difficulty,
+                    DB::table('quiz_question_rules')->insert(['assessment_id' => $id, 'bank_id' => $regla->bank_id, 'topic' => $regla->topic,
                         'quantity' => $regla->quantity, 'created_at' => now(), 'updated_at' => now()]);
                 }
             }

@@ -375,7 +375,7 @@ class DemoAcademicSeeder extends Seeder
         for ($q = 1; $q <= 15; $q++) {
             $type = $q <= 8 ? 'multiple_choice' : ($q <= 12 ? 'true_false' : ($q <= 14 ? 'short_answer' : 'essay'));
             $questionId = DB::table('questions')->insertGetId(['bank_id' => $bankId, 'question_type' => $type, 'statement' => "Pregunta {$q} de {$section->subject}: ".fake()->sentence(10),
-                'topic' => 'Tema '.(($q % 3) + 1), 'difficulty' => ['easy', 'medium', 'hard'][$q % 3],
+                'topic' => 'Tema '.(($q % 3) + 1),
                 'accepted_answers' => $type === 'short_answer' ? json_encode(['respuesta', 'resultado']) : null,
                 'justification' => 'La respuesta correcta se explica en la unidad '.(($q % 4) + 1).'.'] + $this->stamps());
             if ($type === 'multiple_choice') {

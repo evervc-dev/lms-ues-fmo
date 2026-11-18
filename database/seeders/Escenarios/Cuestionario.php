@@ -150,7 +150,6 @@ class Cuestionario extends Escenario
                 'question_type' => $tipo,
                 'statement' => "Pregunta {$n} de {$materia->name}: ".fake()->sentence(10),
                 'topic' => 'Tema '.(($n % 3) + 1),
-                'difficulty' => ['easy', 'medium', 'hard'][$n % 3],
                 'accepted_answers' => $tipo === 'short_answer' ? json_encode(['respuesta', 'resultado']) : null,
                 'justification' => 'La respuesta correcta se explica en la unidad '.(($n % 4) + 1).'.',
             ] + $esqueleto->sellos());

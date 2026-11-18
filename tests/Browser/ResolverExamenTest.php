@@ -29,7 +29,7 @@ function examenSubidoPorElDocente(array $e): array
     $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'multiple_choice', 'enunciado' => '¿Qué framework usa este LMS?', 'opciones' => ['Django', 'Laravel', 'Rails', 'Spring'], 'correcta' => 1]);
     $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'short_answer', 'enunciado' => '¿Qué gestor de base de datos usa producción?', 'aceptadas' => 'PostgreSQL, Postgres']);
     $ulid = $cuestionarios->crearCuestionario($e['docente'], $e['seccion'], ['titulo' => 'Examen de prueba', 'instrucciones' => 'Responda las 3 preguntas.', 'componente' => $componente, 'peso' => 30,
-        'abre' => now()->subMinutes(5), 'cierra' => now()->addHours(2), 'intentos' => 1, 'minutos' => 30, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 3, 'tema' => null, 'dificultad' => null]);
+        'abre' => now()->subMinutes(5), 'cierra' => now()->addHours(2), 'intentos' => 1, 'minutos' => 30, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 3, 'tema' => null]);
 
     return ['ulid' => $ulid, 'seccion' => $e['ulid']];
 }

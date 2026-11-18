@@ -20,6 +20,7 @@ use App\Support\DbContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -161,7 +162,8 @@ it('ya no pide la dificultad al crear una pregunta del banco', function () {
         ->assertDontSee('Dificultad')
         ->set('tipo', 'true_false')->set('enunciado', 'PHP es interpretado')->set('correcta', 0)->call('agregar')->assertHasNoErrors();
 
-    expect(DB::table('questions')->where('bank_id', $banco)->value('difficulty'))->toBeNull();
+    expect(Schema::hasColumn('questions', 'difficulty'))->toBeFalse()
+        ->and(DB::table('questions')->where('bank_id', $banco)->count())->toBe(1);
 });
 
 it('runs a quiz attempt in the exam layout and grades it automatically', function () {
