@@ -635,6 +635,23 @@ it('deja de ofrecer el enlace de Meet cuando la clase terminó, pero conserva la
     Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])->assertSee('Unirse a Meet');
 });
 
+it('muestra el enlace de Meet a la vista y copiable mientras la clase sigue abierta', function () {
+    $e = escenarioMeet();
+    $terminada = claseVirtual($e, ['topic' => 'Recursividad en Python']);
+    actingAs($e['estudiante']);
+
+    // La clase que ya terminó no muestra el enlace ni ofrece copiarlo.
+    Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])
+        ->assertDontSee('Copiar el enlace de Meet')->assertDontSee('meet.google.com/abc-defg-hij');
+
+    // La que sigue abierta muestra el enlace en texto, además del «Unirse a Meet».
+    DB::table('video_sessions')->where('id', $terminada)->delete();
+    claseVirtual($e, ['topic' => 'Normalización', 'starts_at' => '2026-10-30 07:00:00', 'status' => 'scheduled']);
+
+    Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])
+        ->assertSee('Unirse a Meet')->assertSee('meet.google.com/abc-defg-hij')->assertSee('Copiar el enlace de Meet');
+});
+
 it('audita la programación de la clase virtual con el docente como actor', function () {
     $e = escenarioMeet();
     actingAs($e['docente']);

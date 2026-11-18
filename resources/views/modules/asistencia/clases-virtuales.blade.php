@@ -25,9 +25,29 @@
                     <td class="whitespace-nowrap">
                         {{-- La clase que ya terminó no invita a entrar a la llamada; queda la grabación (QA 17/11). --}}
                         @php($enCurso = $c->status !== 'finished')
-                        @if ($c->meet_url && $enCurso)<a href="{{ $c->meet_url }}" target="_blank" rel="noopener" class="text-marca-700 underline">{{ __('Unirse a Meet') }}</a>@endif
-                        @if ($c->recording_url)<a href="{{ $c->recording_url }}" target="_blank" rel="noopener" @class(['text-marca-700 underline', 'ml-2' => $c->meet_url && $enCurso])>{{ __('Ver grabación') }}</a>@endif
-                        @if (! ($c->meet_url && $enCurso) && ! $c->recording_url)<span class="text-texto-suave">{{ $c->meet_url ? __('Clase finalizada') : '—' }}</span>@endif
+                        <div class="flex flex-col gap-1">
+                            <div>
+                                @if ($c->meet_url && $enCurso)<a href="{{ $c->meet_url }}" target="_blank" rel="noopener" class="text-marca-700 underline">{{ __('Unirse a Meet') }}</a>@endif
+                                @if ($c->recording_url)<a href="{{ $c->recording_url }}" target="_blank" rel="noopener" @class(['text-marca-700 underline', 'ml-2' => $c->meet_url && $enCurso])>{{ __('Ver grabación') }}</a>@endif
+                                @if (! ($c->meet_url && $enCurso) && ! $c->recording_url)<span class="text-texto-suave">{{ $c->meet_url ? __('Clase finalizada') : '—' }}</span>@endif
+                            </div>
+                            {{-- El enlace a la vista, para copiarlo y compartirlo mientras la clase sigue abierta. --}}
+                            @if ($c->meet_url && $enCurso)
+                                <div class="flex items-center gap-1.5 text-xs text-texto-suave" x-data="{ copiado: false }">
+                                    <span class="select-all font-mono">{{ str($c->meet_url)->after('://') }}</span>
+                                    <button
+                                        type="button"
+                                        class="rounded p-1 text-texto-suave hover:bg-zinc-100 hover:text-texto"
+                                        aria-label="{{ __('Copiar el enlace de Meet') }}"
+                                        title="{{ __('Copiar el enlace de Meet') }}"
+                                        x-on:click="navigator.clipboard?.writeText(@js($c->meet_url)); copiado = true; setTimeout(() => copiado = false, 2000)"
+                                    >
+                                        <x-ui.icon name="clipboard-document-check" class="size-4" />
+                                    </button>
+                                    <span x-show="copiado" x-cloak class="font-medium text-emerald-700">{{ __('Copiado') }}</span>
+                                </div>
+                            @endif
+                        </div>
                     </td>
                     @if ($gestiona)
                         <td class="text-right whitespace-nowrap">
