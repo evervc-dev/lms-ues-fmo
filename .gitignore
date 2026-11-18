@@ -37,3 +37,17 @@ Thumbs.db
 
 # Capturas de las pruebas de navegador (Pest Browser)
 /tests/Browser/Screenshots
+
+# Herramienta de migración colaborativa (no versionar)
+/scripts/migrar_colaborativo.py
+/scripts/plan_migracion.json
+/scripts/generar_plan.py
+/scripts/derivar_estado.py
+/scripts/openproject_users.json
+/scripts/openproject_wps.json
+/scripts/.estado_migracion.json
+/scripts/.config_repos.json
+/scripts/LEEME_INSTRUCCIONES.txt
+scripts/__pycache__/
+*.pyc
+*.zip

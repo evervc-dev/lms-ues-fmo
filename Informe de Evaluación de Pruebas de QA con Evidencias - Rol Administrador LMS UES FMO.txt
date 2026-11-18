@@ -1,0 +1,250 @@
+﻿INFORME DE EVALUACIÓN DE PRUEBAS DE SOFTWARE Y QA - ROL ADMINISTRADOR
+Sistema evaluado: LMS UES FMO (Entorno de desarrollo)
+Fecha de consolidación: 27 de octubre de 2026
+Plataforma: LMS UES Production
+1. Resumen Ejecutivo Global
+El presente documento consolida la evaluación de calidad de software y pruebas de funcionalidad y navegación realizadas al sistema LMS UES FMO bajo el rol de Administrador. Se integran los hallazgos de los módulos de Importación de Estudiantes, Matrícula, Carga Académica, Períodos, Catálogo de Asignaturas, Clases Canceladas, Reportes, Estadísticas de Oferta, Mi Perfil y Ayuda.
+Módulo
+	Casos Totales
+	Correcto
+	Parcial
+	Falla
+	Pendiente
+ 
+	Usuarios e Importaciones
+	6
+	3
+	1
+	2
+	0
+	Matrícula y Carga Académica
+	10
+	7
+	2
+	1
+	0
+	Períodos Académicos
+	15
+	7
+	3
+	5
+	0
+	Catálogo de Asignaturas
+	14
+	9
+	2
+	1
+	2
+	Clases Canceladas
+	9
+	1
+	1
+	0
+	7
+	Reportes
+	19
+	7
+	4
+	7
+	1
+	Estadísticas de Oferta
+	12
+	6
+	4
+	2
+	0
+	Mi Perfil
+	12
+	10
+	0
+	2
+	0
+	Ayuda
+	9
+	5
+	4
+	0
+	0
+	TOTAL GLOBAL
+	106
+	55
+	21
+	19
+	11
+	2. Evaluación Detallada por Módulos y Evidencias Visuales
+2.1 Módulo de Usuarios, Importaciones y Roles
+* Importación de Estudiantes: El flujo de importación desde archivo CSV o Excel (.xlsx) funciona a nivel de carga masiva. Sin embargo, carece de un indicador visual (*hover* o estilos de botón) en la opción "Seleccionar archivo", lo que causa confusión. La pantalla de resumen posterior a la carga muestra los registros creados y rechazados, pero omite el detalle de las cuentas recién creadas.
+
+Evidencia - Figura 1 y 2: Botón de selección de archivo sin estilos visuales claros de interacción (hover/botón).
+Evidencia - Figura 3: Resultados en tarjeta de resumen tras importar CSV (20 filas, 19 creadas, 1 rechazada por correo existente).
+
+
+
+   * Incompatibilidad y Conflicto de Roles: El sistema permite la asignación simultánea del rol Estudiante junto a los roles de Docente y Soporte Técnico en la misma cuenta. Esta coexistencia contraviene las reglas de negocio académicas.
+
+Evidencia - Figura 4, 5 y 6: Asignación simultánea de roles de Estudiante, Docente y Soporte Técnico para la usuaria Daniela Valentina Ventura Gómez.
+2.2 Módulo de Matrícula y Carga Académica
+      * Inscripción y Filtrado por Carrera: Las validaciones de cupo máximo, duplicados y choques de horario funcionan adecuadamente. No obstante, al inscribir un estudiante, el menú desplegable muestra todas las asignaturas de la facultad sin filtrar por la carrera de origen del alumno (permitiendo a estudiantes de Administración inscribir materias de Ingeniería).
+
+Evidencia - Figura 7 y 8: Selección de estudiante de Lic. en Administración de Empresas mostrando catálogo global de materias.
+Evidencia - Figura 9: Estudiante de Administración inscrita exitosamente en materias de Ingeniería (ACC115 y MAT315).
+Evidencia - Figuras 10, 11 y 12: Bloqueos correctos por duplicidad de inscripción, cupo lleno y choque de horarios.
+
+
+
+         * Carga Académica y Asignación Docente: Se previene el choque de horario docente, pero no existe restricción sobre el tope de docentes asignados por sección (se lograron asignar hasta 7 docentes en una sola materia) ni límite de horas semanales por asignatura (se registraron secciones con 17 horas a la semana).
+
+Evidencia - Figura 17: Sección con 17 horas asignadas a la semana.
+Evidencia - Figura 30: Asignación masiva de 7 docentes a la sección ACC115-02.
+2.3 Módulo de Períodos Académicos
+ID Caso
+	Caso de Prueba
+	Resultado Obtenido
+	Estado
+ 
+	P-01
+	Crear período válido
+	Se crea correctamente y abre su ficha con etapas y cómputos.
+	Correcto
+	P-02
+	Campos vacíos
+	Muestra mensajes explícitos en español por cada campo requerido.
+	Correcto
+	P-03
+	Fechas invertidas
+	Rechaza con mensaje «La fecha de fin debe ser posterior a la de inicio.»
+	Correcto
+	P-04
+	Traslape de fechas
+	Permite crear períodos con fechas que se cruzan con otros activos o planificados.
+	Falla
+	P-06
+	Duración del ciclo
+	No valida la duración recomendada de 20 semanas según reglamento.
+	Falla
+	P-10
+	Reabrir período cerrado
+	No existe opción ni botón para reabrir un período cerrado.
+	Falla
+	P-13
+	Calendario de evaluaciones
+	No existe sección para definir calendario ni sincronización con Google Calendar.
+	Falla
+	P-14
+	Exportar histórico
+	Ausencia de botones de exportación a Excel o PDF.
+	Falla
+	Evidencia - Figura 1 (Períodos): Vista principal del módulo mostrando períodos planificados, en curso y cerrados.
+2.4 Módulo de Catálogo de Asignaturas
+            * Creación y Edición: Funciona adecuadamente la creación, edición, detección de códigos duplicados y prevención de prerrequisitos circulares directos.
+            * Búsqueda sensible a acentos: La búsqueda por nombre requiere coincidencia de tildes (ej. `administracion` no retorna `Administración`).
+            * Auditoría: Las acciones del catálogo no quedan registradas en la bitácora de auditoría.
+            * Usabilidad Móvil: La selección múltiple de prerrequisitos depende de la tecla `Ctrl`, impidiendo su uso adecuado en dispositivos móviles o pantallas táctiles.
+2.5 Módulo de Clases Canceladas
+            * El Administrador solo puede registrar cancelaciones a nivel de toda la facultad, sin opciones por asignatura, sección o carrera individual.
+            * No se observa una opción en la interfaz para revertir o reprogramar una cancelación aprobada.
+2.6 Módulo de Reportes
+ID Caso
+	Caso de Prueba
+	Resultado Obtenido
+	Estado
+ 
+	R-01
+	Acceso y pestañas
+	Acceso correcto a las 4 pestañas de reportes.
+	Correcto
+	R-06
+	Reporte de progreso
+	No se encuentra implementado en el sistema.
+	Falla
+	R-07
+	Reporte de participación
+	No se encuentra implementado en el sistema.
+	Falla
+	R-09
+	Exportación a PDF
+	Al exportar «Estudiantes en riesgo» genera un recuadro negro que cubre la pantalla.
+	Falla
+	R-11
+	Gráficos visuales
+	Todos los datos se representan únicamente en tablas tabulares sin gráficos.
+	Falla
+	R-12
+	Filtros por período
+	No existen filtros; solo presenta información del período en curso.
+	Falla
+	R-13
+	Formato de fechas
+	Inconsistencia en fechas desplegadas como AAAA-MM-DD en lugar de DD/MM/AAAA.
+	Falla
+	R-15
+	Programación duplicada
+	Permite programar el mismo envío automático múltiples veces sin advertencia.
+	Falla
+	Evidencia - Figura 1 y 2 (Reportes): Menú de exportación desplegable y visualización tabular.
+2.7 Estadísticas de Oferta, Mi Perfil y Ayuda
+            * Estadísticas de Oferta: Presenta una fórmula provisional para la proyección de demanda y cálculo de grupos. Omite indicadores de estudiantes egresados y no permite consultar períodos históricos anteriores (Figuras 4 y 5 de Estadísticas).
+            * Mi Perfil: Datos de solo lectura enlazados a Google Workspace. Omite el botón para cierre remoto de sesiones activas y la configuración de preferencias de notificación (Figuras 6 y 7 de Perfil).
+            * Ayuda: Presenta únicamente la guía de bienvenida y el manual del administrador en estado "Esqueleto por tareas", exponiendo notas internas de desarrollo (Figuras 8, 9, 10, 11 y 12 de Ayuda).
+3. Registro Consolidado de Hallazgos y Prioridad
+ID
+	Módulo
+	Descripción del Hallazgo
+	Comportamiento Esperado
+	Gravedad
+ 
+	H-01
+	Reportes
+	Recuadro negro sin contenido al exportar "Estudiantes en riesgo" a PDF.
+	Generación y descarga limpia de reporte en PDF.
+	Alta
+	H-03
+	Períodos
+	Permite la creación de períodos con fechas que se traslapan.
+	Validar y rechazar el cruce de fechas.
+	Alta
+	BUG-01
+	Usuarios
+	Coexistencia indebida del rol Estudiante con Docente/Soporte.
+	Incompatibilidad y restricción de roles contrapuestos.
+	Alta
+	H-02
+	Períodos
+	Imposibilidad de reabrir períodos en estado cerrado.
+	Opción de reapertura según permisos de rol.
+	Media
+	H-05
+	Períodos
+	Falta calendario de evaluaciones y sincronización con Google Calendar.
+	Módulo de calendario integrado.
+	Media
+	H-08
+	Catálogo
+	Las acciones en el catálogo no se registran en la bitácora de Auditoría.
+	Registro completo de cambios críticos.
+	Media
+	H-09
+	Matrícula
+	Los prerrequisitos se registran pero no se exigen al matricular.
+	Validación estricta de prerrequisitos.
+	Media
+	H-12
+	Mi Perfil
+	Ausencia de función para el cierre remoto de sesiones activas.
+	Gestión remota de sesiones.
+	Media
+	H-10
+	Catálogo
+	Búsqueda de materias sensible a tildes y acentos.
+	Búsqueda insensible a tildes y mayúsculas.
+	Baja
+	H-15
+	Ayuda
+	Manuales incompletos con textos de desarrollo visibles.
+	Documentación final para usuario final.
+	Baja
+	4. Conclusiones y Recomendaciones
+            1. Corregir bloqueos críticos de exportación y renderizado: Resolver el fallo en la exportación a PDF del módulo de Reportes que provoca la pantalla negra.
+            2. Implementar reglas de negocio en Matrícula y Usuarios: Filtrar las materias según la carrera del estudiante, activar la verificación obligatoria de prerrequisitos e impedir la asignación mutua de roles incompatibles (Estudiante y Docente).
+            3. Establecer límites en Carga Académica: Fijar un tope de docentes asignables por sección y delimitar el máximo de horas semanales asignadas a una asignatura.
+            4. Completar auditoría y documentación: Asegurar que las modificaciones del Catálogo se registren en la bitácora de auditoría y limpiar las notas internas de desarrollo en los manuales de usuario.
