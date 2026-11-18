@@ -36,6 +36,9 @@ class Cabecera
 
     /**
      * Código de la materia con una sesión de asistencia abierta para el estudiante (aviso de la cabecera).
+     *
+     * Si ya marcó en esa sesión, el chip desaparece: seguía invitando a marcar después de hacerlo (QA 17/11),
+     * igual que el aviso del panel de inicio.
      */
     private function asistenciaAbierta(User $usuario): ?string
     {
@@ -49,6 +52,8 @@ class Cabecera
             ->join('subjects', 'subjects.id', '=', 'sections.subject_id')
             ->where('enrollments.student_id', $usuario->id)->where('enrollments.status', 'active')
             ->tap(fn ($q) => AsistenciaService::soloVigentes($q))
+            ->whereNotExists(fn ($q) => $q->from('attendance_records as r')
+                ->whereColumn('r.session_id', 'attendance_sessions.id')->whereColumn('r.enrollment_id', 'enrollments.id'))
             ->orderByDesc('attendance_sessions.opened_at')
             ->value('subjects.code');
     }

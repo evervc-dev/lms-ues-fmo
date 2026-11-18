@@ -545,7 +545,7 @@ erDiagram
     varchar question_type "multiple_choice, true_false, short_answer, essay"
     text statement
     varchar topic
-    varchar difficulty
+    varchar difficulty "en desuso: la pantalla ya no la pide (QA 17/11)"
     text justification "deferred feedback"
   }
   question_options {
@@ -559,7 +559,7 @@ erDiagram
     bigint assessment_id FK
     bigint bank_id FK
     varchar topic
-    varchar difficulty
+    varchar difficulty "en desuso: el cuestionario no filtra por dificultad"
     smallint quantity "random pick"
   }
   quiz_attempts {

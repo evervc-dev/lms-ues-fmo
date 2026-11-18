@@ -133,6 +133,17 @@ it('shows the open attendance notice only to enrolled students', function () {
     $this->actingAs($docente)->get(route('inicio'))->assertOk()->assertDontSeeText('Asistencia abierta');
 });
 
+it('deja de mostrar el aviso de la cabecera cuando el estudiante ya marcó en esa sesión', function () {
+    $e = escenario();
+    $sesion = app(AsistenciaService::class)->abrir($e['docente'], $e['seccion'], 10);
+
+    $this->actingAs($e['estudiante'])->get(route('inicio'))->assertOk()->assertSeeText('Asistencia abierta');
+
+    app(AsistenciaService::class)->marcar($e['docente'], $e['seccion'], $sesion, $e['matricula'], 'present');
+
+    $this->actingAs($e['estudiante'])->get(route('inicio'))->assertOk()->assertDontSeeText('Asistencia abierta');
+});
+
 it('no muestra al estudiante el aviso de una sesión de asistencia de otro día que quedó abierta', function () {
     $e = escenario();
     app(AsistenciaService::class)->abrir($e['docente'], $e['seccion'], 10);

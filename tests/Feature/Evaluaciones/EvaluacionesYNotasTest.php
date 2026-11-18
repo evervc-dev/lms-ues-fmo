@@ -152,6 +152,18 @@ it('las prórrogas de una tarea anónima usan los mismos seudónimos que Entrega
     Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $tarea])->assertSee($nombre)->assertDontSee('Estudiante 1');
 });
 
+it('ya no pide la dificultad al crear una pregunta del banco', function () {
+    $e = escenario();
+    actingAs($e['docente']);
+    $banco = app(CuestionarioService::class)->crearBanco($e['docente'], 'Banco PRN', $e['prn']);
+
+    Livewire::test(NuevaPregunta::class, ['banco' => $banco])
+        ->assertDontSee('Dificultad')
+        ->set('tipo', 'true_false')->set('enunciado', 'PHP es interpretado')->set('correcta', 0)->call('agregar')->assertHasNoErrors();
+
+    expect(DB::table('questions')->where('bank_id', $banco)->value('difficulty'))->toBeNull();
+});
+
 it('runs a quiz attempt in the exam layout and grades it automatically', function () {
     $e = escenario();
     $c = computos($e);

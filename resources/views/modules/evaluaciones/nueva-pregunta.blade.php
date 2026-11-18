@@ -1,5 +1,4 @@
 {{-- Nueva pregunta de un banco (RF16, ADR-009, maqueta 32). Formulario por pasos. --}}
-@php($dificultades = ['easy' => __('Fácil'), 'medium' => __('Media'), 'hard' => __('Difícil')])
 
 <div class="flex flex-col gap-5">
     <x-ui.encabezado
@@ -11,14 +10,11 @@
         <x-ui.formulario.paso :numero="1">
             <x-ui.card :titulo="__('Enunciado')">
                 <div class="flex flex-col gap-4">
-                    <div class="grid gap-4 sm:grid-cols-3">
+                    <div class="grid gap-4 sm:grid-cols-2">
                         <x-ui.field :etiqueta="__('Tipo')" para="tipoP" error="tipo">
                             <x-ui.select id="tipoP" wire:model.live="tipo">@foreach ($tipos as $v => $e)<option value="{{ $v }}">{{ __($e) }}</option>@endforeach</x-ui.select>
                         </x-ui.field>
                         <x-ui.field :etiqueta="__('Tema')" para="temaP"><x-ui.input id="temaP" wire:model="tema" /></x-ui.field>
-                        <x-ui.field :etiqueta="__('Dificultad')" para="dificultadP">
-                            <x-ui.select id="dificultadP" wire:model="dificultad">@foreach ($dificultades as $v => $e)<option value="{{ $v }}">{{ $e }}</option>@endforeach</x-ui.select>
-                        </x-ui.field>
                     </div>
 
                     <x-ui.field :etiqueta="__('Enunciado')" para="enunciado" error="enunciado" requerido>
@@ -67,7 +63,6 @@
                     <div class="flex flex-wrap gap-1">
                         <x-ui.badge color="marca">{{ __($tipos[$tipo]) }}</x-ui.badge>
                         @if ($tema)<x-ui.badge>{{ $tema }}</x-ui.badge>@endif
-                        <x-ui.badge>{{ $dificultades[$dificultad] }}</x-ui.badge>
                     </div>
 
                     <div>

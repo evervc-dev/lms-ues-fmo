@@ -1,5 +1,4 @@
 {{-- Banco de preguntas (RF16, maqueta 32). --}}
-@php($dificultades = ['easy' => __('Fácil'), 'medium' => __('Media'), 'hard' => __('Difícil')])
 <div class="flex flex-col gap-5">
     <x-ui.encabezado :titulo="$banco->name" :subtitulo="trans_choice('{1} 1 pregunta|[0,*] :count preguntas', $preguntas->count()).($banco->code ? ' · '.$banco->code : '')">
         <x-slot:acciones><x-ui.button icono="plus" :href="route('bancos-de-preguntas.pregunta', ['banco' => $banco->id])">{{ __('Nueva pregunta') }}</x-ui.button></x-slot:acciones>
@@ -9,7 +8,7 @@
         <div class="flex flex-col gap-3">
             @forelse ($preguntas as $p)
                 <x-ui.card wire:key="preg-{{ $p->id }}">
-                    <div class="mb-2 flex flex-wrap gap-1"><x-ui.badge color="marca">{{ __($tipos[$p->question_type]) }}</x-ui.badge>@if ($p->topic)<x-ui.badge>{{ $p->topic }}</x-ui.badge>@endif @if ($p->difficulty)<x-ui.badge>{{ $dificultades[$p->difficulty] ?? $p->difficulty }}</x-ui.badge>@endif</div>
+                    <div class="mb-2 flex flex-wrap gap-1"><x-ui.badge color="marca">{{ __($tipos[$p->question_type]) }}</x-ui.badge>@if ($p->topic)<x-ui.badge>{{ $p->topic }}</x-ui.badge>@endif</div>
                     <p class="text-sm font-medium text-texto">{{ $loop->iteration }}. {{ $p->statement }}</p>
                     @if ($p->opciones->isNotEmpty())
                         <ul class="mt-2 flex flex-col gap-1 text-sm">@foreach ($p->opciones as $o)<li @class(['font-semibold text-emerald-700' => $o->is_correct, 'text-texto-suave' => ! $o->is_correct])>{{ $o->is_correct ? '✓' : '·' }} {{ $o->text }}</li>@endforeach</ul>

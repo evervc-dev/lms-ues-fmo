@@ -27,6 +27,10 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
   la hay, del nombre con que Google guarda el archivo, con un día de tolerancia; sin fecha no se bloquea y la vista
   previa lo advierte. Las justificaciones pendientes de la vista de sesión se limitan a **esa** sesión y hay un
   panel con todas las de la sección en Asistencia.
+  Con la revisión del informe de QA del 17/11 se cerraron además tres puntos que seguían abiertos: el chip
+  «Asistencia abierta · Marcar» de la cabecera ya no aparece después de marcar (el panel de inicio sí lo
+  comprobaba, la cabecera no), una clase virtual finalizada deja de ofrecer «Unirse a Meet» y conserva la
+  grabación, y el formulario de pregunta ya no pide la dificultad (la columna queda en desuso).
 - **CP cubiertos:** CP-RF21-08 (fecha del nombre, tolerancia y sin fecha), CP-RF19-03 (justificaciones por sesión).
 - **Decisiones:** [[ADR-070 Fecha del informe de Meet desde el nombre del archivo]] (pendiente). Columna nueva
   `meet_reports.meeting_date`.

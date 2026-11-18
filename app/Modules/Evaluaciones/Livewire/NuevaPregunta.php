@@ -31,8 +31,6 @@ class NuevaPregunta extends Component
 
     public string $tema = '';
 
-    public string $dificultad = 'medium';
-
     /** @var array<int, string> */
     public array $opciones = ['', '', '', ''];
 
@@ -79,7 +77,7 @@ class NuevaPregunta extends Component
         $this->validarTodosLosPasos();
 
         $cuestionarios->agregarPregunta(auth()->user(), $this->bancoId, [
-            'tipo' => $this->tipo, 'enunciado' => $this->enunciado, 'tema' => $this->tema ?: null, 'dificultad' => $this->dificultad,
+            'tipo' => $this->tipo, 'enunciado' => $this->enunciado, 'tema' => $this->tema ?: null,
             'opciones' => $this->opciones, 'correcta' => $this->correcta, 'aceptadas' => $this->aceptadas,
             'justificacion' => $this->justificacion ?: null,
         ]);

@@ -614,6 +614,27 @@ it('muestra al docente el botón para subir el reporte de una clase finalizada y
     Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])->assertSee('Recursividad en Python')->assertDontSee('Subir reporte');
 });
 
+it('deja de ofrecer el enlace de Meet cuando la clase terminó, pero conserva la grabación', function () {
+    $e = escenarioMeet();
+    // La clase de prueba empezó a las 07:00 y «ahora» son las 10:00: ya terminó.
+    $terminada = claseVirtual($e, ['topic' => 'Recursividad en Python']);
+    servicioMeet()->grabacion($e['docente'], $e['seccion'], $terminada, 'https://drive.google.com/file/d/abc/view');
+    actingAs($e['estudiante']);
+
+    Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])
+        ->assertDontSee('Unirse a Meet')->assertSee('Ver grabación');
+
+    // Sin grabación, la fila dice que la clase finalizó en vez de invitar a entrar a la llamada.
+    servicioMeet()->grabacion($e['docente'], $e['seccion'], $terminada, null);
+    Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])
+        ->assertDontSee('Unirse a Meet')->assertSee('Clase finalizada');
+
+    // La que todavía no empieza sí mantiene el enlace.
+    DB::table('video_sessions')->where('id', $terminada)->delete();
+    claseVirtual($e, ['topic' => 'Normalización', 'starts_at' => '2026-10-30 07:00:00', 'status' => 'scheduled']);
+    Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])->assertSee('Unirse a Meet');
+});
+
 it('audita la programación de la clase virtual con el docente como actor', function () {
     $e = escenarioMeet();
     actingAs($e['docente']);

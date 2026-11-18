@@ -23,9 +23,11 @@
                     <td class="whitespace-nowrap">{{ __(':n min', ['n' => $c->duration_minutes]) }}</td>
                     <td><x-ui.badge :color="$colorEstado[$c->status] ?? 'gris'">{{ __($estados[$c->status] ?? $c->status) }}</x-ui.badge></td>
                     <td class="whitespace-nowrap">
-                        @if ($c->meet_url)<a href="{{ $c->meet_url }}" target="_blank" rel="noopener" class="text-marca-700 underline">{{ __('Unirse a Meet') }}</a>@endif
-                        @if ($c->recording_url)<a href="{{ $c->recording_url }}" target="_blank" rel="noopener" class="ml-2 text-marca-700 underline">{{ __('Ver grabación') }}</a>@endif
-                        @if (! $c->meet_url && ! $c->recording_url)<span class="text-texto-suave">—</span>@endif
+                        {{-- La clase que ya terminó no invita a entrar a la llamada; queda la grabación (QA 17/11). --}}
+                        @php($enCurso = $c->status !== 'finished')
+                        @if ($c->meet_url && $enCurso)<a href="{{ $c->meet_url }}" target="_blank" rel="noopener" class="text-marca-700 underline">{{ __('Unirse a Meet') }}</a>@endif
+                        @if ($c->recording_url)<a href="{{ $c->recording_url }}" target="_blank" rel="noopener" @class(['text-marca-700 underline', 'ml-2' => $c->meet_url && $enCurso])>{{ __('Ver grabación') }}</a>@endif
+                        @if (! ($c->meet_url && $enCurso) && ! $c->recording_url)<span class="text-texto-suave">{{ $c->meet_url ? __('Clase finalizada') : '—' }}</span>@endif
                     </td>
                     @if ($gestiona)
                         <td class="text-right whitespace-nowrap">
