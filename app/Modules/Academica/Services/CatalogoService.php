@@ -6,8 +6,10 @@ use App\Models\User;
 use App\Support\Alcance;
 use App\Support\Busqueda;
 use App\Support\DbContext;
+use App\Support\DbError;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -190,6 +192,77 @@ class CatalogoService
             throw ValidationException::withMessages(['aulaCodigo' => __('Ya existe un aula con ese código.')]);
         }
         DbContext::run(fn () => DB::table('classrooms')->insert(['code' => $codigo, 'capacity' => $capacidad, 'created_at' => now(), 'updated_at' => now()]), 'classroom.created');
+    }
+
+    /**
+     * Crea un departamento o edita su código y nombre (RF07). El código es único sin distinguir mayúsculas
+     * y se guarda en mayúsculas. Guardar sin cambios no escribe, para no dejar en la auditoría una edición vacía.
+     *
+     * @return int El id del departamento.
+     *
+     * @throws ValidationException
+     */
+    public function guardarDepartamento(User $actor, ?int $id, string $codigo, string $nombre): int
+    {
+        $this->alcance->exigir($actor, 'asignaturas.gestionar');
+        $actual = $id === null ? null : (DB::table('departments')->where('id', $id)->first() ?? abort(404));
+        $codigo = mb_strtoupper(trim($codigo));
+        $nombre = trim($nombre);
+
+        $repetido = DB::table('departments')->whereRaw('upper(code) = ?', [$codigo])
+            ->when($id !== null, fn ($q) => $q->where('id', '!=', $id))->exists();
+        if ($repetido) {
+            throw ValidationException::withMessages(['departamentoCodigo' => __('Ya existe un departamento con ese código.')]);
+        }
+
+        if ($actual === null) {
+            return DbContext::run(fn () => DB::table('departments')->insertGetId([
+                'code' => $codigo, 'name' => $nombre, 'created_at' => now(), 'updated_at' => now(),
+            ]), 'department.created');
+        }
+
+        if ($actual->code !== $codigo || $actual->name !== $nombre) {
+            DbContext::run(fn () => DB::table('departments')->where('id', $id)
+                ->update(['code' => $codigo, 'name' => $nombre, 'updated_at' => now()]), 'department.updated');
+        }
+
+        return (int) $id;
+    }
+
+    /**
+     * Elimina un departamento que nada usa (RF07). No hay desactivación: si tiene carreras, asignaturas, docentes,
+     * jefaturas (vigentes o pasadas), cierres, plazos de matrícula o fechas del calendario, se rechaza nombrándolas.
+     * La auditoría es inmutable (ADR-027) y su FK a `departments` es RESTRICT: si el departamento ya figura en ella,
+     * tampoco se puede borrar.
+     *
+     * @throws ValidationException
+     */
+    public function eliminarDepartamento(User $actor, int $id): void
+    {
+        $this->alcance->exigir($actor, 'asignaturas.gestionar');
+        DB::table('departments')->where('id', $id)->exists() || abort(404);
+
+        $usos = array_keys(array_filter([
+            __('carreras') => DB::table('careers')->where('department_id', $id)->exists(),
+            __('asignaturas') => DB::table('subjects')->where('department_id', $id)->exists(),
+            __('docentes') => DB::table('teacher_profiles')->where('department_id', $id)->exists(),
+            __('jefaturas') => DB::table('department_heads')->where('department_id', $id)->exists(),
+            __('cierres de período') => DB::table('department_closures')->where('department_id', $id)->exists(),
+            __('plazos de matrícula') => DB::table('enrollment_deadlines')->where('department_id', $id)->exists(),
+            __('fechas del calendario') => DB::table('period_calendar_events')->where('department_id', $id)->exists(),
+        ]));
+        if ($usos !== []) {
+            throw ValidationException::withMessages(['departamento' => __('No se puede eliminar el departamento: tiene :usos.', ['usos' => implode(', ', $usos)])]);
+        }
+
+        try {
+            DbContext::run(fn () => DB::table('departments')->where('id', $id)->delete(), 'department.deleted');
+        } catch (QueryException $e) {
+            if ((string) ($e->errorInfo[0] ?? $e->getCode()) !== '23503') {
+                throw DbError::toDomain($e);
+            }
+            throw ValidationException::withMessages(['departamento' => __('No se puede eliminar el departamento: tiene historial en la auditoría, que no se puede borrar.')]);
+        }
     }
 
     /**
