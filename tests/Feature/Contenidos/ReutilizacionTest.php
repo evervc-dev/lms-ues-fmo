@@ -164,7 +164,7 @@ it('CP-RF14-01 solo copia de un período anterior y no copia dos veces la misma 
 
     $contenidos->importar($e['docente'], $anterior['seccion'], $e['seccion']);
     expect((bool) $contenidos->origenesParaImportar($e['docente'], $e['seccion'])->first()->importada)->toBeTrue()
-        ->and(fn () => $contenidos->importar($e['docente'], $anterior['seccion'], $e['seccion']))->toThrow(ValidationException::class, 'Ya importó el contenido de esa sección')
+        ->and(fn () => $contenidos->importar($e['docente'], $anterior['seccion'], $e['seccion']))->toThrow(ValidationException::class, 'Ya importó el contenido de ese grupo teórico')
         ->and(DB::table('units')->where('section_id', $e['seccion'])->count())->toBe(1);
 });
 

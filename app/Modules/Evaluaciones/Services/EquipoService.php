@@ -107,7 +107,7 @@ class EquipoService
         }
         $validas = DB::table('enrollments')->where('section_id', $seccionId)->where('status', 'active')->whereIn('id', $matriculas)->count();
         if ($validas !== count($matriculas)) {
-            throw ValidationException::withMessages(['integrantes' => __('Solo pueden integrar el equipo estudiantes matriculados en esta sección.')]);
+            throw ValidationException::withMessages(['integrantes' => __('Solo pueden integrar el equipo estudiantes matriculados en este grupo teórico.')]);
         }
         $yaTienen = DB::table('team_members as tm')->join('teams', 'teams.id', '=', 'tm.team_id')->where('teams.assessment_id', $tareaId)->whereIn('tm.enrollment_id', $matriculas)->exists();
         if ($yaTienen) {

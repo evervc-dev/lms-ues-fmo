@@ -81,6 +81,6 @@
             @endif
         </x-ui.card>
     @empty
-        <x-ui.card><x-ui.empty-state icono="clipboard-document-list" :titulo="__('La sección no tiene cómputos configurados')" /></x-ui.card>
+        <x-ui.card><x-ui.empty-state icono="clipboard-document-list" :titulo="__('El grupo teórico no tiene cómputos configurados')" /></x-ui.card>
     @endforelse
 </div>

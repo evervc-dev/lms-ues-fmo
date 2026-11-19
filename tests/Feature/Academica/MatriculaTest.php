@@ -186,7 +186,7 @@ it('CP-RF29-02 informa que ninguna sección tiene cupo o que chocan, y no matric
 
     expect($opciones[$llena['seccion']]->llena)->toBeTrue()
         ->and($opciones[$choca]->choque)->toBe('PRN115 · 01')
-        ->and(fn () => matricula()->automatricular($e['estudiante'], $llena['asignatura'], $clave, $llena['seccion']))->toThrow(ValidationException::class, 'La sección está llena.')
+        ->and(fn () => matricula()->automatricular($e['estudiante'], $llena['asignatura'], $clave, $llena['seccion']))->toThrow(ValidationException::class, 'El grupo teórico está lleno.')
         ->and(fn () => matricula()->automatricular($e['estudiante'], $llena['asignatura'], $clave, $choca))->toThrow(ValidationException::class, 'Choca con el horario');
 
     expect(DB::table('enrollments')->where('student_id', $e['estudiante']->id)->where('subject_id', $llena['asignatura'])->exists())->toBeFalse();
@@ -201,7 +201,7 @@ it('CP-RF29-04 rechaza la sección llena aunque la clave sea correcta', function
     $clave = matriculaClave($e, $materia['asignatura']);
     actingAs($e['estudiante']);
 
-    expect(fn () => matricula()->automatricular($e['estudiante'], $materia['asignatura'], $clave, $materia['seccion']))->toThrow(ValidationException::class, 'La sección está llena.');
+    expect(fn () => matricula()->automatricular($e['estudiante'], $materia['asignatura'], $clave, $materia['seccion']))->toThrow(ValidationException::class, 'El grupo teórico está lleno.');
 
     expect(DB::table('enrollments')->where('section_id', $materia['seccion'])->count())->toBe(1);
 });
@@ -215,7 +215,7 @@ it('CP-RF29-06 la clave anterior deja de funcionar cuando el Coordinador o el Je
 
     // Con una clave válida y un grupo de otra materia, la clave se acepta y solo se rechaza el grupo: no matricula.
     expect(fn () => matricula()->automatricular($e['estudiante'], $materia['asignatura'], $anterior, $materia['seccion']))->toThrow(ValidationException::class, 'La clave no es válida o venció.')
-        ->and(fn () => matricula()->automatricular($e['estudiante'], $materia['asignatura'], $nueva, $e['otra']))->toThrow(ValidationException::class, 'Elija una de las secciones de la materia.');
+        ->and(fn () => matricula()->automatricular($e['estudiante'], $materia['asignatura'], $nueva, $e['otra']))->toThrow(ValidationException::class, 'Elija uno de los grupos teóricos de la materia.');
 
     actingAs($e[$rol]);
     matricula()->desactivarClave($e[$rol], $materia['asignatura']);

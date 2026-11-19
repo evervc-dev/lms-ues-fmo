@@ -42,7 +42,7 @@ return [
             'titulo' => 'Docencia',
             'rol' => 'docente',
             'opciones' => [
-                ['clave' => 'mis-secciones', 'etiqueta' => 'Mis secciones', 'ruta' => 'secciones', 'parametros' => ['ambito' => 'propias'], 'permiso' => 'contenidos.gestionar', 'icono' => 'academic-cap'],
+                ['clave' => 'mis-secciones', 'etiqueta' => 'Mis grupos teóricos', 'ruta' => 'secciones', 'parametros' => ['ambito' => 'propias'], 'permiso' => 'contenidos.gestionar', 'icono' => 'academic-cap'],
                 ['clave' => 'pendientes-de-calificar', 'etiqueta' => 'Pendientes de calificar', 'ruta' => 'pendientes-de-calificar', 'permiso' => 'calificaciones.gestionar', 'icono' => 'inbox-stack'],
                 ['clave' => 'bancos-de-preguntas', 'etiqueta' => 'Bancos de preguntas', 'ruta' => 'bancos-de-preguntas', 'permiso' => 'banco-preguntas.gestionar', 'icono' => 'rectangle-stack'],
             ],
@@ -66,7 +66,7 @@ return [
             'opciones' => [
                 ['clave' => 'carreras', 'etiqueta' => 'Carreras', 'ruta' => 'carreras', 'permiso' => 'carreras.ver', 'icono' => 'academic-cap'],
                 ['clave' => 'catalogo', 'etiqueta' => 'Catálogo', 'ruta' => 'catalogo', 'permiso' => 'asignaturas.gestionar', 'icono' => 'squares-2x2'],
-                ['clave' => 'secciones-del-departamento', 'etiqueta' => 'Secciones del departamento', 'ruta' => 'secciones', 'parametros' => ['ambito' => 'departamento'], 'permiso' => 'matricula.gestionar', 'icono' => 'building-library'],
+                ['clave' => 'secciones-del-departamento', 'etiqueta' => 'Grupos teóricos del departamento', 'ruta' => 'secciones', 'parametros' => ['ambito' => 'departamento'], 'permiso' => 'matricula.gestionar', 'icono' => 'building-library'],
                 ['clave' => 'carga-academica', 'etiqueta' => 'Carga académica', 'ruta' => 'carga-academica', 'permiso' => 'secciones.asignar-docente', 'icono' => 'building-office'],
                 ['clave' => 'usuarios', 'etiqueta' => 'Usuarios', 'ruta' => 'usuarios', 'permiso' => 'usuarios.ver', 'icono' => 'users'],
                 ['clave' => 'claves-matricula', 'etiqueta' => 'Claves de matrícula', 'ruta' => 'matricula.claves', 'permiso' => 'matricula.claves.gestionar', 'icono' => 'user-plus'],

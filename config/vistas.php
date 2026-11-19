@@ -38,7 +38,7 @@ return [
     'intentos.show' => ['uri' => '/intentos/{intento}', 'permiso' => 'cuestionarios.resolver', 'titulo' => 'Intento de cuestionario', 'modulo' => 'Evaluaciones', 'rf' => ['RF16'], 'op' => 435, 'maqueta' => '10 Layout Examen · intento', 'layout' => 'exam'],
 
     // Secciones y Vista de sección (una página por pestaña)
-    'secciones' => ['uri' => '/secciones', 'permiso' => 'contenidos.gestionar|contenidos.analitica.ver|cierre.autorizar', 'titulo' => 'Secciones', 'modulo' => 'Academica', 'rf' => ['RF08'], 'op' => 403],
+    'secciones' => ['uri' => '/secciones', 'permiso' => 'contenidos.gestionar|contenidos.analitica.ver|cierre.autorizar', 'titulo' => 'Grupos teóricos', 'modulo' => 'Academica', 'rf' => ['RF08'], 'op' => 403],
     'secciones.contenidos' => ['uri' => '/secciones/{seccion}', 'permiso' => 'contenidos.ver', 'titulo' => 'Contenidos', 'modulo' => 'Contenidos', 'rf' => ['RF11'], 'op' => 415, 'maqueta' => '06 Vista de sección · Contenidos', 'seccion' => true],
     'secciones.recurso' => ['uri' => '/secciones/{seccion}/recursos/{recurso}', 'permiso' => 'contenidos.ver', 'titulo' => 'Recurso', 'modulo' => 'Contenidos', 'rf' => ['RF11', 'RF12'], 'op' => 419, 'seccion' => true, 'pestana' => 'secciones.contenidos'],
     'secciones.recursos.crear' => ['uri' => '/secciones/{seccion}/unidades/{unidad}/recursos/crear', 'permiso' => 'contenidos.gestionar', 'titulo' => 'Agregar recurso', 'modulo' => 'Contenidos', 'rf' => ['RF11', 'RF12'], 'op' => 419, 'seccion' => true, 'pestana' => 'secciones.contenidos', 'donde' => ['unidad' => '[0-9]+']],

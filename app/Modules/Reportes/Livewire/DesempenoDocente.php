@@ -32,7 +32,7 @@ class DesempenoDocente extends Component
     public function exportar(string $formato, DesempenoService $desempeno): StreamedResponse
     {
         $periodo = $this->periodoElegido($desempeno);
-        $columnas = [__('Docente'), __('Departamento'), __('Secciones'), __('Retraso (min)'), __('A tiempo %'), __('Recursos'), __('Revisión (h)'), __('Sin publicar'), __('Notas publicadas %')];
+        $columnas = [__('Docente'), __('Departamento'), __('Grupos'), __('Retraso (min)'), __('A tiempo %'), __('Recursos'), __('Revisión (h)'), __('Sin publicar'), __('Notas publicadas %')];
         $filas = $desempeno->indicadores(auth()->user(), $periodo)
             ->map(fn (object $f) => [$f->last_name.', '.$f->first_name, $f->departamento, $f->secciones, $f->retraso, $f->aTiempo, $f->recursos, $f->revisionHoras, $f->sinPublicar, $f->publicadas])
             ->values()->all();

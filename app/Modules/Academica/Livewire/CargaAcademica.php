@@ -68,7 +68,7 @@ class CargaAcademica extends Component
     {
         $this->validate(['asignaturaId' => 'required|integer', 'grupo' => 'required|string|max:5', 'cupo' => 'required|integer|min:1|max:200'], [], ['asignaturaId' => 'asignatura', 'cupo' => 'cupo']);
         $carga->crearSeccion(auth()->user(), (int) PeriodoService::activoId(), (int) $this->asignaturaId, $this->grupo, $this->cupo);
-        $this->terminar('nueva-seccion', __('Sección creada. Agregue su horario y su docente.'));
+        $this->terminar('nueva-seccion', __('Grupo teórico creado. Agregue su horario y su docente.'));
     }
 
     public function agregarHorario(CargaAcademicaService $carga): void
@@ -85,7 +85,7 @@ class CargaAcademica extends Component
     {
         $carga->quitarHorario(auth()->user(), (int) $this->seccionId, $bloque);
         unset($this->secciones);
-        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Horario quitado. Se avisó a los estudiantes y docentes de la sección.'));
+        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Horario quitado. Se avisó a los estudiantes y docentes del grupo teórico.'));
     }
 
     /**
@@ -95,7 +95,7 @@ class CargaAcademica extends Component
     {
         try {
             $carga->cambiarAula(auth()->user(), (int) $this->seccionId, $bloque, $aula === '' ? null : (int) $aula);
-            $this->dispatch('aviso', tipo: 'exito', mensaje: __('Aula cambiada. Se avisó a los estudiantes y docentes de la sección.'));
+            $this->dispatch('aviso', tipo: 'exito', mensaje: __('Aula cambiada. Se avisó a los estudiantes y docentes del grupo teórico.'));
         } catch (ValidationException $e) {
             $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
         }
@@ -130,7 +130,7 @@ class CargaAcademica extends Component
     {
         $carga->quitarDocente(auth()->user(), $seccion, $docente);
         unset($this->secciones);
-        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Se quitó al docente de la sección.'));
+        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Se quitó al docente del grupo teórico.'));
     }
 
     private function terminar(string $modal, string $mensaje): void

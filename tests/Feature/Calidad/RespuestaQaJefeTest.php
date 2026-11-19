@@ -79,7 +79,7 @@ it('el cierre explica al Jefe cuántas actas faltan y cuáles mientras el botón
     Livewire::test(Cierre::class)
         ->assertSee('Todavía no puede autorizar el cierre')
         ->assertSee('Falta 1 acta por validar de 1.')
-        ->assertSee('Secciones pendientes: PRN115-01.');
+        ->assertSee('Grupos pendientes: PRN115-01.');
 });
 
 it('con todas las actas validadas el cierre ya no muestra el aviso', function () {
@@ -99,7 +99,7 @@ it('el panel del Jefe dice que la asistencia y la matrícula son de los estudian
     $e = escenario();
 
     actingAs($e['jefe'])->get(route('inicio'))->assertOk()
-        ->assertSeeText(['Matrículas activas de estudiantes', 'Asistencia de estudiantes', 'no incluye la de los docentes', 'Secciones sin docente asignado'])
+        ->assertSeeText(['Matrículas activas de estudiantes', 'Asistencia de estudiantes', 'no incluye la de los docentes', 'Grupos teóricos sin docente asignado'])
         ->assertDontSeeText('Matrícula del período');
 });
 

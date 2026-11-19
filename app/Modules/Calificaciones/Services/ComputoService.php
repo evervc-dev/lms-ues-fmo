@@ -118,12 +118,12 @@ class ComputoService
         $items = $estructura->flatMap(fn (object $c) => $c->items);
         foreach (array_keys($computos) as $id) {
             if (! $estructura->contains('id', (int) $id)) {
-                throw ValidationException::withMessages(['computos' => __('Uno de los cómputos no pertenece a esta sección.')]);
+                throw ValidationException::withMessages(['computos' => __('Uno de los cómputos no pertenece a este grupo teórico.')]);
             }
         }
         foreach (array_keys($actividades) as $id) {
             if (! $items->contains('id', (int) $id)) {
-                throw ValidationException::withMessages(['actividades' => __('Una de las actividades no pertenece a esta sección.')]);
+                throw ValidationException::withMessages(['actividades' => __('Una de las actividades no pertenece a este grupo teórico.')]);
             }
         }
 
@@ -179,7 +179,7 @@ class ComputoService
         $publicadas = DB::table('grade_items')->where('section_id', $seccionId)->where('is_published', true)->exists()
             || DB::table('grades')->where('section_id', $seccionId)->where('status', 'published')->exists();
 
-        return $publicadas ? __('La sección ya tiene notas publicadas: no se pueden cambiar los pesos.') : null;
+        return $publicadas ? __('El grupo teórico ya tiene notas publicadas: no se pueden cambiar los pesos.') : null;
     }
 
     public static function porcentaje(float $valor): string

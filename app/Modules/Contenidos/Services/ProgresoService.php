@@ -50,14 +50,14 @@ class ProgresoService
             'opened' => ['type' => 'opened'],
             'min_score' => $deLaSeccion('quiz') && is_numeric($regla['min'] ?? null) && (float) $regla['min'] >= 0 && (float) $regla['min'] <= 10
                 ? ['type' => 'min_score', 'assessment_id' => (int) $regla['assessment_id'], 'min' => round((float) $regla['min'], 1)]
-                : throw ValidationException::withMessages(['regla' => __('Elija un cuestionario de esta sección y una nota entre 0 y 10.')]),
+                : throw ValidationException::withMessages(['regla' => __('Elija un cuestionario de este grupo teórico y una nota entre 0 y 10.')]),
             'submission' => $deLaSeccion('assignment')
                 ? ['type' => 'submission', 'assessment_id' => (int) $regla['assessment_id']]
-                : throw ValidationException::withMessages(['regla' => __('Elija una tarea de esta sección.')]),
+                : throw ValidationException::withMessages(['regla' => __('Elija una tarea de este grupo teórico.')]),
             'forum_posts' => DB::table('forum_threads')->where('id', (int) ($regla['thread_id'] ?? 0))->where('section_id', $seccionId)->exists()
                 && is_numeric($regla['count'] ?? null) && (int) $regla['count'] >= 1 && (int) $regla['count'] <= 20
                 ? ['type' => 'forum_posts', 'thread_id' => (int) $regla['thread_id'], 'count' => (int) $regla['count']]
-                : throw ValidationException::withMessages(['regla' => __('Elija un hilo del foro de esta sección y de 1 a 20 mensajes.')]),
+                : throw ValidationException::withMessages(['regla' => __('Elija un hilo del foro de este grupo teórico y de 1 a 20 mensajes.')]),
             default => throw ValidationException::withMessages(['regla' => __('Elija cómo se completa el recurso.')]),
         };
     }

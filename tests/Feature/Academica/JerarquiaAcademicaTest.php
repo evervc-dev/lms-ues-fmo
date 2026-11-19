@@ -44,7 +44,7 @@ it('CP-RF08-04 shows the head the sections of their department and lets them cre
     $e = escenario();
     $carga = app(CargaAcademicaService::class);
 
-    actingAs($e['jefe'])->get(route('carga-academica'))->assertOk()->assertSeeText(['PRN115', 'Asignar docente', 'Cupo', 'Nueva sección'])->assertDontSeeText('MAT115');
+    actingAs($e['jefe'])->get(route('carga-academica'))->assertOk()->assertSeeText(['PRN115', 'Asignar docente', 'Cupo', 'Nuevo grupo teórico'])->assertDontSeeText('MAT115');
     expect($carga->asignaturas($e['jefe'])->pluck('code')->all())->toBe(['PRN115'])
         ->and(fn () => $carga->crearSeccion($e['jefe'], $e['periodo'], $e['mat'], '02', 40))->toThrow(AuthorizationException::class);
 
@@ -131,7 +131,7 @@ it('CP-RF08-06 rechaza el tercer docente de la sección nombrando el tope y los 
     $carga->asignarDocente($e['administrador'], $e['seccion'], docenteDe($e['dia']), false);
 
     expect(fn () => $carga->asignarDocente($e['administrador'], $e['seccion'], docenteDe($e['dia']), false))
-        ->toThrow(ValidationException::class, 'La sección ya tiene 2 docentes y el máximo es 2.');
+        ->toThrow(ValidationException::class, 'El grupo teórico ya tiene 2 docentes y el máximo es 2.');
     expect(DB::table('teaching_assignments')->where('section_id', $e['seccion'])->whereNull('ended_at')->count())->toBe(2);
 });
 
@@ -146,7 +146,7 @@ it('CP-RF08-06 rechaza el bloque de horario que pasaría las 10 horas semanales 
     $carga->agregarHorario($e['administrador'], $e['seccion'], 3, '07:00', '10:00', null);
 
     expect(fn () => $carga->agregarHorario($e['administrador'], $e['seccion'], 4, '07:00', '08:00', null))
-        ->toThrow(ValidationException::class, 'La sección ya suma 9.7 h semanales y con este bloque pasaría el máximo de 10 h.');
+        ->toThrow(ValidationException::class, 'El grupo teórico ya suma 9.7 h semanales y con este bloque pasaría el máximo de 10 h.');
     expect(DB::table('section_schedules')->where('section_id', $e['seccion'])->count())->toBe(3)
         ->and(DB::table('section_schedules')->where('section_id', $e['seccion'])->where('weekday', 4)->exists())->toBeFalse();
 });

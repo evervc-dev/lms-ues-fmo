@@ -152,7 +152,7 @@ describe('matrícula (RF09, RF29)', function () {
         DbContext::system(fn () => DB::table('student_careers')->insert(['student_id' => $otro->id, 'career_id' => $e['isi'], 'study_plan_id' => $e['plan'], 'current_cycle' => 1, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()]));
 
         expect(fn () => app(MatriculaService::class)->inscribir($e['coordinador'], $otro->id, $e['seccion']))
-            ->toThrow(ValidationException::class, 'La sección está llena.');
+            ->toThrow(ValidationException::class, 'El grupo teórico está lleno.');
     });
 
     it('withdraws with a reason but never by a teacher', function () {
@@ -234,7 +234,7 @@ it('renders the academic screens for their roles', function () {
 
     actingAs($e['administrador'])->get(route('periodos'))->assertOk()->assertSeeText('2026-II');
     actingAs($e['administrador'])->get(route('catalogo.estructura'))->assertOk()->assertSeeText(['DIA', 'ISI', 'A-101']);
-    actingAs($e['docente'])->get(route('secciones'))->assertOk()->assertSeeText(['Mis secciones', 'PRN115']);
+    actingAs($e['docente'])->get(route('secciones'))->assertOk()->assertSeeText(['Mis grupos teóricos', 'PRN115']);
     actingAs($e['coordinador'])->get(route('oferta'))->assertOk()->assertSeeText(['Estadísticas de oferta', 'PRN115'])->assertDontSeeText('MAT115');
     actingAs($e['estudiante'])->get(route('materias'))->assertOk()->assertSeeText(['Mis materias', 'Programación I']);
     actingAs($e['docente'])->get(route('secciones.estudiantes', ['seccion' => $e['ulid']]))->assertOk()->assertSeeText(['GS21004'])->assertDontSee('confirmarRetiro');

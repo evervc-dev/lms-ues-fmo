@@ -201,7 +201,7 @@ it('CP-RF17-01 bloquea los pesos cuando la sección tiene notas publicadas', fun
 
     $errores = pesosErrores(fn () => app(ComputoService::class)->guardarPesos($e['docente'], $e['seccion'], [$s['computos'][0] => 40, $s['computos'][1] => 60], []));
 
-    expect($errores['computos'][0])->toBe('La sección ya tiene notas publicadas: no se pueden cambiar los pesos.')
+    expect($errores['computos'][0])->toBe('El grupo teórico ya tiene notas publicadas: no se pueden cambiar los pesos.')
         ->and(pesosDe('grading_components', $s['computos']))->toEqual([50.0, 50.0]);
 });
 

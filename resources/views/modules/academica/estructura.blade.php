@@ -33,7 +33,7 @@
         </x-ui.card>
     </div>
 
-    <x-ui.card :titulo="__('Aulas')" :descripcion="__('Se usan en los horarios de las secciones; el sistema evita choques de aula.')">
+    <x-ui.card :titulo="__('Aulas')" :descripcion="__('Se usan en los horarios de los grupos teóricos; el sistema evita choques de aula.')">
         <form wire:submit="agregarAula" class="mb-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
             <x-ui.field :etiqueta="__('Código')" para="aulaCodigo" error="aulaCodigo"><x-ui.input id="aulaCodigo" wire:model="aulaCodigo" placeholder="B-206" /></x-ui.field>
             <x-ui.field :etiqueta="__('Capacidad')" para="aulaCapacidad" error="aulaCapacidad"><x-ui.input id="aulaCapacidad" type="number" wire:model="aulaCapacidad" /></x-ui.field>

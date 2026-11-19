@@ -594,10 +594,10 @@ class ContenidoService
     {
         $origen = $this->origenesParaImportar($usuario, $destinoId)->firstWhere('id', $origenId);
         if ($origen === null) {
-            throw new AuthorizationException(__('No puede copiar el contenido de esa sección.'));
+            throw new AuthorizationException(__('No puede copiar el contenido de ese grupo teórico.'));
         }
         if ((bool) $origen->importada) {
-            throw ValidationException::withMessages(['origen' => __('Ya importó el contenido de esa sección: no se copia dos veces.')]);
+            throw ValidationException::withMessages(['origen' => __('Ya importó el contenido de ese grupo teórico: no se copia dos veces.')]);
         }
 
         // Los archivos se copian dentro de la transacción; si algo falla, se borran las copias para no dejar huérfanos.

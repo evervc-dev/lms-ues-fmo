@@ -87,7 +87,7 @@ class PeriodoService
         $fecha = fn (?string $f) => $f === null ? null : Carbon::parse($f)->timezone('America/El_Salvador')->format('d/m/Y H:i');
 
         return [
-            'columnas' => [__('Código'), __('Departamento'), __('Secciones'), __('Matrículas'), __('Cierre autorizado'), __('Autorizó')],
+            'columnas' => [__('Código'), __('Departamento'), __('Grupos'), __('Matrículas'), __('Cierre autorizado'), __('Autorizó')],
             'filas' => $detalle['cierres']->map(fn (object $c) => [
                 $c->code,
                 $c->name,
@@ -97,7 +97,7 @@ class PeriodoService
                 $c->autorizo,
             ])->values()->all(),
             'titulo' => __('Período :nombre', ['nombre' => $periodo->name]),
-            'subtitulo' => __(':inicio – :fin · :estado · :s secciones · :m matrículas', [
+            'subtitulo' => __(':inicio – :fin · :estado · :s grupos teóricos · :m matrículas', [
                 'inicio' => Carbon::parse($periodo->start_date)->format('d/m/Y'),
                 'fin' => Carbon::parse($periodo->end_date)->format('d/m/Y'),
                 'estado' => __(self::ESTADOS[$periodo->status] ?? $periodo->status),

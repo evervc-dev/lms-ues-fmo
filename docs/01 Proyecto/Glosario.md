@@ -14,7 +14,7 @@ estado: borrador
 | **Etapas del período** | Planificación, definición de horarios y asignación docente |
 | **Plan de estudios** | Plan 98 o Plan 25 |
 | **Asignatura** | Materia del catálogo, con código único; se reutiliza entre períodos ([[RF07]]) |
-| **Sección / grupo** | Una oferta concreta de la asignatura en un período, con horario, aula, cupos y docentes ([[RF08]]) |
+| **Grupo teórico (sección)** | Una oferta concreta de la asignatura en un período, con horario, aula, cupos y docentes ([[RF08]]). En la interfaz se llama **grupo teórico** («Grupo» en espacios cortos); en el código y la base sigue siendo `sections` / sección ([[ADR-073 El Jefe crea los grupos teóricos de su departamento]]) |
 | **Cómputo** | Subdivisión evaluativa del período. La nota y el 75 % de asistencia se miden por cómputo (E2, E6) |
 | **Unidad** | Bloque de contenido del curso, mostrado como acordeón ([[RF11]]) |
 | **Recurso** | Archivo, carpeta, página HTML, enlace o video dentro de una unidad |

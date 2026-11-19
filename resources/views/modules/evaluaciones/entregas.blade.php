@@ -78,7 +78,7 @@
     @endif
 
     @if ($equipos !== null)
-        <x-ui.card :titulo="__('Equipos')" :descripcion="__('Tarea grupal: arme los equipos con estudiantes de la sección. Lo que entregue un integrante cuenta para todo el equipo, y la nota se copia a cada uno.')">
+        <x-ui.card :titulo="__('Equipos')" :descripcion="__('Tarea grupal: arme los equipos con estudiantes del grupo teórico. Lo que entregue un integrante cuenta para todo el equipo, y la nota se copia a cada uno.')">
             <div class="grid gap-5 lg:grid-cols-2">
                 <div class="flex flex-col gap-2">
                     @forelse ($equipos['equipos'] as $eq)

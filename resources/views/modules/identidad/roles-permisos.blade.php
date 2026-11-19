@@ -8,7 +8,7 @@
         @endforeach
     </div>
 
-    <x-ui.alert tipo="aviso">{{ __('El alcance de cada permiso (global, departamento, carrera, secciones o propio) lo define la Matriz RBAC y lo aplica el sistema; aquí solo se concede o se quita.') }}</x-ui.alert>
+    <x-ui.alert tipo="aviso">{{ __('El alcance de cada permiso (global, departamento, carrera, grupos teóricos o propio) lo define la Matriz RBAC y lo aplica el sistema; aquí solo se concede o se quita.') }}</x-ui.alert>
 
     <div class="flex flex-wrap items-center gap-2">
         <x-ui.search class="min-w-64 flex-1" wire:model.live.debounce.300ms="buscar" :placeholder="__('Buscar un permiso (asistencia, notas.publicar…)')" />

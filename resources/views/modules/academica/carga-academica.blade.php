@@ -4,14 +4,14 @@
     $dias = [1 => __('Lunes'), 2 => __('Martes'), 3 => __('Miércoles'), 4 => __('Jueves'), 5 => __('Viernes'), 6 => __('Sábado')];
 @endphp
 <div class="flex flex-col gap-5 lg:h-full">
-    <x-ui.encabezado :titulo="__('Carga académica · Período :p', ['p' => $periodo ?? '—'])" :subtitulo="__('Secciones, horarios, aulas y docentes. El sistema rechaza los choques de aula y de docente.')">
+    <x-ui.encabezado :titulo="__('Carga académica · Período :p', ['p' => $periodo ?? '—'])" :subtitulo="__('Grupos teóricos, horarios, aulas y docentes. El sistema rechaza los choques de aula y de docente.')">
         @if ($gestiona)
-            <x-slot:acciones><x-ui.button icono="plus" wire:click="abrir('nueva-seccion')">{{ __('Nueva sección') }}</x-ui.button></x-slot:acciones>
+            <x-slot:acciones><x-ui.button icono="plus" wire:click="abrir('nueva-seccion')">{{ __('Nuevo grupo teórico') }}</x-ui.button></x-slot:acciones>
         @endif
     </x-ui.encabezado>
 
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <x-ui.stat :etiqueta="__('Secciones planificadas')" :valor="$kpi['secciones']" icono="squares-2x2" />
+        <x-ui.stat :etiqueta="__('Grupos planificados')" :valor="$kpi['secciones']" icono="squares-2x2" />
         <x-ui.stat :etiqueta="__('Sin docente')" :valor="$kpi['sinDocente']" icono="user-plus" :tono="$kpi['sinDocente'] ? 'aviso' : 'exito'" />
         <x-ui.stat :etiqueta="__('Ocupación de cupos')" :valor="$kpi['ocupacion'].' %'" icono="building-office" />
         <x-ui.stat :etiqueta="__('Choques de aula')" :valor="$kpi['choques']" icono="exclamation-triangle" :tono="$kpi['choques'] ? 'error' : 'exito'" />
@@ -26,15 +26,15 @@
             </x-ui.select>
         </div>
 
-        <x-ui.table ajustar :vacio="__('No hay secciones con esos filtros.')">
-            <x-slot:cabecera><th>{{ __('Asignatura / sección') }}</th><th>{{ __('Docentes') }}</th><th>{{ __('Horario y aula') }}</th><th class="text-right">{{ __('Cupo') }}</th><th>{{ __('Estado') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
+        <x-ui.table ajustar :vacio="__('No hay grupos teóricos con esos filtros.')">
+            <x-slot:cabecera><th>{{ __('Asignatura / grupo') }}</th><th>{{ __('Docentes') }}</th><th>{{ __('Horario y aula') }}</th><th class="text-right">{{ __('Cupo') }}</th><th>{{ __('Estado') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
             @foreach ($this->secciones as $s)
                 <tr wire:key="carga-{{ $s->id }}" @class(['bg-red-50/40' => $s->estado === 'choque'])>
                     <td><span class="font-semibold">{{ $s->code }}</span> · {{ $s->name }}<p class="text-xs text-texto-suave">{{ __('Grupo :g', ['g' => $s->grupo]) }}{{ $s->ciclo ? ' · '.__('ciclo :c', ['c' => $s->ciclo]) : '' }}</p></td>
                     <td>
                         @forelse ($s->docentes as $d)
                             <span class="flex items-center gap-1">{{ $d->first_name }} {{ $d->last_name }}@unless ($d->is_responsible)<span class="text-xs text-texto-suave">({{ __('co-docente') }})</span>@endunless
-                                @if ($asignaDocentes)<button type="button" wire:click="quitarDocente({{ $s->id }}, {{ $d->id }})" wire:confirm="{{ __('¿Quitar a este docente de la sección?') }}" class="text-texto-suave hover:text-red-700" aria-label="{{ __('Quitar docente') }}"><x-ui.icon name="x-mark" class="size-4" /></button>@endif</span>
+                                @if ($asignaDocentes)<button type="button" wire:click="quitarDocente({{ $s->id }}, {{ $d->id }})" wire:confirm="{{ __('¿Quitar a este docente del grupo teórico?') }}" class="text-texto-suave hover:text-red-700" aria-label="{{ __('Quitar docente') }}"><x-ui.icon name="x-mark" class="size-4" /></button>@endif</span>
                         @empty
                             <span class="text-amber-700">{{ __('Sin asignar') }}</span>
                         @endforelse
@@ -60,7 +60,7 @@
     </x-ui.card>
 
     @if ($gestiona)
-        <x-ui.modal nombre="nueva-seccion" :titulo="__('Nueva sección')">
+        <x-ui.modal nombre="nueva-seccion" :titulo="__('Nuevo grupo teórico')">
             <form wire:submit="crearSeccion" id="form-seccion" class="flex flex-col gap-4">
                 <x-ui.field :etiqueta="__('Asignatura')" para="asignaturaId" error="asignaturaId" requerido>
                     <x-ui.select id="asignaturaId" wire:model="asignaturaId"><option value="">{{ __('Elija…') }}</option>@foreach ($asignaturas as $a)<option value="{{ $a->id }}">{{ $a->code }} · {{ $a->name }}</option>@endforeach</x-ui.select>
@@ -72,7 +72,7 @@
             </form>
             <x-slot:pie>
                 <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'nueva-seccion')">{{ __('Cancelar') }}</x-ui.button>
-                <x-ui.button type="submit" form="form-seccion">{{ __('Crear sección') }}</x-ui.button>
+                <x-ui.button type="submit" form="form-seccion">{{ __('Crear grupo teórico') }}</x-ui.button>
             </x-slot:pie>
         </x-ui.modal>
 
@@ -88,7 +88,7 @@
                                     <option value="" @selected($b->aulaId === null)>{{ __('Virtual / sin aula') }}</option>
                                     @foreach ($aulas as $a)<option value="{{ $a->id }}" @selected($b->aulaId === (int) $a->id)>{{ $a->code }} ({{ $a->capacity }})</option>@endforeach
                                 </x-ui.select></div>
-                                <x-ui.button tamano="sm" variante="fantasma" wire:click="quitarHorario({{ $b->id }})" wire:confirm="{{ __('¿Quitar este horario? Se avisará a los estudiantes y docentes de la sección.') }}">{{ __('Quitar') }}</x-ui.button>
+                                <x-ui.button tamano="sm" variante="fantasma" wire:click="quitarHorario({{ $b->id }})" wire:confirm="{{ __('¿Quitar este horario? Se avisará a los estudiantes y docentes del grupo teórico.') }}">{{ __('Quitar') }}</x-ui.button>
                             </div>
                         </li>
                     @endforeach
@@ -113,10 +113,10 @@
 
     <x-ui.modal nombre="docente" :titulo="__('Asignar docente').($actual ? ' · '.$actual->code.' · '.$actual->grupo : '')">
         <form wire:submit="asignarDocente" id="form-docente" class="flex flex-col gap-4">
-            <x-ui.field :etiqueta="__('Docente')" para="docenteId" error="docente" :ayuda="__('Entre paréntesis, las secciones que ya tiene en el período.')" requerido>
+            <x-ui.field :etiqueta="__('Docente')" para="docenteId" error="docente" :ayuda="__('Entre paréntesis, los grupos teóricos que ya tiene en el período.')" requerido>
                 <x-ui.select id="docenteId" wire:model="docenteId"><option value="">{{ __('Elija…') }}</option>@foreach ($docentes as $d)<option value="{{ $d->id }}">{{ $d->last_name }}, {{ $d->first_name }} · {{ $d->departamento }} ({{ $d->carga }})</option>@endforeach</x-ui.select>
             </x-ui.field>
-            <label class="flex items-center gap-2 text-sm"><input type="checkbox" wire:model="responsable" class="size-4 rounded border-borde text-marca-600 focus:ring-marca-600"> {{ __('Responsable de la sección') }}</label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" wire:model="responsable" class="size-4 rounded border-borde text-marca-600 focus:ring-marca-600"> {{ __('Responsable del grupo teórico') }}</label>
         </form>
         <x-slot:pie>
             <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'docente')">{{ __('Cancelar') }}</x-ui.button>
@@ -125,10 +125,10 @@
     </x-ui.modal>
 
     @if ($cambiaCupo)
-        <x-ui.modal nombre="cupo" :titulo="__('Cupo de la sección').($actual ? ' · '.$actual->code.' · '.$actual->grupo : '')">
+        <x-ui.modal nombre="cupo" :titulo="__('Cupo del grupo teórico').($actual ? ' · '.$actual->code.' · '.$actual->grupo : '')">
             <form wire:submit="cambiarCupo" id="form-cupo" class="flex flex-col gap-4">
                 <x-ui.field :etiqueta="__('Cupo máximo')" para="cupoNuevo" error="cupoNuevo"
-                    :ayuda="$actual ? __('Inscritos: :n · mínimo de la sección: :m', ['n' => $actual->inscritos, 'm' => $actual->min_capacity]) : null" requerido>
+                    :ayuda="$actual ? __('Inscritos: :n · mínimo del grupo: :m', ['n' => $actual->inscritos, 'm' => $actual->min_capacity]) : null" requerido>
                     <x-ui.input id="cupoNuevo" type="number" min="1" wire:model="cupoNuevo" />
                 </x-ui.field>
             </form>

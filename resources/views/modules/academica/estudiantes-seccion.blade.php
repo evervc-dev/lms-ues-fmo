@@ -9,7 +9,7 @@
             <x-ui.button type="submit" icono="user-plus">{{ __('Inscribir') }}</x-ui.button>
         </form>
 
-        <x-ui.table ajustar :vacio="__('Aún no hay estudiantes en la sección.')">
+        <x-ui.table ajustar :vacio="__('Aún no hay estudiantes en el grupo teórico.')">
             <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Estado') }}</th><th class="text-right">{{ __('Asistencia') }}</th><th class="text-right">{{ __('Promedio') }}</th><th>{{ __('Alerta') }}</th><th></th></x-slot:cabecera>
             @foreach ($estudiantes as $e)
                 <tr wire:key="est-{{ $e->id }}" @class(['opacity-60' => $e->status !== 'active'])>
@@ -24,7 +24,7 @@
         </x-ui.table>
     </x-ui.card>
 
-    <x-ui.modal nombre="retirar-seccion" :titulo="__('Retirar de la sección')">
+    <x-ui.modal nombre="retirar-seccion" :titulo="__('Retirar del grupo teórico')">
         <form wire:submit="retirar" id="form-retirar-seccion" class="flex flex-col gap-4">
             <x-ui.field :etiqueta="__('Motivo')" para="motivoSeccion" error="motivo" requerido><x-ui.textarea id="motivoSeccion" wire:model="motivo" /></x-ui.field>
         </form>

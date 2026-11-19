@@ -157,7 +157,7 @@ class Catalogo extends Component
     {
         $activa = ! (bool) (DB::table('subjects')->where('id', $id)->value('is_active') ?? abort(404));
         $catalogo->cambiarEstadoAsignatura(auth()->user(), $id, $activa);
-        $this->dispatch('aviso', tipo: 'exito', mensaje: $activa ? __('Asignatura reactivada.') : __('Asignatura desactivada: no se ofrecerá al crear secciones.'));
+        $this->dispatch('aviso', tipo: 'exito', mensaje: $activa ? __('Asignatura reactivada.') : __('Asignatura desactivada: no se ofrecerá al crear grupos teóricos.'));
     }
 
     public function render(CatalogoService $catalogo): View

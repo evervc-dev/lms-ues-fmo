@@ -22,7 +22,7 @@
             </x-ui.select>
         </div>
         <x-ui.table ajustar :vacio="__('No hay asignaturas con esos filtros.')">
-            <x-slot:cabecera><th>{{ __('Código') }}</th><th>{{ __('Asignatura') }}</th><th>{{ __('Depto.') }}</th><th class="text-right">{{ __('Créditos') }}</th><th>{{ __('Prerrequisitos') }}</th><th class="text-right">{{ __('Secciones') }}</th><th></th></x-slot:cabecera>
+            <x-slot:cabecera><th>{{ __('Código') }}</th><th>{{ __('Asignatura') }}</th><th>{{ __('Depto.') }}</th><th class="text-right">{{ __('Créditos') }}</th><th>{{ __('Prerrequisitos') }}</th><th class="text-right">{{ __('Grupos') }}</th><th></th></x-slot:cabecera>
             @foreach ($asignaturas as $a)
                 <tr wire:key="asig-{{ $a->id }}" @class(['text-texto-suave' => ! $a->is_active])>
                     <td class="font-mono text-xs font-semibold">{{ $a->code }}</td>
@@ -34,7 +34,7 @@
                     <td class="text-right whitespace-nowrap">
                         <x-ui.button tamano="sm" variante="fantasma" wire:click="editar({{ $a->id }})">{{ __('Editar') }}</x-ui.button>
                         <x-ui.button tamano="sm" variante="fantasma" wire:click="alternarEstado({{ $a->id }})">{{ $a->is_active ? __('Desactivar') : __('Reactivar') }}</x-ui.button>
-                        <x-ui.button tamano="sm" variante="fantasma" wire:click="eliminar({{ $a->id }})" wire:confirm="{{ __('¿Eliminar :c? Solo se puede si ninguna sección, plan ni asignatura la usa.', ['c' => $a->code]) }}">{{ __('Eliminar') }}</x-ui.button>
+                        <x-ui.button tamano="sm" variante="fantasma" wire:click="eliminar({{ $a->id }})" wire:confirm="{{ __('¿Eliminar :c? Solo se puede si ningún grupo teórico, plan ni asignatura la usa.', ['c' => $a->code]) }}">{{ __('Eliminar') }}</x-ui.button>
                     </td>
                 </tr>
             @endforeach

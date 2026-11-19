@@ -129,7 +129,7 @@ class CargaAcademicaService
             $otras = DB::table('teaching_assignments')->join('sections', 'sections.id', '=', 'teaching_assignments.section_id')
                 ->where('teacher_id', $docente)->whereNull('ended_at')->where('sections.period_id', $periodo)->where('sections.id', '!=', $seccionId)->pluck('sections.id')->all();
             if ($this->horarios->seCruzan($nuevo, $this->horarios->bloques($otras))) {
-                throw ValidationException::withMessages(['dia' => __('Ese horario choca con otra sección del docente asignado.')]);
+                throw ValidationException::withMessages(['dia' => __('Ese horario choca con otro grupo teórico del docente asignado.')]);
             }
         }
 
@@ -198,7 +198,7 @@ class CargaAcademicaService
             throw ValidationException::withMessages(['docente' => __('La persona no es un docente activo.')]);
         }
         if (DB::table('teaching_assignments')->where('section_id', $seccionId)->where('teacher_id', $docenteId)->whereNull('ended_at')->exists()) {
-            throw ValidationException::withMessages(['docente' => __('Ese docente ya está asignado a la sección.')]);
+            throw ValidationException::withMessages(['docente' => __('Ese docente ya está asignado al grupo teórico.')]);
         }
         if ($choque = $this->horarios->chocaDocente($docenteId, $seccionId)) {
             throw ValidationException::withMessages(['docente' => __('El docente tiene un choque de horario con :seccion.', ['seccion' => $choque])]);
@@ -206,7 +206,7 @@ class CargaAcademicaService
         $tope = $this->tope('max_teachers_per_section', self::MAX_DOCENTES_POR_SECCION);
         $asignados = DB::table('teaching_assignments')->where('section_id', $seccionId)->whereNull('ended_at')->count();
         if ($asignados >= $tope) {
-            throw ValidationException::withMessages(['docente' => __('La sección ya tiene :actual docentes y el máximo es :tope.', ['actual' => $asignados, 'tope' => $tope])]);
+            throw ValidationException::withMessages(['docente' => __('El grupo teórico ya tiene :actual docentes y el máximo es :tope.', ['actual' => $asignados, 'tope' => $tope])]);
         }
 
         DbContext::run(function () use ($seccionId, $docenteId, $responsable) {
@@ -275,7 +275,7 @@ class CargaAcademicaService
                 throw ValidationException::withMessages(['cupo' => __('Hay :n estudiantes inscritos: el cupo no puede ser menor.', ['n' => $inscritos])]);
             }
             if ($cupoMaximo < (int) $seccion->min_capacity) {
-                throw ValidationException::withMessages(['cupo' => __('El cupo no puede ser menor que el mínimo de la sección (:min).', ['min' => $seccion->min_capacity])]);
+                throw ValidationException::withMessages(['cupo' => __('El cupo no puede ser menor que el mínimo del grupo teórico (:min).', ['min' => $seccion->min_capacity])]);
             }
 
             DB::table('sections')->where('id', $seccionId)->update(['max_capacity' => $cupoMaximo, 'updated_at' => now()]);
@@ -327,7 +327,7 @@ class CargaAcademicaService
         $tope = $this->tope('max_weekly_hours_per_section', self::MAX_HORAS_SEMANALES_POR_SECCION);
 
         if ($actual + $minutos($inicio, $fin) > $tope * 60) {
-            throw ValidationException::withMessages(['fin' => __('La sección ya suma :actual h semanales y con este bloque pasaría el máximo de :tope h.', [
+            throw ValidationException::withMessages(['fin' => __('El grupo teórico ya suma :actual h semanales y con este bloque pasaría el máximo de :tope h.', [
                 'actual' => rtrim(rtrim(number_format($actual / 60, 1, '.', ''), '0'), '.'), 'tope' => $tope,
             ])]);
         }

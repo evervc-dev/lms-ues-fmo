@@ -43,7 +43,7 @@ class Matricula extends Component
 
     public function inscribir(MatriculaService $matricula): void
     {
-        $this->validate(['estudianteId' => 'required|integer', 'seccionId' => 'required|integer'], [], ['estudianteId' => 'estudiante', 'seccionId' => 'sección']);
+        $this->validate(['estudianteId' => 'required|integer', 'seccionId' => 'required|integer'], [], ['estudianteId' => 'estudiante', 'seccionId' => 'grupo teórico']);
         $matricula->inscribir(auth()->user(), (int) $this->estudianteId, (int) $this->seccionId);
         $this->reset('estudianteBuscar', 'estudianteId', 'seccionId');
         $this->dispatch('cerrar-modal', 'inscribir');
