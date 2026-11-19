@@ -174,3 +174,39 @@ it('CP-RF08-08 el Jefe no crea ni programa grupos teóricos de otro departamento
 
     expect(DB::table('sections')->where('subject_id', $e['mat'])->count())->toBe(1);
 });
+
+it('CP-RF08-09 el Jefe crea el grupo teórico eligiendo la carrera y una materia de esa carrera, sin elegir departamento', function () {
+    $e = escenario();
+    actingAs($e['jefe']);
+
+    Livewire::test(CargaAcademica::class)->call('abrir', 'nueva-seccion')
+        ->assertViewHas('eligeDepartamento', false)
+        ->assertSet('carreraGrupo', $e['isi']) // DIA tiene una sola carrera: se elige sola.
+        ->assertViewHas('asignaturas', fn ($asignaturas) => $asignaturas->pluck('code')->all() === ['PRN115'])
+        ->set('asignaturaId', $e['prn'])->set('grupo', '02')->set('cupo', 35)
+        ->call('crearSeccion')->assertHasNoErrors();
+
+    expect(DB::table('sections')->where('subject_id', $e['prn'])->where('code', '02')->value('max_capacity'))->toBe(35)
+        ->and(fn () => app(CargaAcademicaService::class)->crearSeccion($e['jefe'], $e['periodo'], $e['prn'], '03', 30, carreraId: DbContext::system(fn () => DB::table('careers')->insertGetId(['department_id' => $e['dcnm'], 'code' => 'LMA', 'name' => 'Matemática', 'created_at' => now(), 'updated_at' => now()]))))
+        ->toThrow(AuthorizationException::class);
+});
+
+it('CP-RF08-10 el Administrador elige departamento, carrera y una materia del plan de esa carrera', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+
+    $pantalla = Livewire::test(CargaAcademica::class)->call('abrir', 'nueva-seccion')
+        ->assertViewHas('eligeDepartamento', true)
+        ->assertViewHas('carrerasGrupo', fn ($carreras) => $carreras->isEmpty())
+        ->set('carreraGrupo', $e['isi'])->set('asignaturaId', $e['prn'])->call('crearSeccion')->assertHasErrors(['departamentoGrupo' => 'required'])
+        ->set('departamentoGrupo', $e['dia'])
+        ->assertSet('carreraGrupo', $e['isi'])
+        ->assertViewHas('carrerasGrupo', fn ($carreras) => $carreras->pluck('id')->all() === [$e['isi']]);
+
+    // MAT115 no está en el plan de ISI: no se ofrece y el Service la rechaza.
+    $pantalla->set('asignaturaId', $e['mat'])->set('grupo', '05')->call('crearSeccion')->assertHasErrors(['asignaturaId']);
+    $pantalla->set('asignaturaId', $e['prn'])->set('grupo', '05')->call('crearSeccion')->assertHasNoErrors();
+
+    expect(DB::table('sections')->where('subject_id', $e['prn'])->where('code', '05')->exists())->toBeTrue()
+        ->and(DB::table('sections')->where('subject_id', $e['mat'])->where('code', '05')->exists())->toBeFalse();
+});

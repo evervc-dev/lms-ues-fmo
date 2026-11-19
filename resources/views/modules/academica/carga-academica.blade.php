@@ -62,8 +62,18 @@
     @if ($gestiona)
         <x-ui.modal nombre="nueva-seccion" :titulo="__('Nuevo grupo teórico')">
             <form wire:submit="crearSeccion" id="form-seccion" class="flex flex-col gap-4">
-                <x-ui.field :etiqueta="__('Asignatura')" para="asignaturaId" error="asignaturaId" requerido>
-                    <x-ui.select id="asignaturaId" wire:model="asignaturaId"><option value="">{{ __('Elija…') }}</option>@foreach ($asignaturas as $a)<option value="{{ $a->id }}">{{ $a->code }} · {{ $a->name }}</option>@endforeach</x-ui.select>
+                {{-- Administrador: departamento → carrera → materia. Jefe y Coordinador: carrera → materia de su alcance. --}}
+                @if ($eligeDepartamento)
+                    <x-ui.field :etiqueta="__('Departamento')" para="departamentoGrupo" error="departamentoGrupo" requerido>
+                        <x-ui.select id="departamentoGrupo" wire:model.live="departamentoGrupo"><option value="">{{ __('Elija…') }}</option>@foreach ($departamentosGrupo as $d)<option value="{{ $d->id }}">{{ $d->code }} · {{ $d->name }}</option>@endforeach</x-ui.select>
+                    </x-ui.field>
+                @endif
+                <x-ui.field :etiqueta="__('Carrera')" para="carreraGrupo" error="carreraGrupo" requerido>
+                    <x-ui.select id="carreraGrupo" wire:model.live="carreraGrupo" :disabled="$carrerasGrupo->isEmpty()"><option value="">{{ __('Elija…') }}</option>@foreach ($carrerasGrupo as $c)<option value="{{ $c->id }}">{{ $c->code }} · {{ $c->name }}</option>@endforeach</x-ui.select>
+                </x-ui.field>
+                <x-ui.field :etiqueta="__('Asignatura')" para="asignaturaId" error="asignaturaId" requerido
+                    :ayuda="$carreraGrupo && $asignaturas->isEmpty() ? __('Esta carrera no tiene materias activas en sus planes de estudio que usted pueda programar.') : null">
+                    <x-ui.select id="asignaturaId" wire:model="asignaturaId" :disabled="! $carreraGrupo || $asignaturas->isEmpty()"><option value="">{{ __('Elija…') }}</option>@foreach ($asignaturas as $a)<option value="{{ $a->id }}">{{ $a->code }} · {{ $a->name }}</option>@endforeach</x-ui.select>
                 </x-ui.field>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <x-ui.field :etiqueta="__('Grupo')" para="grupo" error="grupo" requerido><x-ui.input id="grupo" wire:model="grupo" /></x-ui.field>

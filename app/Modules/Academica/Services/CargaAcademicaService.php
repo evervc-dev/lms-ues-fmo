@@ -93,10 +93,24 @@ class CargaAcademicaService
             ->orderBy('users.last_name')->get();
     }
 
-    public function crearSeccion(User $actor, int $periodoId, int $asignaturaId, string $grupo, int $cupoMaximo, int $cupoMinimo = 10): int
+    /**
+     * Crea un grupo teórico (RF08). Si se indica la carrera, debe estar en el alcance del actor y la asignatura debe
+     * estar en alguno de sus planes de estudio: así se crea desde la pantalla (carrera → materia).
+     *
+     * @throws AuthorizationException|ValidationException
+     */
+    public function crearSeccion(User $actor, int $periodoId, int $asignaturaId, string $grupo, int $cupoMaximo, int $cupoMinimo = 10, ?int $carreraId = null): int
     {
         $this->alcance->exigir($actor, 'secciones.gestionar');
         $this->exigirAsignaturaEnAlcance($actor, $asignaturaId);
+        if ($carreraId !== null) {
+            if (! $this->carrerasParaGrupos($actor)->contains('id', $carreraId)) {
+                throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
+            }
+            if (! $this->asignaturasDeCarrera($actor, $carreraId)->contains('id', $asignaturaId)) {
+                throw ValidationException::withMessages(['asignaturaId' => __('La asignatura no está en el plan de estudios de esa carrera.')]);
+            }
+        }
         if (DB::table('sections')->where('period_id', $periodoId)->where('subject_id', $asignaturaId)->where('code', $grupo)->exists()) {
             throw ValidationException::withMessages(['grupo' => __('Ya existe ese grupo para la asignatura en el período.')]);
         }
@@ -225,6 +239,50 @@ class CargaAcademicaService
 
         DbContext::run(fn () => DB::table('teaching_assignments')->where('section_id', $seccionId)->where('teacher_id', $docenteId)->whereNull('ended_at')
             ->update(['ended_at' => now()->toDateString(), 'is_responsible' => false, 'updated_at' => now()]), 'section.teacher_removed');
+    }
+
+    /**
+     * Departamentos en que el actor crea grupos teóricos: todos (G), los que dirige (D) o los de las carreras que
+     * coordina (C).
+     *
+     * @return Collection<int, \stdClass>
+     */
+    public function departamentosParaGrupos(User $actor): Collection
+    {
+        $global = $this->alcance->exigir($actor, 'secciones.gestionar') === 'G';
+
+        return DB::table('departments')
+            ->when(! $global, fn ($q) => $q->whereIn('id', $this->carrerasParaGrupos($actor)->pluck('department_id')->unique()->all()))
+            ->orderBy('code')->get(['id', 'code', 'name']);
+    }
+
+    /**
+     * Carreras para elegir al crear un grupo teórico: todas (G), las de su departamento (D) o las que coordina (C).
+     *
+     * @return Collection<int, \stdClass>
+     */
+    public function carrerasParaGrupos(User $actor): Collection
+    {
+        $alcance = $this->alcance->exigir($actor, 'secciones.gestionar');
+
+        return DB::table('careers')
+            ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
+            ->when($alcance === 'C', fn ($q) => $q->whereIn('id', $this->alcance->carreras($actor)))
+            ->when(! in_array($alcance, ['G', 'D', 'C'], true), fn ($q) => $q->whereRaw('1 = 0'))
+            ->orderBy('code')->get(['id', 'code', 'name', 'department_id']);
+    }
+
+    /**
+     * Asignaturas de los planes de la carrera que el actor puede programar (con D, solo las de su departamento).
+     *
+     * @return Collection<int, object>
+     */
+    public function asignaturasDeCarrera(User $actor, int $carreraId): Collection
+    {
+        $delPlan = DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
+            ->where('study_plans.career_id', $carreraId)->pluck('career_subjects.subject_id')->map(fn ($id) => (int) $id)->all();
+
+        return $this->asignaturas($actor)->filter(fn ($a) => in_array((int) $a->id, $delPlan, true))->values();
     }
 
     /**
