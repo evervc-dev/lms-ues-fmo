@@ -25,7 +25,10 @@ class CatalogoService
     public function __construct(private Alcance $alcance) {}
 
     /**
-     * @param  array{buscar?: string, departamento?: string, creditos?: int|string|null}  $filtros
+     * Filtra por nombre o código, por carrera (las asignaturas de alguno de sus planes de estudio) y por créditos.
+     * Con alcance D solo salen las del departamento del Jefe, aunque se pida otra carrera.
+     *
+     * @param  array{buscar?: string, carrera?: int|string|null, creditos?: int|string|null}  $filtros
      */
     public function asignaturas(User $actor, array $filtros): LengthAwarePaginator
     {
@@ -39,7 +42,8 @@ class CatalogoService
             ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->whereRaw("lower(subjects.code) like ? escape '\\'", [$patron])
                 ->orWhereRaw(Busqueda::sinTildes('subjects.name')." like ? escape '\\'", [$patron])))
             ->when($alcance !== 'G', fn ($q) => $q->whereIn('subjects.department_id', $this->alcance->departamentos($actor)))
-            ->when($filtros['departamento'] ?? null, fn ($q, $d) => $q->where('subjects.department_id', $d))
+            ->when($filtros['carrera'] ?? null, fn ($q, $c) => $q->whereIn('subjects.id', DB::table('career_subjects')
+                ->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')->where('study_plans.career_id', (int) $c)->select('career_subjects.subject_id')))
             ->when($filtros['creditos'] ?? null, fn ($q, $c) => $q->where('subjects.credits', (int) $c))
             ->orderBy('subjects.code')
             ->paginate(25);

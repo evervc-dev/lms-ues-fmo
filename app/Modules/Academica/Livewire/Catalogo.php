@@ -26,7 +26,7 @@ class Catalogo extends Component
     public string $buscar = '';
 
     #[Url(except: '')]
-    public string $departamento = '';
+    public string $carrera = '';
 
     #[Url(as: 'creditos', except: '')]
     public string $filtroCreditos = '';
@@ -53,7 +53,7 @@ class Catalogo extends Component
 
     public function updating(string $propiedad): void
     {
-        if (in_array($propiedad, ['buscar', 'departamento', 'filtroCreditos'], true)) {
+        if (in_array($propiedad, ['buscar', 'carrera', 'filtroCreditos'], true)) {
             $this->resetPage();
         }
     }
@@ -162,7 +162,7 @@ class Catalogo extends Component
 
     public function render(CatalogoService $catalogo): View
     {
-        $asignaturas = $catalogo->asignaturas(auth()->user(), ['buscar' => $this->buscar, 'departamento' => $this->departamento, 'creditos' => $this->filtroCreditos]);
+        $asignaturas = $catalogo->asignaturas(auth()->user(), ['buscar' => $this->buscar, 'carrera' => $this->carrera, 'creditos' => $this->filtroCreditos]);
 
         return $this->pagina('modules.academica.catalogo', [
             'asignaturas' => $asignaturas,

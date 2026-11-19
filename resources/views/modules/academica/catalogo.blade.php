@@ -12,9 +12,10 @@
     <x-ui.card ajustar>
         <div class="mb-4 grid gap-3 md:grid-cols-[1fr_auto_auto]">
             <x-ui.search wire:model.live.debounce.300ms="buscar" :placeholder="__('Buscar por código o nombre…')" />
-            <x-ui.select wire:model.live="departamento" :aria-label="__('Departamento')">
-                <option value="">{{ __('Todos los departamentos') }}</option>
-                @foreach ($departamentos as $d)<option value="{{ $d->id }}">{{ $d->code }} · {{ $d->name }}</option>@endforeach
+            {{-- Solo las carreras de su alcance: todas para el Administrador, las de su departamento para el Jefe. --}}
+            <x-ui.select wire:model.live="carrera" :aria-label="__('Carrera')">
+                <option value="">{{ __('Todas las carreras') }}</option>
+                @foreach ($carreras as $c)<option value="{{ $c->id }}">{{ $c->code }} · {{ $c->name }}</option>@endforeach
             </x-ui.select>
             <x-ui.select wire:model.live="filtroCreditos" :aria-label="__('Créditos')">
                 <option value="">{{ __('Todos los créditos') }}</option>
