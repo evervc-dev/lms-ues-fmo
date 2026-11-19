@@ -9,6 +9,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
@@ -117,16 +119,18 @@ it('CP-RF07-01 solo quien administra el catálogo crea asignaturas', function (s
     expect(DB::table('subjects')->where('code', 'ELE200')->exists())->toBeFalse();
 })->with(['coordinador' => ['coordinador', 'dia'], 'jefe de otro departamento' => ['jefe', 'dcnm']]);
 
-it('CP-RF07-04 filtra el catálogo por créditos, combinado con el departamento y el nombre', function () {
+it('CP-RF07-04 filtra el catálogo por créditos, combinado con la carrera y el nombre', function () {
     $e = escenario();
-    asignaturaSuelta($e['dia'], 'ELE101', 3);
+    $ele101 = asignaturaSuelta($e['dia'], 'ELE101', 3);
     asignaturaSuelta($e['dcnm'], 'ELE102', 3);
+    DbContext::system(fn () => DB::table('career_subjects')->insert(['study_plan_id' => $e['plan'], 'subject_id' => $ele101, 'cycle' => 5]));
 
     $codigos = fn (array $filtros) => catalogo()->asignaturas($e['administrador'], $filtros)->pluck('code')->all();
 
     expect($codigos(['creditos' => 3]))->toEqualCanonicalizing(['ELE101', 'ELE102'])
         ->and($codigos(['creditos' => 4]))->toEqualCanonicalizing(['PRN115', 'MAT115'])
-        ->and($codigos(['creditos' => 3, 'departamento' => $e['dia']]))->toBe(['ELE101'])
+        ->and($codigos(['creditos' => 3, 'carrera' => $e['isi']]))->toBe(['ELE101'])
+        ->and($codigos(['carrera' => $e['isi']]))->toEqualCanonicalizing(['PRN115', 'ELE101'])
         ->and($codigos(['creditos' => 4, 'buscar' => 'progra']))->toBe(['PRN115']);
 });
 
@@ -368,4 +372,33 @@ it('CP-RF07-20 al editar agrega, cambia y quita planes sin tocar los de otro dep
 
     expect(DB::table('career_subjects')->where('subject_id', $id)->orderBy('cycle')->get(['study_plan_id', 'cycle'])->map(fn ($f) => [(int) $f->study_plan_id, (int) $f->cycle])->all())
         ->toBe([[$matematica['plan'], 6], [$industrial['plan'], 7]]);
+});
+
+it('CP-RF07-04 el filtro de carrera solo ofrece al Jefe las carreras de su departamento y filtra desde la URL', function () {
+    $e = escenario();
+    $matematica = carreraConPlan($e['dcnm'], 'LMA', 'Plan 07');
+    actingAs($e['jefe']);
+
+    Livewire::withQueryParams(['carrera' => (string) $e['isi']])->test(Catalogo::class)
+        ->assertSet('carrera', (string) $e['isi'])
+        ->assertViewHas('carreras', fn ($carreras) => $carreras->pluck('id')->all() === [$e['isi']])
+        ->assertViewHas('asignaturas', fn ($pagina) => collect($pagina->items())->pluck('code')->all() === ['PRN115'])
+        ->assertDontSee('Carrera LMA');
+
+    // Pedir por la URL una carrera de otro departamento no le muestra sus materias.
+    Livewire::withQueryParams(['carrera' => (string) $matematica['carrera']])->test(Catalogo::class)
+        ->assertViewHas('asignaturas', fn ($pagina) => $pagina->total() === 0);
+});
+
+it('aplica a una base con datos los permisos nuevos del Jefe (asignaturas.gestionar y secciones.gestionar)', function () {
+    $e = escenario();
+    $rol = Role::findByName('jefe_departamento');
+    DbContext::system(fn () => $rol->revokePermissionTo(['asignaturas.gestionar', 'secciones.gestionar']));
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    (require database_path('migrations/2026_11_18_000200_grant_head_catalog_and_sections_permissions.php'))->up();
+
+    expect($e['jefe']->fresh()->hasPermissionTo('asignaturas.gestionar'))->toBeTrue()
+        ->and($e['jefe']->fresh()->hasPermissionTo('secciones.gestionar'))->toBeTrue()
+        ->and(Role::findByName('coordinador')->hasPermissionTo('asignaturas.gestionar'))->toBeFalse();
 });
