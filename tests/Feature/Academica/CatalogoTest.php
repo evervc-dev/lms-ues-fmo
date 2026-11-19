@@ -146,7 +146,7 @@ it('CP-RF07-06 al editar solo agrega y quita los prerrequisitos que cambian', fu
     $e = escenario();
     $otra = asignaturaSuelta($e['dia'], 'ELE102');
     actingAs($e['administrador']);
-    $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia']];
+    $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia'], 'planes' => [['plan' => $e['plan'], 'ciclo' => 3]]];
 
     $id = catalogo()->guardarAsignatura($e['administrador'], null, $datos + ['prerrequisitos' => [$e['prn'], $e['mat']]]);
     catalogo()->guardarAsignatura($e['administrador'], $id, $datos + ['prerrequisitos' => [$e['prn'], $otra]]);
@@ -159,7 +159,7 @@ it('CP-RF07-06 al editar solo agrega y quita los prerrequisitos que cambian', fu
 it('CP-RF07-06 audita el alta, la edición y los prerrequisitos de la asignatura una sola vez', function () {
     $e = escenario();
     actingAs($e['administrador']);
-    $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia'], 'prerrequisitos' => [$e['prn'], $e['mat']]];
+    $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia'], 'planes' => [['plan' => $e['plan'], 'ciclo' => 3]], 'prerrequisitos' => [$e['prn'], $e['mat']]];
 
     $id = catalogo()->guardarAsignatura($e['administrador'], null, $datos);
     catalogo()->guardarAsignatura($e['administrador'], $id, $datos);
@@ -216,6 +216,7 @@ it('CP-RF07-07 elige varios prerrequisitos con casillas, sin la tecla Ctrl', fun
         ->set('creditos', 4)
         ->set('departamentoId', $e['dia'])
         ->set('prerrequisitos', [$e['prn'], $e['mat']])
+        ->set('planes', [['carrera' => $e['isi'], 'plan' => $e['plan'], 'ciclo' => 4]])
         ->call('guardar')
         ->assertHasNoErrors();
 
@@ -244,7 +245,7 @@ it('CP-RF07-13 muestra el Catálogo al Jefe con solo las asignaturas de su depar
 it('CP-RF07-14 deja al Jefe crear, editar, desactivar y eliminar asignaturas de su departamento', function () {
     $e = escenario();
     actingAs($e['jefe']);
-    $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia']];
+    $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia'], 'planes' => [['plan' => $e['plan'], 'ciclo' => 3]]];
 
     $id = catalogo()->guardarAsignatura($e['jefe'], null, $datos);
     catalogo()->guardarAsignatura($e['jefe'], $id, ['nombre' => 'Electiva técnica', 'prerrequisitos' => [$e['mat']]] + $datos);
@@ -254,6 +255,8 @@ it('CP-RF07-14 deja al Jefe crear, editar, desactivar y eliminar asignaturas de 
     expect($fila->name)->toBe('Electiva técnica')->and((bool) $fila->is_active)->toBeFalse()
         ->and(DB::table('subject_prerequisites')->where('subject_id', $id)->pluck('prerequisite_id')->map(fn ($p) => (int) $p)->all())->toBe([$e['mat']]);
 
+    // Mientras esté en un plan de estudios no se elimina (CP-RF07-02): primero se le quitan los planes.
+    catalogo()->guardarAsignatura($e['jefe'], $id, ['planes' => []] + $datos);
     catalogo()->eliminarAsignatura($e['jefe'], $id);
     expect(DB::table('subjects')->where('id', $id)->exists())->toBeFalse();
 });
@@ -293,4 +296,76 @@ it('CP-RF07-16 deja al Jefe editar la descripción de las asignaturas de su depa
 
     expect(DB::table('subjects')->where('id', $e['prn'])->value('description'))->toBe('Fundamentos de programación.')
         ->and(fn () => catalogo()->editarDescripcion($e['jefe'], $e['mat'], 'Ajena.'))->toThrow(AuthorizationException::class);
+});
+
+/* ------------------------------------------------- CP-RF07-17 a CP-RF07-20 (carrera, plan y ciclo de la asignatura) */
+
+/** Una segunda carrera con su plan: en el departamento indicado. @return array{carrera: int, plan: int} */
+function carreraConPlan(int $departamento, string $codigo, string $plan = 'Plan 26'): array
+{
+    return DbContext::system(function () use ($departamento, $codigo, $plan) {
+        $carrera = DB::table('careers')->insertGetId(['department_id' => $departamento, 'code' => $codigo, 'name' => 'Carrera '.$codigo, 'created_at' => now(), 'updated_at' => now()]);
+
+        return ['carrera' => $carrera, 'plan' => DB::table('study_plans')->insertGetId(['career_id' => $carrera, 'name' => $plan, 'created_at' => now(), 'updated_at' => now()])];
+    });
+}
+
+it('CP-RF07-17 rechaza crear una asignatura sin carrera ni plan de estudios', function () {
+    $e = escenario();
+    actingAs($e['jefe']);
+
+    Livewire::test(Catalogo::class)->call('nueva')->set('planes', [])
+        ->set('codigo', 'IND101')->set('nombre', 'Introducción a la Industrial')->set('creditos', 4)
+        ->call('guardar')->assertHasErrors(['planes']);
+
+    expect(DB::table('subjects')->where('code', 'IND101')->exists())->toBeFalse();
+});
+
+it('CP-RF07-18 el Jefe crea la asignatura sin elegir departamento, en la carrera y el plan de su departamento', function () {
+    $e = escenario();
+    $industrial = carreraConPlan($e['dia'], 'IIN');
+    actingAs($e['jefe']);
+
+    Livewire::test(Catalogo::class)->call('nueva')
+        ->assertSet('departamentoId', $e['dia'])->assertDontSee('Departamento que la imparte')
+        ->assertViewHas('carreras', fn ($carreras) => $carreras->pluck('id')->sort()->values()->all() === collect([$e['isi'], $industrial['carrera']])->sort()->values()->all())
+        ->set('codigo', 'IND101')->set('nombre', 'Introducción a la Industrial')->set('creditos', 4)
+        ->set('planes.0.carrera', $industrial['carrera'])->assertSet('planes.0.plan', $industrial['plan'])
+        ->set('planes.0.ciclo', 1)
+        ->call('agregarPlan')->set('planes.1.carrera', $e['isi'])->set('planes.1.plan', $e['plan'])->set('planes.1.ciclo', 9)
+        ->call('guardar')->assertHasNoErrors();
+
+    $id = (int) DB::table('subjects')->where('code', 'IND101')->value('id');
+    expect((int) DB::table('subjects')->where('id', $id)->value('department_id'))->toBe($e['dia'])
+        ->and(DB::table('career_subjects')->where('subject_id', $id)->orderBy('cycle')->get(['study_plan_id', 'cycle'])->map(fn ($f) => [(int) $f->study_plan_id, (int) $f->cycle])->all())
+        ->toBe([[$industrial['plan'], 1], [$e['plan'], 9]]);
+});
+
+it('CP-RF07-19 impide al Jefe usar el plan de una carrera de otro departamento; el Administrador sí puede', function () {
+    $e = escenario();
+    $matematica = carreraConPlan($e['dcnm'], 'LMA', 'Plan 07');
+    $datos = ['codigo' => 'IND102', 'nombre' => 'Estadística industrial', 'creditos' => 4, 'departamento' => $e['dia'], 'planes' => [['plan' => $matematica['plan'], 'ciclo' => 3]]];
+
+    expect(fn () => catalogo()->guardarAsignatura($e['jefe'], null, $datos))->toThrow(AuthorizationException::class)
+        ->and(DB::table('subjects')->where('code', 'IND102')->exists())->toBeFalse();
+
+    $id = catalogo()->guardarAsignatura($e['administrador'], null, $datos);
+    expect(DB::table('career_subjects')->where('subject_id', $id)->value('study_plan_id'))->toBe($matematica['plan']);
+});
+
+it('CP-RF07-20 al editar agrega, cambia y quita planes sin tocar los de otro departamento', function () {
+    $e = escenario();
+    $industrial = carreraConPlan($e['dia'], 'IIN');
+    $matematica = carreraConPlan($e['dcnm'], 'LMA', 'Plan 07');
+    $datos = ['codigo' => 'IND103', 'nombre' => 'Investigación de operaciones', 'creditos' => 4, 'departamento' => $e['dia']];
+    $id = catalogo()->guardarAsignatura($e['administrador'], null, $datos + ['planes' => [['plan' => $e['plan'], 'ciclo' => 5], ['plan' => $matematica['plan'], 'ciclo' => 6]]]);
+    actingAs($e['jefe']);
+
+    // El Jefe solo ve en el formulario los planes de su departamento.
+    Livewire::test(Catalogo::class)->call('editar', $id)->assertSet('planes', [['carrera' => $e['isi'], 'plan' => $e['plan'], 'ciclo' => 5]]);
+
+    catalogo()->guardarAsignatura($e['jefe'], $id, $datos + ['planes' => [['plan' => $industrial['plan'], 'ciclo' => 7]]]);
+
+    expect(DB::table('career_subjects')->where('subject_id', $id)->orderBy('cycle')->get(['study_plan_id', 'cycle'])->map(fn ($f) => [(int) $f->study_plan_id, (int) $f->cycle])->all())
+        ->toBe([[$matematica['plan'], 6], [$industrial['plan'], 7]]);
 });

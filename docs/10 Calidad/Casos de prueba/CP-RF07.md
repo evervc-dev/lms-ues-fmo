@@ -4,7 +4,7 @@ rf: "[[RF07]]"
 nombre: Gestión de asignaturas
 prioridad: Alta
 nivel: feature
-casos: 16
+casos: 20
 estado: automatizado
 ---
 
@@ -30,5 +30,9 @@ Casos derivados de los criterios de aceptación de [[RF07]]. Nivel: **feature**.
 | CP-RF07-14 | **Dado** el Jefe, **cuando** crea, edita, desactiva o elimina una asignatura de su departamento, **entonces** puede; sobre otro departamento, o al mover la suya a otro, recibe 403. | automatizado |
 | CP-RF07-15 | **Dado** el Jefe, **cuando** intenta entrar a Estructura o crear aulas o departamentos, **entonces** recibe 403 y no ve el enlace; el Administrador sí. | automatizado |
 | CP-RF07-16 | **Dado** el Jefe, **cuando** edita la descripción de una asignatura de su departamento, **entonces** se guarda; la de otro departamento se rechaza. | automatizado |
+| CP-RF07-17 | **Dado** el formulario de una asignatura nueva, **cuando** se guarda sin carrera ni plan de estudios, **entonces** se rechaza. | automatizado |
+| CP-RF07-18 | **Dado** el Jefe, **cuando** crea una asignatura, **entonces** no elige departamento (se usa el suyo), solo ve las carreras de su departamento y la asignatura queda en los planes y ciclos elegidos. | automatizado |
+| CP-RF07-19 | **Dado** el plan de una carrera de otro departamento, **cuando** el Jefe lo usa, **entonces** recibe 403; el Administrador sí puede. | automatizado |
+| CP-RF07-20 | **Dado** una asignatura en planes de varios departamentos, **cuando** el Jefe la edita, **entonces** solo ve y cambia los de su departamento, y los demás se conservan. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF07-01 …')`.
