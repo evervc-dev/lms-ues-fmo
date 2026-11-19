@@ -40,11 +40,16 @@ it('CP-RF08-04 lets the head assign teachers only to sections of their departmen
     $this->assertDatabaseMissing('teaching_assignments', ['section_id' => $e['otra'], 'teacher_id' => $docente]);
 });
 
-it('CP-RF08-04 shows the head the sections of their department without creating or scheduling them', function () {
+it('CP-RF08-04 shows the head the sections of their department and lets them create one only there', function () {
     $e = escenario();
+    $carga = app(CargaAcademicaService::class);
 
-    actingAs($e['jefe'])->get(route('carga-academica'))->assertOk()->assertSeeText(['PRN115', 'Asignar docente', 'Cupo'])->assertDontSeeText(['MAT115', 'Nueva sección']);
-    expect(fn () => app(CargaAcademicaService::class)->crearSeccion($e['jefe'], $e['periodo'], $e['prn'], '02', 40))->toThrow(AuthorizationException::class);
+    actingAs($e['jefe'])->get(route('carga-academica'))->assertOk()->assertSeeText(['PRN115', 'Asignar docente', 'Cupo', 'Nueva sección'])->assertDontSeeText('MAT115');
+    expect($carga->asignaturas($e['jefe'])->pluck('code')->all())->toBe(['PRN115'])
+        ->and(fn () => $carga->crearSeccion($e['jefe'], $e['periodo'], $e['mat'], '02', 40))->toThrow(AuthorizationException::class);
+
+    $grupo = $carga->crearSeccion($e['jefe'], $e['periodo'], $e['prn'], '02', 35);
+    expect((int) DB::table('sections')->where('id', $grupo)->value('max_capacity'))->toBe(35);
 });
 
 it('CP-RF08-05 lets the head change the capacity of a section of their department', function () {
@@ -103,9 +108,9 @@ it('CP-RF08-04 does not let the head remove teachers or schedule sections outsid
     actingAs($e['jefe']);
 
     expect(fn () => $carga->quitarDocente($e['jefe'], $e['otra'], $ajeno))->toThrow(AuthorizationException::class)
-        ->and(fn () => $carga->agregarHorario($e['jefe'], $e['seccion'], 2, '09:00', '10:40', null))->toThrow(AuthorizationException::class);
+        ->and(fn () => $carga->agregarHorario($e['jefe'], $e['otra'], 2, '09:00', '10:40', null))->toThrow(AuthorizationException::class);
     $this->assertDatabaseHas('teaching_assignments', ['section_id' => $e['otra'], 'teacher_id' => $ajeno, 'ended_at' => null]);
-    expect(DB::table('section_schedules')->where('section_id', $e['seccion'])->count())->toBe(1);
+    expect(DB::table('section_schedules')->where('section_id', $e['otra'])->count())->toBe(0);
 });
 
 it('CP-RF08-05 rejects a capacity outside 1 to 200 in the service', function () {
@@ -144,4 +149,28 @@ it('CP-RF08-06 rechaza el bloque de horario que pasaría las 10 horas semanales 
         ->toThrow(ValidationException::class, 'La sección ya suma 9.7 h semanales y con este bloque pasaría el máximo de 10 h.');
     expect(DB::table('section_schedules')->where('section_id', $e['seccion'])->count())->toBe(3)
         ->and(DB::table('section_schedules')->where('section_id', $e['seccion'])->where('weekday', 4)->exists())->toBeFalse();
+});
+
+it('CP-RF08-07 el Jefe arma un grupo teórico de su departamento: lo crea con su cupo, le pone horario y aula, y cambia el cupo', function () {
+    $e = escenario();
+    $carga = app(CargaAcademicaService::class);
+    actingAs($e['jefe']);
+
+    $grupo = $carga->crearSeccion($e['jefe'], $e['periodo'], $e['prn'], '03', 30);
+    $carga->agregarHorario($e['jefe'], $grupo, 2, '09:00', '10:40', $e['aula']);
+    $carga->cambiarCupo($e['jefe'], $grupo, 45);
+
+    expect((int) DB::table('sections')->where('id', $grupo)->value('max_capacity'))->toBe(45)
+        ->and(DB::table('section_schedules')->where('section_id', $grupo)->where('classroom_id', $e['aula'])->where('weekday', 2)->exists())->toBeTrue();
+});
+
+it('CP-RF08-08 el Jefe no crea ni programa grupos teóricos de otro departamento', function () {
+    $e = escenario();
+    $carga = app(CargaAcademicaService::class);
+
+    expect(fn () => $carga->crearSeccion($e['jefe'], $e['periodo'], $e['mat'], '02', 40))->toThrow(AuthorizationException::class)
+        ->and(fn () => $carga->agregarHorario($e['jefe'], $e['otra'], 3, '09:00', '10:40', $e['aula']))->toThrow(AuthorizationException::class)
+        ->and(fn () => $carga->cambiarCupo($e['jefe'], $e['otra'], 20))->toThrow(AuthorizationException::class);
+
+    expect(DB::table('sections')->where('subject_id', $e['mat'])->count())->toBe(1);
 });

@@ -111,7 +111,7 @@ it('CP-RF08-03 impide quitar o cambiar el horario a quien no programa esa secci�
 
     expect((int) DB::table('section_schedules')->where('id', $bloque)->value('classroom_id'))->toBe($e['aula']);
     Event::assertNotDispatched(HorarioCambiado::class);
-})->with(['jefe', 'docente']);
+})->with(['docente']); // El Jefe sí programa las de su departamento (ADR-073); fuera de él, CP-RF08-04.
 
 it('CP-RF08-03 impide al Coordinador tocar el horario de una sección fuera de su carrera', function () {
     $e = escenario();

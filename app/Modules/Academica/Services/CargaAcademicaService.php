@@ -228,7 +228,8 @@ class CargaAcademicaService
     }
 
     /**
-     * Asignaturas que el actor puede programar (su carrera, o todas).
+     * Asignaturas que el actor puede programar: todas (G), las de su departamento (D, el Jefe, ADR-073)
+     * o las de los planes de su carrera (C).
      *
      * @return Collection<int, object>
      */
@@ -237,6 +238,7 @@ class CargaAcademicaService
         $alcance = $this->alcance->exigir($actor, 'secciones.gestionar');
 
         return DB::table('subjects')->where('is_active', true)
+            ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
             ->when($alcance === 'C', fn ($q) => $q->whereIn('id', DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
                 ->whereIn('study_plans.career_id', $this->alcance->carreras($actor))->select('career_subjects.subject_id')))
             ->orderBy('code')->get(['id', 'code', 'name']);

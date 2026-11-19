@@ -23,7 +23,7 @@ return [
         'periodos.calendario.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C'],
         'asignaturas.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D'],
         'carreras.ver' => ['jefe_departamento' => 'D', 'coordinador' => 'C'],
-        'secciones.gestionar' => ['administrador' => 'G', 'coordinador' => 'C'],
+        'secciones.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C'],
         'secciones.asignar-docente' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C'],
         'secciones.cupo' => ['administrador' => 'G', 'jefe_departamento' => 'D'],
         'matricula.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C', 'docente' => 'S', 'soporte_tecnico' => 'G'],
