@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-18 · RF07 · Departamentos en Estructura y catálogo del Jefe
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** sin OP# · commit directo a `test`
+- **Hecho:** CRUD de departamentos en Catálogo › Estructura (solo se borra lo que nada usa) y Catálogo de asignaturas para el Jefe en su departamento.
+- **CP cubiertos:** CP-RF07-08 a CP-RF07-16.
+- **Decisiones:** los departamentos no se desactivan (el ER no tiene estado); [[ADR-072 El Jefe gestiona las asignaturas de su departamento]] (pendiente).
+- **Pendiente:** correr en PostgreSQL CP-RF07-09 y CP-RF07-10 (auditoría).
+
 ### 2026-11-17 · RF21, RF19 · El informe real de Meet no trae la fecha, y las justificaciones por sesión
 - **Autor:** IA (Claude Code), a pedido del usuario
 - **OpenProject:** OP#453 · **PR:** → test

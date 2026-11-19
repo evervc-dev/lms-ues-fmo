@@ -16,7 +16,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Catálogo (RF07, ADR-034): asignaturas con prerrequisitos, y la estructura institucional
- * (departamentos, carreras, planes y aulas). Lo mantiene el Administrador.
+ * (departamentos, carreras, planes y aulas). Lo mantiene el Administrador; el Jefe mantiene las asignaturas
+ * de su departamento (asignaturas.gestionar D, ADR-072), pero no la estructura.
  * Los prerrequisitos se exigen al matricular (ADR-052, en MatriculaService).
  */
 class CatalogoService
@@ -28,7 +29,7 @@ class CatalogoService
      */
     public function asignaturas(User $actor, array $filtros): LengthAwarePaginator
     {
-        $this->alcance->exigir($actor, 'asignaturas.gestionar');
+        $alcance = $this->alcance->exigir($actor, 'asignaturas.gestionar');
         $buscar = trim($filtros['buscar'] ?? '');
         $patron = Busqueda::fragmentoSinTildes($buscar);
 
@@ -37,6 +38,7 @@ class CatalogoService
                 DB::raw("(select count(*) from sections s join academic_periods p on p.id = s.period_id where s.subject_id = subjects.id and p.status = 'active') as secciones"))
             ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->whereRaw("lower(subjects.code) like ? escape '\\'", [$patron])
                 ->orWhereRaw(Busqueda::sinTildes('subjects.name')." like ? escape '\\'", [$patron])))
+            ->when($alcance !== 'G', fn ($q) => $q->whereIn('subjects.department_id', $this->alcance->departamentos($actor)))
             ->when($filtros['departamento'] ?? null, fn ($q, $d) => $q->where('subjects.department_id', $d))
             ->when($filtros['creditos'] ?? null, fn ($q, $c) => $q->where('subjects.credits', (int) $c))
             ->orderBy('subjects.code')
@@ -61,7 +63,7 @@ class CatalogoService
      */
     public function guardarAsignatura(User $actor, ?int $id, array $datos): int
     {
-        $this->alcance->exigir($actor, 'asignaturas.gestionar');
+        $this->exigirAsignatura($actor, $id, (int) $datos['departamento']);
         $codigo = mb_strtoupper(trim($datos['codigo']));
 
         if (DB::table('subjects')->whereRaw('upper(code) = ?', [$codigo])->when($id, fn ($q) => $q->where('id', '!=', $id))->exists()) {
@@ -103,7 +105,7 @@ class CatalogoService
      */
     public function estructura(User $actor): array
     {
-        $this->alcance->exigir($actor, 'asignaturas.gestionar');
+        $this->exigirGlobal($actor);
 
         return [
             'departamentos' => DB::table('departments as d')->select('d.*', DB::raw('(select count(*) from subjects s where s.department_id = d.id) as asignaturas'))->orderBy('code')->get(),
@@ -124,8 +126,7 @@ class CatalogoService
      */
     public function eliminarAsignatura(User $actor, int $id): void
     {
-        $this->alcance->exigir($actor, 'asignaturas.gestionar');
-        DB::table('subjects')->where('id', $id)->exists() || abort(404);
+        $this->exigirAsignatura($actor, $id);
 
         $usos = array_keys(array_filter([
             __('secciones') => DB::table('sections')->where('subject_id', $id)->exists(),
@@ -149,8 +150,7 @@ class CatalogoService
      */
     public function cambiarEstadoAsignatura(User $actor, int $id, bool $activa): void
     {
-        $this->alcance->exigir($actor, 'asignaturas.gestionar');
-        DB::table('subjects')->where('id', $id)->exists() || abort(404);
+        $this->exigirAsignatura($actor, $id);
 
         DbContext::run(fn () => DB::table('subjects')->where('id', $id)->update(['is_active' => $activa, 'updated_at' => now()]),
             $activa ? 'subject.activated' : 'subject.deactivated');
@@ -158,14 +158,14 @@ class CatalogoService
 
     /**
      * Descripción de la materia que ve el estudiante al inscribirse (RF29, ADR-050), en texto plano.
-     * La edita el Administrador (asignaturas.gestionar, G) o el docente (contenidos.gestionar, S) que tiene un grupo
+     * La edita el Administrador (asignaturas.gestionar, G), el Jefe en su departamento (D, ADR-072) o el docente (contenidos.gestionar, S) que tiene un grupo
      * vigente de la asignatura en el período activo. Si varios docentes la dictan, la comparten.
      *
      * @throws AuthorizationException
      */
     public function editarDescripcion(User $actor, int $asignaturaId, ?string $descripcion): void
     {
-        $esAdministrador = $this->alcance->de($actor, 'asignaturas.gestionar') === 'G';
+        $esAdministrador = $this->puedeGestionarAsignatura($actor, $asignaturaId);
         $esSuDocente = $this->alcance->de($actor, 'contenidos.gestionar') !== null
             && DB::table('teaching_assignments')->join('sections', 'sections.id', '=', 'teaching_assignments.section_id')
                 ->where('teaching_assignments.teacher_id', $actor->id)->whereNull('teaching_assignments.ended_at')
@@ -186,7 +186,7 @@ class CatalogoService
 
     public function guardarAula(User $actor, string $codigo, int $capacidad): void
     {
-        $this->alcance->exigir($actor, 'asignaturas.gestionar');
+        $this->exigirGlobal($actor);
         $codigo = mb_strtoupper(trim($codigo));
         if (DB::table('classrooms')->whereRaw('upper(code) = ?', [$codigo])->exists()) {
             throw ValidationException::withMessages(['aulaCodigo' => __('Ya existe un aula con ese código.')]);
@@ -204,7 +204,7 @@ class CatalogoService
      */
     public function guardarDepartamento(User $actor, ?int $id, string $codigo, string $nombre): int
     {
-        $this->alcance->exigir($actor, 'asignaturas.gestionar');
+        $this->exigirGlobal($actor);
         $actual = $id === null ? null : (DB::table('departments')->where('id', $id)->first() ?? abort(404));
         $codigo = mb_strtoupper(trim($codigo));
         $nombre = trim($nombre);
@@ -239,7 +239,7 @@ class CatalogoService
      */
     public function eliminarDepartamento(User $actor, int $id): void
     {
-        $this->alcance->exigir($actor, 'asignaturas.gestionar');
+        $this->exigirGlobal($actor);
         DB::table('departments')->where('id', $id)->exists() || abort(404);
 
         $usos = array_keys(array_filter([
@@ -262,6 +262,70 @@ class CatalogoService
                 throw DbError::toDomain($e);
             }
             throw ValidationException::withMessages(['departamento' => __('No se puede eliminar el departamento: tiene historial en la auditoría, que no se puede borrar.')]);
+        }
+    }
+
+    /**
+     * Departamentos en que el actor puede crear o mover asignaturas: todos (G) o los que dirige hoy (D, ADR-072).
+     *
+     * @return Collection<int, \stdClass>
+     */
+    public function departamentosGestionables(User $actor): Collection
+    {
+        $alcance = $this->alcance->exigir($actor, 'asignaturas.gestionar');
+
+        return DB::table('departments')->when($alcance !== 'G', fn ($q) => $q->whereIn('id', $this->alcance->departamentos($actor)))
+            ->orderBy('code')->get(['id', 'code', 'name']);
+    }
+
+    /**
+     * ¿Mantiene el actor la estructura institucional (departamentos, carreras, planes y aulas)? Solo con alcance G.
+     */
+    public function gestionaEstructura(User $actor): bool
+    {
+        return $this->alcance->de($actor, 'asignaturas.gestionar') === 'G';
+    }
+
+    /**
+     * Exige asignaturas.gestionar sobre la asignatura (si se indica) y sobre el departamento de destino (si se indica).
+     * Con alcance D (el Jefe, ADR-072) ambos deben ser de un departamento que dirige hoy; si no, 403.
+     *
+     * @throws AuthorizationException
+     */
+    private function exigirAsignatura(User $actor, ?int $asignaturaId, ?int $departamentoDestino = null): void
+    {
+        $alcance = $this->alcance->exigir($actor, 'asignaturas.gestionar');
+        $departamentoActual = $asignaturaId === null ? null
+            : (int) (DB::table('subjects')->where('id', $asignaturaId)->value('department_id') ?? abort(404));
+        if ($alcance === 'G') {
+            return;
+        }
+
+        $propios = $this->alcance->departamentos($actor);
+        foreach (array_filter([$departamentoActual, $departamentoDestino]) as $departamento) {
+            if (! in_array($departamento, $propios, true)) {
+                throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
+            }
+        }
+    }
+
+    private function puedeGestionarAsignatura(User $actor, int $asignaturaId): bool
+    {
+        $alcance = $this->alcance->de($actor, 'asignaturas.gestionar');
+
+        return $alcance === 'G' || ($alcance === 'D' && DB::table('subjects')->where('id', $asignaturaId)
+            ->whereIn('department_id', $this->alcance->departamentos($actor))->exists());
+    }
+
+    /**
+     * La estructura institucional es solo del Administrador (asignaturas.gestionar con alcance G).
+     *
+     * @throws AuthorizationException
+     */
+    private function exigirGlobal(User $actor): void
+    {
+        if ($this->alcance->exigir($actor, 'asignaturas.gestionar') !== 'G') {
+            throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
         }
     }
 

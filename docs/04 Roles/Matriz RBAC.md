@@ -34,7 +34,7 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 |---|---|---|---|---|---|---|---|
 | `periodos.gestionar` | G | | | | | | [[RF06]], [[RF34]] (con este permiso el Administrador cierra el período, último eslabón de la cadena de actas) |
 | `periodos.calendario.gestionar` | G | D | C | | | | [[RF06]], [[ADR-068 Calendario de evaluaciones por ámbito]] (el Administrador fija las fechas globales del período, el Jefe las de su departamento y el Coordinador las de su carrera; cada quien sincroniza con su propio Google Calendar) |
-| `asignaturas.gestionar` | G | | | | | | [[RF07]] |
+| `asignaturas.gestionar` | G | D | | | | | [[RF07]], [[ADR-072 El Jefe gestiona las asignaturas de su departamento]] (el Jefe, solo las asignaturas de su departamento; la estructura institucional sigue siendo del Administrador) |
 | `carreras.ver` | | D | C | | | | [[RF07]], [[RF08]], [[ADR-047 Carreras visibles y carga masiva sin el Coordinador]] (el Administrador no lo necesita: ya tiene el catálogo) |
 | `secciones.gestionar` | G | | C | | | | [[RF08]] |
 | `secciones.asignar-docente` | G | D | C | | | | [[RF08]], [[ADR-037 Jerarquía de creación y asignación de roles]] |
@@ -139,6 +139,7 @@ Cada permiso de *Roles y permisos.pdf* y su nombre técnico. Sirve para revisar 
 | Coordinador | Lectura de aulas, progreso y asistencias | `contenidos.ver`, `progreso.ver`, `asistencia.ver`, `calificaciones.ver` (C) | |
 | Coordinador | *(enfoque)* Validar calificaciones finales | `actas.validar` (C) | [[RF34]] |
 | Jefe | Consultar y descargar desempeño docente | `desempeno-docente.ver`, `reportes.ver` (D) | |
+| Jefe | Administrar las asignaturas de su departamento | `asignaturas.gestionar` (D) | [[ADR-072 El Jefe gestiona las asignaturas de su departamento]] |
 | Jefe | Inspeccionar auditoría departamental | `auditoria.ver` (D) | RLS (ADR-029) |
 | Jefe | *(enfoque)* Autorizar cierres departamentales | `cierre.autorizar` (D) | [[RF34]] |
 | Soporte | Dispositivos de asistencia (token de dispositivo) y su cambio | `dispositivos.gestionar` | |

@@ -14,6 +14,7 @@ use Livewire\WithPagination;
 
 /**
  * Catálogo de asignaturas (RF07): código único, créditos, departamento y prerrequisitos.
+ * El Administrador ve todo; el Jefe, solo las asignaturas de su departamento (ADR-072).
  */
 #[Layout('layouts::app')]
 class Catalogo extends Component
@@ -116,7 +117,8 @@ class Catalogo extends Component
         return $this->pagina('modules.academica.catalogo', [
             'asignaturas' => $asignaturas,
             'prerrequisitosDe' => $catalogo->prerrequisitos($asignaturas->pluck('id')->all()),
-            'departamentos' => DB::table('departments')->orderBy('code')->get(['id', 'code', 'name']),
+            'departamentos' => $catalogo->departamentosGestionables(auth()->user()),
+            'gestionaEstructura' => $catalogo->gestionaEstructura(auth()->user()),
             'valoresCreditos' => DB::table('subjects')->distinct()->orderBy('credits')->pluck('credits'),
             'todas' => DB::table('subjects')->orderBy('code')->get(['id', 'code', 'name']),
         ]);

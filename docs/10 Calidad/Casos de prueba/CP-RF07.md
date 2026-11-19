@@ -4,7 +4,7 @@ rf: "[[RF07]]"
 nombre: Gestión de asignaturas
 prioridad: Alta
 nivel: feature
-casos: 12
+casos: 16
 estado: automatizado
 ---
 
@@ -26,5 +26,9 @@ Casos derivados de los criterios de aceptación de [[RF07]]. Nivel: **feature**.
 | CP-RF07-10 | **Dado** un departamento con carreras, asignaturas, docentes, jefaturas (aun cerradas), cierres, plazos de matrícula, fechas del calendario o historial en la auditoría, **cuando** se intenta eliminar, **entonces** se impide con un mensaje que nombra lo que lo usa. | automatizado |
 | CP-RF07-11 | **Dado** un departamento que nada usa, **cuando** se elimina, **entonces** desaparece del catálogo. | automatizado |
 | CP-RF07-12 | **Dado** el Jefe de Departamento, **cuando** intenta crear, editar o eliminar un departamento (ruta o Service), **entonces** recibe 403; el Administrador sí puede. | automatizado |
+| CP-RF07-13 | **Dado** el Jefe de Departamento, **cuando** abre el menú y el Catálogo, **entonces** ve la opción y solo las asignaturas de su departamento ([[ADR-072 El Jefe gestiona las asignaturas de su departamento]]). | automatizado |
+| CP-RF07-14 | **Dado** el Jefe, **cuando** crea, edita, desactiva o elimina una asignatura de su departamento, **entonces** puede; sobre otro departamento, o al mover la suya a otro, recibe 403. | automatizado |
+| CP-RF07-15 | **Dado** el Jefe, **cuando** intenta entrar a Estructura o crear aulas o departamentos, **entonces** recibe 403 y no ve el enlace; el Administrador sí. | automatizado |
+| CP-RF07-16 | **Dado** el Jefe, **cuando** edita la descripción de una asignatura de su departamento, **entonces** se guarda; la de otro departamento se rechaza. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF07-01 …')`.

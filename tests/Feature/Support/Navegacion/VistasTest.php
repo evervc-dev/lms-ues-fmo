@@ -57,6 +57,10 @@ it('enforces each view permission for the role', function (string $rol) {
     foreach (Vistas::todas() as $nombre => $vista) {
         $permitido = $vista['permiso'] === null
             || collect(explode('|', $vista['permiso']))->intersect($permisos)->isNotEmpty();
+        // Con «alcance», el Service exige además ese alcance del permiso (ADR-072: Estructura es solo G).
+        if ($permitido && isset($vista['alcance'])) {
+            $permitido = ((require database_path('seeders/data/rbac.php'))['permissions'][$vista['permiso']][$rol] ?? null) === $vista['alcance'];
+        }
 
         $estado = $this->actingAs($usuario)->get(route($nombre, parametrosDe($vista['uri'], $e['ulid'])))->status();
 

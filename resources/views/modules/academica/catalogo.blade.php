@@ -2,7 +2,9 @@
 <div class="flex flex-col gap-5 lg:h-full">
     <x-ui.encabezado :titulo="__('Catálogo de asignaturas')" :subtitulo="__('Los prerrequisitos se exigen al matricular: el estudiante debe tenerlos aprobados.')">
         <x-slot:acciones>
-            <x-ui.button variante="secundario" icono="building-library" :href="route('catalogo.estructura')">{{ __('Departamentos, carreras y aulas') }}</x-ui.button>
+            @if ($gestionaEstructura)
+                <x-ui.button variante="secundario" icono="building-library" :href="route('catalogo.estructura')">{{ __('Departamentos, carreras y aulas') }}</x-ui.button>
+            @endif
             <x-ui.button icono="plus" wire:click="nueva">{{ __('Nueva asignatura') }}</x-ui.button>
         </x-slot:acciones>
     </x-ui.encabezado>

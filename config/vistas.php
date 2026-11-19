@@ -12,7 +12,8 @@
 |
 | Campos: uri, permiso (uno o varios con «|»; null = solo sesión iniciada),
 | titulo, modulo, rf, op (tarea Front), maqueta (docs/13 Layout/Maquetas),
-| layout (app|exam|projection) y seccion (true = pestaña de la Vista de sección).
+| layout (app|exam|projection), seccion (true = pestaña de la Vista de sección) y alcance
+| (el alcance mínimo del permiso que exige el Service: p. ej. «G» deja fuera al Jefe con alcance D).
 |
 */
 
@@ -98,7 +99,7 @@ return [
     'periodos.calendario' => ['uri' => '/calendario-evaluaciones/{periodo?}', 'permiso' => 'periodos.calendario.gestionar', 'titulo' => 'Calendario de evaluaciones', 'modulo' => 'Academica', 'rf' => ['RF06'], 'op' => 393],
     'periodos.show' => ['uri' => '/periodos/{periodo}', 'permiso' => 'periodos.gestionar', 'titulo' => 'Período', 'modulo' => 'Academica', 'rf' => ['RF06', 'RF34'], 'op' => 395, 'migas' => ['periodos']],
     'catalogo' => ['uri' => '/catalogo', 'permiso' => 'asignaturas.gestionar', 'titulo' => 'Catálogo de asignaturas', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => 399],
-    'catalogo.estructura' => ['uri' => '/catalogo/estructura', 'permiso' => 'asignaturas.gestionar', 'titulo' => 'Departamentos, carreras, planes y aulas', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => 399, 'migas' => ['catalogo']],
+    'catalogo.estructura' => ['uri' => '/catalogo/estructura', 'permiso' => 'asignaturas.gestionar', 'alcance' => 'G', 'titulo' => 'Departamentos, carreras, planes y aulas', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => 399, 'migas' => ['catalogo']],
     'areas-asistencia' => ['uri' => '/areas-asistencia', 'permiso' => 'areas-asistencia.gestionar', 'titulo' => 'Áreas de asistencia', 'modulo' => 'Asistencia', 'rf' => ['RF26'], 'op' => 483, 'maqueta' => '34 Áreas de asistencia'],
     'integraciones' => ['uri' => '/integraciones', 'permiso' => 'integraciones.gestionar', 'titulo' => 'Integraciones', 'modulo' => 'Identidad', 'rf' => ['RNF09'], 'op' => null, 'maqueta' => '51 Integraciones'],
     'dispositivos' => ['uri' => '/dispositivos', 'permiso' => 'dispositivos.gestionar', 'titulo' => 'Solicitudes de dispositivo', 'modulo' => 'Identidad', 'rf' => ['RF27'], 'op' => 487, 'maqueta' => '30 Solicitudes de dispositivo'],

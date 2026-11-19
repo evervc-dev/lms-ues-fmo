@@ -65,6 +65,7 @@ return [
             'rol' => 'jefe_departamento',
             'opciones' => [
                 ['clave' => 'carreras', 'etiqueta' => 'Carreras', 'ruta' => 'carreras', 'permiso' => 'carreras.ver', 'icono' => 'academic-cap'],
+                ['clave' => 'catalogo', 'etiqueta' => 'Catálogo', 'ruta' => 'catalogo', 'permiso' => 'asignaturas.gestionar', 'icono' => 'squares-2x2'],
                 ['clave' => 'secciones-del-departamento', 'etiqueta' => 'Secciones del departamento', 'ruta' => 'secciones', 'parametros' => ['ambito' => 'departamento'], 'permiso' => 'matricula.gestionar', 'icono' => 'building-library'],
                 ['clave' => 'carga-academica', 'etiqueta' => 'Carga académica', 'ruta' => 'carga-academica', 'permiso' => 'secciones.asignar-docente', 'icono' => 'building-office'],
                 ['clave' => 'usuarios', 'etiqueta' => 'Usuarios', 'ruta' => 'usuarios', 'permiso' => 'usuarios.ver', 'icono' => 'users'],

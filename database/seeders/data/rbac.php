@@ -21,7 +21,7 @@ return [
         'dispositivos.gestionar' => ['soporte_tecnico' => 'G'],
         'periodos.gestionar' => ['administrador' => 'G'],
         'periodos.calendario.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C'],
-        'asignaturas.gestionar' => ['administrador' => 'G'],
+        'asignaturas.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D'],
         'carreras.ver' => ['jefe_departamento' => 'D', 'coordinador' => 'C'],
         'secciones.gestionar' => ['administrador' => 'G', 'coordinador' => 'C'],
         'secciones.asignar-docente' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C'],
