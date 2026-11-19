@@ -5,7 +5,7 @@
 @endphp
 <div class="flex flex-col gap-5 lg:h-full">
     <x-ui.encabezado :titulo="__('Carga académica · Período :p', ['p' => $periodo ?? '—'])" :subtitulo="__('Grupos teóricos, horarios, aulas y docentes. El sistema rechaza los choques de aula y de docente.')">
-        @if ($gestiona)
+        @if ($crea)
             <x-slot:acciones><x-ui.button icono="plus" wire:click="abrir('nueva-seccion')">{{ __('Nuevo grupo teórico') }}</x-ui.button></x-slot:acciones>
         @endif
     </x-ui.encabezado>
@@ -59,7 +59,7 @@
         </x-ui.table>
     </x-ui.card>
 
-    @if ($gestiona)
+    @if ($crea)
         <x-ui.modal nombre="nueva-seccion" :titulo="__('Nuevo grupo teórico')">
             <form wire:submit="crearSeccion" id="form-seccion" class="flex flex-col gap-4">
                 {{-- Administrador: departamento → carrera → materia. Jefe y Coordinador: carrera → materia de su alcance. --}}
@@ -85,6 +85,9 @@
                 <x-ui.button type="submit" form="form-seccion">{{ __('Crear grupo teórico') }}</x-ui.button>
             </x-slot:pie>
         </x-ui.modal>
+    @endif
+
+    @if ($gestiona)
 
         <x-ui.modal nombre="horario" :titulo="__('Horario').($actual ? ' · '.$actual->code.' · '.$actual->grupo : '')">
             @if ($actual && $actual->bloques->isNotEmpty())

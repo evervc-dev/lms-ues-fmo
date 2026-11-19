@@ -265,9 +265,9 @@ it('CP-RF17-01 no publica el acta de una sección cuyos cómputos no suman 100 %
 it('CP-RF17-01 la sección nueva nace con los cómputos de la plantilla del período', function () {
     $e = escenario();
     pesosPlantilla($e);
-    actingAs($e['coordinador']);
+    actingAs($e['jefe']); // Crear grupos es del Administrador y del Jefe (ADR-074).
 
-    $seccion = app(CargaAcademicaService::class)->crearSeccion($e['coordinador'], $e['periodo'], $e['prn'], '02', 40);
+    $seccion = app(CargaAcademicaService::class)->crearSeccion($e['jefe'], $e['periodo'], $e['prn'], '02', 40);
 
     $computos = DB::table('grading_components')->where('section_id', $seccion)->orderBy('number')->get();
     expect($computos->pluck('name')->all())->toBe(['Cómputo 1', 'Cómputo 2', 'Cómputo 3'])

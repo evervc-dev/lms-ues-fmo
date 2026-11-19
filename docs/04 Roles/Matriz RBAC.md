@@ -36,7 +36,8 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 | `periodos.calendario.gestionar` | G | D | C | | | | [[RF06]], [[ADR-068 Calendario de evaluaciones por ámbito]] (el Administrador fija las fechas globales del período, el Jefe las de su departamento y el Coordinador las de su carrera; cada quien sincroniza con su propio Google Calendar) |
 | `asignaturas.gestionar` | G | D | | | | | [[RF07]], [[ADR-072 El Jefe gestiona las asignaturas de su departamento]] (el Jefe, solo las asignaturas de su departamento; la estructura institucional sigue siendo del Administrador) |
 | `carreras.ver` | | D | C | | | | [[RF07]], [[RF08]], [[ADR-047 Carreras visibles y carga masiva sin el Coordinador]] (el Administrador no lo necesita: ya tiene el catálogo) |
-| `secciones.gestionar` | G | D | C | | | | [[RF08]], [[ADR-073 El Jefe crea los grupos teóricos de su departamento]] (el Jefe crea los grupos de las materias de su departamento, con su cupo, horario y aula) |
+| `secciones.crear` | G | D | | | | | [[RF08]], [[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]] (crear grupos teóricos; el Coordinador ya no los crea) |
+| `secciones.gestionar` | G | D | C | | | | [[RF08]], [[ADR-073 El Jefe crea los grupos teóricos de su departamento]] (horario y aula de los grupos; el Coordinador, de los de su carrera) |
 | `secciones.asignar-docente` | G | D | C | | | | [[RF08]], [[ADR-037 Jerarquía de creación y asignación de roles]] |
 | `secciones.cupo` | G | D | | | | | [[RF08]], [[ADR-037 Jerarquía de creación y asignación de roles]] |
 | `matricula.gestionar` | G | D | C | S | | G | [[RF09]], [[ADR-030 Matrícula ampliada]], [[ADR-032 Ajustes por el documento de roles]], [[ADR-037 Jerarquía de creación y asignación de roles]] |
@@ -134,12 +135,12 @@ Cada permiso de *Roles y permisos.pdf* y su nombre técnico. Sirve para revisar 
 | Docente | Registrar notas, calificar con rúbricas, libro de calificaciones | `calificaciones.gestionar`, `calificaciones.corregir`, `actas.publicar` (S) | Incluye la calificación anónima |
 | Docente | Iniciar asistencia QR y configurar asistencia en Meet | `asistencia.sesion.abrir`, `asistencia.codigo-temporal.generar`, `videoconferencias.gestionar` | En Meet solo programa la clase y sube el reporte (ADR-003) |
 | Docente | Filtrar alumnos y enviar mensajes masivos | `mensajes.condicionales.enviar` | |
-| Coordinador | Asignar y modificar docentes | `secciones.gestionar`, `secciones.asignar-docente` (C) | |
+| Coordinador | Programar horario, aula y docentes de los grupos de su carrera (sin crearlos) | `secciones.gestionar`, `secciones.asignar-docente` (C) | [[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]] |
 | Coordinador | Inscribir o retirar estudiantes | `matricula.gestionar`, `matricula.claves.gestionar` (C) | Clave por asignatura (ADR-032) |
 | Coordinador | Lectura de aulas, progreso y asistencias | `contenidos.ver`, `progreso.ver`, `asistencia.ver`, `calificaciones.ver` (C) | |
 | Coordinador | *(enfoque)* Validar calificaciones finales | `actas.validar` (C) | [[RF34]] |
 | Jefe | Consultar y descargar desempeño docente | `desempeno-docente.ver`, `reportes.ver` (D) | |
-| Jefe | Crear y programar los grupos teóricos de su departamento | `secciones.gestionar`, `secciones.cupo` (D) | [[ADR-073 El Jefe crea los grupos teóricos de su departamento]] |
+| Jefe | Crear y programar los grupos teóricos de su departamento | `secciones.crear`, `secciones.gestionar`, `secciones.cupo` (D) | [[ADR-073 El Jefe crea los grupos teóricos de su departamento]] |
 | Jefe | Administrar las asignaturas de su departamento | `asignaturas.gestionar` (D) | [[ADR-072 El Jefe gestiona las asignaturas de su departamento]] |
 | Jefe | Inspeccionar auditoría departamental | `auditoria.ver` (D) | RLS (ADR-029) |
 | Jefe | *(enfoque)* Autorizar cierres departamentales | `cierre.autorizar` (D) | [[RF34]] |

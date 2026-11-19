@@ -3,6 +3,7 @@
 use App\Modules\Academica\Livewire\CargaAcademica;
 use App\Modules\Academica\Services\CargaAcademicaService;
 use App\Modules\Academica\Services\MatriculaService;
+use App\Support\Alcance;
 use App\Support\DbContext;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,6 +13,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
 use function Pest\Laravel\actingAs;
+use function Pest\Laravel\get;
 
 uses(RefreshDatabase::class);
 
@@ -209,4 +211,38 @@ it('CP-RF08-10 el Administrador elige departamento, carrera y una materia del pl
 
     expect(DB::table('sections')->where('subject_id', $e['prn'])->where('code', '05')->exists())->toBeTrue()
         ->and(DB::table('sections')->where('subject_id', $e['mat'])->where('code', '05')->exists())->toBeFalse();
+});
+
+it('CP-RF08-11 el Coordinador no crea grupos teóricos, pero sigue programando el horario de los de su carrera', function () {
+    $e = escenario();
+    $carga = app(CargaAcademicaService::class);
+    actingAs($e['coordinador']);
+
+    get(route('carga-academica'))->assertOk()->assertDontSeeText('Nuevo grupo teórico');
+    expect(fn () => $carga->crearSeccion($e['coordinador'], $e['periodo'], $e['prn'], '02', 40, carreraId: $e['isi']))->toThrow(AuthorizationException::class);
+
+    $carga->agregarHorario($e['coordinador'], $e['seccion'], 3, '09:00', '10:40', null);
+    expect(DB::table('section_schedules')->where('section_id', $e['seccion'])->where('weekday', 3)->exists())->toBeTrue();
+});
+
+it('CP-RF08-12 el Coordinador solo ve los grupos teóricos de su carrera aunque la materia esté en el plan de otra', function () {
+    $e = escenario();
+    // PRN115 también está en el plan de Industrial, y el Jefe le crea un grupo para Industrial.
+    [$industrial, $plan] = DbContext::system(function () use ($e) {
+        $carrera = DB::table('careers')->insertGetId(['department_id' => $e['dia'], 'code' => 'IIN', 'name' => 'Ingeniería Industrial', 'created_at' => now(), 'updated_at' => now()]);
+        $plan = DB::table('study_plans')->insertGetId(['career_id' => $carrera, 'name' => 'Plan 26', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('career_subjects')->insert(['study_plan_id' => $plan, 'subject_id' => $e['prn'], 'cycle' => 2]);
+
+        return [$carrera, $plan];
+    });
+    $carga = app(CargaAcademicaService::class);
+    $deIndustrial = $carga->crearSeccion($e['jefe'], $e['periodo'], $e['prn'], '10', 40, carreraId: $industrial);
+    $deIsi = $carga->crearSeccion($e['jefe'], $e['periodo'], $e['prn'], '11', 40, carreraId: $e['isi']);
+
+    $visibles = $carga->secciones($e['coordinador'], $e['periodo'])->pluck('id')->all();
+
+    expect($visibles)->toContain($deIsi, $e['seccion']) // El grupo viejo sin carrera sigue visible: PRN115 está en su plan.
+        ->not->toContain($deIndustrial)
+        ->and((int) DB::table('sections')->where('id', $deIndustrial)->value('career_id'))->toBe($industrial)
+        ->and(app(Alcance::class)->puedeEnSeccion($e['coordinador'], 'calificaciones.ver', $deIndustrial))->toBeFalse();
 });

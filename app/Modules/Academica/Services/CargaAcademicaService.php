@@ -24,7 +24,7 @@ class CargaAcademicaService
     private const DIAS = [1 => 'Lun', 2 => 'Mar', 3 => 'Mié', 4 => 'Jue', 5 => 'Vie', 6 => 'Sáb', 7 => 'Dom'];
 
     /** Permisos que dan acceso a la carga académica (ADR-037). */
-    public const PERMISOS = ['secciones.gestionar', 'secciones.asignar-docente', 'secciones.cupo'];
+    public const PERMISOS = ['secciones.crear', 'secciones.gestionar', 'secciones.asignar-docente', 'secciones.cupo'];
 
     /** Cupo máximo de una sección. */
     public const CUPO_MAXIMO = 200;
@@ -101,8 +101,9 @@ class CargaAcademicaService
      */
     public function crearSeccion(User $actor, int $periodoId, int $asignaturaId, string $grupo, int $cupoMaximo, int $cupoMinimo = 10, ?int $carreraId = null): int
     {
-        $this->alcance->exigir($actor, 'secciones.gestionar');
-        $this->exigirAsignaturaEnAlcance($actor, $asignaturaId);
+        // Crear es del Administrador y del Jefe (secciones.crear, ADR-074); el Coordinador ya no crea grupos.
+        $this->alcance->exigir($actor, 'secciones.crear');
+        $this->exigirAsignaturaEnAlcance($actor, $asignaturaId, 'secciones.crear');
         if ($carreraId !== null) {
             if (! $this->carrerasParaGrupos($actor)->contains('id', $carreraId)) {
                 throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
@@ -116,9 +117,9 @@ class CargaAcademicaService
         }
 
         // La sección nace con los cómputos de la plantilla del período (RF17), en la misma transacción.
-        return DbContext::run(function () use ($periodoId, $asignaturaId, $grupo, $cupoMinimo, $cupoMaximo) {
+        return DbContext::run(function () use ($periodoId, $asignaturaId, $grupo, $cupoMinimo, $cupoMaximo, $carreraId) {
             $id = DB::table('sections')->insertGetId([
-                'ulid' => (string) str()->ulid(), 'period_id' => $periodoId, 'subject_id' => $asignaturaId, 'code' => $grupo,
+                'ulid' => (string) str()->ulid(), 'period_id' => $periodoId, 'subject_id' => $asignaturaId, 'career_id' => $carreraId, 'code' => $grupo,
                 'min_capacity' => $cupoMinimo, 'max_capacity' => $cupoMaximo, 'status' => 'open', 'created_at' => now(), 'updated_at' => now(),
             ]);
             $this->computos->copiarPlantilla((int) $id);
@@ -249,7 +250,7 @@ class CargaAcademicaService
      */
     public function departamentosParaGrupos(User $actor): Collection
     {
-        $global = $this->alcance->exigir($actor, 'secciones.gestionar') === 'G';
+        $global = $this->alcance->exigir($actor, 'secciones.crear') === 'G';
 
         return DB::table('departments')
             ->when(! $global, fn ($q) => $q->whereIn('id', $this->carrerasParaGrupos($actor)->pluck('department_id')->unique()->all()))
@@ -263,7 +264,7 @@ class CargaAcademicaService
      */
     public function carrerasParaGrupos(User $actor): Collection
     {
-        $alcance = $this->alcance->exigir($actor, 'secciones.gestionar');
+        $alcance = $this->alcance->exigir($actor, 'secciones.crear');
 
         return DB::table('careers')
             ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
@@ -282,7 +283,7 @@ class CargaAcademicaService
         $delPlan = DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
             ->where('study_plans.career_id', $carreraId)->pluck('career_subjects.subject_id')->map(fn ($id) => (int) $id)->all();
 
-        return $this->asignaturas($actor)->filter(fn ($a) => in_array((int) $a->id, $delPlan, true))->values();
+        return $this->asignaturas($actor, 'secciones.crear')->filter(fn ($a) => in_array((int) $a->id, $delPlan, true))->values();
     }
 
     /**
@@ -291,9 +292,9 @@ class CargaAcademicaService
      *
      * @return Collection<int, object>
      */
-    public function asignaturas(User $actor): Collection
+    public function asignaturas(User $actor, string $permiso = 'secciones.gestionar'): Collection
     {
-        $alcance = $this->alcance->exigir($actor, 'secciones.gestionar');
+        $alcance = $this->alcance->exigir($actor, $permiso);
 
         return DB::table('subjects')->where('is_active', true)
             ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
@@ -363,9 +364,9 @@ class CargaAcademicaService
     /**
      * @throws AuthorizationException
      */
-    private function exigirAsignaturaEnAlcance(User $actor, int $asignaturaId): void
+    private function exigirAsignaturaEnAlcance(User $actor, int $asignaturaId, string $permiso = 'secciones.gestionar'): void
     {
-        if (! $this->asignaturas($actor)->contains('id', $asignaturaId)) {
+        if (! $this->asignaturas($actor, $permiso)->contains('id', $asignaturaId)) {
             throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
         }
     }

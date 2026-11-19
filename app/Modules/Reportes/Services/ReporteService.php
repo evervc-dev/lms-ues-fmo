@@ -51,7 +51,7 @@ class ReporteService
         $carrera = $this->alcance->carrerasVisibles($usuario, 'reportes.ver')->contains('id', $carrera) ? $carrera : null;
 
         $secciones = $this->alcance->secciones(DB::table('sections')->where('period_id', $elegido?->id), $usuario, 'reportes.ver')
-            ->when($carrera !== null && $tipo !== 'bajo_rendimiento', fn ($q) => $q->whereIn('sections.subject_id', $this->alcance->asignaturasDeCarreras([(int) $carrera])))
+            ->when($carrera !== null && $tipo !== 'bajo_rendimiento', fn ($q) => $q->whereIn('sections.id', $this->alcance->seccionesDeCarreras([(int) $carrera])))
             ->pluck('sections.id');
         $base = fn () => DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')->whereIn('sections.id', $secciones)
             ->orderBy('subjects.code')->orderBy('sections.code');

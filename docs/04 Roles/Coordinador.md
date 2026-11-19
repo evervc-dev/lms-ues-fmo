@@ -29,7 +29,7 @@ fuente: Roles y permisos.pdf p.4–5
 
 ## Permisos
 Las celdas con su alcance están en [[Matriz RBAC]].
-- `secciones.gestionar`
+- `secciones.gestionar` (horario y aula de los grupos de su carrera; no los crea, [[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]])
 - `carreras.ver`
 - `secciones.asignar-docente`
 - `matricula.gestionar`

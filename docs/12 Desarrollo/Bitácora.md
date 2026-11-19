@@ -23,7 +23,7 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **OpenProject:** sin OP# · commit directo a `test`
 - **Hecho:** `secciones.gestionar` D para el Jefe (crear grupos de su departamento con cupo, horario y aula). En la interfaz, «sección» se muestra como «grupo teórico» («Grupo» en espacios cortos); el código y la base no cambian.
 - **CP cubiertos:** CP-RF08-04 (reescrito), CP-RF08-07 y CP-RF08-08.
-- **Decisiones:** [[ADR-073 El Jefe crea los grupos teóricos de su departamento]] (pendiente).
+- **Decisiones:** [[ADR-073 El Jefe crea los grupos teóricos de su departamento]] y [[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]] (pendientes): permiso `secciones.crear` (Adm G, Jefe D) y `sections.career_id`; el Coordinador ya no crea grupos y solo ve los de su carrera.
 - **Pendiente:** —
 
 ### 2026-11-18 · RF07 · Departamentos en Estructura y catálogo del Jefe

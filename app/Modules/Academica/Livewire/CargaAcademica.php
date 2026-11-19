@@ -17,8 +17,8 @@ use Livewire\Component;
 
 /**
  * Carga académica (RF08, maquetas 23 y 24): secciones, horarios, aulas y docentes, sin choques.
- * Quien gestiona grupos los crea y programa: el Administrador elige departamento → carrera → materia, y el Jefe
- * (ADR-073) y el Coordinador, carrera → materia dentro de su alcance.
+ * Crean grupos el Administrador (departamento → carrera → materia) y el Jefe (carrera → materia de su departamento),
+ * con secciones.crear (ADR-074); el Coordinador programa horario, aula y docentes de los de su carrera, sin crearlos.
  */
 #[Layout('layouts::app')]
 class CargaAcademica extends Component
@@ -180,7 +180,7 @@ class CargaAcademica extends Component
 
     private function alcanceGrupos(): ?string
     {
-        return app(Alcance::class)->de(auth()->user(), 'secciones.gestionar');
+        return app(Alcance::class)->de(auth()->user(), 'secciones.crear');
     }
 
     /**
@@ -218,6 +218,7 @@ class CargaAcademica extends Component
         $secciones = $this->secciones;
         $actor = auth()->user();
         $gestiona = $actor->checkPermissionTo('secciones.gestionar');
+        $crea = $actor->checkPermissionTo('secciones.crear');
 
         return $this->pagina('modules.academica.carga-academica', [
             'periodo' => DB::table('academic_periods')->where('id', PeriodoService::activoId())->value('name'),
@@ -230,10 +231,11 @@ class CargaAcademica extends Component
             'gestiona' => $gestiona,
             'asignaDocentes' => $actor->checkPermissionTo('secciones.asignar-docente'),
             'cambiaCupo' => $actor->checkPermissionTo('secciones.cupo'),
-            'eligeDepartamento' => $gestiona && $this->eligeDepartamento($carga),
-            'departamentosGrupo' => $gestiona ? $carga->departamentosParaGrupos($actor) : collect(),
-            'carrerasGrupo' => $gestiona ? $this->carrerasDelFormulario($carga) : collect(),
-            'asignaturas' => $gestiona && $this->carreraGrupo ? $carga->asignaturasDeCarrera($actor, (int) $this->carreraGrupo) : collect(),
+            'crea' => $crea,
+            'eligeDepartamento' => $crea && $this->eligeDepartamento($carga),
+            'departamentosGrupo' => $crea ? $carga->departamentosParaGrupos($actor) : collect(),
+            'carrerasGrupo' => $crea ? $this->carrerasDelFormulario($carga) : collect(),
+            'asignaturas' => $crea && $this->carreraGrupo ? $carga->asignaturasDeCarrera($actor, (int) $this->carreraGrupo) : collect(),
             'docentes' => $carga->docentesDisponibles(PeriodoService::activoId()),
             'aulas' => DB::table('classrooms')->orderBy('code')->get(['id', 'code', 'capacity']),
             'actual' => $this->seccionId ? $secciones->firstWhere('id', $this->seccionId) : null,

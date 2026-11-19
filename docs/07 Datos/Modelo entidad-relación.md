@@ -40,6 +40,7 @@ Las restricciones y la auditoría viven en PostgreSQL; las operaciones de varios
 | `2026_10_17_234710_add_avatar_url_to_users_table` | `users.avatar_url`: enlace a la foto de Google; no se descarga ([[ADR-039 Foto de perfil enlazada desde Google]]) |
 | `2026_10_25_121116_add_resolution_note_to_device_change_requests` | `device_change_requests.resolution_note`: el motivo con que Soporte rechaza un cambio de teléfono, para poder mostrarlo en «Resueltas»; también siembra el evento de aviso `device_request.pending` ([[RF27]]) |
 | `2026_11_17_222634_add_meeting_date_to_meet_reports` | `meet_reports.meeting_date`: la fecha de la reunión que se detectó en el informe de Meet (contenido o nombre del archivo); null si no trae ninguna ([[RF21]]) |
+| `2026_11_18_000300_add_career_id_to_sections` | `sections.career_id` (nullable): la carrera para la que se abrió el grupo teórico; el Coordinador solo ve los de su carrera. FK solo en PostgreSQL ([[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]]) |
 | `2026_11_17_230458_drop_question_difficulty` | Se van `questions.difficulty` y `quiz_question_rules.difficulty`; el índice de `questions` pasa a (bank_id, topic) y el CHECK de `quantity` admite 0 = todas ([[ADR-071 Las preguntas del banco no llevan dificultad]]) |
 
 > [!note] Ajustes al implementar
@@ -271,6 +272,7 @@ erDiagram
     char ulid UK
     bigint period_id FK
     bigint subject_id FK
+    bigint career_id FK "nullable: carrera del grupo (ADR-074)"
     varchar code
     smallint min_capacity
     smallint max_capacity
