@@ -89,7 +89,7 @@
                                     @php($heredado = $f->heredadas[(int) $c->number] ?? null)
                                     @if ($heredado)
                                         @php($conHerencia = true)
-                                        <td colspan="{{ max(1, $c->items->count()) }}" class="border-l border-borde bg-sky-50/60 p-2 text-center" title="{{ __('Nota del grupo :g, traída por el cambio de grupo. No se edita en esta sección.', ['g' => $heredado->grupo]) }}">
+                                        <td colspan="{{ max(1, $c->items->count()) }}" class="border-l border-borde bg-sky-50/60 p-2 text-center" title="{{ __('Nota del grupo :g, traída por el cambio de grupo. No se edita en este grupo teórico.', ['g' => $heredado->grupo]) }}">
                                             <span class="font-semibold">{{ $fmt($heredado->nota) }}</span>
                                             <x-ui.badge color="azul" class="ml-1">{{ __('del grupo :g', ['g' => $heredado->grupo]) }}</x-ui.badge>
                                         </td>
@@ -114,7 +114,7 @@
                 </table>
             </div>
             <p class="mt-2 text-xs text-texto-suave">{{ __('En gris: notas en borrador (aún no publicadas). Califique desde cada actividad.') }}
-                {{ __('En azul: cómputo traído del grupo anterior por un cambio de grupo; se muestra como histórico y no se edita en esta sección.') }}</p>
+                {{ __('En azul: cómputo traído del grupo anterior por un cambio de grupo; se muestra como histórico y no se edita en este grupo teórico.') }}</p>
         </x-ui.card>
     @endif
 

@@ -9,8 +9,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 use function Pest\Laravel\actingAs;
+use function Pest\Laravel\get;
 
 uses(RefreshDatabase::class);
 
@@ -97,35 +100,37 @@ it('CP-RF07-02 avisa en pantalla por qué no se puede eliminar y desactiva desde
     expect((bool) DB::table('subjects')->where('id', $e['prn'])->value('is_active'))->toBeFalse();
 });
 
-it('CP-RF07-02 impide eliminar y desactivar asignaturas a quien no administra el catálogo', function (string $rol) {
+it('CP-RF07-02 impide eliminar y desactivar asignaturas a quien no administra el catálogo', function (string $rol, string $departamento) {
     $e = escenario();
-    $asignatura = asignaturaSuelta($e['dia']);
+    $asignatura = asignaturaSuelta($e[$departamento]);
 
     expect(fn () => catalogo()->eliminarAsignatura($e[$rol], $asignatura))->toThrow(AuthorizationException::class)
         ->and(fn () => catalogo()->cambiarEstadoAsignatura($e[$rol], $asignatura, false))->toThrow(AuthorizationException::class);
 
     expect((bool) DB::table('subjects')->where('id', $asignatura)->value('is_active'))->toBeTrue();
-})->with(['coordinador', 'jefe']);
+})->with(['coordinador' => ['coordinador', 'dia'], 'jefe de otro departamento' => ['jefe', 'dcnm']]);
 
-it('CP-RF07-01 solo quien administra el catálogo crea asignaturas', function (string $rol) {
+it('CP-RF07-01 solo quien administra el catálogo crea asignaturas', function (string $rol, string $departamento) {
     $e = escenario();
 
-    expect(fn () => catalogo()->guardarAsignatura($e[$rol], null, ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia']]))
+    expect(fn () => catalogo()->guardarAsignatura($e[$rol], null, ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e[$departamento]]))
         ->toThrow(AuthorizationException::class);
 
     expect(DB::table('subjects')->where('code', 'ELE200')->exists())->toBeFalse();
-})->with(['coordinador', 'jefe']);
+})->with(['coordinador' => ['coordinador', 'dia'], 'jefe de otro departamento' => ['jefe', 'dcnm']]);
 
-it('CP-RF07-04 filtra el catálogo por créditos, combinado con el departamento y el nombre', function () {
+it('CP-RF07-04 filtra el catálogo por créditos, combinado con la carrera y el nombre', function () {
     $e = escenario();
-    asignaturaSuelta($e['dia'], 'ELE101', 3);
+    $ele101 = asignaturaSuelta($e['dia'], 'ELE101', 3);
     asignaturaSuelta($e['dcnm'], 'ELE102', 3);
+    DbContext::system(fn () => DB::table('career_subjects')->insert(['study_plan_id' => $e['plan'], 'subject_id' => $ele101, 'cycle' => 5]));
 
     $codigos = fn (array $filtros) => catalogo()->asignaturas($e['administrador'], $filtros)->pluck('code')->all();
 
     expect($codigos(['creditos' => 3]))->toEqualCanonicalizing(['ELE101', 'ELE102'])
         ->and($codigos(['creditos' => 4]))->toEqualCanonicalizing(['PRN115', 'MAT115'])
-        ->and($codigos(['creditos' => 3, 'departamento' => $e['dia']]))->toBe(['ELE101'])
+        ->and($codigos(['creditos' => 3, 'carrera' => $e['isi']]))->toBe(['ELE101'])
+        ->and($codigos(['carrera' => $e['isi']]))->toEqualCanonicalizing(['PRN115', 'ELE101'])
         ->and($codigos(['creditos' => 4, 'buscar' => 'progra']))->toBe(['PRN115']);
 });
 
@@ -145,7 +150,7 @@ it('CP-RF07-06 al editar solo agrega y quita los prerrequisitos que cambian', fu
     $e = escenario();
     $otra = asignaturaSuelta($e['dia'], 'ELE102');
     actingAs($e['administrador']);
-    $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia']];
+    $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia'], 'planes' => [['plan' => $e['plan'], 'ciclo' => 3]]];
 
     $id = catalogo()->guardarAsignatura($e['administrador'], null, $datos + ['prerrequisitos' => [$e['prn'], $e['mat']]]);
     catalogo()->guardarAsignatura($e['administrador'], $id, $datos + ['prerrequisitos' => [$e['prn'], $otra]]);
@@ -158,7 +163,7 @@ it('CP-RF07-06 al editar solo agrega y quita los prerrequisitos que cambian', fu
 it('CP-RF07-06 audita el alta, la edición y los prerrequisitos de la asignatura una sola vez', function () {
     $e = escenario();
     actingAs($e['administrador']);
-    $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia'], 'prerrequisitos' => [$e['prn'], $e['mat']]];
+    $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia'], 'planes' => [['plan' => $e['plan'], 'ciclo' => 3]], 'prerrequisitos' => [$e['prn'], $e['mat']]];
 
     $id = catalogo()->guardarAsignatura($e['administrador'], null, $datos);
     catalogo()->guardarAsignatura($e['administrador'], $id, $datos);
@@ -215,6 +220,7 @@ it('CP-RF07-07 elige varios prerrequisitos con casillas, sin la tecla Ctrl', fun
         ->set('creditos', 4)
         ->set('departamentoId', $e['dia'])
         ->set('prerrequisitos', [$e['prn'], $e['mat']])
+        ->set('planes', [['carrera' => $e['isi'], 'plan' => $e['plan'], 'ciclo' => 4]])
         ->call('guardar')
         ->assertHasNoErrors();
 
@@ -224,4 +230,175 @@ it('CP-RF07-07 elige varios prerrequisitos con casillas, sin la tecla Ctrl', fun
 
     // La pantalla ofrece casillas, no un desplegable múltiple que exigiría la tecla Ctrl.
     $pantalla->assertSeeHtml('type="checkbox"')->assertSeeHtml('wire:model="prerrequisitos"')->assertDontSeeHtml('<select multiple');
+});
+
+/* ------------------------------------------------- CP-RF07-13 a CP-RF07-16 (el Jefe en su departamento, ADR-072) */
+
+it('CP-RF07-13 muestra el Catálogo al Jefe con solo las asignaturas de su departamento', function () {
+    $e = escenario();
+    actingAs($e['jefe']);
+
+    get(route('inicio'))->assertOk()->assertSee(route('catalogo'), false);
+
+    // MAT115 (DCNM) no está en el listado, aunque sí entre los prerrequisitos elegibles, que son de cualquier departamento.
+    Livewire::test(Catalogo::class)
+        ->assertViewHas('asignaturas', fn ($asignaturas) => collect($asignaturas->items())->pluck('code')->all() === ['PRN115'])
+        ->assertViewHas('departamentos', fn ($departamentos) => $departamentos->pluck('id')->all() === [$e['dia']]);
+});
+
+it('CP-RF07-14 deja al Jefe crear, editar, desactivar y eliminar asignaturas de su departamento', function () {
+    $e = escenario();
+    actingAs($e['jefe']);
+    $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia'], 'planes' => [['plan' => $e['plan'], 'ciclo' => 3]]];
+
+    $id = catalogo()->guardarAsignatura($e['jefe'], null, $datos);
+    catalogo()->guardarAsignatura($e['jefe'], $id, ['nombre' => 'Electiva técnica', 'prerrequisitos' => [$e['mat']]] + $datos);
+    catalogo()->cambiarEstadoAsignatura($e['jefe'], $id, false);
+
+    $fila = DB::table('subjects')->where('id', $id)->first();
+    expect($fila->name)->toBe('Electiva técnica')->and((bool) $fila->is_active)->toBeFalse()
+        ->and(DB::table('subject_prerequisites')->where('subject_id', $id)->pluck('prerequisite_id')->map(fn ($p) => (int) $p)->all())->toBe([$e['mat']]);
+
+    // Mientras esté en un plan de estudios no se elimina (CP-RF07-02): primero se le quitan los planes.
+    catalogo()->guardarAsignatura($e['jefe'], $id, ['planes' => []] + $datos);
+    catalogo()->eliminarAsignatura($e['jefe'], $id);
+    expect(DB::table('subjects')->where('id', $id)->exists())->toBeFalse();
+});
+
+it('CP-RF07-14 impide al Jefe tocar asignaturas de otro departamento o mover la suya a otro', function () {
+    $e = escenario();
+    $ajena = asignaturaSuelta($e['dcnm']);
+    $propia = asignaturaSuelta($e['dia'], 'ELE102');
+
+    expect(fn () => catalogo()->guardarAsignatura($e['jefe'], $ajena, ['codigo' => 'ELE101', 'nombre' => 'Otra', 'creditos' => 3, 'departamento' => $e['dia']]))->toThrow(AuthorizationException::class)
+        ->and(fn () => catalogo()->guardarAsignatura($e['jefe'], $propia, ['codigo' => 'ELE102', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dcnm']]))->toThrow(AuthorizationException::class)
+        ->and(fn () => catalogo()->cambiarEstadoAsignatura($e['jefe'], $ajena, false))->toThrow(AuthorizationException::class)
+        ->and(fn () => catalogo()->eliminarAsignatura($e['jefe'], $ajena))->toThrow(AuthorizationException::class);
+
+    expect(DB::table('subjects')->where('id', $ajena)->value('name'))->toBe('Electiva ELE101')
+        ->and((int) DB::table('subjects')->where('id', $propia)->value('department_id'))->toBe($e['dia']);
+});
+
+it('CP-RF07-15 deja la estructura institucional solo al Administrador', function () {
+    $e = escenario();
+
+    actingAs($e['jefe']);
+    get(route('catalogo.estructura'))->assertForbidden();
+    Livewire::test(Catalogo::class)->assertDontSee(route('catalogo.estructura'), false);
+    expect(fn () => catalogo()->guardarAula($e['jefe'], 'B-206', 40))->toThrow(AuthorizationException::class)
+        ->and(fn () => catalogo()->guardarDepartamento($e['jefe'], null, 'DX', 'Nuevo'))->toThrow(AuthorizationException::class)
+        ->and(fn () => catalogo()->eliminarDepartamento($e['jefe'], $e['dcnm']))->toThrow(AuthorizationException::class);
+
+    actingAs($e['administrador']);
+    Livewire::test(Catalogo::class)->assertSee(route('catalogo.estructura'), false);
+});
+
+it('CP-RF07-16 deja al Jefe editar la descripción de las asignaturas de su departamento, no de otro', function () {
+    $e = escenario();
+
+    catalogo()->editarDescripcion($e['jefe'], $e['prn'], 'Fundamentos de programación.');
+
+    expect(DB::table('subjects')->where('id', $e['prn'])->value('description'))->toBe('Fundamentos de programación.')
+        ->and(fn () => catalogo()->editarDescripcion($e['jefe'], $e['mat'], 'Ajena.'))->toThrow(AuthorizationException::class);
+});
+
+/* ------------------------------------------------- CP-RF07-17 a CP-RF07-20 (carrera, plan y ciclo de la asignatura) */
+
+/** Una segunda carrera con su plan: en el departamento indicado. @return array{carrera: int, plan: int} */
+function carreraConPlan(int $departamento, string $codigo, string $plan = 'Plan 26'): array
+{
+    return DbContext::system(function () use ($departamento, $codigo, $plan) {
+        $carrera = DB::table('careers')->insertGetId(['department_id' => $departamento, 'code' => $codigo, 'name' => 'Carrera '.$codigo, 'created_at' => now(), 'updated_at' => now()]);
+
+        return ['carrera' => $carrera, 'plan' => DB::table('study_plans')->insertGetId(['career_id' => $carrera, 'name' => $plan, 'created_at' => now(), 'updated_at' => now()])];
+    });
+}
+
+it('CP-RF07-17 rechaza crear una asignatura sin carrera ni plan de estudios', function () {
+    $e = escenario();
+    actingAs($e['jefe']);
+
+    Livewire::test(Catalogo::class)->call('nueva')->set('planes', [])
+        ->set('codigo', 'IND101')->set('nombre', 'Introducción a la Industrial')->set('creditos', 4)
+        ->call('guardar')->assertHasErrors(['planes']);
+
+    expect(DB::table('subjects')->where('code', 'IND101')->exists())->toBeFalse();
+});
+
+it('CP-RF07-18 el Jefe crea la asignatura sin elegir departamento, en la carrera y el plan de su departamento', function () {
+    $e = escenario();
+    $industrial = carreraConPlan($e['dia'], 'IIN');
+    actingAs($e['jefe']);
+
+    Livewire::test(Catalogo::class)->call('nueva')
+        ->assertSet('departamentoId', $e['dia'])->assertDontSee('Departamento que la imparte')
+        ->assertViewHas('carreras', fn ($carreras) => $carreras->pluck('id')->sort()->values()->all() === collect([$e['isi'], $industrial['carrera']])->sort()->values()->all())
+        ->set('codigo', 'IND101')->set('nombre', 'Introducción a la Industrial')->set('creditos', 4)
+        ->set('planes.0.carrera', $industrial['carrera'])->assertSet('planes.0.plan', $industrial['plan'])
+        ->set('planes.0.ciclo', 1)
+        ->call('agregarPlan')->set('planes.1.carrera', $e['isi'])->set('planes.1.plan', $e['plan'])->set('planes.1.ciclo', 9)
+        ->call('guardar')->assertHasNoErrors();
+
+    $id = (int) DB::table('subjects')->where('code', 'IND101')->value('id');
+    expect((int) DB::table('subjects')->where('id', $id)->value('department_id'))->toBe($e['dia'])
+        ->and(DB::table('career_subjects')->where('subject_id', $id)->orderBy('cycle')->get(['study_plan_id', 'cycle'])->map(fn ($f) => [(int) $f->study_plan_id, (int) $f->cycle])->all())
+        ->toBe([[$industrial['plan'], 1], [$e['plan'], 9]]);
+});
+
+it('CP-RF07-19 impide al Jefe usar el plan de una carrera de otro departamento; el Administrador sí puede', function () {
+    $e = escenario();
+    $matematica = carreraConPlan($e['dcnm'], 'LMA', 'Plan 07');
+    $datos = ['codigo' => 'IND102', 'nombre' => 'Estadística industrial', 'creditos' => 4, 'departamento' => $e['dia'], 'planes' => [['plan' => $matematica['plan'], 'ciclo' => 3]]];
+
+    expect(fn () => catalogo()->guardarAsignatura($e['jefe'], null, $datos))->toThrow(AuthorizationException::class)
+        ->and(DB::table('subjects')->where('code', 'IND102')->exists())->toBeFalse();
+
+    $id = catalogo()->guardarAsignatura($e['administrador'], null, $datos);
+    expect(DB::table('career_subjects')->where('subject_id', $id)->value('study_plan_id'))->toBe($matematica['plan']);
+});
+
+it('CP-RF07-20 al editar agrega, cambia y quita planes sin tocar los de otro departamento', function () {
+    $e = escenario();
+    $industrial = carreraConPlan($e['dia'], 'IIN');
+    $matematica = carreraConPlan($e['dcnm'], 'LMA', 'Plan 07');
+    $datos = ['codigo' => 'IND103', 'nombre' => 'Investigación de operaciones', 'creditos' => 4, 'departamento' => $e['dia']];
+    $id = catalogo()->guardarAsignatura($e['administrador'], null, $datos + ['planes' => [['plan' => $e['plan'], 'ciclo' => 5], ['plan' => $matematica['plan'], 'ciclo' => 6]]]);
+    actingAs($e['jefe']);
+
+    // El Jefe solo ve en el formulario los planes de su departamento.
+    Livewire::test(Catalogo::class)->call('editar', $id)->assertSet('planes', [['carrera' => $e['isi'], 'plan' => $e['plan'], 'ciclo' => 5]]);
+
+    catalogo()->guardarAsignatura($e['jefe'], $id, $datos + ['planes' => [['plan' => $industrial['plan'], 'ciclo' => 7]]]);
+
+    expect(DB::table('career_subjects')->where('subject_id', $id)->orderBy('cycle')->get(['study_plan_id', 'cycle'])->map(fn ($f) => [(int) $f->study_plan_id, (int) $f->cycle])->all())
+        ->toBe([[$matematica['plan'], 6], [$industrial['plan'], 7]]);
+});
+
+it('CP-RF07-04 el filtro de carrera solo ofrece al Jefe las carreras de su departamento y filtra desde la URL', function () {
+    $e = escenario();
+    $matematica = carreraConPlan($e['dcnm'], 'LMA', 'Plan 07');
+    actingAs($e['jefe']);
+
+    Livewire::withQueryParams(['carrera' => (string) $e['isi']])->test(Catalogo::class)
+        ->assertSet('carrera', (string) $e['isi'])
+        ->assertViewHas('carreras', fn ($carreras) => $carreras->pluck('id')->all() === [$e['isi']])
+        ->assertViewHas('asignaturas', fn ($pagina) => collect($pagina->items())->pluck('code')->all() === ['PRN115'])
+        ->assertDontSee('Carrera LMA');
+
+    // Pedir por la URL una carrera de otro departamento no le muestra sus materias.
+    Livewire::withQueryParams(['carrera' => (string) $matematica['carrera']])->test(Catalogo::class)
+        ->assertViewHas('asignaturas', fn ($pagina) => $pagina->total() === 0);
+});
+
+it('aplica a una base con datos los permisos nuevos del Jefe (asignaturas.gestionar y secciones.gestionar)', function () {
+    $e = escenario();
+    $rol = Role::findByName('jefe_departamento');
+    DbContext::system(fn () => $rol->revokePermissionTo(['asignaturas.gestionar', 'secciones.gestionar']));
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    (require database_path('migrations/2026_11_18_000200_grant_head_catalog_and_sections_permissions.php'))->up();
+
+    expect($e['jefe']->fresh()->hasPermissionTo('asignaturas.gestionar'))->toBeTrue()
+        ->and($e['jefe']->fresh()->hasPermissionTo('secciones.gestionar'))->toBeTrue()
+        ->and(Role::findByName('coordinador')->hasPermissionTo('asignaturas.gestionar'))->toBeFalse();
 });

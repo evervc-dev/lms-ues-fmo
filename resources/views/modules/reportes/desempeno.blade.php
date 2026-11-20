@@ -24,8 +24,8 @@
 
     <x-ui.alert tipo="info" :titulo="__('Cómo se calculan')">{{ __('Retraso: minutos promedio entre el inicio de la clase según el horario y la apertura de la sesión de asistencia (abrir antes cuenta 0; no cuentan las sesiones de días sin clase en el horario). A tiempo: sesiones abiertas hasta 15 min después del inicio. Revisión: horas promedio desde la entrega hasta la publicación de la nota; «Sin publicar» son las entregas que aún no tienen nota publicada. Los indicadores son informativos y no califican al docente.') }}</x-ui.alert>
 
-    <x-ui.table ajustar :vacio="__('No hay docentes con secciones en el período.')">
-        <x-slot:cabecera><th>{{ __('Docente') }}</th><th>{{ __('Depto.') }}</th><th class="text-right">{{ __('Secciones') }}</th><th class="text-right">{{ __('Retraso') }}</th><th class="text-right">{{ __('A tiempo') }}</th><th class="text-right">{{ __('Recursos') }}</th><th class="text-right">{{ __('Revisión') }}</th><th class="text-right">{{ __('Sin publicar') }}</th><th class="text-right">{{ __('Notas publicadas') }}</th></x-slot:cabecera>
+    <x-ui.table ajustar :vacio="__('No hay docentes con grupos teóricos en el período.')">
+        <x-slot:cabecera><th>{{ __('Docente') }}</th><th>{{ __('Depto.') }}</th><th class="text-right">{{ __('Grupos') }}</th><th class="text-right">{{ __('Retraso') }}</th><th class="text-right">{{ __('A tiempo') }}</th><th class="text-right">{{ __('Recursos') }}</th><th class="text-right">{{ __('Revisión') }}</th><th class="text-right">{{ __('Sin publicar') }}</th><th class="text-right">{{ __('Notas publicadas') }}</th></x-slot:cabecera>
         @foreach ($filas as $f)
             <tr wire:key="doc-{{ $f->id }}">
                 <td>{{ $f->last_name }}, {{ $f->first_name }}</td><td>{{ $f->departamento }}</td><td class="text-right">{{ $f->secciones }}</td>

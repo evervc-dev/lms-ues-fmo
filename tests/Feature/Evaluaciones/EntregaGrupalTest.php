@@ -134,7 +134,7 @@ it('CP-RF15-05 el docente arma los equipos: nadie en dos equipos, solo de la sec
     expect(fn () => $equipos->crear($e['docente'], $e['seccion'], $e['tareaId'], 'Beta', [$e['matricula']]))
         ->toThrow(ValidationException::class, 'dos equipos de la misma tarea');
     expect(fn () => $equipos->crear($e['docente'], $e['seccion'], $e['tareaId'], 'Beta', [$e['matricula'] + 999]))
-        ->toThrow(ValidationException::class, 'matriculados en esta sección');
+        ->toThrow(ValidationException::class, 'matriculados en este grupo teórico');
 
     $alfa = (int) DB::table('teams')->value('id');
     actingAs($e['estudiante']);

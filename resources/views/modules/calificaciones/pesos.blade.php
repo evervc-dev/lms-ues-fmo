@@ -56,7 +56,7 @@
                         @endif
                     </div>
                 @empty
-                    <p class="text-sm text-texto-suave">{{ __('La sección no tiene cómputos.') }}</p>
+                    <p class="text-sm text-texto-suave">{{ __('El grupo teórico no tiene cómputos.') }}</p>
                 @endforelse
 
                 <p @class(['text-right text-sm font-semibold', 'text-emerald-700' => (float) $sumaComputos === 100.0, 'text-red-700' => (float) $sumaComputos !== 100.0])>

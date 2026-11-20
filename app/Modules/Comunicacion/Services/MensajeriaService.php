@@ -65,7 +65,7 @@ class MensajeriaService
         $this->exigir($docente, $seccionId);
 
         $item = DB::table('grade_items')->where('id', $itemId)->where('section_id', $seccionId)->first(['id'])
-            ?? throw ValidationException::withMessages(['item' => __('Esa actividad no es de esta sección.')]);
+            ?? throw ValidationException::withMessages(['item' => __('Esa actividad no es de este grupo teórico.')]);
 
         $consulta = DB::table('enrollments as e')->join('users as u', 'u.id', '=', 'e.student_id')
             ->where('e.section_id', $seccionId)->where('e.status', 'active')

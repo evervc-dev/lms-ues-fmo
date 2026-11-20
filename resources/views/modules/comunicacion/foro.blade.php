@@ -3,7 +3,7 @@
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
     <div class="flex justify-end"><x-ui.button icono="plus" x-on:click="$dispatch('abrir-modal', 'nuevo-hilo')">{{ __('Nuevo hilo') }}</x-ui.button></div>
 
-    <x-ui.card :titulo="__('Foro de la sección')">
+    <x-ui.card :titulo="__('Foro del grupo teórico')">
         @if ($hilos->isEmpty())
             <x-ui.empty-state icono="rectangle-stack" :titulo="__('Aún no hay hilos')">{{ __('Abra el primero con su duda o comentario.') }}</x-ui.empty-state>
         @else

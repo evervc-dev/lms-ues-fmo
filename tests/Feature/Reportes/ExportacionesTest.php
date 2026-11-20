@@ -106,7 +106,7 @@ it('CP-RF33-04 el Excel del desempeño docente lleva el retraso, la revisión y 
     unlink($ruta);
 
     $fila = collect($hoja)->first(fn (array $f) => ($f[0] ?? null) === $e['docente']->last_name.', '.$e['docente']->first_name);
-    expect($hoja[Exportacion::FILAS_DE_CABECERA])->toBe(['Docente', 'Departamento', 'Secciones', 'Retraso (min)', 'A tiempo %', 'Recursos', 'Revisión (h)', 'Sin publicar', 'Notas publicadas %'])
+    expect($hoja[Exportacion::FILAS_DE_CABECERA])->toBe(['Docente', 'Departamento', 'Grupos', 'Retraso (min)', 'A tiempo %', 'Recursos', 'Revisión (h)', 'Sin publicar', 'Notas publicadas %'])
         ->and((float) $fila[3])->toEqual(20.0)
         ->and((float) $fila[4])->toEqual(0.0)
         ->and((int) $fila[7])->toBe(0);
@@ -123,7 +123,7 @@ it('CP-RF06-06 exporta el período con sus cierres por departamento', function (
     $hoja = HojaCalculo::leer($ruta, 'xlsx');
     unlink($ruta);
 
-    expect($hoja[Exportacion::FILAS_DE_CABECERA])->toBe(['Código', 'Departamento', 'Secciones', 'Matrículas', 'Cierre autorizado', 'Autorizó'])
+    expect($hoja[Exportacion::FILAS_DE_CABECERA])->toBe(['Código', 'Departamento', 'Grupos', 'Matrículas', 'Cierre autorizado', 'Autorizó'])
         ->and(collect($hoja)->skip(Exportacion::FILAS_DE_CABECERA + 1)->pluck(0))->toContain(DB::table('departments')->where('id', $e['dia'])->value('code'));
 
     Livewire::test(PeriodoDetalle::class, ['periodo' => $e['periodo']])->call('exportar', 'pdf')->assertFileDownloaded();
@@ -180,9 +180,9 @@ it('CP-RF25-03 todo Excel abre con la facultad, el reporte con sus filtros y qui
     unlink($ruta);
 
     expect($hoja[0])->toBe(['Universidad de El Salvador · Facultad Multidisciplinaria Oriental'])
-        ->and($hoja[1])->toBe(['Asistencia por sección · Período 2026-II · Carrera ISI'])
+        ->and($hoja[1])->toBe(['Asistencia por grupo teórico · Período 2026-II · Carrera ISI'])
         ->and($hoja[2][0])->toBe('Generado el '.now()->format('d/m/Y H:i').' por '.$e['administrador']->fullName())
-        ->and($hoja[Exportacion::FILAS_DE_CABECERA])->toBe(['Sección', 'Asignatura', 'Carrera', 'Estudiantes', 'Clases', 'Asistencia %']);
+        ->and($hoja[Exportacion::FILAS_DE_CABECERA])->toBe(['Grupo', 'Asignatura', 'Carrera', 'Estudiantes', 'Clases', 'Asistencia %']);
 });
 
 it('CP-RF25-03 los filtros del Excel se escriben en palabras y con fechas DD/MM/AAAA', function () {

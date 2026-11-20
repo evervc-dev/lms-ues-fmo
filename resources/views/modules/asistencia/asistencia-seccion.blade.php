@@ -67,7 +67,7 @@
             </x-ui.table>
         </x-ui.card>
         @if ($corrige)
-            <x-ui.card :titulo="__('Justificaciones pendientes')" :descripcion="__('De todas las sesiones de la sección.')">
+            <x-ui.card :titulo="__('Justificaciones pendientes')" :descripcion="__('De todas las sesiones del grupo teórico.')">
                 @forelse ($justificaciones as $j)
                     <div class="flex flex-wrap items-start justify-between gap-3 border-b border-borde py-3 text-sm last:border-0" wire:key="just-sec-{{ $j->id }}">
                         <div>

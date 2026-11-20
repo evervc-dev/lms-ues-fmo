@@ -18,6 +18,23 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-18 · RF08 · El Jefe crea grupos teóricos; «sección» pasa a «grupo teórico»
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** sin OP# · commit directo a `test`
+- **Hecho:** `secciones.gestionar` D para el Jefe (crear grupos de su departamento con cupo, horario y aula). En la interfaz, «sección» se muestra como «grupo teórico» («Grupo» en espacios cortos); el código y la base no cambian.
+- **CP cubiertos:** CP-RF08-04 (reescrito), CP-RF08-07 y CP-RF08-08.
+- **Decisiones:** [[ADR-073 El Jefe crea los grupos teóricos de su departamento]] y [[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]] (pendientes): permiso `secciones.crear` (Adm G, Jefe D) y `sections.career_id`; el Coordinador ya no crea grupos y solo ve los de su carrera.
+- **Pendiente:** —
+
+### 2026-11-18 · RF07 · Departamentos en Estructura y catálogo del Jefe
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** sin OP# · commit directo a `test`
+- **Hecho:** CRUD de departamentos en Catálogo › Estructura (solo se borra lo que nada usa) y Catálogo de asignaturas para el Jefe en su departamento.
+- **CP cubiertos:** CP-RF07-08 a CP-RF07-20.
+- **Además:** la asignatura se crea con carrera → plan → ciclo (`career_subjects`); el Jefe no elige departamento. La paginación simple (Auditoría) mostraba «pagination.previous»: se agregó `lang/es/pagination.php`.
+- **Decisiones:** los departamentos no se desactivan (el ER no tiene estado); [[ADR-072 El Jefe gestiona las asignaturas de su departamento]] (pendiente).
+- **Pendiente:** correr en PostgreSQL CP-RF07-09 y CP-RF07-10 (auditoría).
+
 ### 2026-11-17 · RF21, RF19 · El informe real de Meet no trae la fecha, y las justificaciones por sesión
 - **Autor:** IA (Claude Code), a pedido del usuario
 - **OpenProject:** OP#453 · **PR:** → test

@@ -407,7 +407,7 @@ it('CP-RF20-09 rechaza a un estudiante no matriculado en la sección', function 
     $respuesta = escanear($e, qrProyectado($e), estudiante: $ajeno, cookie: 'token-del-ajeno', local: 'token-del-ajeno');
 
     expect($respuesta['resultado'])->toBe('not_enrolled')
-        ->and($respuesta['mensaje'])->toBe('No está matriculado en esta sección.')
+        ->and($respuesta['mensaje'])->toBe('No está matriculado en este grupo teórico.')
         ->and(resultadosGuardados($e, $ajeno))->toBe(['not_enrolled'])
         ->and(DB::table('attendance_records')->count())->toBe(0);
 });

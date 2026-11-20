@@ -385,7 +385,7 @@ class CalificacionService
             throw ValidationException::withMessages(['motivo' => __('Escriba el motivo de la corrección (al menos 5 caracteres).')]);
         }
         if (! $this->periodoCerrado((int) $nota->section_id)) {
-            throw ValidationException::withMessages(['nota' => __('El período está abierto: la nota la cambia el docente de la sección.')]);
+            throw ValidationException::withMessages(['nota' => __('El período está abierto: la nota la cambia el docente del grupo teórico.')]);
         }
         $anterior = (float) $nota->score;
         $motivo = trim($motivo);
@@ -523,7 +523,7 @@ class CalificacionService
             throw ValidationException::withMessages(['cierre' => __('No hay un cierre pendiente de autorizar.')]);
         }
         if ($estado['total'] === 0) {
-            throw ValidationException::withMessages(['cierre' => __('Su departamento no tiene secciones en este período.')]);
+            throw ValidationException::withMessages(['cierre' => __('Su departamento no tiene grupos teóricos en este período.')]);
         }
         if ($estado['validadas'] < $estado['total']) {
             throw ValidationException::withMessages(['cierre' => __('Faltan actas por validar (:n de :t): :secciones.', [

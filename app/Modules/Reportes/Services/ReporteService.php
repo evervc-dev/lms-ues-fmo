@@ -22,8 +22,8 @@ use Illuminate\Validation\ValidationException;
 class ReporteService
 {
     public const TIPOS = [
-        'asistencia' => 'Asistencia por sección',
-        'notas' => 'Notas por sección',
+        'asistencia' => 'Asistencia por grupo teórico',
+        'notas' => 'Notas por grupo teórico',
         'bajo_rendimiento' => 'Estudiantes en riesgo',
         'carga_docente' => 'Carga docente',
     ];
@@ -51,7 +51,7 @@ class ReporteService
         $carrera = $this->alcance->carrerasVisibles($usuario, 'reportes.ver')->contains('id', $carrera) ? $carrera : null;
 
         $secciones = $this->alcance->secciones(DB::table('sections')->where('period_id', $elegido?->id), $usuario, 'reportes.ver')
-            ->when($carrera !== null && $tipo !== 'bajo_rendimiento', fn ($q) => $q->whereIn('sections.subject_id', $this->alcance->asignaturasDeCarreras([(int) $carrera])))
+            ->when($carrera !== null && $tipo !== 'bajo_rendimiento', fn ($q) => $q->whereIn('sections.id', $this->alcance->seccionesDeCarreras([(int) $carrera])))
             ->pluck('sections.id');
         $base = fn () => DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')->whereIn('sections.id', $secciones)
             ->orderBy('subjects.code')->orderBy('sections.code');
@@ -60,7 +60,7 @@ class ReporteService
         /** @var array{columnas: array<int, string>, filas: Collection<int, array<int, mixed>>} $reporte */
         $reporte = match ($tipo) {
             'asistencia' => [
-                'columnas' => [__('Sección'), __('Asignatura'), __('Carrera'), __('Estudiantes'), __('Clases'), __('Asistencia %')],
+                'columnas' => [__('Grupo'), __('Asignatura'), __('Carrera'), __('Estudiantes'), __('Clases'), __('Asistencia %')],
                 'filas' => ($filas = $base()->get(['sections.id', 'sections.subject_id', 'subjects.code', 'subjects.name', 'sections.code as grupo',
                     DB::raw("(select count(*) from enrollments e where e.section_id = sections.id and e.status = 'active') as estudiantes"),
                     DB::raw('(select count(*) from attendance_sessions s where s.section_id = sections.id) as clases'),
@@ -68,7 +68,7 @@ class ReporteService
                     ->map(fn ($s) => [$s->code.' · '.$s->grupo, $s->name, $carreraDe($filas)[$s->subject_id] ?? '—', $s->estudiantes, $s->clases, $s->porcentaje]),
             ],
             'notas' => [
-                'columnas' => [__('Sección'), __('Asignatura'), __('Carrera'), __('Notas publicadas'), __('Promedio'), __('Notas < 6')],
+                'columnas' => [__('Grupo'), __('Asignatura'), __('Carrera'), __('Notas publicadas'), __('Promedio'), __('Notas < 6')],
                 'filas' => ($filas = $base()->get(['sections.id', 'sections.subject_id', 'subjects.code', 'subjects.name', 'sections.code as grupo',
                     DB::raw("(select count(*) from grades g where g.section_id = sections.id and g.status = 'published') as publicadas"),
                     DB::raw("(select round(avg(g.score), 2) from grades g where g.section_id = sections.id and g.status = 'published') as promedio"),
@@ -76,7 +76,7 @@ class ReporteService
                     ->map(fn ($s) => [$s->code.' · '.$s->grupo, $s->name, $carreraDe($filas)[$s->subject_id] ?? '—', $s->publicadas, $s->promedio, $s->bajas]),
             ],
             'bajo_rendimiento' => [
-                'columnas' => [__('Estudiante'), __('Carné'), __('Carrera'), __('Sección'), __('Alerta'), __('Desde')],
+                'columnas' => [__('Estudiante'), __('Carné'), __('Carrera'), __('Grupo'), __('Alerta'), __('Desde')],
                 'filas' => ($filas = DB::table('academic_alerts as a')->join('enrollments as e', 'e.id', '=', 'a.enrollment_id')->join('users as u', 'u.id', '=', 'e.student_id')
                     ->leftJoin('student_profiles as p', 'p.user_id', '=', 'u.id')->join('sections', 'sections.id', '=', 'e.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
                     // Una fila por matrícula con su alerta más grave: se guardan por umbral y cómputo (RF22) y el reporte
@@ -96,7 +96,7 @@ class ReporteService
                     }),
             ],
             'carga_docente' => [
-                'columnas' => [__('Docente'), __('Secciones'), __('Estudiantes')],
+                'columnas' => [__('Docente'), __('Grupos'), __('Estudiantes')],
                 'filas' => DB::table('teaching_assignments as t')->join('users as u', 'u.id', '=', 't.teacher_id')->whereIn('t.section_id', $secciones)->whereNull('t.ended_at')
                     ->groupBy('u.id', 'u.first_name', 'u.last_name')->orderBy('u.last_name')
                     ->get(['u.first_name', 'u.last_name', DB::raw('count(*) as secciones'),
@@ -128,8 +128,8 @@ class ReporteService
     public static function grafico(string $tipo, Collection $filas): array
     {
         [$titulo, $etiqueta, $valor, $maximo, $sufijo] = match ($tipo) {
-            'asistencia' => [__('Asistencia por sección'), 0, 5, 100, ' %'],
-            'notas' => [__('Promedio de las notas publicadas por sección'), 0, 4, 10, ''],
+            'asistencia' => [__('Asistencia por grupo teórico'), 0, 5, 100, ' %'],
+            'notas' => [__('Promedio de las notas publicadas por grupo teórico'), 0, 4, 10, ''],
             'carga_docente' => [__('Estudiantes a cargo de cada docente'), 0, 2, null, ''],
             default => [__('Estudiantes por su alerta más grave'), null, null, null, ''],
         };

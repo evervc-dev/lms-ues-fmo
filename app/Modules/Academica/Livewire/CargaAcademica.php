@@ -4,6 +4,7 @@ namespace App\Modules\Academica\Livewire;
 
 use App\Modules\Academica\Services\CargaAcademicaService;
 use App\Modules\Academica\Services\PeriodoService;
+use App\Support\Alcance;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -16,7 +17,8 @@ use Livewire\Component;
 
 /**
  * Carga académica (RF08, maquetas 23 y 24): secciones, horarios, aulas y docentes, sin choques.
- * Quien gestiona secciones crea y programa; el Jefe (ADR-037) solo asigna docentes y cambia el cupo en su departamento.
+ * Crean grupos el Administrador (departamento → carrera → materia) y el Jefe (carrera → materia de su departamento),
+ * con secciones.crear (ADR-074); el Coordinador programa horario, aula y docentes de los de su carrera, sin crearlos.
  */
 #[Layout('layouts::app')]
 class CargaAcademica extends Component
@@ -30,6 +32,10 @@ class CargaAcademica extends Component
     public string $estado = '';
 
     public ?int $seccionId = null;
+
+    public ?int $departamentoGrupo = null;
+
+    public ?int $carreraGrupo = null;
 
     public ?int $asignaturaId = null;
 
@@ -59,16 +65,39 @@ class CargaAcademica extends Component
 
     public function abrir(string $modal, ?int $seccion = null): void
     {
+        if ($modal === 'nueva-seccion') {
+            $this->prepararNuevoGrupo(app(CargaAcademicaService::class));
+        }
         $this->seccionId = $seccion;
         $this->resetValidation();
         $this->dispatch('abrir-modal', $modal);
     }
 
+    /** Al cambiar el departamento se borran la carrera y la materia; si el departamento tiene una sola carrera, se elige sola. */
+    public function updatedDepartamentoGrupo(CargaAcademicaService $carga): void
+    {
+        $this->reset('carreraGrupo', 'asignaturaId');
+        $carreras = $this->carrerasDelFormulario($carga);
+        if ($carreras->count() === 1) {
+            $this->carreraGrupo = (int) $carreras->first()->id;
+        }
+    }
+
+    /** Al cambiar la carrera se borra la materia elegida. */
+    public function updatedCarreraGrupo(): void
+    {
+        $this->reset('asignaturaId');
+    }
+
     public function crearSeccion(CargaAcademicaService $carga): void
     {
-        $this->validate(['asignaturaId' => 'required|integer', 'grupo' => 'required|string|max:5', 'cupo' => 'required|integer|min:1|max:200'], [], ['asignaturaId' => 'asignatura', 'cupo' => 'cupo']);
-        $carga->crearSeccion(auth()->user(), (int) PeriodoService::activoId(), (int) $this->asignaturaId, $this->grupo, $this->cupo);
-        $this->terminar('nueva-seccion', __('Sección creada. Agregue su horario y su docente.'));
+        $this->validate([
+            'departamentoGrupo' => $this->eligeDepartamento($carga) ? 'required|integer' : 'nullable',
+            'carreraGrupo' => 'required|integer',
+            'asignaturaId' => 'required|integer', 'grupo' => 'required|string|max:5', 'cupo' => 'required|integer|min:1|max:200',
+        ], [], ['departamentoGrupo' => 'departamento', 'carreraGrupo' => 'carrera', 'asignaturaId' => 'asignatura', 'cupo' => 'cupo']);
+        $carga->crearSeccion(auth()->user(), (int) PeriodoService::activoId(), (int) $this->asignaturaId, $this->grupo, $this->cupo, carreraId: (int) $this->carreraGrupo);
+        $this->terminar('nueva-seccion', __('Grupo teórico creado. Agregue su horario y su docente.'));
     }
 
     public function agregarHorario(CargaAcademicaService $carga): void
@@ -85,7 +114,7 @@ class CargaAcademica extends Component
     {
         $carga->quitarHorario(auth()->user(), (int) $this->seccionId, $bloque);
         unset($this->secciones);
-        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Horario quitado. Se avisó a los estudiantes y docentes de la sección.'));
+        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Horario quitado. Se avisó a los estudiantes y docentes del grupo teórico.'));
     }
 
     /**
@@ -95,7 +124,7 @@ class CargaAcademica extends Component
     {
         try {
             $carga->cambiarAula(auth()->user(), (int) $this->seccionId, $bloque, $aula === '' ? null : (int) $aula);
-            $this->dispatch('aviso', tipo: 'exito', mensaje: __('Aula cambiada. Se avisó a los estudiantes y docentes de la sección.'));
+            $this->dispatch('aviso', tipo: 'exito', mensaje: __('Aula cambiada. Se avisó a los estudiantes y docentes del grupo teórico.'));
         } catch (ValidationException $e) {
             $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
         }
@@ -130,7 +159,7 @@ class CargaAcademica extends Component
     {
         $carga->quitarDocente(auth()->user(), $seccion, $docente);
         unset($this->secciones);
-        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Se quitó al docente de la sección.'));
+        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Se quitó al docente del grupo teórico.'));
     }
 
     private function terminar(string $modal, string $mensaje): void
@@ -141,11 +170,55 @@ class CargaAcademica extends Component
         $this->dispatch('aviso', tipo: 'exito', mensaje: $mensaje);
     }
 
+    /**
+     * El Administrador (alcance G) elige el departamento; el Jefe y el Coordinador, no (salvo que tengan varios).
+     */
+    private function eligeDepartamento(CargaAcademicaService $carga): bool
+    {
+        return $this->alcanceGrupos() === 'G' || $carga->departamentosParaGrupos(auth()->user())->count() > 1;
+    }
+
+    private function alcanceGrupos(): ?string
+    {
+        return app(Alcance::class)->de(auth()->user(), 'secciones.crear');
+    }
+
+    /**
+     * Deja el formulario vacío y, si solo hay un departamento o una carrera posibles, los elige solos.
+     */
+    private function prepararNuevoGrupo(CargaAcademicaService $carga): void
+    {
+        $this->reset('departamentoGrupo', 'carreraGrupo', 'asignaturaId', 'grupo', 'cupo');
+        if ($this->alcanceGrupos() === null) {
+            return;
+        }
+        $departamentos = $carga->departamentosParaGrupos(auth()->user());
+        if (! $this->eligeDepartamento($carga) && $departamentos->count() === 1) {
+            $this->departamentoGrupo = (int) $departamentos->first()->id;
+        }
+        $carreras = $this->carrerasDelFormulario($carga);
+        if ($carreras->count() === 1) {
+            $this->carreraGrupo = (int) $carreras->first()->id;
+        }
+    }
+
+    /**
+     * @return Collection<int, \stdClass>
+     */
+    private function carrerasDelFormulario(CargaAcademicaService $carga): Collection
+    {
+        $carreras = $carga->carrerasParaGrupos(auth()->user());
+
+        return $this->departamentoGrupo === null ? ($this->eligeDepartamento($carga) ? collect() : $carreras)
+            : $carreras->where('department_id', $this->departamentoGrupo)->values();
+    }
+
     public function render(CargaAcademicaService $carga): View
     {
         $secciones = $this->secciones;
         $actor = auth()->user();
         $gestiona = $actor->checkPermissionTo('secciones.gestionar');
+        $crea = $actor->checkPermissionTo('secciones.crear');
 
         return $this->pagina('modules.academica.carga-academica', [
             'periodo' => DB::table('academic_periods')->where('id', PeriodoService::activoId())->value('name'),
@@ -158,7 +231,11 @@ class CargaAcademica extends Component
             'gestiona' => $gestiona,
             'asignaDocentes' => $actor->checkPermissionTo('secciones.asignar-docente'),
             'cambiaCupo' => $actor->checkPermissionTo('secciones.cupo'),
-            'asignaturas' => $gestiona ? $carga->asignaturas($actor) : collect(),
+            'crea' => $crea,
+            'eligeDepartamento' => $crea && $this->eligeDepartamento($carga),
+            'departamentosGrupo' => $crea ? $carga->departamentosParaGrupos($actor) : collect(),
+            'carrerasGrupo' => $crea ? $this->carrerasDelFormulario($carga) : collect(),
+            'asignaturas' => $crea && $this->carreraGrupo ? $carga->asignaturasDeCarrera($actor, (int) $this->carreraGrupo) : collect(),
             'docentes' => $carga->docentesDisponibles(PeriodoService::activoId()),
             'aulas' => DB::table('classrooms')->orderBy('code')->get(['id', 'code', 'capacity']),
             'actual' => $this->seccionId ? $secciones->firstWhere('id', $this->seccionId) : null,

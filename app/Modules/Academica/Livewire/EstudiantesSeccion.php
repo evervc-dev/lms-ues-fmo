@@ -47,7 +47,7 @@ class EstudiantesSeccion extends Component
             return;
         }
         $this->reset('carne');
-        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Estudiante inscrito en la sección.'));
+        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Estudiante inscrito en el grupo teórico.'));
     }
 
     public function confirmarRetiro(int $matricula): void

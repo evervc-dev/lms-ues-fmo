@@ -20,7 +20,7 @@
                     <td class="text-right whitespace-nowrap">
                         @if ($s->status === 'pending')
                             <x-ui.button tamano="sm" variante="peligro" wire:click="confirmarRechazo({{ $s->id }})">{{ __('Rechazar') }}</x-ui.button>
-                            <x-ui.button tamano="sm" variante="fantasma" wire:click="aprobar({{ $s->id }})" wire:confirm="{{ __('¿Aprobar el cambio de grupo? El estudiante queda matriculado en la sección nueva y se le avisa.') }}">{{ __('Aprobar') }}</x-ui.button>
+                            <x-ui.button tamano="sm" variante="fantasma" wire:click="aprobar({{ $s->id }})" wire:confirm="{{ __('¿Aprobar el cambio de grupo? El estudiante queda matriculado en el grupo teórico nuevo y se le avisa.') }}">{{ __('Aprobar') }}</x-ui.button>
                         @else
                             <x-ui.badge :color="$s->status === 'approved' ? 'verde' : 'rojo'">{{ $s->status === 'approved' ? __('Aprobada') : __('Rechazada') }}</x-ui.badge>
                         @endif

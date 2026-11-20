@@ -62,7 +62,7 @@ class Alcance
             'G' => $consulta,
             'D' => $consulta->whereIn($columna, DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
                 ->whereIn('subjects.department_id', $this->departamentos($usuario))->select('sections.id')),
-            'C' => $consulta->whereIn($columna, DB::table('sections')->whereIn('subject_id', $this->asignaturasDeCarreras($this->carreras($usuario)))->select('sections.id')),
+            'C' => $consulta->whereIn($columna, $this->seccionesDeCarreras($this->carreras($usuario))),
             'S' => $consulta->whereIn($columna, DB::table('teaching_assignments')->where('teacher_id', $usuario->id)->whereNull('ended_at')->select('section_id')),
             default => $consulta->whereIn($columna, DB::table('enrollments')->where('student_id', $usuario->id)->where('status', 'active')->select('section_id')),
         };
@@ -137,6 +137,19 @@ class Alcance
             ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->departamentos($usuario)))
             ->when($alcance === 'C', fn ($q) => $q->whereIn('id', $this->carreras($usuario)))
             ->orderBy('code')->get(['id', 'code', 'name']);
+    }
+
+    /**
+     * Grupos teóricos de las carreras dadas (ADR-074): los que se crearon para ellas y, de los anteriores sin carrera,
+     * los de materias de sus planes. Un grupo creado para otra carrera no entra aunque la materia sea compartida.
+     *
+     * @param  array<int, int>  $carreras
+     */
+    public function seccionesDeCarreras(array $carreras): Builder
+    {
+        return DB::table('sections')->where(fn ($q) => $q->whereIn('sections.career_id', $carreras)
+            ->orWhere(fn ($q) => $q->whereNull('sections.career_id')->whereIn('sections.subject_id', $this->asignaturasDeCarreras($carreras))))
+            ->select('sections.id');
     }
 
     /**
