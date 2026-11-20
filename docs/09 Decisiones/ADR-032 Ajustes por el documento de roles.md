@@ -10,6 +10,7 @@ fuentes: ["Roles y permisos.pdf (revisión del 10/10/2026)"]
 # ADR-032 · Ajustes tras revisar el documento de roles
 
 > **17/10/2026:** el punto 2 («Soporte no matricula») y la parte del punto 6 sobre el Jefe y los docentes quedan reemplazados por [[ADR-037 Jerarquía de creación y asignación de roles]] (aceptada).
+> **19/11/2026:** la parte del punto 6 «el Administrador **no** ve contenidos ni notas» queda reemplazada por [[ADR-075 El Administrador ve las secciones en solo lectura]] (pendiente).
 
 ## Contexto
 Al contrastar el vault con *Roles y permisos.pdf* aparecieron dos funciones de enfoque sin cubrir, una contradicción con ADR-030 y varias mejoras.

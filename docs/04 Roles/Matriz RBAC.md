@@ -53,7 +53,7 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 ## Contenidos y evaluaciones
 | Permiso | Adm | Jefe | Coord | Doc | Est | Sop | RF |
 |---|---|---|---|---|---|---|---|
-| `contenidos.ver` | | | C (lectura) | S | M | | [[RF11]], [[RF03]] |
+| `contenidos.ver` | G (lectura) | | C (lectura) | S | M | | [[RF11]], [[RF03]] |
 | `contenidos.gestionar` | | | | S | | | [[RF11]], [[RF12]] |
 | `contenidos.reutilizar` | | | | S | | | [[RF14]] |
 | `contenidos.analitica.ver` | | | C | S | | | [[RF13]] |
@@ -68,7 +68,7 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 ## Calificaciones y progreso
 | Permiso | Adm | Jefe | Coord | Doc | Est | Sop | RF |
 |---|---|---|---|---|---|---|---|
-| `calificaciones.ver` | | | C | S | P | | [[RF17]] |
+| `calificaciones.ver` | G (lectura) | | C | S | P | | [[RF17]] |
 | `calificaciones.gestionar` | | | | S | | | [[RF17]] |
 | `calificaciones.revision.solicitar` | | | | | M | | [[RF35]], [[ADR-040 Solicitud de revisión de calificaciones]] |
 | `calificaciones.revision.resolver` | | | | S | | | [[RF35]] |
@@ -77,7 +77,7 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 | `actas.validar` | | | C | | | | [[RF34]] |
 | `cierre.autorizar` | | D | | | | | [[RF34]] |
 | `calificaciones.corregir` | | | C (período cerrado) | S (período abierto) | | | [[RF03]], [[RF17]] |
-| `progreso.ver` | | | C | S | P | | [[RF18]] |
+| `progreso.ver` | G (lectura) | | C | S | P | | [[RF18]] |
 
 ## Asistencia
 | Permiso | Adm | Jefe | Coord | Doc | Est | Sop | RF |
@@ -87,7 +87,7 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 | `asistencia.codigo-temporal.generar` | | | | S | | | [[RF28]] |
 | `asistencia.diagnostico.ver` | | | | | | G | [[RF20]] (solo lectura) |
 | `asistencia.corregir` | | | | S | | | [[RF19]] |
-| `asistencia.ver` | | | C | S | P | | [[RF19]], [[RF22]] |
+| `asistencia.ver` | G (lectura) | | C | S | P | | [[RF19]], [[RF22]] |
 | `videoconferencias.gestionar` | | | | S | | | [[RF21]] |
 | `clases.solicitar-cancelacion` | | | | S | | | [[RF32]] |
 | `clases.cancelar` | G | | C | | | | [[RF32]] |
@@ -105,7 +105,7 @@ Todos los roles tienen además `notificaciones.preferencias` y `perfil.sesiones.
 ## Decidido
 - Notas de un período cerrado: solo las corrige el **Coordinador**, con motivo obligatorio (10/10/2026).
 
-- El **Administrador no** ve contenidos ni notas de los cursos ([[ADR-032 Ajustes por el documento de roles]]).
+- El **Administrador** ve contenidos, notas, asistencia y progreso de los cursos en **solo lectura** (G), sin ningún `*.gestionar` ([[ADR-075 El Administrador ve las secciones en solo lectura]], que reemplaza lo dicho en [[ADR-032 Ajustes por el documento de roles]]).
 - **Jerarquía de usuarios** ([[ADR-037 Jerarquía de creación y asignación de roles]], 17/10/2026):
   - **Administrador:** crea y asigna todos los roles; es el único que desactiva y reactiva cuentas.
   - **Soporte (G\*):** crea y corrige cuentas de estudiantes; de docentes solo con `usuarios.crear-docente`, que el Administrador le concede a esa persona. Nunca a administradores, jefes ni coordinadores. Matricula en cualquier sección.

@@ -85,6 +85,8 @@ En **Roles y permisos** verá qué puede hacer cada rol. Busque un permiso por s
 1. En **Catálogo**, pulse **Nueva asignatura**: código único, nombre, créditos, departamento y **prerrequisitos** (marque todas las que correspondan).
 2. Una asignatura que ya no se imparte se **Desactiva**; si nunca tuvo secciones, se puede **Eliminar**.
 3. Con **Departamentos, carreras y aulas** administra la estructura de la facultad y agrega aulas.
+4. En **Departamentos, carreras y aulas** pulse **Nuevo departamento** o **Editar** (código único y nombre). Un departamento que ya no se usa se **Archiva**: él, sus carreras y sus asignaturas dejan de ofrecerse a docentes y estudiantes, y puede **Reactivarlo** cuando quiera. No se puede archivar si tiene grupos teóricos en un período sin cerrar. Si nada lo usa, se puede **Eliminar** ([[ADR-076 Departamentos archivables]]).
+5. En **Panel académico** (`/catalogo/departamentos`) elija un **departamento**, luego una **carrera** y una **materia**: verá sus grupos teóricos del período. Al abrir uno entra a la misma vista del docente (contenidos, calificaciones, asistencia y progreso) en **solo lectura** ([[ADR-075 El Administrador ve las secciones en solo lectura]]).
 
 > [!example] Captura pendiente
 > Pantalla: mantener el catálogo.

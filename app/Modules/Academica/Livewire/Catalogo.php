@@ -167,7 +167,7 @@ class Catalogo extends Component
         return $this->pagina('modules.academica.catalogo', [
             'asignaturas' => $asignaturas,
             'prerrequisitosDe' => $catalogo->prerrequisitos($asignaturas->pluck('id')->all()),
-            'departamentos' => $catalogo->departamentosGestionables(auth()->user()),
+            'departamentos' => $catalogo->departamentosGestionables(auth()->user(), $this->editando),
             'gestionaEstructura' => $catalogo->gestionaEstructura(auth()->user()),
             'carreras' => $catalogo->carrerasConPlanes(auth()->user()),
             'valoresCreditos' => DB::table('subjects')->distinct()->orderBy('credits')->pluck('credits'),

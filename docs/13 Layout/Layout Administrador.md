@@ -9,7 +9,7 @@ adr: ["[[ADR-034 Navegación y layouts]]"]
 
 # Layout · Administrador
 
-Usa el [[Layout base#Layout Aplicación|Layout Aplicación]]. Permisos con alcance **G** (global) ([[Matriz RBAC]]). **No ve contenidos ni notas** de los cursos ([[ADR-032 Ajustes por el documento de roles]]): por eso no entra a la [[Vista de sección]]. Con la **cuenta de emergencia** ve el mismo layout, con la franja roja de aviso ([[ADR-007 Inicio de sesión con Google]]).
+Usa el [[Layout base#Layout Aplicación|Layout Aplicación]]. Permisos con alcance **G** (global) ([[Matriz RBAC]]). Ve contenidos, notas, asistencia y progreso de los cursos en **solo lectura**: entra a la [[Vista de sección]] desde el **Panel académico** ([[ADR-075 El Administrador ve las secciones en solo lectura]]). Con la **cuenta de emergencia** ve el mismo layout, con la franja roja de aviso ([[ADR-007 Inicio de sesión con Google]]).
 
 ## Menú
 ```

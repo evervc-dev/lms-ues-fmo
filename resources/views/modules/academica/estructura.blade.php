@@ -1,19 +1,30 @@
 {{-- Departamentos, carreras, planes y aulas (RF07). --}}
 <div class="flex flex-col gap-5">
-    <x-ui.encabezado :titulo="__('Departamentos, carreras, planes y aulas')" :subtitulo="__('Estructura institucional del catálogo.')" />
+    <x-ui.encabezado :titulo="__('Departamentos, carreras, planes y aulas')" :subtitulo="__('Estructura institucional del catálogo.')">
+        <x-slot:acciones>
+            <x-ui.button icono="building-library" :href="route('catalogo.departamentos')">{{ __('Panel académico') }}</x-ui.button>
+        </x-slot:acciones>
+    </x-ui.encabezado>
 
     <div class="grid gap-5 lg:grid-cols-2">
-        <x-ui.card :titulo="__('Departamentos')">
+        <x-ui.card :titulo="__('Departamentos')" :descripcion="__('Un departamento archivado deja de ofrecerse a docentes y estudiantes; su historial se conserva.')">
             <x-slot:acciones>
                 <x-ui.button tamano="sm" icono="plus" wire:click="nuevoDepartamento">{{ __('Nuevo departamento') }}</x-ui.button>
             </x-slot:acciones>
             <x-ui.table>
                 <x-slot:cabecera><th>{{ __('Código') }}</th><th>{{ __('Nombre') }}</th><th class="text-right">{{ __('Asignaturas') }}</th><th class="text-right"><span class="sr-only">{{ __('Acciones') }}</span></th></x-slot:cabecera>
                 @foreach ($departamentos as $d)
-                    <tr wire:key="depto-{{ $d->id }}">
-                        <td class="font-semibold">{{ $d->code }}</td><td>{{ $d->name }}</td><td class="text-right">{{ $d->asignaturas }}</td>
+                    <tr wire:key="depto-{{ $d->id }}" @class(['text-texto-suave' => ! $d->is_active])>
+                        <td class="font-semibold">{{ $d->code }}</td>
+                        <td>{{ $d->name }}@unless ($d->is_active) <x-ui.badge>{{ __('Archivado') }}</x-ui.badge>@endunless</td>
+                        <td class="text-right">{{ $d->asignaturas }}</td>
                         <td class="text-right whitespace-nowrap">
                             <x-ui.button tamano="sm" variante="fantasma" wire:click="editarDepartamento({{ $d->id }})">{{ __('Editar') }}</x-ui.button>
+                            @if ($d->is_active)
+                                <x-ui.button tamano="sm" variante="fantasma" wire:click="archivarDepartamento({{ $d->id }})" wire:confirm="{{ __('¿Archivar :c? Dejará de ofrecerse a docentes y estudiantes.', ['c' => $d->code]) }}">{{ __('Archivar') }}</x-ui.button>
+                            @else
+                                <x-ui.button tamano="sm" variante="fantasma" wire:click="reactivarDepartamento({{ $d->id }})">{{ __('Reactivar') }}</x-ui.button>
+                            @endif
                             <x-ui.button tamano="sm" variante="fantasma" wire:click="eliminarDepartamento({{ $d->id }})" wire:confirm="{{ __('¿Eliminar :c? Solo se puede si no tiene carreras, asignaturas, docentes, jefaturas ni historial.', ['c' => $d->code]) }}">{{ __('Eliminar') }}</x-ui.button>
                         </td>
                     </tr>

@@ -57,7 +57,7 @@ Las restricciones y la auditoría viven en PostgreSQL; las operaciones de varios
 | Fechas | `timestamptz` en UTC; se muestra en America/El_Salvador ([[RNF11]]). Toda tabla tiene `created_at` y `updated_at`, excepto los logs inmutables, que solo tienen la fecha del evento |
 | Estados | `varchar` + `CHECK` (no ENUM de PostgreSQL), mapeados a Enums de PHP |
 | Texto sin mayúsculas | `citext` en correos y códigos (`institutional_email`, `subjects.code`) |
-| Borrado | Soft delete **solo** en `units` y `resources` (papelera de 30 días). Usuarios, materias y secciones se desactivan (`is_active`). Matrículas, notas, asistencia, períodos y logs **nunca se borran**: FK `RESTRICT` y el trigger `fn_block_delete` |
+| Borrado | Soft delete **solo** en `units` y `resources` (papelera de 30 días). Usuarios, materias, secciones y departamentos se desactivan (`is_active`; departamentos: [[ADR-076 Departamentos archivables]]). Matrículas, notas, asistencia, períodos y logs **nunca se borran**: FK `RESTRICT` y el trigger `fn_block_delete` |
 | Ubicación | Sin coordenadas del estudiante: solo distancia, precisión y si estaba dentro del área |
 | Notas | `numeric(5,2)` entre 0 y 10 |
 | Ligado a la matrícula | Notas, asistencia, entregas, intentos, progreso y accesos usan `enrollment_id`, no `user_id`, y llevan FK compuesta con la sección |
@@ -191,6 +191,7 @@ erDiagram
     bigint id PK
     varchar code UK
     varchar name
+    boolean is_active
   }
   careers {
     bigint id PK

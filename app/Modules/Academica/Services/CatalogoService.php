@@ -78,6 +78,12 @@ class CatalogoService
         if (DB::table('subjects')->whereRaw('upper(code) = ?', [$codigo])->when($id, fn ($q) => $q->where('id', '!=', $id))->exists()) {
             throw ValidationException::withMessages(['codigo' => __('Ya existe una asignatura con ese código.')]);
         }
+        // ADR-076: un departamento archivado no recibe asignaturas; la que ya era suya puede seguir editándose.
+        $departamento = (int) $datos['departamento'];
+        $actual = $id === null ? null : DB::table('subjects')->where('id', $id)->value('department_id');
+        if (! (bool) DB::table('departments')->where('id', $departamento)->value('is_active') && ($actual === null || (int) $actual !== $departamento)) {
+            throw ValidationException::withMessages(['departamentoId' => __('El departamento elegido está archivado.')]);
+        }
         $prerrequisitos = array_values(array_unique(array_map('intval', $datos['prerrequisitos'] ?? [])));
         if ($id !== null && $this->creaCiclo($id, $prerrequisitos)) {
             throw ValidationException::withMessages(['prerrequisitos' => __('Ese prerrequisito crearía un ciclo (A requiere B y B requiere A).')]);
@@ -244,8 +250,9 @@ class CatalogoService
     }
 
     /**
-     * Elimina un departamento que nada usa (RF07). No hay desactivación: si tiene carreras, asignaturas, docentes,
-     * jefaturas (vigentes o pasadas), cierres, plazos de matrícula o fechas del calendario, se rechaza nombrándolas.
+     * Elimina un departamento que nada usa (RF07). Si tiene carreras, asignaturas, docentes, jefaturas (vigentes o
+     * pasadas), cierres, plazos de matrícula o fechas del calendario, se rechaza nombrándolas y se sugiere archivarlo
+     * (ADR-076).
      * La auditoría es inmutable (ADR-027) y su FK a `departments` es RESTRICT: si el departamento ya figura en ella,
      * tampoco se puede borrar.
      *
@@ -266,7 +273,7 @@ class CatalogoService
             __('fechas del calendario') => DB::table('period_calendar_events')->where('department_id', $id)->exists(),
         ]));
         if ($usos !== []) {
-            throw ValidationException::withMessages(['departamento' => __('No se puede eliminar el departamento: tiene :usos.', ['usos' => implode(', ', $usos)])]);
+            throw ValidationException::withMessages(['departamento' => __('No se puede eliminar el departamento: tiene :usos. Archívelo para que deje de ofrecerse.', ['usos' => implode(', ', $usos)])]);
         }
 
         try {
@@ -275,19 +282,54 @@ class CatalogoService
             if ((string) ($e->errorInfo[0] ?? $e->getCode()) !== '23503') {
                 throw DbError::toDomain($e);
             }
-            throw ValidationException::withMessages(['departamento' => __('No se puede eliminar el departamento: tiene historial en la auditoría, que no se puede borrar.')]);
+            throw ValidationException::withMessages(['departamento' => __('No se puede eliminar el departamento: tiene historial en la auditoría, que no se puede borrar. Archívelo para que deje de ofrecerse.')]);
         }
     }
 
     /**
+     * Archiva el departamento (ADR-076): deja de ofrecerse en las listas de trabajo y conserva su historial. Se impide
+     * si tiene grupos teóricos en un período en curso o planificado, que quedarían fuera de esas listas y del cierre.
+     *
+     * @throws ValidationException
+     */
+    public function archivarDepartamento(User $actor, int $id): void
+    {
+        $this->exigirGlobal($actor);
+
+        // El conteo y el UPDATE van en la misma transacción, con la fila del departamento bloqueada: dos archivos a
+        // la vez esperan en fila y el segundo ya lo encuentra archivado.
+        $this->cambiarEstadoDepartamento($id, false, function () use ($id): void {
+            $grupos = DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
+                ->join('academic_periods', 'academic_periods.id', '=', 'sections.period_id')
+                ->where('subjects.department_id', $id)->where('academic_periods.status', '<>', 'closed')->count();
+            if ($grupos > 0) {
+                throw ValidationException::withMessages(['departamento' => trans_choice(
+                    '{1} No se puede archivar: el departamento tiene 1 grupo teórico en un período en curso o planificado. Podrá archivarlo cuando ese período se cierre.|[2,*] No se puede archivar: el departamento tiene :count grupos teóricos en un período en curso o planificado. Podrá archivarlo cuando ese período se cierre.',
+                    $grupos)]);
+            }
+        });
+    }
+
+    /**
+     * Reactiva un departamento archivado (ADR-076).
+     */
+    public function reactivarDepartamento(User $actor, int $id): void
+    {
+        $this->exigirGlobal($actor);
+
+        $this->cambiarEstadoDepartamento($id, true);
+    }
+
+    /**
      * Carreras en que el actor puede incluir asignaturas, con sus planes: todas (G) o las de su departamento (D).
+     * Sin las de un departamento archivado (ADR-076): sus filas en career_subjects se conservan y no se tocan.
      *
      * @return Collection<int, \stdClass>
      */
     public function carrerasConPlanes(User $actor): Collection
     {
         $alcance = $this->alcance->exigir($actor, 'asignaturas.gestionar');
-        $carreras = DB::table('careers')->when($alcance !== 'G', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
+        $carreras = DB::table('careers')->whereIn('department_id', DepartamentoService::activos())->when($alcance !== 'G', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
             ->orderBy('code')->get(['id', 'code', 'name', 'department_id']);
         $planes = DB::table('study_plans')->whereIn('career_id', $carreras->pluck('id'))->orderBy('name')->get(['id', 'career_id', 'name'])->groupBy('career_id');
 
@@ -373,15 +415,18 @@ class CatalogoService
 
     /**
      * Departamentos en que el actor puede crear o mover asignaturas: todos (G) o los que dirige hoy (D, ADR-072).
+     * Solo los activos (ADR-076) y, al editar, también el de la asignatura aunque esté archivado, para no perder el valor.
      *
      * @return Collection<int, \stdClass>
      */
-    public function departamentosGestionables(User $actor): Collection
+    public function departamentosGestionables(User $actor, ?int $asignaturaId = null): Collection
     {
         $alcance = $this->alcance->exigir($actor, 'asignaturas.gestionar');
+        $actual = $asignaturaId === null ? null : DB::table('subjects')->where('id', $asignaturaId)->value('department_id');
 
         return DB::table('departments')->when($alcance !== 'G', fn ($q) => $q->whereIn('id', $this->alcance->departamentos($actor)))
-            ->orderBy('code')->get(['id', 'code', 'name']);
+            ->where(fn ($q) => $q->where('is_active', true)->when($actual !== null, fn ($q) => $q->orWhere('id', $actual)))
+            ->orderBy('code')->get(['id', 'code', 'name', 'is_active']);
     }
 
     /**
@@ -428,6 +473,30 @@ class CatalogoService
      *
      * @throws AuthorizationException
      */
+    /**
+     * Bloquea la fila, comprueba la condición y cambia `is_active` en una sola transacción. Si ya está en ese estado
+     * no escribe, para no duplicar la auditoría.
+     *
+     * @param  (callable(): void)|null  $condicion
+     */
+    private function cambiarEstadoDepartamento(int $id, bool $activo, ?callable $condicion = null): void
+    {
+        try {
+            DbContext::run(function () use ($id, $activo, $condicion): void {
+                $actual = DB::table('departments')->where('id', $id)->lockForUpdate()->value('is_active') ?? abort(404);
+                if ((bool) $actual === $activo) {
+                    return;
+                }
+                if ($condicion !== null) {
+                    $condicion();
+                }
+                DB::table('departments')->where('id', $id)->update(['is_active' => $activo, 'updated_at' => now()]);
+            }, $activo ? 'department.reactivated' : 'department.archived');
+        } catch (QueryException $e) {
+            throw DbError::toDomain($e);
+        }
+    }
+
     private function exigirGlobal(User $actor): void
     {
         if ($this->alcance->exigir($actor, 'asignaturas.gestionar') !== 'G') {

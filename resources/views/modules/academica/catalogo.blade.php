@@ -57,7 +57,7 @@
                     <x-ui.field :etiqueta="__('Departamento que la imparte')" para="departamentoId" error="departamentoId" requerido>
                         <x-ui.select id="departamentoId" wire:model="departamentoId">
                             <option value="">{{ __('Elija…') }}</option>
-                            @foreach ($departamentos as $d)<option value="{{ $d->id }}">{{ $d->code }} · {{ $d->name }}</option>@endforeach
+                            @foreach ($departamentos as $d)<option value="{{ $d->id }}">{{ $d->code }} · {{ $d->name }}@unless ($d->is_active) ({{ __('Archivado') }})@endunless</option>@endforeach
                         </x-ui.select>
                     </x-ui.field>
                 @endif

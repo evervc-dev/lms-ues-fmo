@@ -12,7 +12,8 @@ use Livewire\Component;
 
 /**
  * Departamentos, carreras, planes y aulas (RF07, ADR-034): los mantiene el Administrador.
- * Los departamentos se crean, se editan (código y nombre) y se eliminan solo si nada los usa.
+ * Los departamentos se crean, se editan (código y nombre), se archivan y reactivan (ADR-076) y se eliminan solo si
+ * nada los usa.
  */
 #[Layout('layouts::app')]
 class Estructura extends Component
@@ -79,6 +80,25 @@ class Estructura extends Component
         } catch (ValidationException $e) {
             $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
         }
+    }
+
+    /**
+     * Archiva el departamento; si tiene grupos en un período sin cerrar, el Service lo impide y se avisa (ADR-076).
+     */
+    public function archivarDepartamento(int $id, CatalogoService $catalogo): void
+    {
+        try {
+            $catalogo->archivarDepartamento(auth()->user(), $id);
+            $this->dispatch('aviso', tipo: 'exito', mensaje: __('Departamento archivado: ya no se ofrece a docentes ni a estudiantes. Su historial se conserva.'));
+        } catch (ValidationException $e) {
+            $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
+        }
+    }
+
+    public function reactivarDepartamento(int $id, CatalogoService $catalogo): void
+    {
+        $catalogo->reactivarDepartamento(auth()->user(), $id);
+        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Departamento reactivado.'));
     }
 
     public function render(CatalogoService $catalogo): View

@@ -126,6 +126,8 @@ class MatriculaService
 
         return DB::table('career_subjects')->join('subjects', 'subjects.id', '=', 'career_subjects.subject_id')
             ->where('career_subjects.study_plan_id', $plan)->where('subjects.is_active', true)
+            // ADR-076: las materias de un departamento archivado ya no se inscriben.
+            ->whereIn('subjects.department_id', DepartamentoService::activos())
             ->whereRaw('career_subjects.cycle % 2 = ?', [$paridad])
             ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->whereRaw("lower(subjects.code) like ? escape '\\'", [$patron])
                 ->orWhereRaw(Busqueda::sinTildes('subjects.name')." like ? escape '\\'", [$patron])))
@@ -312,7 +314,8 @@ class MatriculaService
         $porDefecto = $this->plazoPorDefecto($periodo);
         $filas = DB::table('enrollment_deadlines')->where('period_id', $periodo)->get()->keyBy('department_id');
 
-        return DB::table('departments')->when($departamentos !== null, fn ($q) => $q->whereIn('id', $departamentos))
+        // ADR-076: un departamento archivado no recibe plazos.
+        return DB::table('departments')->where('is_active', true)->when($departamentos !== null, fn ($q) => $q->whereIn('id', $departamentos))
             ->orderBy('name')->get(['id', 'name'])
             ->map(function (object $d) use ($periodo, $porDefecto, $filas): object {
                 $fila = $filas[$d->id] ?? null;
@@ -708,7 +711,8 @@ class MatriculaService
         if ($departamentos !== null && ! in_array($departamentoId, $departamentos, true)) {
             throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
         }
-        DB::table('departments')->where('id', $departamentoId)->exists() || abort(404);
+        // ADR-076: un departamento archivado ya no recibe plazos ni prórrogas.
+        DB::table('departments')->where('id', $departamentoId)->where('is_active', true)->exists() || abort(404);
     }
 
     private function periodoEnCurso(string $campo): int
