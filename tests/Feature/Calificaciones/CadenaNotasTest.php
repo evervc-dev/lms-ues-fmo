@@ -103,8 +103,8 @@ function cadenaTraslado(array $e, int $matriculaId, int $destino): int
 {
     actingAs($e['estudiante']);
     app(MatriculaService::class)->solicitarCambio($e['estudiante'], $matriculaId, $destino, 'Trabajo por las mañanas');
-    actingAs($e['coordinador']);
-    app(MatriculaService::class)->aprobarCambio($e['coordinador'], (int) DB::table('section_change_requests')
+    actingAs($e['jefe']);
+    app(MatriculaService::class)->aprobarCambio($e['jefe'], (int) DB::table('section_change_requests')
         ->where('enrollment_id', $matriculaId)->where('status', 'pending')->value('id'));
 
     return (int) DB::table('enrollments')->where('id', $matriculaId)->value('transferred_to_id');

@@ -687,13 +687,7 @@ class AsistenciaService
      */
     public static function carrerasDeSeccion(int $seccionId): Collection
     {
-        $propia = DB::table('sections')->where('id', $seccionId)->value('career_id');
-        if ($propia !== null) {
-            return collect([(int) $propia]);
-        }
-
-        return DB::table('sections')->join('career_subjects as cs', 'cs.subject_id', '=', 'sections.subject_id')
-            ->join('study_plans as sp', 'sp.id', '=', 'cs.study_plan_id')->where('sections.id', $seccionId)->pluck('sp.career_id')->map(fn ($id) => (int) $id);
+        return collect(Alcance::carrerasDeSeccion($seccionId));
     }
 
     /**

@@ -19,12 +19,6 @@ parameters:
 			path: app/Modules/Academica/Livewire/Catalogo.php
 
 		-
-			message: '#^Parameter \#1 \$array \(array\{0\: array\{etiqueta\: \(array\|string\), url\: string, activa\: false\}, 1\: array\{etiqueta\: \(array\|string\), url\: string, activa\: true\}, 2\: array\{etiqueta\: \(array\|string\), url\: string, activa\: false\}, 3\?\: array\{etiqueta\: \(array\|string\), url\: string, activa\: false\}\}\) of array_values is already a list, call has no effect\.$#'
-			identifier: arrayValues.list
-			count: 1
-			path: app/Modules/Academica/Livewire/ClavesMatricula.php
-
-		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,object\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1

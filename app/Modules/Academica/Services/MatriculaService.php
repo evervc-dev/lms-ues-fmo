@@ -21,7 +21,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Matrícula (RF09, RF29, ADR-030, ADR-032, ADR-050; Flujo Matrícula y cambio de grupo).
  * Valida cupo, duplicado, choque de horario, que la asignatura sea del plan de la carrera del estudiante y sus
- * prerrequisitos aprobados (ADR-052, que supera en esto a ADR-030 y ADR-032). Docente (S), Coordinador (C),
+ * sin validar prerrequisitos (ADR-030, ADR-032; ADR-052 rechazada por ADR-078). Docente (S), Coordinador (C),
  * Jefe (D) y Administrador (G) inscriben; el estudiante elige una materia de su carrera y ciclo y se
  * automatricula con la clave de esa asignatura, que ponen el Coordinador (C) y el Jefe (D).
  * Retirar exige motivo y lo hacen Coordinador, Jefe y Administrador.
@@ -71,7 +71,8 @@ class MatriculaService
         if (! $this->alcance->puedeEnSeccion($actor, 'matricula.gestionar', $seccionId)) {
             throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
         }
-        if (! DB::table('student_careers')->where('student_id', $estudianteId)->where('status', 'active')->exists()) {
+        if (! DB::table('student_careers')->where('student_id', $estudianteId)->where('status', 'active')->exists()
+            || ! DB::table('users')->where('id', $estudianteId)->where('is_active', true)->exists()) {
             throw ValidationException::withMessages(['estudiante' => __('La persona no es estudiante activo.')]);
         }
 
@@ -92,6 +93,9 @@ class MatriculaService
         DbContext::run(function () use ($matricula, $motivo, $actor) {
             DB::table('enrollments')->where('id', $matricula->id)->update(['status' => 'withdrawn', 'updated_at' => now()]);
             DB::table('enrollment_changes')->insert(['enrollment_id' => $matricula->id, 'change_type' => 'withdrawn', 'reason' => $motivo, 'actor_id' => $actor->id, 'occurred_at' => now()]);
+            // Sus solicitudes de cambio de grupo pendientes se rechazan: ya no hay matrícula que trasladar.
+            DB::table('section_change_requests')->where('enrollment_id', $matricula->id)->where('status', 'pending')
+                ->update(['status' => 'rejected', 'resolved_by' => $actor->id, 'resolved_at' => now(), 'updated_at' => now()]);
         }, 'enrollment.withdrawn', $motivo);
 
         MatriculaCambiada::dispatch((int) $matricula->id, 'retirada', (string) Str::ulid(), $motivo);
@@ -463,7 +467,7 @@ class MatriculaService
             ->select('r.id', 'r.status', 'r.justification', 'r.created_at', 'r.resolved_at', 'u.first_name', 'u.last_name', 'p.student_code',
                 'subjects.code', 'subjects.name', 'origen.code as grupo_origen', 'destino.code as grupo_destino', 'destino.id as destino_id', 'e.student_id');
 
-        return $this->alcance->secciones($consulta, $actor, 'matricula.gestionar', 'origen.id')->get();
+        return $this->alcance->secciones($consulta, $actor, 'matricula.cambio.resolver', 'origen.id')->get();
     }
 
     /**
@@ -576,12 +580,17 @@ class MatriculaService
     private function solicitudPendiente(User $actor, int $solicitudId): object
     {
         $solicitud = DB::table('section_change_requests')->where('id', $solicitudId)->first() ?? abort(404);
-        $seccion = (int) DB::table('enrollments')->where('id', $solicitud->enrollment_id)->value('section_id');
-        if (! $this->alcance->puedeEnSeccion($actor, 'matricula.gestionar', $seccion)) {
+        $origen = DB::table('enrollments')->where('id', $solicitud->enrollment_id)->first(['section_id', 'status']);
+        // El cambio de grupo lo resuelve el Jefe del departamento (ADR-078), no cualquiera con matricula.gestionar.
+        if (! $this->alcance->puedeEnSeccion($actor, 'matricula.cambio.resolver', (int) $origen->section_id)) {
             throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
         }
         if ($solicitud->status !== 'pending') {
             throw ValidationException::withMessages(['solicitud' => __('La solicitud ya fue resuelta.')]);
+        }
+        // Una matrícula retirada (o ya trasladada) no se revive con una solicitud vieja (ADR-063).
+        if ($origen->status !== 'active') {
+            throw ValidationException::withMessages(['solicitud' => __('La matrícula de origen ya no está activa: la solicitud no se puede aprobar.')]);
         }
 
         return $solicitud;
@@ -589,9 +598,14 @@ class MatriculaService
 
     private function matricular(int $estudianteId, int $seccionId, string $via, int $actorId): int
     {
-        DB::table('sections')->where('id', $seccionId)->exists() || abort(404);
+        $periodo = DB::table('sections')->join('academic_periods as p', 'p.id', '=', 'sections.period_id')->where('sections.id', $seccionId)->first(['p.id', 'p.status']) ?? abort(404);
+        // Solo se matricula en un grupo del período en curso (Flujo Matrícula: «¿Período activo y dentro del plazo?»):
+        // ni en uno en preparación ni en uno cerrado, y el plazo se calcula con el período del grupo.
+        if ($periodo->status !== 'active') {
+            throw ValidationException::withMessages(['seccion' => __('El grupo teórico no es del período en curso.')]);
+        }
 
-        $plazo = $this->plazoDe($estudianteId);
+        $plazo = $this->plazoDe($estudianteId, (int) $periodo->id);
         if ($plazo['vencido']) {
             throw ValidationException::withMessages(['plazo' => __('El plazo de inscripción terminó el :fecha.', ['fecha' => $plazo['fecha']->format('d/m/Y')])]);
         }
@@ -605,7 +619,6 @@ class MatriculaService
                 throw ValidationException::withMessages(['seccion' => __('El estudiante ya está inscrito en esta materia en el período.')]);
             }
             $this->exigirPlanDeCarrera($estudianteId, (int) $seccion->subject_id);
-            $this->exigirPrerrequisitos($estudianteId, (int) $seccion->subject_id);
             $this->validarCupoYChoque($estudianteId, $seccionId);
 
             $id = DB::table('enrollments')->insertGetId(['student_id' => $estudianteId, 'section_id' => $seccion->id, 'period_id' => $seccion->period_id,
@@ -632,26 +645,6 @@ class MatriculaService
             ->where('career_subjects.subject_id', $asignaturaId)->exists();
         if (! $enSuPlan) {
             throw ValidationException::withMessages(['seccion' => __('La asignatura no pertenece al plan de estudios de la carrera del estudiante.')]);
-        }
-    }
-
-    /**
-     * Prerrequisitos aprobados (ADR-052): cada uno con un resultado `passed` congelado en `enrollment_results`, que
-     * solo existe para períodos cerrados (PeriodoService::cerrar()). Vale igual para todas las vías y roles; una
-     * asignatura sin prerrequisitos declarados no bloquea a nadie, tampoco al estudiante sin histórico.
-     */
-    private function exigirPrerrequisitos(int $estudianteId, int $asignaturaId): void
-    {
-        $aprobadas = DB::table('enrollment_results')->join('enrollments', 'enrollments.id', '=', 'enrollment_results.enrollment_id')
-            ->where('enrollments.student_id', $estudianteId)->where('enrollment_results.result', 'passed')->select('enrollments.subject_id');
-
-        $faltan = DB::table('subject_prerequisites')->join('subjects', 'subjects.id', '=', 'subject_prerequisites.prerequisite_id')
-            ->where('subject_prerequisites.subject_id', $asignaturaId)->whereNotIn('subject_prerequisites.prerequisite_id', $aprobadas)
-            ->orderBy('subjects.code')->get(['subjects.code', 'subjects.name'])
-            ->map(fn (object $a) => "{$a->code} · {$a->name}");
-
-        if ($faltan->isNotEmpty()) {
-            throw ValidationException::withMessages(['seccion' => trans_choice('Le falta aprobar :lista.|Le faltan por aprobar: :lista.', $faltan->count(), ['lista' => $faltan->implode(', ')])]);
         }
     }
 

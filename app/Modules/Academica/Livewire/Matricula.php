@@ -107,7 +107,7 @@ class Matricula extends Component
         return array_values(array_filter([
             ['etiqueta' => __('Estudiantes'), 'url' => route('matricula'), 'activa' => true],
             $usuario->checkPermissionTo('matricula.claves.gestionar') ? ['etiqueta' => __('Claves por asignatura'), 'url' => route('matricula.claves'), 'activa' => false] : null,
-            ['etiqueta' => __('Solicitudes de cambio de grupo'), 'url' => route('matricula.solicitudes'), 'activa' => false],
+            auth()->user()->checkPermissionTo('matricula.cambio.resolver') ? ['etiqueta' => __('Solicitudes de cambio de grupo'), 'url' => route('matricula.solicitudes'), 'activa' => false] : null,
             $usuario->hasAnyPermission(['matricula.plazo.gestionar', 'matricula.prorroga.otorgar']) ? ['etiqueta' => __('Plazos'), 'url' => route('matricula.plazos'), 'activa' => false] : null,
         ]));
     }

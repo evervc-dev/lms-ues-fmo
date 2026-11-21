@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF09 · Correcciones de matrícula de la revisión de flujos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** no se validan prerrequisitos; el cambio de grupo lo resuelve solo el Jefe (`matricula.cambio.resolver`); una solicitud vieja no revive una matrícula retirada y retirar rechaza las pendientes; solo se matricula en grupos del período en curso; no se inscribe a una cuenta desactivada; aviso de acta, calendario y participantes con la carrera del grupo (`Alcance::carrerasDeSeccion`).
+- **CP cubiertos:** CP-RF09-03, CP-RF09-15 a CP-RF09-18, CP-RF34-13.
+- **Decisiones:** [[ADR-078 El Jefe resuelve el cambio de grupo y no se validan prerrequisitos]] (pendiente), que rechaza ADR-052. Se mantiene que el Docente no retira estudiantes (hay una prueba deliberada), aunque el flujo de matrícula del vault dice lo contrario.
+- **Pendiente:** corregir el flujo de matrícula del vault (PR de vault).
+
 ### 2026-11-21 · RF15–RF35 · Correcciones de cuestionarios, tareas y revisión de la revisión de flujos
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

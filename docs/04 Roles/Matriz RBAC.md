@@ -41,6 +41,7 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 | `secciones.asignar-docente` | G | D | C | | | | [[RF08]], [[ADR-037 Jerarquía de creación y asignación de roles]] |
 | `secciones.cupo` | G | D | | | | | [[RF08]], [[ADR-037 Jerarquía de creación y asignación de roles]] |
 | `matricula.gestionar` | G | D | C | S | | G | [[RF09]], [[ADR-030 Matrícula ampliada]], [[ADR-032 Ajustes por el documento de roles]], [[ADR-037 Jerarquía de creación y asignación de roles]] |
+| `matricula.cambio.resolver` | | D | | | | | [[RF09]], [[ADR-078 El Jefe resuelve el cambio de grupo y no se validan prerrequisitos]] |
 | `matricula.claves.gestionar` | | D | C | | | | [[RF29]], [[ADR-050 Inscripción por catálogo y claves compartidas]] |
 | `matricula.automatricular` | | | | | P | | [[RF29]] |
 | `matricula.plazo.gestionar` | G | D | C | | | | [[RF29]], [[ADR-051 Fecha límite de inscripción por departamento]] (el Coordinador, en los departamentos de sus carreras) |

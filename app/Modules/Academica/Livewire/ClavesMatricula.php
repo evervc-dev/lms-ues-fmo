@@ -81,7 +81,7 @@ class ClavesMatricula extends Component
             'pestanas' => array_values(array_filter([
                 ['etiqueta' => __('Estudiantes'), 'url' => route('matricula'), 'activa' => false],
                 ['etiqueta' => __('Claves por asignatura'), 'url' => route('matricula.claves'), 'activa' => true],
-                ['etiqueta' => __('Solicitudes de cambio de grupo'), 'url' => route('matricula.solicitudes'), 'activa' => false],
+                auth()->user()->checkPermissionTo('matricula.cambio.resolver') ? ['etiqueta' => __('Solicitudes de cambio de grupo'), 'url' => route('matricula.solicitudes'), 'activa' => false] : null,
                 auth()->user()->hasAnyPermission(['matricula.plazo.gestionar', 'matricula.prorroga.otorgar']) ? ['etiqueta' => __('Plazos'), 'url' => route('matricula.plazos'), 'activa' => false] : null,
             ])),
         ]);

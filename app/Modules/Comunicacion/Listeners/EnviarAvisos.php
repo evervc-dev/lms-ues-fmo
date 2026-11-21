@@ -21,6 +21,7 @@ use App\Modules\Comunicacion\Notifications\Aviso;
 use App\Modules\Comunicacion\Services\NotificacionService;
 use App\Modules\Evaluaciones\Events\ProrrogaConcedida;
 use App\Modules\Evaluaciones\Events\RevisionCuestionarioPublicada;
+use App\Support\Alcance;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -43,15 +44,15 @@ class EnviarAvisos
     }
 
     /**
-     * Avisa a los coordinadores vigentes de las carreras de la asignatura que el acta espera su validación (RF34).
+     * Avisa a los coordinadores vigentes de la carrera del grupo (ADR-074) que el acta espera su validación (RF34): solo
+     * ellos pueden validarla; antes se avisaba a los de todas las carreras con la materia y el enlace terminaba en 403.
      * La clave lleva la fecha de publicación: si el acta vuelve a publicarse tras una devolución, el aviso se repite.
      */
     public function actaPublicada(ActaPublicada $evento): void
     {
         $s = $this->seccionConActa($evento->seccionId);
         $coordinadores = DB::table('career_coordinators')->whereNull('valid_to')
-            ->whereIn('career_id', DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
-                ->where('career_subjects.subject_id', $s->subject_id)->select('study_plans.career_id'))
+            ->whereIn('career_id', Alcance::carrerasDeSeccion((int) $evento->seccionId))
             ->pluck('user_id');
 
         $this->enviar($coordinadores->unique()->all(), new Aviso('grade_sheet.published', __('Acta por validar: :c', ['c' => $s->code.'-'.$s->grupo]),

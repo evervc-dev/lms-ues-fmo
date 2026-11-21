@@ -91,21 +91,18 @@ it('CP-RF09-02 rechaza la sección que choca en horario con otra matrícula acti
     expect(DB::table('enrollments')->where('section_id', $choca['seccion'])->exists())->toBeFalse();
 });
 
-it('CP-RF09-13 rechaza matricular sin el prerrequisito aprobado, nombrándolo, también a Soporte', function () {
+it('CP-RF09-03 matricula aunque falte el prerrequisito: no se validan (ADR-078)', function () {
     $e = escenario();
     $materia = matriculaOtraMateria($e, 'BDD115', '13:00', '14:40');
     DbContext::system(fn () => DB::table('subject_prerequisites')->insert(['subject_id' => $materia['asignatura'], 'prerequisite_id' => $e['mat']]));
+    actingAs($e['coordinador']);
 
-    foreach (['coordinador', 'soporte'] as $rol) {
-        actingAs($e[$rol]);
-        expect(fn () => matricula()->inscribir($e[$rol], $e['estudiante']->id, $materia['seccion']))
-            ->toThrow(ValidationException::class, 'Le falta aprobar MAT115 · Matemática I.');
-    }
+    matricula()->inscribir($e['coordinador'], $e['estudiante']->id, $materia['seccion']);
 
-    expect(DB::table('enrollments')->where('section_id', $materia['seccion'])->exists())->toBeFalse();
+    expect(DB::table('enrollments')->where('section_id', $materia['seccion'])->where('status', 'active')->exists())->toBeTrue();
 });
 
-it('CP-RF09-13 matricula cuando el prerrequisito está aprobado en un período cerrado', function () {
+it('CP-RF09-03 también matricula con el prerrequisito aprobado en un período cerrado', function () {
     $e = escenario();
     $materia = matriculaOtraMateria($e, 'BDD115', '13:00', '14:40');
     DbContext::system(function () use ($e, $materia) {
@@ -270,11 +267,11 @@ it('CP-RF09-10 avisa al estudiante cuando se aprueba o se rechaza su cambio de g
         'code' => '02', 'max_capacity' => 40, 'created_at' => now(), 'updated_at' => now()]));
     $solicitud = DbContext::system(fn () => DB::table('section_change_requests')->insertGetId(['enrollment_id' => $e['matricula'], 'target_section_id' => $destino,
         'justification' => 'Trabajo por la mañana', 'status' => 'pending', 'created_at' => now(), 'updated_at' => now()]));
-    actingAs($e['coordinador']);
+    actingAs($e['jefe']);
 
     $aprobar
-        ? matricula()->aprobarCambio($e['coordinador'], $solicitud)
-        : matricula()->rechazarCambio($e['coordinador'], $solicitud, 'No hay cupo en ese horario.');
+        ? matricula()->aprobarCambio($e['jefe'], $solicitud)
+        : matricula()->rechazarCambio($e['jefe'], $solicitud, 'No hay cupo en ese horario.');
 
     $aprobar
         ? matriculaAvisoA($e, $e['estudiante']->id, 'Cambio de grupo: PRN115-02', 'ahora está en el grupo 02')
@@ -393,8 +390,8 @@ function matriculaCambioAprobado(array $e, int $matriculaId, int $destino): int
 {
     actingAs($e['estudiante']);
     matricula()->solicitarCambio($e['estudiante'], $matriculaId, $destino, 'Trabajo por las mañanas');
-    actingAs($e['coordinador']);
-    matricula()->aprobarCambio($e['coordinador'], (int) DB::table('section_change_requests')
+    actingAs($e['jefe']);
+    matricula()->aprobarCambio($e['jefe'], (int) DB::table('section_change_requests')
         ->where('enrollment_id', $matriculaId)->where('status', 'pending')->value('id'));
 
     return (int) DB::table('enrollments')->where('id', $matriculaId)->value('transferred_to_id');
