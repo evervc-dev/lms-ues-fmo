@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -237,6 +238,27 @@ it('does not let a linear quiz change a previous question', function () {
     Livewire::test(Intento::class, ['intento' => $x['intento']])->call('ir', 1)->set("opciones.{$anterior}", verdaderoDe($anterior))->assertForbidden();
 
     expect(DB::table('attempt_answers')->where('id', $anterior)->value('selected_option_id'))->toBeNull();
+});
+
+it('CP-RF16-08 una a una: el servidor rechaza una pregunta anterior y el componente no deja mover la pregunta actual', function () {
+    $e = escenario();
+    $x = examenEnCurso($e);
+    DbContext::system(fn () => DB::table('quiz_settings')->update(['navigation' => 'linear']));
+    [$primera, $segunda] = $x['respuestas'];
+    $cuestionarios = app(CuestionarioService::class);
+
+    $cuestionarios->guardarRespuesta($e['estudiante'], $x['intento'], $segunda, verdaderoDe($segunda), null);
+
+    expect(fn () => $cuestionarios->guardarRespuesta($e['estudiante'], $x['intento'], $primera, verdaderoDe($primera), null))->toThrow(HttpException::class);
+    expect(fn () => Livewire::test(Intento::class, ['intento' => $x['intento']])->set('actual', 0))->toThrow(CannotUpdateLockedPropertyException::class);
+});
+
+it('CP-RF16-09 solo se califican a mano los ensayos de un intento enviado', function () {
+    $e = escenario();
+    $x = examenEnCurso($e);
+    actingAs($e['docente']);
+
+    expect(fn () => app(CuestionarioService::class)->calificarEnsayo($e['docente'], $x['respuestas'][0], 1))->toThrow(ValidationException::class, 'Solo se califican los ensayos');
 });
 
 it('does not close an expired attempt that just received extra minutes, and counts them from now', function () {

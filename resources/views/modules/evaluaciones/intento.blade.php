@@ -8,12 +8,35 @@
 <div class="flex flex-col gap-5"
     @unless ($terminado)
         wire:poll.30s.keep-alive="guardar"
-        x-data="{ saliendo: false }"
+        {{-- Respaldo local sin conexión (RF16): lo que se responde sin red se guarda en el navegador y se reenvía al
+             volver la conexión o al recargar la página. Si el tiempo ya venció, el servidor no lo acepta (ADR-042). --}}
+        x-data="{
+            saliendo: false,
+            clave: @js('intento-'.$intento->ulid),
+            leer() { try { return JSON.parse(localStorage.getItem(this.clave) || '{}') } catch (e) { return {} } },
+            escribir(datos) { try { Object.keys(datos).length ? localStorage.setItem(this.clave, JSON.stringify(datos)) : localStorage.removeItem(this.clave) } catch (e) {} },
+            respaldar(evento) {
+                const campo = [...evento.target.attributes].find(a => a.name.startsWith('wire:model'))?.value;
+                if (! campo || navigator.onLine) { return }
+                const datos = this.leer();
+                datos[campo] = evento.target.type === 'radio' ? (evento.target.checked ? evento.target.value : datos[campo]) : evento.target.value;
+                this.escribir(datos);
+            },
+            reenviar() {
+                const datos = this.leer();
+                for (const [campo, valor] of Object.entries(datos)) { if ($wire.get(campo) != valor) { $wire.set(campo, valor) } }
+                this.escribir({});
+            },
+        }"
+        x-init="reenviar()"
+        x-on:input="respaldar($event)"
+        x-on:change="respaldar($event)"
+        x-on:online.window="reenviar()"
         x-on:beforeunload.window="if (! saliendo) { $event.preventDefault(); $event.returnValue = '' }"
     @endunless>
     @unless ($terminado)
         <div wire:offline class="rounded-lg bg-amber-50 p-3 text-sm font-medium text-amber-900 ring-1 ring-amber-200" role="alert">
-            {{ __('Sin conexión: no cierre esta página. Sus respuestas se guardarán al reconectar y el tiempo sigue corriendo en el servidor.') }}
+            {{ __('Sin conexión: sus respuestas se guardan en este navegador y se enviarán al reconectar. El tiempo sigue corriendo en el servidor.') }}
         </div>
     @endunless
     <div class="flex items-center justify-between gap-3 rounded-xl bg-white p-3 text-sm ring-1 ring-borde">

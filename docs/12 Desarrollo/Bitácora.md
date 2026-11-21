@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF15–RF35 · Correcciones de cuestionarios, tareas y revisión de la revisión de flujos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** la navegación una a una se valida en el servidor y la pregunta actual queda bloqueada en el componente; solo se califican a mano ensayos de intentos enviados; guardar y terminar exigen `cuestionarios.resolver` y cancelar exige `tareas.entregar`; cancelar una entrega vacía su nota; la revisión grupal vale para todo el equipo; respaldo local sin conexión en el intento.
+- **CP cubiertos:** CP-RF15-09, CP-RF16-08, CP-RF16-09, CP-RF35-10.
+- **Decisiones:** [[ADR-077 La revisión de una tarea grupal vale para todo el equipo]] (pendiente). Cancelar una entrega sigue devolviendo el intento: si contara, quien tiene un solo intento no podría corregir un archivo equivocado.
+- **Pendiente:** —
+
 ### 2026-11-21 · RF17–RF35 · Correcciones de cierre y notas de la revisión de flujos
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

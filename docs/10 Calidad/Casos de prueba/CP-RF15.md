@@ -4,7 +4,7 @@ rf: "[[RF15]]"
 nombre: Gestión de tareas, entregas y retroalimentación
 prioridad: Media-Alta
 nivel: browser + feature
-casos: 8
+casos: 9
 estado: automatizado
 ---
 
@@ -22,5 +22,6 @@ Casos derivados de los criterios de aceptación de [[RF15]]. Nivel: **browser + 
 | CP-RF15-06 | **Dado** una rúbrica, **cuando** el docente escribe los puntos de cada criterio, **entonces** la nota se calcula automáticamente y ningún criterio admite más de su máximo. | pasa |
 | CP-RF15-07 | **Dado** una tarea con **calificación anónima** activada, **cuando** el docente califica, **entonces** ve «Estudiante 1, 2…» en vez de los nombres hasta que publica las notas ([[ADR-032 Ajustes por el documento de roles]]). | pasa |
 | CP-RF15-08 | **Dado** una tarea cerrada, **cuando** el docente da una prórroga de entrega a un estudiante, **entonces** ese estudiante entrega hasta la fecha a tiempo y sin penalización; solo el docente de la sección la da, y no existe para cuestionarios ([[ADR-040 Solicitud de revisión de calificaciones]]). | pasa |
+| CP-RF15-09 | **Dado** una entrega calificada, **cuando** el estudiante la cancela, **entonces** su nota se vacía y la próxima entrega vuelve a la bandeja del docente. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF15-01 …')`.
