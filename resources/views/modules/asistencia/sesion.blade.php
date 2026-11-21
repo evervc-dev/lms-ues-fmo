@@ -3,6 +3,9 @@
     $colores = ['present' => 'verde', 'late' => 'ambar', 'absent' => 'rojo', 'justified' => 'azul'];
     $motivos = \App\Modules\Asistencia\Services\DiagnosticoService::MOTIVOS;
     $abierta = $sesion->status === 'open';
+    // ADR-079: la marca de salida se abre una vez, el mismo día y solo en presencial.
+    $salida = $sesion->exit_opened_at !== null;
+    $puedeAbrirSalida = ! $salida && $sesion->modality === 'in_person' && \Illuminate\Support\Carbon::parse($sesion->session_date)->isToday();
 @endphp
 <div class="flex flex-col gap-5" @if ($abierta) wire:poll.10s @endif>
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
@@ -13,12 +16,15 @@
         :subtitulo="($sesion->modality === 'virtual' ? __('Virtual') : __('Presencial')).' · '.__('vigencia :n min', ['n' => $sesion->qr_validity_minutes])">
         <x-slot:acciones>
             @if ($abierta)
-                <x-ui.badge color="verde">{{ __('Abierta') }}</x-ui.badge>
+                <x-ui.badge color="verde">{{ $salida ? __('Marca de salida abierta') : __('Abierta') }}</x-ui.badge>
                 <span x-data="{ s: {{ $segundos }} }" x-init="setInterval(() => s > 0 && s--, 1000)" class="font-mono text-sm" x-text="`${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`"></span>
                 <x-ui.button variante="secundario" icono="qr-code" :href="route('secciones.asistencia.proyectar', ['seccion' => $resumen['ulid'], 'sesion' => $sesion->ulid])" :navegar="false" target="_blank">{{ __('Proyectar QR') }}</x-ui.button>
-                <x-ui.button variante="peligro" wire:click="cerrar" wire:confirm="{{ __('Quienes no marcaron quedarán ausentes. ¿Cerrar la sesión?') }}">{{ __('Cerrar sesión') }}</x-ui.button>
+                <x-ui.button variante="peligro" wire:click="cerrar" wire:confirm="{{ $salida ? __('Quienes marcaron solo la entrada o solo la salida quedarán con tardanza. ¿Cerrar la marca de salida?') : __('Quienes no marcaron quedarán ausentes. ¿Cerrar la sesión?') }}">{{ $salida ? __('Cerrar salida') : __('Cerrar sesión') }}</x-ui.button>
             @else
                 <x-ui.badge>{{ __('Cerrada') }}</x-ui.badge>
+            @endif
+            @if ($puedeAbrirSalida)
+                <x-ui.button variante="secundario" icono="arrow-right-start-on-rectangle" x-on:click="$dispatch('abrir-modal', 'abrir-salida')">{{ __('Abrir marca de salida') }}</x-ui.button>
             @endif
             <x-ui.button variante="fantasma" x-on:click="$dispatch('abrir-modal', 'cancelar-clase')">{{ __('Solicitar cancelación') }}</x-ui.button>
         </x-slot:acciones>
@@ -34,17 +40,21 @@
     <div class="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <x-ui.card :titulo="__('Estudiantes')">
             <x-ui.table>
-                <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Estado') }}</th><th>{{ __('Método') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
+                <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Estado') }}</th><th>{{ __('Método') }}</th>@if ($salida)<th>{{ __('Salida') }}</th>@endif<th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
                 @foreach ($estudiantes as $e)
                     <tr wire:key="asis-{{ $e->matricula }}">
                         <td>{{ $e->last_name }}, {{ $e->first_name }}<p class="text-xs text-texto-suave">{{ $e->student_code }}</p></td>
                         <td>@if ($e->status)<x-ui.badge :color="$colores[$e->status]">{{ __($estados[$e->status]) }}</x-ui.badge>@else<span class="text-texto-suave">—</span>@endif</td>
                         <td class="text-texto-suave">{{ $e->method ? __($metodos[$e->method] ?? $e->method) : '' }}{{ $e->correction_reason ? ' · '.__('corregido') : '' }}</td>
+                        @if ($salida)
+                            <td class="text-texto-suave">{{ $e->exit_recorded_at ? \Illuminate\Support\Carbon::parse($e->exit_recorded_at)->format('H:i') : '—' }}</td>
+                        @endif
                         <td class="text-right whitespace-nowrap">
                             @if (! $e->status)
                                 <x-ui.button tamano="sm" variante="secundario" wire:click="marcarRapido({{ $e->matricula }}, 'present')">{{ __('Presente') }}</x-ui.button>
                                 @if ($abierta)<x-ui.button tamano="sm" variante="fantasma" wire:click="generarCodigo({{ $e->matricula }})">{{ __('Código') }}</x-ui.button>@endif
                             @else
+                                @if ($abierta && $salida && ! $e->exit_recorded_at)<x-ui.button tamano="sm" variante="fantasma" wire:click="generarCodigo({{ $e->matricula }})">{{ __('Código') }}</x-ui.button>@endif
                                 <x-ui.button tamano="sm" variante="fantasma" wire:click="abrirCorreccion({{ $e->matricula }}, '{{ $e->status }}')">{{ __('Corregir') }}</x-ui.button>
                             @endif
                         </td>
@@ -102,6 +112,20 @@
             </x-ui.card>
         </div>
     </div>
+
+    @if ($puedeAbrirSalida)
+        <x-ui.modal nombre="abrir-salida" :titulo="__('Abrir marca de salida')">
+            <form wire:submit="abrirSalida" id="form-abrir-salida" class="flex flex-col gap-4">
+                <p class="text-sm text-texto-suave">{{ __('Los estudiantes vuelven a escanear el QR al final de la clase. Al cerrar: quien marcó entrada y salida conserva su estado; quien marcó solo una queda con tardanza; quien no marcó ninguna, ausente.') }}</p>
+                @if ($abierta)<x-ui.alert tipo="aviso">{{ __('La marca de entrada sigue abierta: se cerrará primero y quienes no marcaron quedarán ausentes.') }}</x-ui.alert>@endif
+                <x-ui.field :etiqueta="__('Vigencia (5 a 15 min)')" para="minutosSalida" error="minutosSalida"><x-ui.input id="minutosSalida" type="number" min="5" max="15" wire:model="minutosSalida" class="w-28" /></x-ui.field>
+            </form>
+            <x-slot:pie>
+                <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'abrir-salida')">{{ __('Cancelar') }}</x-ui.button>
+                <x-ui.button type="submit" form="form-abrir-salida">{{ __('Abrir salida') }}</x-ui.button>
+            </x-slot:pie>
+        </x-ui.modal>
+    @endif
 
     <x-ui.modal nombre="codigo-temporal" :titulo="__('Código temporal')">
         <div class="flex flex-col items-center gap-3 py-2 text-center" x-data="{ s: 30 }" x-init="setInterval(() => s > 0 && s--, 1000)">

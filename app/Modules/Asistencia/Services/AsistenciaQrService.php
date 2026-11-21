@@ -41,12 +41,18 @@ class AsistenciaQrService
         'invalid_device' => 'Este teléfono no es su dispositivo registrado. Regístrelo en Mi perfil o solicite el cambio a Soporte.',
     ];
 
+    /** Textos de la ventana de salida (ADR-079) que reemplazan a los de la entrada. */
+    public const MENSAJES_SALIDA = [
+        'ok' => 'Salida registrada.',
+        'already_recorded' => 'Ya registró su salida en esta sesión.',
+    ];
+
     public function __construct(private Alcance $alcance, private DispositivoService $dispositivos, private GeocercaService $geocerca) {}
 
     /**
      * QR que proyecta el docente y los datos de la pantalla de proyección (sin nombres de estudiantes).
      *
-     * @return array{sesion: object, abierta: bool, svg: ?string, presentes: int, segundos: int}
+     * @return array{sesion: object, abierta: bool, salida: bool, svg: ?string, presentes: int, segundos: int}
      *
      * @throws AuthorizationException
      */
@@ -57,11 +63,16 @@ class AsistenciaQrService
         $sesion = DB::table('attendance_sessions')->where('section_id', $seccionId)->where('ulid', $ulid)->first() ?? abort(404);
         $abierta = $this->abierta($sesion) && $sesion->modality === 'in_person';
 
+        $salida = $sesion->exit_opened_at !== null;
+
         return [
             'sesion' => $sesion,
             'abierta' => $abierta,
+            'salida' => $salida,
             'svg' => $abierta ? $this->svg($this->contenido($sesion->ulid, $this->emitirToken($sesion))) : null,
-            'presentes' => DB::table('attendance_records')->where('session_id', $sesion->id)->whereIn('status', ['present', 'late'])->count(),
+            // En la ventana de salida se cuentan las salidas marcadas (ADR-079).
+            'presentes' => DB::table('attendance_records')->where('session_id', $sesion->id)
+                ->when($salida, fn ($q) => $q->whereNotNull('exit_recorded_at'), fn ($q) => $q->whereIn('status', ['present', 'late']))->count(),
             'segundos' => $abierta ? max(0, (int) now()->diffInSeconds($this->vence($sesion), false)) : 0,
         ];
     }
@@ -70,6 +81,8 @@ class AsistenciaQrService
      * El estudiante envía el QR leído, su ubicación y los dos tokens de su dispositivo.
      * Valida en el orden del flujo y guarda el intento siempre. `cookie` y `local` traen el token que hay que
      * volver a escribir en el teléfono cuando solo coincidió el otro (ADR-045).
+     *
+     * En la ventana de salida (ADR-079) el mismo escaneo marca la salida.
      *
      * @return array{resultado: string, mensaje: string, intentosRestantes: int, cookie: ?string, local: ?string}
      *
@@ -84,14 +97,18 @@ class AsistenciaQrService
         $maximo = $this->parametro('max_scans_per_student', 3);
         [$distancia, $dentro] = $this->evaluarAreas($sesion, $lat, $lng);
         $dispositivo = $this->dispositivos->validar($estudiante, $tokenCookie, $tokenLocal);
+        $salida = $sesion->exit_opened_at !== null;
 
         // Una sola transacción, serializada por estudiante: los intentos se cuentan bajo el bloqueo, así que
         // varios envíos a la vez no pasan del límite (ADR-028).
-        [$resultado, $usados] = DbContext::run(function () use ($sesion, $estudiante, $token, $maximo, $dentro, $distancia, $precision, $lat, $lng, $dispositivo) {
+        [$resultado, $usados] = DbContext::run(function () use ($sesion, $estudiante, $token, $maximo, $dentro, $distancia, $precision, $lat, $lng, $dispositivo, $salida) {
             DB::table('users')->where('id', $estudiante->id)->lockForUpdate()->first(['id']);
-            // Los intentos aceptados no gastan cupo: tras un «ok», el siguiente escaneo dice «ya registró».
-            $usados = DB::table('attendance_scan_attempts')->where('session_id', $sesion->id)->where('student_id', $estudiante->id)->where('result', '!=', 'ok')->count();
+            // Los intentos aceptados no gastan cupo: tras un «ok», el siguiente escaneo dice «ya registró». Se cuentan
+            // los de la ventana actual: la salida da otros intentos (ADR-079).
+            $usados = DB::table('attendance_scan_attempts')->where('session_id', $sesion->id)->where('student_id', $estudiante->id)->where('result', '!=', 'ok')
+                ->where('occurred_at', '>=', $sesion->opened_at)->count();
             $matricula = DB::table('enrollments')->where('section_id', $sesion->section_id)->where('student_id', $estudiante->id)->where('status', 'active')->value('id');
+            $registro = $matricula === null ? null : DB::table('attendance_records')->where('session_id', $sesion->id)->where('enrollment_id', $matricula)->first(['id', 'exit_recorded_at']);
 
             $resultado = match (true) {
                 $lat === null || $lng === null => 'no_location',
@@ -99,7 +116,7 @@ class AsistenciaQrService
                 ! $this->tokenValido($sesion, $token) => 'token_expired',
                 $usados >= $maximo => 'scan_limit',
                 $matricula === null => 'not_enrolled',
-                DB::table('attendance_records')->where('session_id', $sesion->id)->where('enrollment_id', $matricula)->exists() => 'already_recorded',
+                $registro !== null && (! $salida || $registro->exit_recorded_at !== null) => 'already_recorded',
                 ! $dentro => 'out_of_range',
                 $dispositivo === null => 'invalid_device',
                 default => 'ok',
@@ -108,7 +125,9 @@ class AsistenciaQrService
             if ($resultado === 'ok' && $dispositivo !== null) {
                 try {
                     // En un savepoint: si el registro falla, el intento rechazado igual queda guardado.
-                    DB::transaction(fn () => $this->registrar($sesion, (int) $matricula, $dispositivo, $distancia, $precision));
+                    if (! DB::transaction(fn () => $this->registrar($sesion, (int) $matricula, $dispositivo, $distancia, $precision, $salida))) {
+                        $resultado = 'already_recorded';
+                    }
                 } catch (UniqueConstraintViolationException) {
                     $resultado = 'already_recorded';
                 } catch (QueryException $e) {
@@ -130,7 +149,7 @@ class AsistenciaQrService
 
         return [
             'resultado' => $resultado,
-            'mensaje' => __(self::MENSAJES[$resultado], ['n' => $maximo]),
+            'mensaje' => __(($salida ? self::MENSAJES_SALIDA[$resultado] ?? null : null) ?? self::MENSAJES[$resultado], ['n' => $maximo]),
             'intentosRestantes' => $resultado === 'ok' ? 0 : max(0, $maximo - $usados - 1),
             'cookie' => $resultado === 'ok' && ! $cookieCoincide ? $tokenLocal : null,
             'local' => $resultado === 'ok' && ! $localCoincide ? $tokenCookie : null,
@@ -207,19 +226,27 @@ class AsistenciaQrService
     }
 
     /**
-     * Asistencia aceptada y último uso del dispositivo. Corre dentro de la transacción de marcar().
+     * Asistencia aceptada y último uso del dispositivo. Corre dentro de la transacción de marcar(). En la ventana de
+     * salida marca la salida (ADR-079); devuelve false si ya estaba marcada.
      */
-    private function registrar(object $sesion, int $matricula, StudentDevice $dispositivo, ?int $distancia, ?float $precision): void
+    private function registrar(object $sesion, int $matricula, StudentDevice $dispositivo, ?int $distancia, ?float $precision, bool $salida): bool
     {
-        DB::table('attendance_records')->insert([
-            'session_id' => $sesion->id, 'section_id' => $sesion->section_id, 'enrollment_id' => $matricula,
-            // Sin tardanza con QR (ADR-046): toda marca aceptada es «presente».
-            'status' => 'present', 'method' => 'qr', 'recorded_at' => now(),
-            'distance_m' => $distancia, 'accuracy_m' => $precision === null ? null : (int) round($precision), 'inside_area' => true,
-            'device_id' => $dispositivo->id, 'created_at' => now(), 'updated_at' => now(),
-        ]);
+        $ubicacion = ['distance_m' => $distancia, 'accuracy_m' => $precision === null ? null : (int) round($precision), 'inside_area' => true, 'device_id' => $dispositivo->id];
+        if ($salida) {
+            if (! AsistenciaService::registrarSalida((int) $sesion->id, (int) $sesion->section_id, $matricula, 'qr', $ubicacion)) {
+                return false;
+            }
+        } else {
+            DB::table('attendance_records')->insert([
+                'session_id' => $sesion->id, 'section_id' => $sesion->section_id, 'enrollment_id' => $matricula,
+                // Sin tardanza con QR (ADR-046): toda marca aceptada es «presente».
+                'status' => 'present', 'method' => 'qr', 'recorded_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+            ] + $ubicacion);
+        }
         $dispositivo->update(['last_used_at' => now()]);
         DeviceEvent::create(['device_id' => $dispositivo->id, 'event_type' => 'used', 'occurred_at' => now()]);
+
+        return true;
     }
 
     private function intento(int $sesionId, int $estudianteId, string $resultado, ?int $distancia): void

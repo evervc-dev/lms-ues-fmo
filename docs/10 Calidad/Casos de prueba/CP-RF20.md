@@ -28,6 +28,12 @@ Casos derivados de los criterios de aceptación de [[RF20]]. Nivel: **browser + 
 | CP-RF20-12 | **Dado** un estudiante sin teléfono, **entonces** el docente lo registra con código temporal ([[RF28]]) o de forma manual ([[RF19]]). | pasa |
 | CP-RF20-13 | **Dado** Soporte en el diagnóstico, **cuando** busca por nombre, fija un rango de fechas o un motivo y exporta, **entonces** la búsqueda por nombre solo trae a quien empieza alguna palabra con lo escrito, el rango y el motivo se respetan y el CSV sale sin coordenadas. | pasa |
 | CP-RF20-14 | **Dado** que el estudiante marcó en una materia, **cuando** otra de sus materias tiene sesión abierta, **entonces** el lector sigue disponible. | automatizado |
+| CP-RF20-15 | **Dado** un estudiante que marcó la entrada, **cuando** el docente abre la salida y el estudiante la marca, **entonces** al cerrar queda Presente y se guarda la hora de salida ([[ADR-079 Marca de entrada y salida en clase presencial]]). | automatizado |
+| CP-RF20-16 | **Dado** la marca de salida, **cuando** un estudiante marcó solo la entrada u otro solo la salida, **entonces** al cerrar ambos quedan Tarde. | automatizado |
+| CP-RF20-17 | **Dado** la marca de salida, **cuando** un estudiante no marcó ninguna, **entonces** queda Ausente, y las justificadas y las correcciones del docente no se recalculan. | automatizado |
+| CP-RF20-18 | **Dado** una sesión en la que el docente no abre la salida, **entonces** solo cuenta la entrada. | automatizado |
+| CP-RF20-19 | **Dado** el docente de la sección, **cuando** abre la salida, **entonces** se abre una sola vez, el mismo día y solo en presencial (otro docente o un estudiante reciben 403); la pantalla de la sesión y la proyección la anuncian. | automatizado |
+| CP-RF20-20 | **Dado** la marca de salida, **entonces** el código temporal marca la salida y los intentos del QR se cuentan de nuevo. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF20-01 …')`.
 >

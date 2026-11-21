@@ -235,6 +235,43 @@ class AsistenciaService
     }
 
     /**
+     * Abre la marca de salida de la sesión del día (ADR-079): solo presencial, una vez y el mismo día. Si la entrada
+     * sigue abierta, primero se cierra (quien no marcó queda ausente). La sesión vuelve a abrirse con un QR nuevo y
+     * `opened_at` pasa a ser el inicio de la ventana de salida; el de la entrada queda en la auditoría.
+     *
+     * @throws AuthorizationException
+     * @throws ValidationException
+     */
+    public function abrirSalida(User $docente, int $seccionId, string $ulid, int $minutos): void
+    {
+        $this->exigirEnSeccion($docente, 'asistencia.sesion.abrir', $seccionId);
+        $this->exigirPeriodoActivo($seccionId);
+        if ($minutos < 5 || $minutos > 15) {
+            throw ValidationException::withMessages(['minutosSalida' => __('La marca de salida dura entre 5 y 15 minutos.')]);
+        }
+        $sesion = DB::table('attendance_sessions')->where('section_id', $seccionId)->where('ulid', $ulid)->first() ?? abort(404);
+        if ($sesion->modality !== 'in_person') {
+            throw ValidationException::withMessages(['minutosSalida' => __('La marca de salida es solo para clases presenciales: la asistencia virtual se registra con el reporte de Meet.')]);
+        }
+        if ($sesion->exit_opened_at !== null) {
+            throw ValidationException::withMessages(['minutosSalida' => __('La marca de salida de esta sesión ya se abrió.')]);
+        }
+        if (! Carbon::parse($sesion->session_date)->isToday()) {
+            throw ValidationException::withMessages(['minutosSalida' => __('La marca de salida se abre el mismo día de la clase.')]);
+        }
+
+        DbContext::run(function () use ($sesion, $minutos) {
+            if ($sesion->status === 'open') {
+                $this->registrarCierre($sesion);
+            }
+            DB::table('attendance_sessions')->where('id', $sesion->id)->update(['status' => 'open', 'opened_at' => now(), 'exit_opened_at' => now(),
+                'qr_validity_minutes' => $minutos, 'closed_at' => null, 'updated_at' => now()]);
+        }, 'attendance_session.exit_opened');
+
+        EvaluarAlertasAsistencia::dispatch($seccionId);
+    }
+
+    /**
      * ¿Hoy, a esta hora, cae un bloque del horario de la sección? Cuenta el margen antes del inicio y después del
      * fin. ASIS_BYPASS_WEEKEND quita la restricción para probar, salvo en producción (ADR-075).
      */
@@ -272,7 +309,7 @@ class AsistenciaService
         $estudiantes = DB::table('enrollments as e')->join('users as u', 'u.id', '=', 'e.student_id')->leftJoin('student_profiles as p', 'p.user_id', '=', 'u.id')
             ->leftJoin('attendance_records as r', fn ($j) => $j->on('r.enrollment_id', '=', 'e.id')->where('r.session_id', $sesion->id))
             ->where('e.section_id', $seccionId)->where('e.status', 'active')->orderBy('u.last_name')
-            ->get(['e.id as matricula', 'u.first_name', 'u.last_name', 'p.student_code', 'r.id as registro', 'r.status', 'r.method', 'r.recorded_at', 'r.distance_m', 'r.correction_reason']);
+            ->get(['e.id as matricula', 'u.first_name', 'u.last_name', 'p.student_code', 'r.id as registro', 'r.status', 'r.method', 'r.recorded_at', 'r.exit_recorded_at', 'r.distance_m', 'r.correction_reason']);
 
         return [
             'sesion' => $sesion,
@@ -326,8 +363,13 @@ class AsistenciaService
         if ($sesion->status !== 'open') {
             throw ValidationException::withMessages(['codigo' => __('La sesión ya cerró.')]);
         }
-        if (DB::table('attendance_records')->where('session_id', $sesion->id)->where('enrollment_id', $matriculaId)->exists()) {
+        // En la ventana de salida (ADR-079) el código marca la salida: lo que importa es si ya la marcó.
+        $registro = DB::table('attendance_records')->where('session_id', $sesion->id)->where('enrollment_id', $matriculaId)->first(['id', 'exit_recorded_at']);
+        if ($sesion->exit_opened_at === null && $registro !== null) {
             throw ValidationException::withMessages(['codigo' => __('El estudiante ya tiene registro en esta sesión.')]);
+        }
+        if ($sesion->exit_opened_at !== null && $registro?->exit_recorded_at !== null) {
+            throw ValidationException::withMessages(['codigo' => __('El estudiante ya marcó su salida.')]);
         }
         $codigo = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         DbContext::run(function () use ($sesion, $matriculaId, $codigo, $docente) {
@@ -340,16 +382,18 @@ class AsistenciaService
     }
 
     /**
-     * El estudiante ingresa el código temporal que le dictó el docente.
+     * El estudiante ingresa el código temporal que le dictó el docente. En la ventana de salida marca la salida (ADR-079).
+     *
+     * @return array{materia: string, salida: bool}
      */
-    public function usarCodigo(User $estudiante, string $codigo): string
+    public function usarCodigo(User $estudiante, string $codigo): array
     {
         $this->alcance->exigir($estudiante, 'asistencia.marcar');
         $hash = hash('sha256', trim($codigo));
         $fila = DB::table('temporary_attendance_codes as t')->join('enrollments as e', 'e.id', '=', 't.enrollment_id')
             ->join('attendance_sessions as s', 's.id', '=', 't.session_id')->join('sections', 'sections.id', '=', 's.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
             ->where('e.student_id', $estudiante->id)->where('e.status', 'active')->where('t.code_hash', $hash)->whereNull('t.used_at')
-            ->first(['t.id', 't.expires_at', 't.session_id', 't.enrollment_id', 's.section_id', 's.status', 's.opened_at', 's.late_after_minutes', 'subjects.code']);
+            ->first(['t.id', 't.expires_at', 't.session_id', 't.enrollment_id', 's.section_id', 's.status', 's.opened_at', 's.late_after_minutes', 's.exit_opened_at', 'subjects.code']);
 
         if (! $fila || now()->gt(Carbon::parse($fila->expires_at)) || $fila->status !== 'open') {
             throw ValidationException::withMessages(['codigo' => __('Código inválido o vencido. Pida otro a su docente.')]);
@@ -364,6 +408,12 @@ class AsistenciaService
             if ($usado === 0) {
                 throw ValidationException::withMessages(['codigo' => __('Código inválido o vencido. Pida otro a su docente.')]);
             }
+            if ($fila->exit_opened_at !== null) {
+                $this->registrarSalida((int) $fila->session_id, (int) $fila->section_id, (int) $fila->enrollment_id, 'code')
+                    || throw ValidationException::withMessages(['codigo' => __('Ya marcó su salida en esta sesión.')]);
+
+                return;
+            }
             // Entre emitir y usar el código pudo marcar por QR o el docente a mano: se avisa en vez de chocar con el UNIQUE.
             if (DB::table('attendance_records')->where('session_id', $fila->session_id)->where('enrollment_id', $fila->enrollment_id)->exists()) {
                 throw ValidationException::withMessages(['codigo' => __('Ya tiene registrada la asistencia de esta sesión.')]);
@@ -373,7 +423,7 @@ class AsistenciaService
         }, 'attendance.code_used');
         EvaluarAlertasAsistencia::dispatch((int) $fila->section_id);
 
-        return $fila->code;
+        return ['materia' => (string) $fila->code, 'salida' => $fila->exit_opened_at !== null];
     }
 
     /**
@@ -422,24 +472,52 @@ class AsistenciaService
     {
         return DB::table('attendance_sessions')->where('status', 'open')
             ->when($seccionId, fn ($q) => $q->where('section_id', $seccionId))
-            ->get(['id', 'ulid', 'section_id', 'opened_at', 'qr_validity_minutes'])
+            ->get(['id', 'ulid', 'section_id', 'opened_at', 'qr_validity_minutes', 'exit_opened_at'])
             ->filter(fn (object $s) => now()->gt(Carbon::parse($s->opened_at)->addMinutes((int) $s->qr_validity_minutes)))
             ->values();
     }
 
     /**
-     * Quienes no marcaron quedan ausentes y la sesión pasa a cerrada. Va dentro del DbContext de quien la llama.
+     * Quienes no marcaron quedan ausentes y la sesión pasa a cerrada. Al cerrar la ventana de salida (ADR-079) se
+     * recalcula cada registro: con entrada y salida queda el estado de la entrada; con una sola, tarde; sin ninguna,
+     * ausente. No se tocan las justificadas ni lo que el docente corrigió a mano. Va dentro del DbContext de quien la llama.
      */
     private function registrarCierre(object $sesion): void
     {
         // Con el período ya cerrado no se escriben ausentes (el trigger los rechazaría, AC203): solo se cierra la sesión.
-        $faltan = ! self::periodoActivo((int) $sesion->section_id) ? collect() : DB::table('enrollments')->where('section_id', $sesion->section_id)->where('status', 'active')
+        $activo = self::periodoActivo((int) $sesion->section_id);
+        $faltan = ! $activo ? collect() : DB::table('enrollments')->where('section_id', $sesion->section_id)->where('status', 'active')
             ->whereNotIn('id', DB::table('attendance_records')->where('session_id', $sesion->id)->select('enrollment_id'))->pluck('id');
         foreach ($faltan as $matricula) {
             DB::table('attendance_records')->insert(['session_id' => $sesion->id, 'section_id' => $sesion->section_id, 'enrollment_id' => $matricula, 'status' => 'absent',
                 'method' => 'manual', 'recorded_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
         }
+        if ($activo && $sesion->exit_opened_at !== null) {
+            $sinCorregir = DB::table('attendance_records')->where('session_id', $sesion->id)->whereNull('corrected_by');
+            // Entrada sin salida: tarde. Salida sin entrada (ausente al cerrar la entrada): tarde.
+            (clone $sinCorregir)->where('status', 'present')->whereNull('exit_recorded_at')->update(['status' => 'late', 'updated_at' => now()]);
+            (clone $sinCorregir)->where('status', 'absent')->whereNotNull('exit_recorded_at')->update(['status' => 'late', 'updated_at' => now()]);
+        }
         DB::table('attendance_sessions')->where('id', $sesion->id)->where('status', 'open')->update(['status' => 'closed', 'closed_at' => now(), 'updated_at' => now()]);
+    }
+
+    /**
+     * Marca la salida de un estudiante (ADR-079). Quien no tenía registro lo obtiene como tarde: tiene la salida pero
+     * no la entrada. Devuelve false si ya había marcado la salida. Va dentro del DbContext de quien la llama.
+     *
+     * @param  array<string, mixed>  $extra  Columnas del registro nuevo, como la distancia y el dispositivo del QR.
+     */
+    public static function registrarSalida(int $sesionId, int $seccionId, int $matriculaId, string $metodo, array $extra = []): bool
+    {
+        $registro = DB::table('attendance_records')->where('session_id', $sesionId)->where('enrollment_id', $matriculaId)->first(['id', 'exit_recorded_at']);
+        if ($registro === null) {
+            DB::table('attendance_records')->insert(['session_id' => $sesionId, 'section_id' => $seccionId, 'enrollment_id' => $matriculaId, 'status' => 'late',
+                'method' => $metodo, 'recorded_at' => now(), 'exit_recorded_at' => now(), 'created_at' => now(), 'updated_at' => now()] + $extra);
+
+            return true;
+        }
+
+        return DB::table('attendance_records')->where('id', $registro->id)->whereNull('exit_recorded_at')->update(['exit_recorded_at' => now(), 'updated_at' => now()]) === 1;
     }
 
     /**

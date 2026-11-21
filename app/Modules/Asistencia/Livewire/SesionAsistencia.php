@@ -34,6 +34,9 @@ class SesionAsistencia extends Component
 
     public ?string $codigo = null;
 
+    /** Vigencia de la marca de salida (ADR-079). */
+    public int $minutosSalida = 10;
+
     public string $fechaCancelacion = '';
 
     public string $tipoCancelacion = 'cancellation';
@@ -92,6 +95,17 @@ class SesionAsistencia extends Component
     {
         $asistencia->cerrar(auth()->user(), $this->seccionId(), $this->sesionUlid);
         $this->dispatch('aviso', tipo: 'exito', mensaje: __('Sesión cerrada: quienes no marcaron quedaron ausentes.'));
+    }
+
+    /**
+     * Abre la marca de salida (ADR-079): si la entrada sigue abierta la cierra y muestra un QR nuevo.
+     */
+    public function abrirSalida(AsistenciaService $asistencia): void
+    {
+        $this->validate(['minutosSalida' => 'required|integer|between:5,15'], [], ['minutosSalida' => 'vigencia']);
+        $asistencia->abrirSalida(auth()->user(), $this->seccionId(), $this->sesionUlid, $this->minutosSalida);
+        $this->dispatch('cerrar-modal', 'abrir-salida');
+        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Marca de salida abierta: proyecte el QR para que los estudiantes la marquen.'));
     }
 
     public function revisar(int $justificacion, bool $aceptar, AsistenciaService $asistencia): void

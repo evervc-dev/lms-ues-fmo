@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF20 · Marca de entrada y salida en clase presencial
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** «Abrir marca de salida» en la sesión del día (cierra la entrada si sigue abierta), QR y código temporal que marcan la salida, recálculo al cerrar, columna «Salida» y fase en la proyección y el escáner; columnas `attendance_sessions.exit_opened_at` y `attendance_records.exit_recorded_at`.
+- **CP cubiertos:** CP-RF20-15 a CP-RF20-20.
+- **Decisiones:** [[ADR-079 Marca de entrada y salida en clase presencial]] (pendiente): una sola sesión, el docente abre la salida, dos marcas = estado de la entrada, una = Tarde, ninguna = Ausente; solo presencial.
+- **Pendiente:** correr las pruebas en PostgreSQL 17 (triggers de auditoría sobre las columnas nuevas).
+
 ### 2026-11-21 · — · Vault sincronizado con las correcciones de la revisión de flujos
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

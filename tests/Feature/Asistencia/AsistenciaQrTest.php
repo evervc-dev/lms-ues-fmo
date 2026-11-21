@@ -5,6 +5,7 @@ use App\Modules\Asistencia\Jobs\PurgarTokensQr;
 use App\Modules\Asistencia\Livewire\DiagnosticoAsistencia;
 use App\Modules\Asistencia\Livewire\EscanearQr;
 use App\Modules\Asistencia\Livewire\ProyectarQr;
+use App\Modules\Asistencia\Livewire\SesionAsistencia;
 use App\Modules\Asistencia\Services\AsistenciaQrService;
 use App\Modules\Asistencia\Services\AsistenciaService;
 use App\Modules\Asistencia\Services\DiagnosticoService;
@@ -492,7 +493,7 @@ it('CP-RF20-12 registra con código temporal a un estudiante sin teléfono', fun
     $codigo = app(AsistenciaService::class)->generarCodigo($e['docente'], $e['seccion'], $sesion, $e['matricula']);
     actingAs($e['estudiante']);
 
-    expect(app(AsistenciaService::class)->usarCodigo($e['estudiante'], $codigo))->toBe('PRN115');
+    expect(app(AsistenciaService::class)->usarCodigo($e['estudiante'], $codigo))->toBe(['materia' => 'PRN115', 'salida' => false]);
 
     $registro = DB::table('attendance_records')->where('enrollment_id', $e['matricula'])->sole();
     expect($registro->method)->toBe('code')
@@ -808,4 +809,175 @@ it('con la asistencia ya registrada la pantalla no vuelve a ofrecer el lector ni
         ->assertSee('Su asistencia de esta clase ya quedó registrada.')
         ->assertDontSee('Escanear QR')
         ->assertDontSee('Ingresar código temporal');
+});
+
+/*
+ * Marca de entrada y salida en clase presencial (ADR-079): el docente abre la salida en la misma sesión del día; con
+ * las dos marcas queda el estado de la entrada, con una sola tarde y sin ninguna ausente.
+ */
+
+/**
+ * Compañero matriculado en la sección del escenario, con su propio teléfono.
+ *
+ * @param  array<string, mixed>  $e
+ * @return array{usuario: User, matricula: int, token: string}
+ */
+function companeroConTelefono(array $e, string $token = 'telefono-companero'): array
+{
+    $companero = usuarioCon('estudiante');
+    telefonoActivo($companero, $token);
+    $matricula = DbContext::system(fn () => DB::table('enrollments')->insertGetId(['student_id' => $companero->id, 'section_id' => $e['seccion'], 'period_id' => $e['periodo'],
+        'subject_id' => $e['prn'], 'status' => 'active', 'enrolled_via' => 'key', 'enrolled_by' => $companero->id, 'created_at' => now(), 'updated_at' => now()]));
+
+    return ['usuario' => $companero, 'matricula' => (int) $matricula, 'token' => $token];
+}
+
+/**
+ * @param  array<string, mixed>  $e
+ */
+function abrirSalida(array $e, int $minutos = 10): void
+{
+    actingAs($e['docente']);
+    app(AsistenciaService::class)->abrirSalida($e['docente'], $e['seccion'], $e['sesion'], $minutos);
+}
+
+/**
+ * @param  array<string, mixed>  $e
+ */
+function cerrarSesionQr(array $e): void
+{
+    actingAs($e['docente']);
+    app(AsistenciaService::class)->cerrar($e['docente'], $e['seccion'], $e['sesion']);
+}
+
+function estadoDe(int $matricula): ?string
+{
+    return DB::table('attendance_records')->where('enrollment_id', $matricula)->value('status');
+}
+
+it('CP-RF20-15 con entrada y salida queda presente, y la salida se registra con su hora', function () {
+    $e = escenarioQr();
+    expect(escanear($e, qrProyectado($e))['resultado'])->toBe('ok');
+    $this->travel(90)->minutes();
+
+    abrirSalida($e);
+    $respuesta = escanear($e, qrProyectado($e));
+    cerrarSesionQr($e);
+
+    $registro = DB::table('attendance_records')->where('enrollment_id', $e['matricula'])->sole();
+    expect($respuesta['resultado'])->toBe('ok')
+        ->and($respuesta['mensaje'])->toBe('Salida registrada.')
+        ->and($registro->status)->toBe('present')
+        ->and(Carbon::parse($registro->exit_recorded_at)->format('H:i'))->toBe('09:30')
+        ->and(DB::table('attendance_sessions')->where('ulid', $e['sesion'])->value('status'))->toBe('closed');
+});
+
+it('CP-RF20-16 con una sola marca, de entrada o de salida, queda tarde', function () {
+    $e = escenarioQr();
+    $companero = companeroConTelefono($e);
+    // El estudiante marca solo la entrada; el compañero llega tarde y marca solo la salida.
+    escanear($e, qrProyectado($e));
+    $this->travel(90)->minutes();
+
+    abrirSalida($e);
+    expect(estadoDe($companero['matricula']))->toBe('absent');
+    $salida = escanear(['token' => $companero['token']] + $e, qrProyectado($e), estudiante: $companero['usuario']);
+    cerrarSesionQr($e);
+
+    expect($salida['resultado'])->toBe('ok')
+        ->and(estadoDe($e['matricula']))->toBe('late')
+        ->and(estadoDe($companero['matricula']))->toBe('late');
+});
+
+it('CP-RF20-17 sin ninguna marca queda ausente, y no se tocan las justificadas ni las correcciones del docente', function () {
+    $e = escenarioQr();
+    $corregido = companeroConTelefono($e, 'telefono-corregido');
+    $justificado = companeroConTelefono($e, 'telefono-justificado');
+    $servicio = app(AsistenciaService::class);
+    escanear(['token' => $corregido['token']] + $e, qrProyectado($e), estudiante: $corregido['usuario']);
+    $this->travel(90)->minutes();
+    abrirSalida($e);
+
+    // Durante la salida, el docente corrige a mano a dos estudiantes: esos estados ya no se recalculan.
+    actingAs($e['docente']);
+    $servicio->marcar($e['docente'], $e['seccion'], $e['sesion'], $corregido['matricula'], 'present', 'Salió a una diligencia de la escuela.');
+    $servicio->marcar($e['docente'], $e['seccion'], $e['sesion'], $justificado['matricula'], 'justified', 'Constancia médica presentada en clase.');
+    cerrarSesionQr($e);
+
+    expect(estadoDe($e['matricula']))->toBe('absent')
+        ->and(estadoDe($corregido['matricula']))->toBe('present')
+        ->and(estadoDe($justificado['matricula']))->toBe('justified');
+});
+
+it('CP-RF20-18 si el docente nunca abre la salida, solo cuenta la entrada', function () {
+    $e = escenarioQr();
+    escanear($e, qrProyectado($e));
+    cerrarSesionQr($e);
+
+    $registro = DB::table('attendance_records')->where('enrollment_id', $e['matricula'])->sole();
+    expect($registro->status)->toBe('present')->and($registro->exit_recorded_at)->toBeNull();
+});
+
+it('CP-RF20-19 la salida se abre una sola vez, el mismo día, en presencial y por el docente de la sección', function () {
+    $e = escenarioQr();
+    $servicio = app(AsistenciaService::class);
+
+    // La entrada sigue abierta: se cierra primero y quien no marcó queda ausente.
+    abrirSalida($e);
+    $sesion = DB::table('attendance_sessions')->where('ulid', $e['sesion'])->sole();
+    expect($sesion->status)->toBe('open')->and($sesion->exit_opened_at)->not->toBeNull()->and(estadoDe($e['matricula']))->toBe('absent');
+    expect(fn () => abrirSalida($e))->toThrow(ValidationException::class, 'ya se abrió');
+
+    actingAs($e['estudiante']);
+    expect(fn () => $servicio->abrirSalida($e['estudiante'], $e['seccion'], $e['sesion'], 10))->toThrow(AuthorizationException::class);
+    $ajeno = docenteAjeno($e);
+    actingAs($ajeno);
+    expect(fn () => $servicio->abrirSalida($ajeno, $e['seccion'], $e['sesion'], 10))->toThrow(AuthorizationException::class);
+
+    // Una sesión virtual (por el reporte de Meet) y la de otro día no admiten salida.
+    $virtual = (string) str()->ulid();
+    DbContext::system(fn () => DB::table('attendance_sessions')->insert(['ulid' => $virtual, 'section_id' => $e['seccion'], 'session_date' => now()->subDay()->toDateString(),
+        'modality' => 'virtual', 'status' => 'closed', 'opened_at' => now()->subDay(), 'closed_at' => now()->subDay(), 'opened_by' => $e['docente']->id,
+        'created_at' => now(), 'updated_at' => now()]));
+    actingAs($e['docente']);
+    expect(fn () => $servicio->abrirSalida($e['docente'], $e['seccion'], $virtual, 10))->toThrow(ValidationException::class, 'solo para clases presenciales');
+    DbContext::system(fn () => DB::table('attendance_sessions')->where('ulid', $virtual)->update(['modality' => 'in_person']));
+    expect(fn () => $servicio->abrirSalida($e['docente'], $e['seccion'], $virtual, 10))->toThrow(ValidationException::class, 'mismo día');
+});
+
+it('CP-RF20-20 el código temporal marca la salida y los intentos del QR se cuentan por ventana', function () {
+    $e = escenarioQr();
+    $servicio = app(AsistenciaService::class);
+    // En la entrada gasta sus tres intentos fuera del área.
+    foreach (range(1, 3) as $intento) {
+        escanear($e, qrProyectado($e), QR_LAT + 0.01, QR_LNG);
+    }
+    $this->travel(90)->minutes();
+    abrirSalida($e);
+
+    // En la salida tiene intentos nuevos.
+    expect(escanear($e, qrProyectado($e), QR_LAT + 0.01, QR_LNG)['resultado'])->toBe('out_of_range');
+
+    $codigo = $servicio->generarCodigo($e['docente'], $e['seccion'], $e['sesion'], $e['matricula']);
+    actingAs($e['estudiante']);
+    expect($servicio->usarCodigo($e['estudiante'], $codigo))->toBe(['materia' => 'PRN115', 'salida' => true]);
+    Livewire::test(EscanearQr::class)->assertSee('Salida registrada');
+
+    actingAs($e['docente']);
+    expect(fn () => $servicio->generarCodigo($e['docente'], $e['seccion'], $e['sesion'], $e['matricula']))->toThrow(ValidationException::class, 'ya marcó su salida');
+    cerrarSesionQr($e);
+    expect(estadoDe($e['matricula']))->toBe('late');
+});
+
+it('CP-RF20-19 la pantalla de la sesión ofrece abrir la salida y la proyección la anuncia', function () {
+    $e = escenarioQr();
+    actingAs($e['docente']);
+
+    Livewire::test(SesionAsistencia::class, ['seccion' => $e['ulid'], 'sesion' => $e['sesion']])
+        ->assertSee('Abrir marca de salida')
+        ->set('minutosSalida', 8)->call('abrirSalida')->assertHasNoErrors()
+        ->assertSee('Marca de salida abierta')->assertDontSee('Abrir marca de salida')->assertSee('Salida');
+
+    expect(DB::table('attendance_sessions')->where('ulid', $e['sesion'])->value('qr_validity_minutes'))->toBe(8);
+    Livewire::test(ProyectarQr::class, ['seccion' => $e['ulid'], 'sesion' => $e['sesion']])->assertSee('Marca de salida')->assertSee('Salidas');
 });
