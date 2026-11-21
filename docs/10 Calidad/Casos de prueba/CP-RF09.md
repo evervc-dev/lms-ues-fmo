@@ -4,7 +4,7 @@ rf: "[[RF09]]"
 nombre: Gestión de matrícula en grupos
 prioridad: Media-Alta
 nivel: feature
-casos: 18
+casos: 19
 estado: automatizado
 ---
 
@@ -32,5 +32,6 @@ Casos derivados de los criterios de aceptación de [[RF09]]. Nivel: **feature**.
 | CP-RF09-16 | **Dado** una solicitud de cambio de grupo, **entonces** solo la resuelve el Jefe del departamento; el Coordinador, el Docente y Soporte reciben 403 (ADR-078). | automatizado |
 | CP-RF09-17 | **Dado** un grupo de un período en preparación o cerrado, **cuando** se intenta matricular, **entonces** se rechaza. | automatizado |
 | CP-RF09-18 | **Dado** un estudiante con la cuenta desactivada, **cuando** el personal intenta inscribirlo, **entonces** se rechaza. | automatizado |
+| CP-RF09-19 | **Dado** un período en preparación, **cuando** el Coordinador pone una clave eligiendo ese período, **entonces** la clave queda para ese período y no para el que está en curso. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF09-01 …')`.

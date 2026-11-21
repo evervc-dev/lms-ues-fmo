@@ -3,6 +3,17 @@
     <x-ui.encabezado :titulo="__('Matrícula')" :subtitulo="__('Con la clave, el estudiante elige un grupo teórico con cupo y sin choque de horario. La clave se muestra una sola vez.')" />
     <x-ui.tabs :pestanas="$pestanas" />
 
+    @if ($periodos->count() > 1)
+        {{-- Las claves también se configuran en un período en preparación (Ciclo de vida del período académico). --}}
+        <x-ui.field :etiqueta="__('Período')" para="periodoClaves" class="sm:w-80">
+            <x-ui.select id="periodoClaves" wire:model.live="periodoId">
+                @foreach ($periodos as $p)
+                    <option value="{{ $p->id }}" @selected($p->id === $periodoActual)>{{ $p->name }} · {{ $p->status === 'active' ? __('en curso') : __('en preparación') }}</option>
+                @endforeach
+            </x-ui.select>
+        </x-ui.field>
+    @endif
+
     <x-ui.card :titulo="__('Aplicar a todas')" :descripcion="__('Pone la misma clave en todas las asignaturas de su ámbito, con el vencimiento que indique abajo. Las claves actuales dejan de funcionar.')">
         <form wire:submit="aplicarATodas" wire:confirm="{{ __('Todas las asignaturas de su ámbito tendrán esta clave y las actuales dejarán de funcionar. ¿Continuar?') }}" class="flex flex-wrap items-end gap-3">
             <x-ui.field class="min-w-64 flex-1" :etiqueta="__('Clave para todas las asignaturas')" para="claveComun" error="claveComun" :ayuda="__('De 6 a 40 letras, números o guiones.')" requerido>

@@ -104,6 +104,9 @@ class CargaAcademicaService
         // Crear es del Administrador y del Jefe (secciones.crear, ADR-074); el Coordinador ya no crea grupos.
         $this->alcance->exigir($actor, 'secciones.crear');
         $this->exigirAsignaturaEnAlcance($actor, $asignaturaId, 'secciones.crear');
+        if (! PeriodoService::preparables()->contains('id', $periodoId)) {
+            throw ValidationException::withMessages(['asignaturaId' => __('Solo se crean grupos en el período en curso o en uno en preparación.')]);
+        }
         if ($carreraId !== null) {
             if (! $this->carrerasParaGrupos($actor)->contains('id', $carreraId)) {
                 throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));

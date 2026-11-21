@@ -199,10 +199,11 @@ class MatriculaService
      *
      * @return Collection<int, object>
      */
-    public function claves(User $actor, string $buscar = ''): Collection
+    public function claves(User $actor, string $buscar = '', ?int $periodoId = null): Collection
     {
         $alcance = $this->alcance->exigir($actor, 'matricula.claves.gestionar');
-        $periodo = PeriodoService::activoId();
+        // Las claves se configuran también en un período en preparación (Ciclo de vida del período académico).
+        $periodo = PeriodoService::preparableOActivo($periodoId);
         $buscar = Busqueda::fragmento($buscar);
         $ambito = $alcance === 'D'
             ? DB::table('subjects')->whereIn('department_id', $this->alcance->departamentos($actor))->select('id')
@@ -224,13 +225,13 @@ class MatriculaService
      * Pone (o cambia) la clave de una asignatura: la escrita a mano o una generada. La anterior deja de funcionar.
      * Devuelve la clave en claro una sola vez: se guarda con hash.
      */
-    public function generarClave(User $actor, int $asignaturaId, ?string $vence = null, ?string $clave = null): string
+    public function generarClave(User $actor, int $asignaturaId, ?string $vence = null, ?string $clave = null, ?int $periodoId = null): string
     {
         $this->alcance->exigir($actor, 'matricula.claves.gestionar');
         if (! $this->claves($actor)->contains('id', $asignaturaId)) {
             throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
         }
-        $periodo = (int) PeriodoService::activoId();
+        $periodo = (int) PeriodoService::preparableOActivo($periodoId);
         $clave = $clave !== null && trim($clave) !== ''
             ? trim($clave)
             : DB::table('subjects')->where('id', $asignaturaId)->value('code').'-'.Str::upper(Str::random(5));
@@ -244,7 +245,7 @@ class MatriculaService
      * Pone la misma clave en todas las asignaturas del ámbito (ADR-050). Se calcula un solo hash y se repite por
      * asignatura, así se mantiene una clave activa por asignatura y período. Devuelve cuántas asignaturas cambió.
      */
-    public function aplicarClaveATodas(User $actor, string $clave, ?string $vence = null): int
+    public function aplicarClaveATodas(User $actor, string $clave, ?string $vence = null, ?int $periodoId = null): int
     {
         $this->alcance->exigir($actor, 'matricula.claves.gestionar');
         $clave = trim($clave);
@@ -252,7 +253,7 @@ class MatriculaService
             throw ValidationException::withMessages(['clave' => __('Escriba la clave que se aplicará a todas las asignaturas.')]);
         }
         $asignaturas = $this->claves($actor)->pluck('id')->map(fn ($id) => (int) $id);
-        $periodo = (int) PeriodoService::activoId();
+        $periodo = (int) PeriodoService::preparableOActivo($periodoId);
         $hash = Hash::make($clave);
 
         DbContext::run(function () use ($asignaturas, $periodo, $hash, $vence): void {
@@ -264,13 +265,13 @@ class MatriculaService
         return $asignaturas->count();
     }
 
-    public function desactivarClave(User $actor, int $asignaturaId): void
+    public function desactivarClave(User $actor, int $asignaturaId, ?int $periodoId = null): void
     {
         $this->alcance->exigir($actor, 'matricula.claves.gestionar');
         if (! $this->claves($actor)->contains('id', $asignaturaId)) {
             throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
         }
-        DbContext::run(fn () => DB::table('enrollment_keys')->where('subject_id', $asignaturaId)->where('period_id', PeriodoService::activoId())
+        DbContext::run(fn () => DB::table('enrollment_keys')->where('subject_id', $asignaturaId)->where('period_id', PeriodoService::preparableOActivo($periodoId))
             ->where('is_active', true)->update(['is_active' => false, 'updated_at' => now()]), 'enrollment_key.disabled');
     }
 

@@ -31,6 +31,10 @@ class CargaAcademica extends Component
     #[Url(except: '')]
     public string $estado = '';
 
+    /** Período que se prepara o se trabaja: el que está en curso o uno planificado (Ciclo de vida del período). */
+    #[Url(as: 'periodo')]
+    public ?int $periodoId = null;
+
     public ?int $seccionId = null;
 
     public ?int $departamentoGrupo = null;
@@ -60,7 +64,12 @@ class CargaAcademica extends Component
     #[Computed]
     public function secciones(): Collection
     {
-        return app(CargaAcademicaService::class)->secciones(auth()->user(), PeriodoService::activoId(), ['buscar' => $this->buscar, 'estado' => $this->estado]);
+        return app(CargaAcademicaService::class)->secciones(auth()->user(), $this->periodo(), ['buscar' => $this->buscar, 'estado' => $this->estado]);
+    }
+
+    private function periodo(): ?int
+    {
+        return PeriodoService::preparableOActivo($this->periodoId);
     }
 
     public function abrir(string $modal, ?int $seccion = null): void
@@ -96,7 +105,7 @@ class CargaAcademica extends Component
             'carreraGrupo' => 'required|integer',
             'asignaturaId' => 'required|integer', 'grupo' => 'required|string|max:5', 'cupo' => 'required|integer|min:1|max:200',
         ], [], ['departamentoGrupo' => 'departamento', 'carreraGrupo' => 'carrera', 'asignaturaId' => 'asignatura', 'cupo' => 'cupo']);
-        $carga->crearSeccion(auth()->user(), (int) PeriodoService::activoId(), (int) $this->asignaturaId, $this->grupo, $this->cupo, carreraId: (int) $this->carreraGrupo);
+        $carga->crearSeccion(auth()->user(), (int) $this->periodo(), (int) $this->asignaturaId, $this->grupo, $this->cupo, carreraId: (int) $this->carreraGrupo);
         $this->terminar('nueva-seccion', __('Grupo teórico creado. Agregue su horario y su docente.'));
     }
 
@@ -221,7 +230,9 @@ class CargaAcademica extends Component
         $crea = $actor->checkPermissionTo('secciones.crear');
 
         return $this->pagina('modules.academica.carga-academica', [
-            'periodo' => DB::table('academic_periods')->where('id', PeriodoService::activoId())->value('name'),
+            'periodo' => DB::table('academic_periods')->where('id', $this->periodo())->value('name'),
+            'periodos' => PeriodoService::preparables(),
+            'periodoActual' => $this->periodo(),
             'kpi' => [
                 'secciones' => $secciones->count(),
                 'sinDocente' => $secciones->where('estado', 'sin_docente')->count(),
@@ -236,7 +247,7 @@ class CargaAcademica extends Component
             'departamentosGrupo' => $crea ? $carga->departamentosParaGrupos($actor) : collect(),
             'carrerasGrupo' => $crea ? $this->carrerasDelFormulario($carga) : collect(),
             'asignaturas' => $crea && $this->carreraGrupo ? $carga->asignaturasDeCarrera($actor, (int) $this->carreraGrupo) : collect(),
-            'docentes' => $carga->docentesDisponibles(PeriodoService::activoId()),
+            'docentes' => $carga->docentesDisponibles($this->periodo()),
             'aulas' => DB::table('classrooms')->orderBy('code')->get(['id', 'code', 'capacity']),
             'actual' => $this->seccionId ? $secciones->firstWhere('id', $this->seccionId) : null,
         ]);

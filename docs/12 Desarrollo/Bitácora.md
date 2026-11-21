@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF06–RF08 · Preparación del período siguiente (revisión de flujos)
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** cada etapa de la preparación exige su condición (grupos; horario con aula; docente) y activar la vuelve a comprobar, con candado; la carga académica y las claves eligen el período (en curso o en preparación); no se crean grupos en un período cerrado.
+- **CP cubiertos:** CP-RF06-10, CP-RF06-11, CP-RF08-13, CP-RF09-19.
+- **Decisiones:** los plazos de matrícula siguen sobre el período en curso: dependen de su inicio y tienen un valor por defecto.
+- **Pendiente:** —
+
 ### 2026-11-21 · RF09 · Correcciones de matrícula de la revisión de flujos
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

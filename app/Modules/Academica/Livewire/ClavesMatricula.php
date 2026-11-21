@@ -3,6 +3,7 @@
 namespace App\Modules\Academica\Livewire;
 
 use App\Modules\Academica\Services\MatriculaService;
+use App\Modules\Academica\Services\PeriodoService;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,10 @@ class ClavesMatricula extends Component
     #[Url(except: '')]
     public string $buscar = '';
 
+    /** Período de las claves: el que está en curso o uno en preparación. */
+    #[Url(as: 'periodo')]
+    public ?int $periodoId = null;
+
     public function limpiar(): void
     {
         $this->reset('buscar');
@@ -48,7 +53,7 @@ class ClavesMatricula extends Component
             'vence' => 'nullable|date|after_or_equal:today',
             'claveManual' => ['nullable', 'string', 'min:6', 'max:40', 'regex:/^[A-Za-z0-9-]+$/'],
         ], ['claveManual.regex' => __('La clave solo admite letras, números y guiones.')], ['vence' => 'vencimiento', 'claveManual' => 'clave']);
-        $this->claveNueva = $matricula->generarClave(auth()->user(), $asignatura, $this->vence ?: null, $this->claveManual ?: null);
+        $this->claveNueva = $matricula->generarClave(auth()->user(), $asignatura, $this->vence ?: null, $this->claveManual ?: null, $this->periodoId);
         $this->asignaturaNueva = DB::table('subjects')->where('id', $asignatura)->value('code');
         $this->aplicadas = null;
         $this->reset('claveManual');
@@ -61,7 +66,7 @@ class ClavesMatricula extends Component
             'vence' => 'nullable|date|after_or_equal:today',
             'claveComun' => ['required', 'string', 'min:6', 'max:40', 'regex:/^[A-Za-z0-9-]+$/'],
         ], ['claveComun.regex' => __('La clave solo admite letras, números y guiones.')], ['vence' => 'vencimiento', 'claveComun' => 'clave']);
-        $this->aplicadas = $matricula->aplicarClaveATodas(auth()->user(), $this->claveComun, $this->vence ?: null);
+        $this->aplicadas = $matricula->aplicarClaveATodas(auth()->user(), $this->claveComun, $this->vence ?: null, $this->periodoId);
         $this->claveNueva = trim($this->claveComun);
         $this->asignaturaNueva = null;
         $this->reset('claveComun');
@@ -70,14 +75,16 @@ class ClavesMatricula extends Component
 
     public function desactivar(int $asignatura, MatriculaService $matricula): void
     {
-        $matricula->desactivarClave(auth()->user(), $asignatura);
+        $matricula->desactivarClave(auth()->user(), $asignatura, $this->periodoId);
         $this->dispatch('aviso', tipo: 'exito', mensaje: __('La clave quedó desactivada.'));
     }
 
     public function render(MatriculaService $matricula): View
     {
         return $this->pagina('modules.academica.claves', [
-            'claves' => $matricula->claves(auth()->user(), $this->buscar),
+            'claves' => $matricula->claves(auth()->user(), $this->buscar, $this->periodoId),
+            'periodos' => PeriodoService::preparables(),
+            'periodoActual' => PeriodoService::preparableOActivo($this->periodoId),
             'pestanas' => array_values(array_filter([
                 ['etiqueta' => __('Estudiantes'), 'url' => route('matricula'), 'activa' => false],
                 ['etiqueta' => __('Claves por asignatura'), 'url' => route('matricula.claves'), 'activa' => true],

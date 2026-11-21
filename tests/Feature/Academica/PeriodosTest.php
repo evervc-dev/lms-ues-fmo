@@ -25,10 +25,23 @@ uses(RefreshDatabase::class);
 /** Un período planificado que ya terminó su preparación: listo para activarse. */
 function periodoListo(): int
 {
-    return DbContext::system(fn () => DB::table('academic_periods')->insertGetId([
-        'name' => '2027-I', 'start_date' => '2027-02-01', 'end_date' => '2027-06-30', 'status' => 'planned', 'preparation_stage' => 'ready',
-        'created_at' => now(), 'updated_at' => now(),
-    ]));
+    $docente = usuarioCon('docente');
+
+    // Listo de verdad (Ciclo de vida del período): un grupo teórico con horario, aula y docente.
+    return DbContext::system(function () use ($docente) {
+        $periodo = DB::table('academic_periods')->insertGetId([
+            'name' => '2027-I', 'start_date' => '2027-02-01', 'end_date' => '2027-06-30', 'status' => 'planned', 'preparation_stage' => 'ready',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $grupo = DB::table('sections')->insertGetId(['ulid' => (string) str()->ulid(), 'period_id' => $periodo, 'subject_id' => DB::table('subjects')->value('id'),
+            'code' => '01', 'max_capacity' => 40, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('section_schedules')->insert(['section_id' => $grupo, 'period_id' => $periodo, 'classroom_id' => DB::table('classrooms')->value('id'), 'weekday' => 2,
+            'start_time' => '07:00', 'end_time' => '08:40', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('teaching_assignments')->insert(['section_id' => $grupo, 'teacher_id' => $docente->id, 'is_responsible' => true, 'started_at' => '2027-01-15',
+            'created_at' => now(), 'updated_at' => now()]);
+
+        return $periodo;
+    });
 }
 
 it('CP-RF06-01 activa el período listo cuando no hay otro activo', function () {

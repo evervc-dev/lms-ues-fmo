@@ -5,9 +5,19 @@
 @endphp
 <div class="flex flex-col gap-5 lg:h-full">
     <x-ui.encabezado :titulo="__('Carga académica · Período :p', ['p' => $periodo ?? '—'])" :subtitulo="__('Grupos teóricos, horarios, aulas y docentes. El sistema rechaza los choques de aula y de docente.')">
-        @if ($crea)
-            <x-slot:acciones><x-ui.button icono="plus" wire:click="abrir('nueva-seccion')">{{ __('Nuevo grupo teórico') }}</x-ui.button></x-slot:acciones>
-        @endif
+        <x-slot:acciones>
+            {{-- El siguiente período se prepara mientras otro está en curso (Ciclo de vida del período académico). --}}
+            @if ($periodos->count() > 1)
+                <x-ui.select wire:model.live="periodoId" :aria-label="__('Período')" class="w-auto">
+                    @foreach ($periodos as $p)
+                        <option value="{{ $p->id }}" @selected($p->id === $periodoActual)>{{ $p->name }} · {{ $p->status === 'active' ? __('en curso') : __('en preparación') }}</option>
+                    @endforeach
+                </x-ui.select>
+            @endif
+            @if ($crea)
+                <x-ui.button icono="plus" wire:click="abrir('nueva-seccion')">{{ __('Nuevo grupo teórico') }}</x-ui.button>
+            @endif
+        </x-slot:acciones>
     </x-ui.encabezado>
 
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
