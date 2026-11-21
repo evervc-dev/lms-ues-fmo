@@ -11,12 +11,14 @@ use App\Support\DbContext;
 use Carbon\CarbonInterface;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * Asistencia (RF19, RF22, RF26, RF28, RF32; ADR-028; Flujo Código temporal).
@@ -68,28 +70,33 @@ class AsistenciaService
     public function __construct(private Alcance $alcance, private GeocercaService $geocerca) {}
 
     /**
-     * Expresión SQL del porcentaje de asistencia de un conjunto de registros. Los de un día cancelado no cuentan
-     * (RF32): sin ningún registro que cuente, el porcentaje es NULL.
+     * Expresión SQL del porcentaje de asistencia de un conjunto de registros. Los de un día cancelado (RF32) y las
+     * inasistencias justificadas (ADR-030) no cuentan: ni suman ni son clase dictada. Sin ningún registro que cuente,
+     * el porcentaje es NULL.
      */
     public static function porcentajeSql(string $tabla = 'r'): string
     {
         $cuenta = self::cuentaSql($tabla);
 
-        return "round(100.0 * sum(case when not ({$cuenta}) then 0 when {$tabla}.status in ('present', 'justified') then 1 when {$tabla}.status = 'late' then 0.5 else 0 end)"
-            ." / nullif(sum(case when {$cuenta} then 1 else 0 end), 0), 1)";
+        $valida = "({$cuenta}) and {$tabla}.status <> 'justified'";
+
+        return "round(100.0 * sum(case when not ({$valida}) then 0 when {$tabla}.status = 'present' then 1 when {$tabla}.status = 'late' then 0.5 else 0 end)"
+            ." / nullif(sum(case when {$valida} then 1 else 0 end), 0), 1)";
     }
 
     /**
      * Condición SQL: el registro cuenta para el porcentaje porque su sesión no cae en un día cancelado (RF32), sea
-     * por una cancelación aprobada de la sección, de una carrera de su asignatura o de toda la facultad.
+     * por una cancelación aprobada de la sección, de la carrera del grupo o de toda la facultad. La carrera del grupo es
+     * `sections.career_id` (ADR-074); los grupos anteriores, sin carrera, toman las carreras con su materia en el plan.
      */
     public static function cuentaSql(string $tabla = 'r'): string
     {
         return 'not exists (select 1 from attendance_sessions cs join class_cancellations cc on cc.date = cs.session_date'
             ." where cs.id = {$tabla}.session_id and cc.status = 'approved' and cc.kind = 'cancellation'"
             ." and (cc.scope = 'faculty' or (cc.scope = 'section' and cc.section_id = {$tabla}.section_id)"
-            ." or (cc.scope = 'career' and cc.career_id in (select sp.career_id from sections sx join career_subjects csx on csx.subject_id = sx.subject_id"
-            ." join study_plans sp on sp.id = csx.study_plan_id where sx.id = {$tabla}.section_id))))";
+            ." or (cc.scope = 'career' and cc.career_id in (select sx.career_id from sections sx where sx.id = {$tabla}.section_id and sx.career_id is not null"
+            .' union select sp.career_id from sections sx join career_subjects csx on csx.subject_id = sx.subject_id'
+            ." join study_plans sp on sp.id = csx.study_plan_id where sx.id = {$tabla}.section_id and sx.career_id is null))))";
     }
 
     /**
@@ -141,6 +148,7 @@ class AsistenciaService
     public function miAsistencia(User $estudiante): Collection
     {
         $this->alcance->exigir($estudiante, 'asistencia.marcar');
+        $umbrales = self::umbralesDeAlerta();
 
         return DB::table('enrollments as e')->join('sections', 'sections.id', '=', 'e.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
             ->join('academic_periods as p', 'p.id', '=', 'e.period_id')->where('p.status', 'active')
@@ -149,7 +157,13 @@ class AsistenciaService
                 DB::raw('(select '.self::porcentajeSql().' from attendance_records r where r.enrollment_id = e.id) as porcentaje'),
                 DB::raw('(select count(*) from attendance_records r where r.enrollment_id = e.id and '.self::cuentaSql().') as clases'),
                 DB::raw("(select count(*) from attendance_records r where r.enrollment_id = e.id and r.status = 'absent' and ".self::cuentaSql().') as faltas')])
-            ->each(fn ($m) => $m->nivel = $m->porcentaje === null ? 'sin_datos' : ($m->porcentaje < 75 ? 'critico' : ($m->porcentaje < 78 ? 'riesgo' : ($m->porcentaje < 85 ? 'aviso' : 'bien'))));
+            ->each(fn ($m) => $m->nivel = $m->porcentaje === null ? 'sin_datos' : match (true) {
+                // Los umbrales son los de system_settings (RF22), no valores fijos.
+                $m->porcentaje < $umbrales['attendance_75'] => 'critico',
+                $m->porcentaje < $umbrales['attendance_78'] => 'riesgo',
+                $m->porcentaje < $umbrales['attendance_85'] => 'aviso',
+                default => 'bien',
+            });
     }
 
     /**
@@ -159,6 +173,7 @@ class AsistenciaService
     public function abrir(User $docente, int $seccionId, int $minutos, string $modalidad = 'in_person', ?string $motivo = null): string
     {
         $this->exigirEnSeccion($docente, 'asistencia.sesion.abrir', $seccionId);
+        $this->exigirPeriodoActivo($seccionId);
         if ($minutos < 5 || $minutos > 15) {
             throw ValidationException::withMessages(['minutos' => __('La sesión dura entre 5 y 15 minutos.')]);
         }
@@ -174,6 +189,11 @@ class AsistenciaService
             throw ValidationException::withMessages(['minutos' => __('Ya hay una sesión de asistencia abierta en este grupo teórico.')]);
         }
         $hoy = now()->toDateString();
+        // Una sola sesión por grupo y día (ADR-076): con dos, quien marcó en una quedaba ausente en la otra y la clase
+        // contaba doble. Lo que falte después de cerrar se corrige a mano, con motivo.
+        if (DB::table('attendance_sessions')->where('section_id', $seccionId)->where('session_date', $hoy)->exists()) {
+            throw ValidationException::withMessages(['minutos' => __('Ya se tomó la asistencia de hoy en este grupo teórico. Si falta alguien, corríjalo a mano en la sesión.')]);
+        }
         // RF32: un cambio de modalidad aprobado para hoy fija el método. Virtual se registra con el reporte de Meet
         // (RF21, ADR-003), no con QR; presencial abre el QR con el área, aunque el docente eligiera otra cosa.
         $aprobada = $this->modalidadAprobada($seccionId, $hoy);
@@ -181,9 +201,24 @@ class AsistenciaService
             throw ValidationException::withMessages(['modalidad' => __('Hoy la clase es virtual por un cambio de modalidad aprobado: la asistencia se registra con el reporte de Meet, no con QR.')]);
         }
         $modalidad = $aprobada ?? $modalidad;
+        // La asistencia virtual se registra con el reporte de Meet (RF21, ADR-003): una sesión abierta a mano es presencial.
+        // Antes se podía abrir «Virtual» y luego confirmar el reporte del mismo día, y la clase contaba doble.
+        if ($modalidad === 'virtual') {
+            throw ValidationException::withMessages(['modalidad' => __('La asistencia de una clase virtual se registra con el reporte de Meet, en «Clases virtuales».')]);
+        }
         // Acotada al CHECK de la tabla (5 a 30 s, ADR-028), que en SQLite no existe.
         $rotacion = min(30, max(5, (int) (json_decode((string) DB::table('system_settings')->where('key', 'qr_rotation_seconds_default')->value('value'), true) ?? 10)));
 
+        try {
+            return $this->insertarSesion($docente, $seccionId, $minutos, $modalidad, $hoy, $rotacion, $fueraDeHorario ? $motivo : null);
+        } catch (QueryException) {
+            // Dos clics seguidos: el índice de una sola sesión abierta por grupo rechaza la segunda (ADR-076).
+            throw ValidationException::withMessages(['minutos' => __('Ya hay una sesión de asistencia abierta en este grupo teórico.')]);
+        }
+    }
+
+    private function insertarSesion(User $docente, int $seccionId, int $minutos, string $modalidad, string $hoy, int $rotacion, ?string $motivo): string
+    {
         return DbContext::run(function () use ($docente, $seccionId, $minutos, $modalidad, $hoy, $rotacion) {
             $ulid = (string) Str::ulid();
             DB::table('attendance_sessions')->insert([
@@ -196,7 +231,7 @@ class AsistenciaService
             ]);
 
             return $ulid;
-        }, 'attendance_session.opened', $fueraDeHorario ? __('Fuera de horario: :motivo', ['motivo' => trim((string) $motivo)]) : null);
+        }, 'attendance_session.opened', $motivo !== null ? __('Fuera de horario: :motivo', ['motivo' => trim($motivo)]) : null);
     }
 
     /**
@@ -255,6 +290,7 @@ class AsistenciaService
     public function marcar(User $docente, int $seccionId, string $ulid, int $matriculaId, string $estado, ?string $motivo = null): void
     {
         $this->exigirEnSeccion($docente, 'asistencia.corregir', $seccionId);
+        $this->exigirPeriodoActivo($seccionId);
         if (! array_key_exists($estado, self::ESTADOS)) {
             throw ValidationException::withMessages(['estado' => __('El estado de asistencia no es válido.')]);
         }
@@ -283,7 +319,10 @@ class AsistenciaService
     public function generarCodigo(User $docente, int $seccionId, string $ulid, int $matriculaId): string
     {
         $this->exigirEnSeccion($docente, 'asistencia.codigo-temporal.generar', $seccionId);
+        $this->exigirPeriodoActivo($seccionId);
         $sesion = DB::table('attendance_sessions')->where('section_id', $seccionId)->where('ulid', $ulid)->first() ?? abort(404);
+        // La matrícula tiene que ser de este grupo y estar activa (RF28): no se emite código para otra sección ni para un retirado.
+        DB::table('enrollments')->where('id', $matriculaId)->where('section_id', $seccionId)->where('status', 'active')->exists() || abort(404);
         if ($sesion->status !== 'open') {
             throw ValidationException::withMessages(['codigo' => __('La sesión ya cerró.')]);
         }
@@ -291,9 +330,11 @@ class AsistenciaService
             throw ValidationException::withMessages(['codigo' => __('El estudiante ya tiene registro en esta sesión.')]);
         }
         $codigo = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        DB::table('temporary_attendance_codes')->where('session_id', $sesion->id)->where('enrollment_id', $matriculaId)->whereNull('used_at')->delete();
-        DB::table('temporary_attendance_codes')->insert(['session_id' => $sesion->id, 'enrollment_id' => $matriculaId, 'code_hash' => hash('sha256', $codigo),
-            'expires_at' => now()->addSeconds(30), 'issued_by' => $docente->id, 'created_at' => now()]);
+        DbContext::run(function () use ($sesion, $matriculaId, $codigo, $docente) {
+            DB::table('temporary_attendance_codes')->where('session_id', $sesion->id)->where('enrollment_id', $matriculaId)->whereNull('used_at')->delete();
+            DB::table('temporary_attendance_codes')->insert(['session_id' => $sesion->id, 'enrollment_id' => $matriculaId, 'code_hash' => hash('sha256', $codigo),
+                'expires_at' => now()->addSeconds(30), 'issued_by' => $docente->id, 'created_at' => now()]);
+        }, 'attendance.code_issued');
 
         return $codigo;
     }
@@ -307,11 +348,14 @@ class AsistenciaService
         $hash = hash('sha256', trim($codigo));
         $fila = DB::table('temporary_attendance_codes as t')->join('enrollments as e', 'e.id', '=', 't.enrollment_id')
             ->join('attendance_sessions as s', 's.id', '=', 't.session_id')->join('sections', 'sections.id', '=', 's.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
-            ->where('e.student_id', $estudiante->id)->where('t.code_hash', $hash)->whereNull('t.used_at')
+            ->where('e.student_id', $estudiante->id)->where('e.status', 'active')->where('t.code_hash', $hash)->whereNull('t.used_at')
             ->first(['t.id', 't.expires_at', 't.session_id', 't.enrollment_id', 's.section_id', 's.status', 's.opened_at', 's.late_after_minutes', 'subjects.code']);
 
         if (! $fila || now()->gt(Carbon::parse($fila->expires_at)) || $fila->status !== 'open') {
             throw ValidationException::withMessages(['codigo' => __('Código inválido o vencido. Pida otro a su docente.')]);
+        }
+        if (! self::periodoActivo((int) $fila->section_id)) {
+            throw ValidationException::withMessages(['codigo' => __('El período académico de este grupo no está activo: su asistencia ya no se puede modificar.')]);
         }
         $tarde = now()->gt(Carbon::parse($fila->opened_at)->addMinutes((int) $fila->late_after_minutes));
 
@@ -320,9 +364,14 @@ class AsistenciaService
             if ($usado === 0) {
                 throw ValidationException::withMessages(['codigo' => __('Código inválido o vencido. Pida otro a su docente.')]);
             }
+            // Entre emitir y usar el código pudo marcar por QR o el docente a mano: se avisa en vez de chocar con el UNIQUE.
+            if (DB::table('attendance_records')->where('session_id', $fila->session_id)->where('enrollment_id', $fila->enrollment_id)->exists()) {
+                throw ValidationException::withMessages(['codigo' => __('Ya tiene registrada la asistencia de esta sesión.')]);
+            }
             DB::table('attendance_records')->insert(['session_id' => $fila->session_id, 'section_id' => $fila->section_id, 'enrollment_id' => $fila->enrollment_id,
                 'status' => $tarde ? 'late' : 'present', 'method' => 'code', 'recorded_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
         }, 'attendance.code_used');
+        EvaluarAlertasAsistencia::dispatch((int) $fila->section_id);
 
         return $fila->code;
     }
@@ -349,13 +398,19 @@ class AsistenciaService
      */
     public function cerrarVencidas(): int
     {
-        $vencidas = $this->vencidas();
-        foreach ($vencidas as $sesion) {
-            DbContext::system(fn () => $this->registrarCierre($sesion), 'attendance_session.closed');
+        $cerradas = collect();
+        foreach ($this->vencidas() as $sesion) {
+            // Una sesión que falla no detiene el cierre de las demás: se reporta y se sigue.
+            try {
+                DbContext::system(fn () => $this->registrarCierre($sesion), 'attendance_session.closed');
+                $cerradas->push($sesion);
+            } catch (Throwable $e) {
+                report($e);
+            }
         }
-        $vencidas->pluck('section_id')->unique()->each(fn ($seccion) => EvaluarAlertasAsistencia::dispatch((int) $seccion));
+        $cerradas->pluck('section_id')->unique()->each(fn ($seccion) => EvaluarAlertasAsistencia::dispatch((int) $seccion));
 
-        return $vencidas->count();
+        return $cerradas->count();
     }
 
     /**
@@ -377,7 +432,8 @@ class AsistenciaService
      */
     private function registrarCierre(object $sesion): void
     {
-        $faltan = DB::table('enrollments')->where('section_id', $sesion->section_id)->where('status', 'active')
+        // Con el período ya cerrado no se escriben ausentes (el trigger los rechazaría, AC203): solo se cierra la sesión.
+        $faltan = ! self::periodoActivo((int) $sesion->section_id) ? collect() : DB::table('enrollments')->where('section_id', $sesion->section_id)->where('status', 'active')
             ->whereNotIn('id', DB::table('attendance_records')->where('session_id', $sesion->id)->select('enrollment_id'))->pluck('id');
         foreach ($faltan as $matricula) {
             DB::table('attendance_records')->insert(['session_id' => $sesion->id, 'section_id' => $sesion->section_id, 'enrollment_id' => $matricula, 'status' => 'absent',
@@ -435,6 +491,7 @@ class AsistenciaService
     public function revisarJustificacion(User $docente, int $seccionId, int $justificacionId, bool $aceptar): void
     {
         $this->exigirEnSeccion($docente, 'asistencia.corregir', $seccionId);
+        $this->exigirPeriodoActivo($seccionId);
         $j = DB::table('attendance_justifications as j')->join('attendance_records as r', 'r.id', '=', 'j.record_id')
             ->where('j.id', $justificacionId)->where('r.section_id', $seccionId)->where('j.status', 'pending')->first(['j.id', 'j.record_id', 'j.reason']) ?? abort(404);
 
@@ -456,8 +513,7 @@ class AsistenciaService
      */
     public function modalidadAprobada(int $seccionId, string $fecha): ?string
     {
-        $carreras = DB::table('sections')->join('career_subjects as cs', 'cs.subject_id', '=', 'sections.subject_id')
-            ->join('study_plans as sp', 'sp.id', '=', 'cs.study_plan_id')->where('sections.id', $seccionId)->pluck('sp.career_id');
+        $carreras = self::carrerasDeSeccion($seccionId);
 
         $modalidad = DB::table('class_cancellations')->where('status', 'approved')->where('kind', 'modality_change')->whereDate('date', $fecha)
             ->where(fn ($q) => $q->where('scope', 'faculty')
@@ -474,6 +530,9 @@ class AsistenciaService
     public function solicitarCancelacion(User $docente, int $seccionId, string $fecha, string $tipo, string $motivo, ?string $modalidad = null): void
     {
         $this->exigirEnSeccion($docente, 'clases.solicitar-cancelacion', $seccionId);
+        if ($tipo === 'modality_change' && ! in_array($modalidad, ['virtual', 'in_person'], true)) {
+            throw ValidationException::withMessages(['tipoCancelacion' => __('Indique la nueva modalidad: presencial o virtual.')]);
+        }
         DbContext::run(fn () => DB::table('class_cancellations')->insert(['scope' => 'section', 'section_id' => $seccionId, 'date' => $fecha, 'kind' => $tipo,
             'new_modality' => $tipo === 'modality_change' ? $modalidad : null, 'reason' => $motivo, 'status' => 'requested', 'requested_by' => $docente->id,
             'created_at' => now(), 'updated_at' => now()]), 'class_cancellation.requested', $motivo);
@@ -616,10 +675,25 @@ class AsistenciaService
     {
         return DB::table('sections')->join('academic_periods as p', 'p.id', '=', 'sections.period_id')->where('p.status', 'active')
             ->when($cancelacion->scope === 'section', fn ($q) => $q->where('sections.id', $cancelacion->section_id))
-            ->when($cancelacion->scope === 'career', fn ($q) => $q->whereIn('sections.subject_id', DB::table('career_subjects')
-                ->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
-                ->where('study_plans.career_id', $cancelacion->career_id)->select('career_subjects.subject_id')))
+            ->when($cancelacion->scope === 'career', fn ($q) => $q->whereIn('sections.id', app(Alcance::class)->seccionesDeCarreras([(int) $cancelacion->career_id])))
             ->pluck('sections.id')->map(fn ($id) => (int) $id);
+    }
+
+    /**
+     * Carreras de un grupo: la suya (`sections.career_id`, ADR-074) o, si es anterior y no la tiene, las que llevan
+     * su materia en el plan.
+     *
+     * @return Collection<int, int>
+     */
+    public static function carrerasDeSeccion(int $seccionId): Collection
+    {
+        $propia = DB::table('sections')->where('id', $seccionId)->value('career_id');
+        if ($propia !== null) {
+            return collect([(int) $propia]);
+        }
+
+        return DB::table('sections')->join('career_subjects as cs', 'cs.subject_id', '=', 'sections.subject_id')
+            ->join('study_plans as sp', 'sp.id', '=', 'cs.study_plan_id')->where('sections.id', $seccionId)->pluck('sp.career_id')->map(fn ($id) => (int) $id);
     }
 
     /**
@@ -698,16 +772,36 @@ class AsistenciaService
      */
     private function porcentaje(Collection $registros): ?float
     {
-        // Los registros de un día cancelado (RF32) no cuentan.
-        $registros = $registros->filter(fn ($r) => (bool) $r->cuenta);
+        // Los registros de un día cancelado (RF32) y las justificadas (ADR-030) no cuentan.
+        $registros = $registros->filter(fn ($r) => (bool) $r->cuenta && $r->status !== 'justified');
         if ($registros->isEmpty()) {
             return null;
         }
         $puntos = $registros->sum(fn ($r) => match ($r->status) {
-            'present', 'justified' => 1, 'late' => 0.5, default => 0
+            'present' => 1, 'late' => 0.5, default => 0
         });
 
         return round(100 * $puntos / $registros->count(), 1);
+    }
+
+    /**
+     * ¿El período del grupo está activo? La asistencia solo se escribe entonces: con el período cerrado, el trigger
+     * `fn_block_closed_period` la rechaza (AC203), y en `planned` aún no hay clases.
+     */
+    public static function periodoActivo(int $seccionId): bool
+    {
+        return DB::table('sections')->join('academic_periods as p', 'p.id', '=', 'sections.period_id')
+            ->where('sections.id', $seccionId)->where('p.status', 'active')->exists();
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public static function exigirPeriodoActivo(int $seccionId): void
+    {
+        if (! self::periodoActivo($seccionId)) {
+            throw ValidationException::withMessages(['periodo' => __('El período académico de este grupo no está activo: su asistencia ya no se puede modificar.')]);
+        }
     }
 
     /**

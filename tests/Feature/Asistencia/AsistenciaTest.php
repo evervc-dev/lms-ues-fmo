@@ -178,6 +178,7 @@ it('CP-RF19-03 solo muestra en la sesión las justificaciones de esa sesión, y 
     Livewire::test(AsistenciaSeccion::class, ['seccion' => $e['ulid']])
         ->call('pedirJustificacion', $registro)->set('motivoJustificacion', 'Cita médica en el ISSS.')->call('justificar')->assertHasNoErrors();
 
+    $this->travel(1)->days(); // una sola sesión por grupo y día (ADR-076)
     $segunda = sesionAbierta($e);
     app(AsistenciaService::class)->cerrar($e['docente'], $e['seccion'], $segunda);
 
@@ -197,6 +198,7 @@ it('counts a late arrival as half when computing the percentage', function () {
         $sesion = sesionAbierta($e);
         app(AsistenciaService::class)->marcar($e['docente'], $e['seccion'], $sesion, $e['matricula'], $estado);
         app(AsistenciaService::class)->cerrar($e['docente'], $e['seccion'], $sesion);
+        $this->travel(1)->days(); // una sola sesión por grupo y día (ADR-076)
     }
 
     expect(app(AsistenciaService::class)->miAsistencia($e['estudiante'])->first()->porcentaje)->toEqual(75.0);

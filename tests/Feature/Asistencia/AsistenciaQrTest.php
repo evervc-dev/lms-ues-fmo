@@ -236,6 +236,7 @@ it('CP-RF20-04 abre la sesión con 5 y con 15 minutos y la rotación de system_s
 
     $corta = $servicio->abrir($e['docente'], $e['seccion'], 5);
     $servicio->cerrar($e['docente'], $e['seccion'], $corta);
+    $this->travel(1)->days(); // una sola sesión por grupo y día (ADR-076)
     $larga = $servicio->abrir($e['docente'], $e['seccion'], 15);
 
     $sesiones = DB::table('attendance_sessions')->orderBy('id')->get(['ulid', 'qr_validity_minutes', 'qr_rotation_seconds', 'status']);

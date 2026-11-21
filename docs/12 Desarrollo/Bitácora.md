@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF19–RF32 · Correcciones de asistencia de la revisión de flujos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** las justificadas salen del porcentaje (ADR-030); no se escribe asistencia con el período no activo y el cierre automático no se traba; una sesión por grupo y día; la sesión manual es siempre presencial; el código temporal valida la matrícula; las cancelaciones por carrera usan `sections.career_id`; alertas al marcar por QR o código y umbrales de `system_settings`; cambio de modalidad en los dos sentidos; auditoría de justificaciones; el lector QR no se oculta por otra materia.
+- **CP cubiertos:** CP-RF19-08, CP-RF19-09, CP-RF20-14, CP-RF21-09, CP-RF22-05, CP-RF28-05, CP-RF32-04, CP-RF32-05.
+- **Decisiones:** [[ADR-076 Una sesión de asistencia por grupo y día]] (pendiente).
+- **Pendiente:** marca de entrada y salida en clases presenciales (ADR propia).
+
 ### 2026-11-21 · RF19 · La asistencia se abre en el horario del grupo o con motivo
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

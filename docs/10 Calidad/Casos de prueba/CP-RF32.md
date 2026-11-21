@@ -4,7 +4,7 @@ rf: "[[RF32]]"
 nombre: Clases canceladas y cambios de modalidad
 prioridad: Media
 nivel: feature
-casos: 3
+casos: 5
 estado: automatizado
 ---
 
@@ -17,5 +17,7 @@ Casos derivados de los criterios de aceptación de [[RF32]]. Nivel: **feature**.
 | CP-RF32-01 | **Dado** un día cancelado, **entonces** las sesiones de ese día no cuentan en el porcentaje de asistencia ([[RF22]]) y se notifica a los afectados. | automatizado |
 | CP-RF32-02 | **Dado** un cambio de modalidad, **entonces** la sesión usa el método de asistencia de la nueva modalidad: QR ([[RF20]]) o reporte de Meet ([[RF21]]). | automatizado |
 | CP-RF32-03 | **Dado** cualquier cancelación o cambio, **entonces** queda en la auditoría con su motivo. | automatizado |
+| CP-RF32-04 | **Dado** una cancelación por carrera, **entonces** alcanza a los grupos de esa carrera (`sections.career_id`) y no al grupo de la misma materia abierto para otra carrera. | automatizado |
+| CP-RF32-05 | **Dado** una sesión, **cuando** el docente pide un cambio de modalidad, **entonces** puede pedirlo de presencial a virtual o de virtual a presencial. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF32-01 …')`.

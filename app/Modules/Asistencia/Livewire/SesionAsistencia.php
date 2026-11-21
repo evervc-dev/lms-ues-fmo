@@ -102,9 +102,12 @@ class SesionAsistencia extends Component
 
     public function solicitarCancelacion(AsistenciaService $asistencia): void
     {
-        $this->validate(['fechaCancelacion' => 'required|date|after_or_equal:today', 'tipoCancelacion' => 'required|in:cancellation,modality_change', 'motivoCancelacion' => 'required|string|min:5|max:300'],
+        $this->validate(['fechaCancelacion' => 'required|date|after_or_equal:today', 'tipoCancelacion' => 'required|in:cancellation,virtual,in_person', 'motivoCancelacion' => 'required|string|min:5|max:300'],
             [], ['fechaCancelacion' => 'fecha', 'motivoCancelacion' => 'motivo']);
-        $asistencia->solicitarCancelacion(auth()->user(), $this->seccionId(), $this->fechaCancelacion, $this->tipoCancelacion, $this->motivoCancelacion, 'virtual');
+        // RF32: cancelar, o cambiar de modalidad en los dos sentidos (de presencial a virtual o al revés).
+        $cambio = $this->tipoCancelacion !== 'cancellation';
+        $asistencia->solicitarCancelacion(auth()->user(), $this->seccionId(), $this->fechaCancelacion, $cambio ? 'modality_change' : 'cancellation', $this->motivoCancelacion,
+            $cambio ? $this->tipoCancelacion : null);
         $this->reset('motivoCancelacion');
         $this->dispatch('cerrar-modal', 'cancelar-clase');
         $this->dispatch('aviso', tipo: 'exito', mensaje: __('Solicitud enviada al Coordinador.'));

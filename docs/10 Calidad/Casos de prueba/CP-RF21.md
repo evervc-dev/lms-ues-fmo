@@ -4,7 +4,7 @@ rf: "[[RF21]]"
 nombre: Asistencia virtual y gestión de videoconferencias
 prioridad: Media
 nivel: browser + feature
-casos: 8
+casos: 9
 estado: automatizado
 ---
 
@@ -22,5 +22,6 @@ Casos derivados de los criterios de aceptación de [[RF21]]. Nivel: **browser + 
 | CP-RF21-06 | **Dado** un porcentaje igual o mayor a 70 % de la duración programada, **entonces** queda Presente; si es menor, Ausente. | automatizado |
 | CP-RF21-07 | **Dado** un reporte que ya se subió para esa sesión, **cuando** se sube otro, **entonces** reemplaza al anterior y el cambio queda en la auditoría. | automatizado |
 | CP-RF21-08 | **Dado** un reporte cuya fecha no coincide con la sesión, **entonces** se rechaza con un aviso. La fecha sale del contenido o del nombre del archivo, con un día de tolerancia; si no hay ninguna, se avisa en la vista previa y no se bloquea ([[ADR-070 Fecha del informe de Meet desde el nombre del archivo]]). | automatizado |
+| CP-RF21-09 | **Dado** una clase, **cuando** el docente intenta abrir a mano una sesión virtual, **entonces** se rechaza: la asistencia virtual se registra con el reporte de Meet. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF21-01 …')`.

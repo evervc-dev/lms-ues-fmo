@@ -87,6 +87,7 @@ class AsistenciaSeccion extends Component
             'sesiones' => $esEstudiante ? collect() : $asistencia->sesiones($usuario, $seccion),
             'abre' => $abre,
             'fueraDeHorario' => $abre && ! $asistencia->dentroDelHorario($seccion),
+            'periodoActivo' => AsistenciaService::periodoActivo($seccion),
             'corrige' => $corrige,
             'justificaciones' => $corrige ? $asistencia->justificacionesPendientes($usuario, $seccion) : collect(),
             'modalidadHoy' => $modalidadHoy,

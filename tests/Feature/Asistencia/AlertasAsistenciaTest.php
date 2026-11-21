@@ -160,6 +160,16 @@ it('CP-RF22-05 una inasistencia justificada no cuenta como falta y cierra la ale
     expect(alertasAbiertas($e))->toBe([]);
 });
 
+it('CP-RF22-05 la justificada no entra en el porcentaje: ni suma ni es clase dictada (ADR-030)', function () {
+    $e = escenario();
+    alertasComputo($e);
+    alertasClases($e, ['present', 'absent', 'justified']);
+
+    // 1 de 2 = 50 %; si la justificada contara como presente serían 2 de 3 (66,7 %).
+    expect((float) DB::table('attendance_records as r')->where('r.enrollment_id', $e['matricula'])->selectRaw(AsistenciaService::porcentajeSql().' as p')->value('p'))->toBe(50.0)
+        ->and(app(AsistenciaService::class)->historial($e['estudiante'], $e['seccion'])['porcentaje'])->toBe(50.0);
+});
+
 it('CP-RF22-05 la falta de un día cancelado no cuenta y cierra la alerta', function () {
     $e = escenario();
     alertasComputo($e);

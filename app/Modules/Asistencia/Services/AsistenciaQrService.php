@@ -3,6 +3,7 @@
 namespace App\Modules\Asistencia\Services;
 
 use App\Models\User;
+use App\Modules\Asistencia\Jobs\EvaluarAlertasAsistencia;
 use App\Modules\Identidad\Models\DeviceEvent;
 use App\Modules\Identidad\Models\StudentDevice;
 use App\Modules\Identidad\Services\DispositivoService;
@@ -119,6 +120,10 @@ class AsistenciaQrService
 
             return [$resultado, $usados];
         }, 'attendance.qr');
+        if ($resultado === 'ok') {
+            // El flujo de alertas se dispara con cada registro confirmado; el job se junta por sección (RF22).
+            EvaluarAlertasAsistencia::dispatch((int) $sesion->section_id);
+        }
 
         $cookieCoincide = $dispositivo && filled($tokenCookie) && StudentDevice::hashDe($tokenCookie) === $dispositivo->credential_id;
         $localCoincide = $dispositivo && filled($tokenLocal) && StudentDevice::hashDe($tokenLocal) === $dispositivo->credential_id;
