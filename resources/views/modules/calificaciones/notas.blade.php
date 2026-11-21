@@ -70,7 +70,7 @@
                 <table class="min-w-full text-sm">
                     <thead class="bg-zinc-50 text-xs text-texto-suave">
                         <tr><th rowspan="2" class="sticky left-0 bg-zinc-50 p-2 text-left">{{ __('Estudiante') }}</th>
-                            @foreach ($libro['computos'] as $c)<th colspan="{{ max(1, $c->items->count()) }}" class="border-l border-borde p-2">{{ $c->name }} ({{ rtrim(rtrim(number_format((float) $c->weight_percent, 2, '.', ''), '0'), '.') }}&nbsp;%)</th>@endforeach
+                            @foreach ($libro['computos'] as $c)<th colspan="{{ max(1, $c->items->count()) }}" class="border-l border-borde p-2">{{ $c->name }} <span class="whitespace-nowrap">({{ rtrim(rtrim(number_format((float) $c->weight_percent, 2, '.', ''), '0'), '.') }} %)</span></th>@endforeach
                             <th rowspan="2" class="border-l border-borde p-2" @unless ($libro['cerrado']) title="{{ __('Suma de lo calificado hasta hoy: con el período abierto no es la nota final.') }}" @endunless>{{ $libro['cerrado'] ? __('Final') : __('Acumulada') }}</th></tr>
                         <tr>@foreach ($libro['computos'] as $c)
                                 @forelse ($c->items as $i)
