@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · — · Vault sincronizado con las correcciones de la revisión de flujos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** flujos de matrícula (Soporte inscribe, el Docente no retira, el Jefe resuelve el cambio de grupo), ciclo de vida del período (quién crea grupos y claves; condiciones de etapa), resolución de cuestionario (revisión a los 10 min; respaldo sin conexión) y solicitud de revisión (acta publicada); RF09 y RF19; `.ai/guidelines` y `AGENTS.md`; docblocks de `MatriculaService` e `ImportacionService`.
+- **CP cubiertos:** —
+- **Decisiones:** —
+- **Pendiente:** D2 (grupo de otra carrera y clave por asignatura) y D6 (aceptar las ADR pendientes ya implementadas: 047, 059, 070, 073, 074, 075, 076, 077, 078).
+
 ### 2026-11-21 · RF04 · Carga masiva en cola y con ámbito (revisión de flujos)
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

@@ -27,4 +27,4 @@ flowchart TD
 - Una solicitud por actividad, sin retiro; el Coordinador solo consulta.
 - Cuestionario: la corrección y la solicitud se habilitan 10 minutos después del cierre.
 - El docente puede dar una prórroga del plazo para pedir revisión.
-- Si el acta ya se publicó, la nota solo la corrige el Coordinador ([[RF17]]).
+- Si el acta ya se publicó, no se aceptan solicitudes: para cambiar la nota, el Coordinador devuelve el acta ([[RF34]]); con el período cerrado, solo la corrige el Coordinador, con motivo ([[RF17]]).

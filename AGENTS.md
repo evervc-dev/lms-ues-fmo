@@ -21,11 +21,12 @@ La documentación vive en el vault de Obsidian en `docs/`. Antes de implementar 
 
 - Inicio de sesión **solo con Google `@ues.edu.sv`**, validando `hd` en el servidor; una cuenta institucional que no existe se crea **sin rol** al primer ingreso (ADR-038). Hay una cuenta de emergencia con 2FA (ADR-007).
 - Asistencia QR: sesión de **5 a 15 min** configurable con **token que rota cada 10 s**, máximo 3 intentos, GPS dentro del área y token de dispositivo (ADR-028, ADR-045).
+- Asistencia: una sola sesión por grupo y día (ADR-076); fuera del horario del grupo (±15 min) abrirla exige un motivo auditado (ADR-075). Las justificadas no entran en el porcentaje (ADR-030).
 - Asistencia virtual: el **docente sube el reporte de Meet**; Presente si es ≥ 70 % de la duración programada (ADR-003).
 - Auditoría por **triggers de PostgreSQL**, inmutable. La ve el Administrador (toda) y el Jefe (**solo su departamento**, con RLS) (ADR-027, ADR-029).
 - Entregas tardías configurables por tarea (ADR-008); 4 tipos de pregunta, con ensayo (ADR-009).
 - Notificaciones con Reverb, más polling de respaldo (ADR-010).
-- Matrícula: el estudiante con la **clave de la asignatura** (elige la sección), o el docente, el coordinador y el jefe en su ámbito, y Soporte en cualquier sección. Se valida el choque de horario; **no** los prerrequisitos. La carga masiva la hacen el Coordinador (su carrera) y Soporte (ADR-030, ADR-032, ADR-037).
+- Matrícula: el estudiante con la **clave de la asignatura** (elige la sección), o el docente, el coordinador y el jefe en su ámbito, y Soporte en cualquier sección. Se valida el choque de horario; **no** los prerrequisitos (ADR-078). El cambio de grupo lo resuelve el Jefe del departamento (ADR-078). La carga masiva la hacen el Administrador y Soporte, en la cola `importaciones` (ADR-030, ADR-037, ADR-047).
 - Usuarios (ADR-037, `JerarquiaService`): el Administrador crea y asigna todos los roles y es el único que desactiva. Soporte crea estudiantes, y docentes solo con el permiso directo `usuarios.crear-docente`. El Jefe no crea cuentas: da Docente y Coordinador en su departamento, asigna docentes a sus secciones y cambia el cupo.
 - Cierre: el docente publica el acta, el Coordinador la valida, el Jefe autoriza su departamento y solo entonces el Administrador cierra el período (RF34).
 - Calificación anónima por evaluación (`is_anonymous`); boleta por cómputo y por unidad (ADR-032).

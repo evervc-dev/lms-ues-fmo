@@ -31,22 +31,22 @@ flowchart TD
 ```
 
 ## Matrícula por otros roles
-Según [[ADR-030 Matrícula ampliada]], inscriben o retiran con motivo, dentro de su ámbito:
-- el **Docente**, en sus secciones;
+Según [[ADR-030 Matrícula ampliada]] y la [[Matriz RBAC]] (`matricula.gestionar`), inscriben dentro de su ámbito:
+- el **Docente**, en sus secciones (inscribe, pero **no retira**);
 - el **Coordinador**, en su carrera;
 - el **Jefe**, en su departamento;
-- el **Administrador**, en cualquiera.
+- el **Administrador** y **Soporte Técnico**, en cualquiera ([[ADR-037 Jerarquía de creación y asignación de roles]]).
 
-**Soporte Técnico no matricula**: no tiene privilegios académicos ([[ADR-032 Ajustes por el documento de roles]]).
+El retiro, con motivo, lo hacen todos ellos menos el Docente.
 
-Cada alta, retiro o traslado escribe `enrollment_changes`, un historial inmutable. Las mismas validaciones (cupo, duplicado, choque de horario) aplican a todos. **Los prerrequisitos no se validan.**
+Cada alta, retiro o traslado escribe `enrollment_changes`, un historial inmutable. Las mismas validaciones (período en curso, plazo, cupo, duplicado, choque de horario, plan de la carrera, cuenta activa) aplican a todos. **Los prerrequisitos no se validan** ([[ADR-078 El Jefe resuelve el cambio de grupo y no se validan prerrequisitos]]).
 
 ## Cambio de grupo
 ```mermaid
 sequenceDiagram
   actor E as Estudiante
   participant L as LMS
-  actor C as Coordinador
+  actor C as Jefe de departamento
   E->>L: Solicita el cambio a la sección B con justificación
   L->>L: ¿Dentro de las 3 primeras semanas? ¿B tiene cupo y no choca de horario?
   alt No cumple
@@ -63,6 +63,7 @@ sequenceDiagram
 ## Reglas
 - El cupo se descuenta con bloqueo de fila, para evitar sobrecupos cuando dos estudiantes se inscriben a la vez.
 - El plazo de cambio (**3 semanas**) es configurable por período.
+- La solicitud la resuelve **solo el Jefe del departamento** (`matricula.cambio.resolver`, [[ADR-078 El Jefe resuelve el cambio de grupo y no se validan prerrequisitos]]). Si el estudiante se retira, sus solicitudes pendientes se rechazan, y una solicitud vieja nunca revive una matrícula que ya no está activa.
 - Las entregas y notas del estudiante se conservan al cambiar de grupo: quedan en la matrícula anterior, enlazada a la nueva con `transferred_to_id`, y **la lectura recorre esa cadena** ([[ADR-062 Notas y entregas en un cambio de grupo]]). No se mueve ni se copia ninguna fila.
 - Las notas se heredan **por cómputo**, no por actividad: las actividades son propias de cada sección, y lo comparable entre los dos grupos es el cómputo, que ambos copian de la plantilla del período. En cuanto el docente del grupo nuevo califica ese cómputo, manda el suyo.
 - Las entregas del grupo anterior se ven de **solo lectura**, con su grupo de origen. La **asistencia no se encadena**: cada sección cuenta sus propias sesiones.

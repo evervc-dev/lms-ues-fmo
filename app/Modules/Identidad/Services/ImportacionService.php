@@ -21,8 +21,8 @@ use Throwable;
 /**
  * Carga masiva de usuarios (RF04, Flujo Carga masiva de usuarios). Columnas: carnet, nombres, apellidos,
  * correo, rol, carrera, plan, ciclo. El carné del estudiante sale del correo; la columna carnet es opcional y, si viene, debe
- * coincidir. El Coordinador solo importa estudiantes de su carrera; Soporte, estudiantes
- * de cualquier carrera (ADR-037); el Administrador, cualquier rol. Lee CSV y .xlsx con App\Support\HojaCalculo
+ * coincidir. Importan el Administrador, cualquier rol, y Soporte, estudiantes de cualquier carrera
+ * (`usuarios.importar`, ADR-047). Lee CSV y .xlsx con App\Support\HojaCalculo
  * (ADR-048), y la pantalla ofrece la plantilla ya llena con una carrera y un plan reales.
  *
  * El lote se procesa en la cola `importaciones` (ProcesarImportacionUsuarios): cada fila va en su propia

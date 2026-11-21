@@ -20,11 +20,11 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Matrícula (RF09, RF29, ADR-030, ADR-032, ADR-050; Flujo Matrícula y cambio de grupo).
- * Valida cupo, duplicado, choque de horario, que la asignatura sea del plan de la carrera del estudiante y sus
- * sin validar prerrequisitos (ADR-030, ADR-032; ADR-052 rechazada por ADR-078). Docente (S), Coordinador (C),
- * Jefe (D) y Administrador (G) inscriben; el estudiante elige una materia de su carrera y ciclo y se
- * automatricula con la clave de esa asignatura, que ponen el Coordinador (C) y el Jefe (D).
- * Retirar exige motivo y lo hacen Coordinador, Jefe y Administrador.
+ * Valida período en curso, cupo, duplicado, choque de horario y que la asignatura sea del plan de la carrera del
+ * estudiante; los prerrequisitos no se validan (ADR-030, ADR-032; ADR-052 rechazada por ADR-078). Docente (S),
+ * Coordinador (C), Jefe (D), Administrador (G) y Soporte (G) inscriben; el estudiante elige una materia de su
+ * carrera y ciclo y se automatricula con la clave de esa asignatura, que ponen el Coordinador (C) y el Jefe (D).
+ * Retirar exige motivo y lo hacen todos menos el Docente. El cambio de grupo lo resuelve el Jefe (ADR-078).
  * Toda inscripción nueva respeta la fecha límite del departamento de la carrera del estudiante (ADR-051).
  */
 class MatriculaService
