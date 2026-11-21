@@ -128,13 +128,14 @@ it('CP-RF23-05 ofrece a cada rol solo las preferencias de aviso que le pueden ll
     expect($preferencias($e['estudiante']))->toContain('grade.published')->not->toContain('grade_sheet.published')
         ->and($preferencias($e['docente']))->toContain('grade_sheet.returned')->not->toContain('grade.published')
         ->and($preferencias($e['coordinador']))->toContain('grade_sheet.published')
-        ->and($preferencias($e['soporte']))->toBe(['device_request.pending', 'device_request.resolved'])
-        ->and($preferencias($e['administrador']))->toBe([]);
+        ->and($preferencias($e['soporte']))->toBe(['device_request.pending', 'device_request.resolved', 'users.import_finished'])
+        ->and($preferencias($e['administrador']))->toBe(['users.import_finished'])
+        ->and($preferencias($e['jefe']))->toBe([]);
 
     // H-13 (QA 27/10): la pestaña depende del permiso, no de que haya avisos; sin ellos, la pantalla lo explica.
     actingAs($e['administrador'])->get(route('perfil'))->assertOk()->assertSee(route('perfil.notificaciones'), false);
     actingAs($e['estudiante'])->get(route('perfil'))->assertOk()->assertSee(route('perfil.notificaciones'), false);
-    actingAs($e['administrador'])->get(route('perfil.notificaciones'))->assertOk()->assertSeeText('No hay avisos por correo que configurar');
+    actingAs($e['jefe'])->get(route('perfil.notificaciones'))->assertOk()->assertSeeText('No hay avisos por correo que configurar');
 });
 
 it('no ofrece apagar el correo de un aviso que siempre debe llegar', function () {

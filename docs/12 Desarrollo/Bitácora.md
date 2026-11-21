@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF04 · Carga masiva en cola y con ámbito (revisión de flujos)
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** la carga masiva va en la cola `importaciones` (`ProcesarImportacionUsuarios`), una transacción por fila, conteos al terminar y aviso `users.import_finished` a quien la subió; Docente, Coordinador y Jefe se importan con su ámbito tomado de la columna carrera, por `AsignacionService`.
+- **CP cubiertos:** CP-RF04-24, CP-RF04-25, CP-RF04-26.
+- **Decisiones:** los duplicados siguen contándose entre los errores del lote: separar «omitidos» exige una columna nueva en `import_batches`, que no está en el ER.
+- **Pendiente:** —
+
 ### 2026-11-21 · RF06–RF08 · Preparación del período siguiente (revisión de flujos)
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

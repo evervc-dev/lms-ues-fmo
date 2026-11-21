@@ -20,6 +20,7 @@ use App\Modules\Comunicacion\Listeners\EnviarAvisos;
 use App\Modules\Comunicacion\Listeners\RegistrarEntregas;
 use App\Modules\Evaluaciones\Events\ProrrogaConcedida;
 use App\Modules\Evaluaciones\Events\RevisionCuestionarioPublicada;
+use App\Modules\Identidad\Events\ImportacionTerminada;
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
@@ -42,6 +43,7 @@ class ComunicacionServiceProvider extends ModuloServiceProvider
         Event::listen(NotasPublicadas::class, [EnviarAvisos::class, 'notasPublicadas']);
         Event::listen(ActaPublicada::class, [EnviarAvisos::class, 'actaPublicada']);
         Event::listen(ActaDevuelta::class, [EnviarAvisos::class, 'actaDevuelta']);
+        Event::listen(ImportacionTerminada::class, [EnviarAvisos::class, 'importacionTerminada']);
         Event::listen(RevisionCuestionarioPublicada::class, [EnviarAvisos::class, 'revisionCuestionarioPublicada']);
         Event::listen(RevisionSolicitada::class, [EnviarAvisos::class, 'revisionSolicitada']);
         Event::listen(RevisionResuelta::class, [EnviarAvisos::class, 'revisionResuelta']);
