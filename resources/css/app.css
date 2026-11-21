@@ -76,6 +76,24 @@
     display: none !important;
 }
 
+/*
+ * Ajustes responsive globales. Van en la capa base, así que cualquier utilidad (min-w-*, break-all…) los anula.
+ * - Una palabra larga (correo, enlace, nombre de archivo) se corta en vez de salirse de su caja.
+ * - Una cuadrícula sin columnas declaradas (la del teléfono en `grid sm:grid-cols-3`) usa una sola columna
+ *   que no pasa del ancho disponible: con la columna implícita `auto`, una tabla con desplazamiento
+ *   horizontal estiraba toda la cuadrícula y la página quedaba más ancha que la pantalla. Cualquier
+ *   `grid-cols-*` la reemplaza.
+ */
+@layer base {
+    body {
+        overflow-wrap: break-word;
+    }
+
+    .grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 /* «Seleccionar archivo» con aspecto de botón secundario (<x-ui.button variante="secundario">): sin estilo
    no se leía como algo que se pulsa (QA del rol Administrador, 27/10/2026, Importaciones, figuras 1 y 2). */
 input[type='file']::file-selector-button {

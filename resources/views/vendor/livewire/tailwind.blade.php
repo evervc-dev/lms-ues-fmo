@@ -11,7 +11,7 @@
         <p class="text-texto-suave">
             {{ __('Mostrando :desde–:hasta de :total', ['desde' => $paginator->firstItem(), 'hasta' => $paginator->lastItem(), 'total' => $paginator->total()]) }}
         </p>
-        <div class="flex items-center gap-1">
+        <div class="flex flex-wrap items-center gap-1">
             @if ($paginator->onFirstPage())
                 <span class="rounded-lg px-3 py-1.5 text-texto-desactivado" aria-disabled="true">{{ __('Anterior') }}</span>
             @else

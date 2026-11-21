@@ -36,14 +36,14 @@
     <table class="min-w-full divide-y divide-zinc-200 text-sm">
         @isset($cabecera)
             <thead @class([
-                'bg-zinc-50 text-left text-xs font-semibold uppercase tracking-wide text-zinc-600 [&_th]:px-4 [&_th]:py-3',
+                'bg-zinc-50 text-left text-xs font-semibold uppercase tracking-wide text-zinc-600 [&_th]:px-3 [&_th]:py-3 sm:[&_th]:px-4',
                 // El borde va en cada th: el de la tabla no acompaña a la cabecera fija al desplazarse.
                 'lg:sticky lg:top-0 lg:z-10 lg:[&_th]:border-b lg:[&_th]:border-zinc-200' => $ajustar,
             ])>
                 <tr>{{ $cabecera }}</tr>
             </thead>
         @endisset
-        <tbody class="divide-y divide-zinc-100 text-zinc-800 [&_td]:px-4 [&_td]:py-3">
+        <tbody class="divide-y divide-zinc-100 text-zinc-800 [&_td]:px-3 [&_td]:py-3 sm:[&_td]:px-4">
             {{-- hasActualContent() y no isEmpty(): un @foreach sin elementos deja saltos de línea y sangría,
                  que isEmpty() cuenta como contenido; el aviso de tabla vacía nunca llegaba a salir. --}}
             @if ($vacio && ! $slot->hasActualContent())

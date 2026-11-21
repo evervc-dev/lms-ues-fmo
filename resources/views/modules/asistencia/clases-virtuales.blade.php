@@ -18,11 +18,11 @@
             </x-slot:cabecera>
             @foreach ($clases as $c)
                 <tr wire:key="virtual-{{ $c->id }}">
-                    <td class="max-w-xs">{{ $c->topic }}</td>
+                    <td class="min-w-36 max-w-xs">{{ $c->topic }}</td>
                     <td class="whitespace-nowrap">{{ $fecha($c->starts_at) }}</td>
                     <td class="whitespace-nowrap">{{ __(':n min', ['n' => $c->duration_minutes]) }}</td>
                     <td><x-ui.badge :color="$colorEstado[$c->status] ?? 'gris'">{{ __($estados[$c->status] ?? $c->status) }}</x-ui.badge></td>
-                    <td class="whitespace-nowrap">
+                    <td class="min-w-36">
                         {{-- La clase que ya terminó no invita a entrar a la llamada; queda la grabación (QA 17/11). --}}
                         @php($enCurso = $c->status !== 'finished')
                         <div class="flex flex-col gap-1">
@@ -34,7 +34,7 @@
                             {{-- El enlace a la vista, para copiarlo y compartirlo mientras la clase sigue abierta. --}}
                             @if ($c->meet_url && $enCurso)
                                 <div class="flex items-center gap-1.5 text-xs text-texto-suave" x-data="{ copiado: false }">
-                                    <span class="select-all font-mono">{{ str($c->meet_url)->after('://') }}</span>
+                                    <span class="select-all break-all font-mono">{{ str($c->meet_url)->after('://') }}</span>
                                     <button
                                         type="button"
                                         class="rounded p-1 text-texto-suave hover:bg-zinc-100 hover:text-texto"
@@ -50,19 +50,21 @@
                         </div>
                     </td>
                     @if ($gestiona)
-                        <td class="text-right whitespace-nowrap">
-                            @if ($c->sesion_ulid)
-                                <x-ui.badge color="verde">{{ __(':n presentes', ['n' => $c->presentes]) }}</x-ui.badge>
-                                <x-ui.button tamano="sm" variante="fantasma" :href="route('secciones.asistencia.sesion', ['seccion' => $seccion, 'sesion' => $c->sesion_ulid])">{{ __('Ver sesión') }}</x-ui.button>
-                            @endif
-                            @if ($c->borrador_id)
-                                <x-ui.button tamano="sm" variante="secundario" wire:click="$set('reporteId', {{ $c->borrador_id }})">{{ __('Vista previa') }}</x-ui.button>
-                            @endif
-                            @if ($c->status === 'finished')
-                                <x-ui.button tamano="sm" :variante="$c->sesion_ulid ? 'fantasma' : 'primario'" icono="arrow-up-tray"
-                                    wire:click="$set('claseId', {{ $c->id }})" x-on:click="$dispatch('abrir-modal', 'subir-reporte')">{{ $c->reporte_id ? __('Reemplazar reporte') : __('Subir reporte') }}</x-ui.button>
-                                <x-ui.button tamano="sm" variante="fantasma" x-on:click="$dispatch('abrir-modal', 'grabacion-{{ $c->id }}')">{{ __('Grabación') }}</x-ui.button>
-                            @endif
+                        <td class="min-w-60">
+                            <div class="flex flex-wrap items-center justify-end gap-1">
+                                @if ($c->sesion_ulid)
+                                    <x-ui.badge color="verde">{{ __(':n presentes', ['n' => $c->presentes]) }}</x-ui.badge>
+                                    <x-ui.button tamano="sm" variante="fantasma" :href="route('secciones.asistencia.sesion', ['seccion' => $seccion, 'sesion' => $c->sesion_ulid])">{{ __('Ver sesión') }}</x-ui.button>
+                                @endif
+                                @if ($c->borrador_id)
+                                    <x-ui.button tamano="sm" variante="secundario" wire:click="$set('reporteId', {{ $c->borrador_id }})">{{ __('Vista previa') }}</x-ui.button>
+                                @endif
+                                @if ($c->status === 'finished')
+                                    <x-ui.button tamano="sm" :variante="$c->sesion_ulid ? 'fantasma' : 'primario'" icono="arrow-up-tray"
+                                        wire:click="$set('claseId', {{ $c->id }})" x-on:click="$dispatch('abrir-modal', 'subir-reporte')">{{ $c->reporte_id ? __('Reemplazar reporte') : __('Subir reporte') }}</x-ui.button>
+                                    <x-ui.button tamano="sm" variante="fantasma" x-on:click="$dispatch('abrir-modal', 'grabacion-{{ $c->id }}')">{{ __('Grabación') }}</x-ui.button>
+                                @endif
+                            </div>
                         </td>
                     @endif
                 </tr>
