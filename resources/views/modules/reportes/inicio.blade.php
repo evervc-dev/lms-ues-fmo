@@ -13,7 +13,9 @@
 
     {{-- Con un solo rol no hace falta plegar nada: el bloque va directo y el documento mantiene su
          jerarquía de encabezados (h1 → h2). El acordeón aparece solo cuando hay varios roles. --}}
-    <x-ui.accordion @class(['!bg-transparent !ring-0 [&>div]:mb-4 [&>div]:rounded-xl [&>div]:bg-white [&>div]:ring-1 [&>div]:ring-borde divide-y-0', 'contents' => ! $varios])>
+    {{-- El marco blanco de cada rol va solo con el acordeón: con un rol, `contents` deja el bloque suelto y
+         esas reglas pintaban de blanco la cuadrícula de indicadores (revisión responsive del 21/11/2026). --}}
+    <x-ui.accordion @class(['!bg-transparent !ring-0 divide-y-0', '[&>div]:mb-4 [&>div]:rounded-xl [&>div]:bg-white [&>div]:ring-1 [&>div]:ring-borde' => $varios, 'contents' => ! $varios])>
         @foreach ($bloques as $rol => $b)
             @php($datos = ['rol' => $rol, 'b' => $b, 'fecha' => $fecha, 'alertas' => $alertas])
             @if ($varios)
