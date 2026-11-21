@@ -98,6 +98,7 @@
                                             @php($nota = $f->notas[$i->id] ?? null)
                                             <td class="border-l border-borde p-2 text-center">
                                                 @if ($nota && $corrige && $libro['cerrado'])<button type="button" wire:click="abrirCorreccion({{ $nota->id }})" class="underline decoration-dotted hover:text-marca-700">{{ $fmt($nota->score) }}</button>
+                                                @elseif (! $nota && $corrige && $libro['cerrado'])<button type="button" wire:click="abrirCorreccionFaltante({{ $i->id }}, {{ $f->id }})" class="underline decoration-dotted hover:text-marca-700" title="{{ __('Sin nota: contó 0 al cerrar. Corregir') }}">—</button>
                                                 @else<span @class(['text-texto-suave' => $nota && $nota->status === 'draft'])>{{ $fmt($nota?->score) }}</span>@endif
                                             </td>
                                         @empty<td class="border-l border-borde p-2"></td>@endforelse

@@ -586,7 +586,7 @@ class CuestionarioService
         $mejor = (float) DB::table('quiz_attempts')->where('assessment_id', $intento->assessment_id)->where('enrollment_id', $intento->enrollment_id)->max('score');
         DB::table('grades')->updateOrInsert(['grade_item_id' => $item->id, 'enrollment_id' => $intento->enrollment_id], [
             'section_id' => $item->section_id, 'score' => $mejor, 'score_before_penalty' => $mejor, 'status' => $item->is_published ? 'published' : 'draft',
-            'published_at' => $item->is_published ? now() : null, 'updated_at' => now(), 'created_at' => now()]);
+            'published_at' => CalificacionService::publicadaDesde((int) $item->id, (int) $intento->enrollment_id, (bool) $item->is_published), 'updated_at' => now(), 'created_at' => now()]);
 
         // Siempre corre dentro de un DbContext::run(): el job se despacha al confirmar la transacción (y con él se toma
         // el candado único), y solo si la nota quedó publicada, para reevaluar el riesgo académico de la sección (RF17).

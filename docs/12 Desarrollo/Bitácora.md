@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF17–RF35 · Correcciones de cierre y notas de la revisión de flujos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** devolver un acta anula la autorización de su departamento y `cerrar()` exige todas las actas validadas; el acta no se publica con notas en borrador ni ensayos por calificar; al congelar solo entran notas publicadas; el redondeo sale de `system_settings`; el Coordinador corrige tras el cierre una nota que faltaba; recalificar no reinicia el plazo de revisión.
+- **CP cubiertos:** CP-RF17-14, CP-RF17-15, CP-RF17-16, CP-RF34-11, CP-RF34-12, CP-RF35-09.
+- **Decisiones:** devolver un acta anula la autorización del departamento (en vez de bloquearse), porque ADR-059 conserva las autorizaciones al reabrir. Se mantiene que el acta publicada no frena la nota automática de un cuestionario (CP-RF34-01), aunque la revisión lo marcó como baja.
+- **Pendiente:** —
+
 ### 2026-11-21 · RF19–RF32 · Correcciones de asistencia de la revisión de flujos
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

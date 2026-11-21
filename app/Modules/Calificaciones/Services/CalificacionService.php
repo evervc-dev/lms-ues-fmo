@@ -31,9 +31,33 @@ class CalificacionService
         return (float) (json_decode((string) DB::table('system_settings')->where('key', 'passing_score')->value('value'), true) ?? 6.0);
     }
 
+    /**
+     * Redondea con la regla de `system_settings.grade_rounding` (por defecto 1 decimal, mitad hacia arriba), la misma
+     * que se guarda en `policy_snapshot` al congelar: antes el snapshot declaraba la regla y el cálculo usaba otra fija.
+     */
     public static function redondear(float $nota): float
     {
-        return round($nota, 1, PHP_ROUND_HALF_UP);
+        $regla = (array) (json_decode((string) DB::table('system_settings')->where('key', 'grade_rounding')->value('value'), true) ?? []);
+        $modo = match ($regla['mode'] ?? 'half_up') {
+            'half_even' => PHP_ROUND_HALF_EVEN,
+            'half_down' => PHP_ROUND_HALF_DOWN,
+            default => PHP_ROUND_HALF_UP,
+        };
+
+        return round($nota, (int) ($regla['decimals'] ?? 1), $modo);
+    }
+
+    /**
+     * Fecha de publicación de una nota que se guarda de nuevo: la primera, si ya estaba publicada. Recalificar no
+     * reinicia el plazo de revisión (RF35), que se cuenta desde `published_at`.
+     */
+    public static function publicadaDesde(int $itemId, int $matriculaId, bool $publicada): mixed
+    {
+        if (! $publicada) {
+            return null;
+        }
+
+        return DB::table('grades')->where('grade_item_id', $itemId)->where('enrollment_id', $matriculaId)->value('published_at') ?? now();
     }
 
     /** Tope de saltos al caminar la cadena de traslados: corta una cadena cíclica si los datos vinieran mal. */
@@ -330,7 +354,7 @@ class CalificacionService
         DbContext::run(fn () => DB::table('grades')->updateOrInsert(
             ['grade_item_id' => $itemId, 'enrollment_id' => $matriculaId],
             ['section_id' => $item->section_id, 'score' => $nota, 'score_before_penalty' => $nota, 'comment' => $comentario, 'graded_by' => $docente->id,
-                'status' => $item->is_published ? 'published' : 'draft', 'published_at' => $item->is_published ? now() : null, 'updated_at' => now(), 'created_at' => now()],
+                'status' => $item->is_published ? 'published' : 'draft', 'published_at' => self::publicadaDesde($itemId, $matriculaId, (bool) $item->is_published), 'updated_at' => now(), 'created_at' => now()],
         ), 'grade.saved');
 
         // Sobre una actividad ya publicada la nota queda visible: se reevalúa el riesgo académico de la sección.
@@ -374,19 +398,7 @@ class CalificacionService
     public function corregir(User $coordinador, int $notaId, float $nueva, string $motivo): void
     {
         $nota = DB::table('grades')->where('id', $notaId)->first() ?? abort(404);
-        if ($this->alcance->de($coordinador, 'calificaciones.corregir') !== 'C'
-            || ! $this->alcance->puedeEnSeccion($coordinador, 'calificaciones.corregir', (int) $nota->section_id)) {
-            throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
-        }
-        if ($nueva < 0 || $nueva > 10) {
-            throw ValidationException::withMessages(['nota' => __('La nota debe estar entre 0 y 10.')]);
-        }
-        if (mb_strlen(trim($motivo)) < 5) {
-            throw ValidationException::withMessages(['motivo' => __('Escriba el motivo de la corrección (al menos 5 caracteres).')]);
-        }
-        if (! $this->periodoCerrado((int) $nota->section_id)) {
-            throw ValidationException::withMessages(['nota' => __('El período está abierto: la nota la cambia el docente del grupo teórico.')]);
-        }
+        $this->exigirCorreccionDelCoordinador($coordinador, (int) $nota->section_id, $nueva, $motivo);
         $anterior = (float) $nota->score;
         $motivo = trim($motivo);
 
@@ -399,6 +411,54 @@ class CalificacionService
             NotaCorregida::dispatch($notaId, $anterior, $nueva, $motivo);
         }
         EvaluarRiesgoAcademico::dispatch((int) $nota->section_id);
+    }
+
+    /**
+     * Corrección del Coordinador de una nota que faltaba (RF17): con el período cerrado, la faltante contó 0 y no había
+     * fila que corregir. Crea la nota publicada, con motivo, y recalcula el resultado congelado.
+     *
+     * @throws AuthorizationException
+     * @throws ValidationException
+     */
+    public function corregirFaltante(User $coordinador, int $itemId, int $matriculaId, float $nueva, string $motivo): void
+    {
+        $item = DB::table('grade_items')->where('id', $itemId)->first() ?? abort(404);
+        DB::table('enrollments')->where('id', $matriculaId)->where('section_id', $item->section_id)->exists() || abort(404);
+        if (DB::table('grades')->where('grade_item_id', $itemId)->where('enrollment_id', $matriculaId)->exists()) {
+            throw ValidationException::withMessages(['nota' => __('Esa nota ya existe: corríjala desde su valor.')]);
+        }
+        $this->exigirCorreccionDelCoordinador($coordinador, (int) $item->section_id, $nueva, $motivo);
+
+        DbContext::run(function () use ($item, $matriculaId, $nueva, $coordinador): void {
+            DB::table('grades')->insert(['grade_item_id' => $item->id, 'enrollment_id' => $matriculaId, 'section_id' => $item->section_id, 'score' => $nueva,
+                'score_before_penalty' => $nueva, 'status' => 'published', 'graded_by' => $coordinador->id, 'published_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+            $this->recalcularResultado($matriculaId, (int) $item->section_id);
+        }, 'grade.corrected', trim($motivo), allowClosedPeriod: true);
+
+        EvaluarRiesgoAcademico::dispatch((int) $item->section_id);
+    }
+
+    /**
+     * Las reglas comunes de la corrección del Coordinador: su alcance C, nota de 0 a 10, motivo y período cerrado.
+     *
+     * @throws AuthorizationException
+     * @throws ValidationException
+     */
+    private function exigirCorreccionDelCoordinador(User $coordinador, int $seccionId, float $nueva, string $motivo): void
+    {
+        if ($this->alcance->de($coordinador, 'calificaciones.corregir') !== 'C'
+            || ! $this->alcance->puedeEnSeccion($coordinador, 'calificaciones.corregir', $seccionId)) {
+            throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
+        }
+        if ($nueva < 0 || $nueva > 10) {
+            throw ValidationException::withMessages(['nota' => __('La nota debe estar entre 0 y 10.')]);
+        }
+        if (mb_strlen(trim($motivo)) < 5) {
+            throw ValidationException::withMessages(['motivo' => __('Escriba el motivo de la corrección (al menos 5 caracteres).')]);
+        }
+        if (! $this->periodoCerrado($seccionId)) {
+            throw ValidationException::withMessages(['nota' => __('El período está abierto: la nota la cambia el docente del grupo teórico.')]);
+        }
     }
 
     /**
@@ -439,6 +499,7 @@ class CalificacionService
         if ($acta && in_array($acta->status, ['published', 'validated'], true)) {
             throw ValidationException::withMessages(['acta' => __('El acta ya fue publicada.')]);
         }
+        $this->exigirNotasListas($seccionId);
 
         // Los pesos se verifican dentro de la transacción, con la sección bloqueada como en ComputoService::guardarPesos():
         // una edición de pesos simultánea no deja publicar un acta con pesos que no suman 100 % (sin efecto en SQLite).
@@ -478,7 +539,13 @@ class CalificacionService
 
     public function devolverActa(User $coordinador, int $seccionId, string $motivo): void
     {
-        $this->resolverActa($coordinador, $seccionId, ['status' => 'returned', 'return_reason' => $motivo, 'validated_by' => null, 'validated_at' => null], 'grade_sheet.returned', $motivo, ['published', 'validated']);
+        // Devolver un acta deja al departamento sin todas sus actas validadas: su autorización de cierre se anula y el
+        // Jefe vuelve a autorizar cuando el acta se valide de nuevo. Antes se podía cerrar con el acta devuelta (RF34).
+        $anularAutorizacion = function () use ($seccionId): void {
+            $grupo = DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')->where('sections.id', $seccionId)->first(['sections.period_id', 'subjects.department_id']);
+            DB::table('department_closures')->where('period_id', $grupo->period_id)->where('department_id', $grupo->department_id)->delete();
+        };
+        $this->resolverActa($coordinador, $seccionId, ['status' => 'returned', 'return_reason' => $motivo, 'validated_by' => null, 'validated_at' => null], 'grade_sheet.returned', $motivo, ['published', 'validated'], $anularAutorizacion);
 
         ActaDevuelta::dispatch($seccionId, $motivo);
     }
@@ -565,7 +632,9 @@ class CalificacionService
                 'components' => $computos->map(fn ($c) => ['number' => (int) $c->number, 'name' => $c->name, 'weight_percent' => (float) $c->weight_percent])->values()->all(),
             ];
             $politica = json_encode($base, JSON_UNESCAPED_UNICODE);
-            $notas = DB::table('grades')->whereIn('enrollment_id', $deLaSeccion->pluck('id'))->get(['enrollment_id', 'grade_item_id', 'score'])->groupBy('enrollment_id');
+            // Solo las notas publicadas entran al resultado oficial: el estudiante pudo verlas y pedir revisión (RF35).
+            $notas = DB::table('grades')->whereIn('enrollment_id', $deLaSeccion->pluck('id'))->where('status', 'published')
+                ->get(['enrollment_id', 'grade_item_id', 'score'])->groupBy('enrollment_id');
             $cadenas = $this->cadenasDeSeccion($deLaSeccion->pluck('id'));
 
             foreach ($deLaSeccion as $matricula) {
@@ -702,7 +771,7 @@ class CalificacionService
      * @param  array<string, mixed>  $cambios
      * @param  array<int, string>  $estadosPermitidos  estados desde los que se puede resolver el acta
      */
-    private function resolverActa(User $coordinador, int $seccionId, array $cambios, string $evento, ?string $motivo = null, array $estadosPermitidos = ['published']): void
+    private function resolverActa(User $coordinador, int $seccionId, array $cambios, string $evento, ?string $motivo = null, array $estadosPermitidos = ['published'], ?callable $ademas = null): void
     {
         abort_unless($this->alcance->puedeEnSeccion($coordinador, 'actas.validar', $seccionId), 403);
         $estado = DB::table('grade_sheets')->where('section_id', $seccionId)->value('status');
@@ -712,7 +781,12 @@ class CalificacionService
         if ($estado === 'validated' && $this->periodoCerrado($seccionId)) {
             throw ValidationException::withMessages(['acta' => __('El período está cerrado: use la corrección del Coordinador.')]);
         }
-        DbContext::run(fn () => DB::table('grade_sheets')->where('section_id', $seccionId)->update($cambios + ['updated_at' => now()]), $evento, $motivo);
+        DbContext::run(function () use ($seccionId, $cambios, $ademas): void {
+            DB::table('grade_sheets')->where('section_id', $seccionId)->update($cambios + ['updated_at' => now()]);
+            if ($ademas !== null) {
+                $ademas();
+            }
+        }, $evento, $motivo);
     }
 
     /**
@@ -724,6 +798,26 @@ class CalificacionService
     {
         if ($this->actaBloqueada($seccionId)) {
             throw ValidationException::withMessages(['acta' => __('El acta está publicada: pida al Coordinador que la devuelva para cambiar notas.')]);
+        }
+    }
+
+    /**
+     * El acta solo se publica con todo lo calificado a la vista del estudiante (RF34, RF16): sin notas en borrador,
+     * que entraban al resultado oficial sin que él las viera, ni ensayos por calificar, que contaban 0 sin aviso.
+     *
+     * @throws ValidationException
+     */
+    private function exigirNotasListas(int $seccionId): void
+    {
+        $activas = DB::table('enrollments')->where('section_id', $seccionId)->where('status', 'active')->select('id');
+        $borradores = DB::table('grades')->where('section_id', $seccionId)->where('status', 'draft')->whereIn('enrollment_id', $activas)->count();
+        if ($borradores > 0) {
+            throw ValidationException::withMessages(['acta' => trans_choice('{1} Hay 1 nota sin publicar: publíquela antes de publicar el acta.|[2,*] Hay :count notas sin publicar: publíquelas antes de publicar el acta.', $borradores)]);
+        }
+        $ensayos = DB::table('quiz_attempts as q')->join('assessments as a', 'a.id', '=', 'q.assessment_id')
+            ->where('a.section_id', $seccionId)->where('q.status', 'pending_grading')->whereIn('q.enrollment_id', $activas)->count();
+        if ($ensayos > 0) {
+            throw ValidationException::withMessages(['acta' => trans_choice('{1} Hay 1 intento con ensayos por calificar: califíquelo antes de publicar el acta.|[2,*] Hay :count intentos con ensayos por calificar: califíquelos antes de publicar el acta.', $ensayos)]);
         }
     }
 

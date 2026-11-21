@@ -430,7 +430,8 @@ class ActividadService
             foreach ($matriculas as $matricula) {
                 DB::table('grades')->updateOrInsert(['grade_item_id' => $tarea->item_id, 'enrollment_id' => $matricula], [
                     'section_id' => $entrega->section_id, 'score' => $final, 'score_before_penalty' => $nota, 'comment' => $comentario, 'graded_by' => $docente->id,
-                    'status' => $tarea->is_published ? 'published' : 'draft', 'published_at' => $tarea->is_published ? now() : null, 'updated_at' => now(), 'created_at' => now()]);
+                    'status' => $tarea->is_published ? 'published' : 'draft', 'published_at' => CalificacionService::publicadaDesde((int) $tarea->item_id, (int) $matricula, (bool) $tarea->is_published),
+                    'updated_at' => now(), 'created_at' => now()]);
             }
         }, 'submission.graded');
 
@@ -464,7 +465,8 @@ class ActividadService
 
         DbContext::run(fn () => DB::table('grades')->updateOrInsert(['grade_item_id' => $tarea->item_id, 'enrollment_id' => $matriculaId], [
             'section_id' => $entrega->section_id, 'score' => $final, 'score_before_penalty' => $nota, 'comment' => trim($motivo), 'graded_by' => $docente->id,
-            'status' => $tarea->is_published ? 'published' : 'draft', 'published_at' => $tarea->is_published ? now() : null, 'updated_at' => now(), 'created_at' => now()]),
+            'status' => $tarea->is_published ? 'published' : 'draft', 'published_at' => CalificacionService::publicadaDesde((int) $tarea->item_id, $matriculaId, (bool) $tarea->is_published),
+            'updated_at' => now(), 'created_at' => now()]),
             'grade.member_adjusted', trim($motivo));
 
         if ($tarea->is_published) {

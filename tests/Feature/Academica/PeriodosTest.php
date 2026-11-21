@@ -66,6 +66,10 @@ function reaperturaCerrar(array $e): void
                 'authorized_at' => now(), 'created_at' => now(), 'updated_at' => now(),
             ]);
         }
+        // cerrar() exige además todas las actas validadas (RF34).
+        foreach (DB::table('sections')->where('period_id', $e['periodo'])->pluck('id') as $seccion) {
+            DB::table('grade_sheets')->updateOrInsert(['section_id' => $seccion], ['status' => 'validated', 'created_at' => now(), 'updated_at' => now()]);
+        }
     });
     actingAs($e['administrador']);
     app(PeriodoService::class)->cerrar($e['administrador'], $e['periodo']);

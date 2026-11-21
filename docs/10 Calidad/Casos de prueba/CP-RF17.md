@@ -4,7 +4,7 @@ rf: "[[RF17]]"
 nombre: Gestión de calificaciones y progreso académico
 prioridad: Alta
 nivel: feature
-casos: 12
+casos: 15
 estado: automatizado
 ---
 
@@ -27,5 +27,8 @@ Casos derivados de los criterios de aceptación de [[RF17]]. Nivel: **feature**.
 | CP-RF17-11 | **Dado** el cierre del período, **entonces** las notas pasan por el acta de la sección ([[RF34]]). | automatizado |
 | CP-RF17-12 | **Dado** el libro de calificaciones, **cuando** se exporta, **entonces** sale en Excel, PDF y CSV, con una columna por actividad y la nota final; el estudiante matriculado recibe 403 ([[ADR-049 Exportación a Excel y PDF]]). | pasa |
 | CP-RF17-13 | **Dado** el período abierto y un cómputo sin ninguna nota publicada, **cuando** el estudiante ve su boleta, **entonces** ese cómputo sale «Pendiente» y no entra en la nota acumulada; al cerrar, cuenta como 0. | automatizado |
+| CP-RF17-14 | **Dado** notas en borrador, **cuando** se cierra el período, **entonces** solo entran al resultado oficial las notas publicadas. | automatizado |
+| CP-RF17-15 | **Dado** un período cerrado y una nota que faltaba, **cuando** el Coordinador la corrige con motivo, **entonces** se crea publicada y se recalcula el resultado congelado. | automatizado |
+| CP-RF17-16 | **Dado** `grade_rounding` en `system_settings`, **entonces** la nota final se redondea con esa regla, la misma que guarda `policy_snapshot`. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF17-01 …')`.

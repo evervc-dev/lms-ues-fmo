@@ -227,6 +227,15 @@ class PeriodoService
             if ($pendientes->isNotEmpty()) {
                 throw ValidationException::withMessages(['cierre' => __('Faltan departamentos por autorizar: :lista.', ['lista' => $pendientes->implode(', ')])]);
             }
+            // Además de las autorizaciones, cada acta del período debe estar validada (RF34): una autorización no
+            // garantiza que después no se haya devuelto un acta.
+            $sinValidar = DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
+                ->leftJoin('grade_sheets as g', 'g.section_id', '=', 'sections.id')
+                ->where('sections.period_id', $periodoId)->where(fn ($q) => $q->whereNull('g.status')->orWhere('g.status', '!=', 'validated'))
+                ->orderBy('subjects.code')->get(['subjects.code', 'sections.code as grupo'])->map(fn ($s) => $s->code.'-'.$s->grupo);
+            if ($sinValidar->isNotEmpty()) {
+                throw ValidationException::withMessages(['cierre' => __('Hay actas sin validar: :lista.', ['lista' => $sinValidar->implode(', ')])]);
+            }
 
             $congelados = $this->calificaciones->congelarResultados($periodoId);
             DB::table('academic_periods')->where('id', $periodoId)->update(['status' => 'closed', 'updated_at' => now()]);
