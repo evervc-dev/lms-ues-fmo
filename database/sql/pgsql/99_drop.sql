@@ -10,6 +10,7 @@ DROP TRIGGER IF EXISTS grade_review_items_audit ON grade_review_items;
 DROP TRIGGER IF EXISTS assessment_extensions_audit ON assessment_extensions;
 DROP TRIGGER IF EXISTS quiz_attempts_audit ON quiz_attempts;
 DROP TRIGGER IF EXISTS class_cancellations_audit ON class_cancellations;
+DROP TRIGGER IF EXISTS attendance_sessions_audit ON attendance_sessions;
 DROP TRIGGER IF EXISTS video_sessions_audit ON video_sessions;
 DROP TRIGGER IF EXISTS meet_reports_audit ON meet_reports;
 DROP TRIGGER IF EXISTS enrollment_deadlines_audit ON enrollment_deadlines;

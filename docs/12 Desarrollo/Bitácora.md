@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF19 · La asistencia se abre en el horario del grupo o con motivo
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** fuera del horario del grupo (±15 min) abrir la asistencia exige un motivo, que queda en la auditoría; trigger de auditoría en `attendance_sessions`; variable `ASIS_BYPASS_WEEKEND` para probar fuera de horario.
+- **CP cubiertos:** CP-RF19-05, CP-RF19-06, CP-RF19-07 (este solo en PostgreSQL, sin correr todavía).
+- **Decisiones:** [[ADR-075 La asistencia se abre en el horario del grupo o con motivo]] (pendiente).
+- **Pendiente:** correr CP-RF19-07 en PostgreSQL 17.
+
 ### 2026-11-18 · RF08 · El Jefe crea grupos teóricos; «sección» pasa a «grupo teórico»
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** sin OP# · commit directo a `test`

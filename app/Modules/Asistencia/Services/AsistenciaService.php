@@ -8,6 +8,7 @@ use App\Modules\Asistencia\Events\ClaseCancelada;
 use App\Modules\Asistencia\Jobs\EvaluarAlertasAsistencia;
 use App\Support\Alcance;
 use App\Support\DbContext;
+use Carbon\CarbonInterface;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\UploadedFile;
@@ -151,11 +152,19 @@ class AsistenciaService
             ->each(fn ($m) => $m->nivel = $m->porcentaje === null ? 'sin_datos' : ($m->porcentaje < 75 ? 'critico' : ($m->porcentaje < 78 ? 'riesgo' : ($m->porcentaje < 85 ? 'aviso' : 'bien'))));
     }
 
-    public function abrir(User $docente, int $seccionId, int $minutos, string $modalidad = 'in_person'): string
+    /**
+     * Abre la sesión de asistencia de hoy. Fuera del horario de la sección (con su margen) exige un motivo, como
+     * «Clase adelantada» o «Reposición», que queda en la auditoría (RF19, ADR-075).
+     */
+    public function abrir(User $docente, int $seccionId, int $minutos, string $modalidad = 'in_person', ?string $motivo = null): string
     {
         $this->exigirEnSeccion($docente, 'asistencia.sesion.abrir', $seccionId);
         if ($minutos < 5 || $minutos > 15) {
             throw ValidationException::withMessages(['minutos' => __('La sesión dura entre 5 y 15 minutos.')]);
+        }
+        $fueraDeHorario = ! $this->dentroDelHorario($seccionId);
+        if ($fueraDeHorario && blank($motivo)) {
+            throw ValidationException::withMessages(['motivoFueraHorario' => __('Está fuera del horario del grupo teórico: indique el motivo para abrir la asistencia.')]);
         }
         // Una sesión olvidada de otro día no debe impedir abrir la de hoy: se cierra antes de comprobar.
         foreach ($this->vencidas($seccionId) as $vencida) {
@@ -187,7 +196,28 @@ class AsistenciaService
             ]);
 
             return $ulid;
-        }, 'attendance_session.opened');
+        }, 'attendance_session.opened', $fueraDeHorario ? __('Fuera de horario: :motivo', ['motivo' => trim((string) $motivo)]) : null);
+    }
+
+    /**
+     * ¿Hoy, a esta hora, cae un bloque del horario de la sección? Cuenta el margen antes del inicio y después del
+     * fin. ASIS_BYPASS_WEEKEND quita la restricción para probar, salvo en producción (ADR-075).
+     */
+    public function dentroDelHorario(int $seccionId, ?CarbonInterface $momento = null): bool
+    {
+        if (config('lms.asistencia.bypass_horario') && ! app()->isProduction()) {
+            return true;
+        }
+        $momento ??= now();
+        $margen = (int) config('lms.asistencia.margen_horario_minutos', 15);
+        $fecha = $momento->toDateString();
+
+        return DB::table('section_schedules')->where('section_id', $seccionId)->where('weekday', $momento->isoWeekday())
+            ->get(['start_time', 'end_time'])
+            ->contains(fn (object $bloque) => $momento->between(
+                Carbon::parse($fecha.' '.$bloque->start_time)->subMinutes($margen),
+                Carbon::parse($fecha.' '.$bloque->end_time)->addMinutes($margen),
+            ));
     }
 
     /**
