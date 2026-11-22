@@ -37,7 +37,8 @@ class AuditoriaService
             return __('Cambio directo en la base de datos');
         }
 
-        return self::diccionario('eventos')[$tipo] ?? $tipo;
+        // Sin traducción, no solo el nombre técnico (QA admin 21/11): se dice que es otro cambio y se deja el nombre para rastrearlo.
+        return self::diccionario('eventos')[$tipo] ?? __('Otro cambio del sistema (:e)', ['e' => $tipo]);
     }
 
     /** La tabla que cambió, en palabras. */

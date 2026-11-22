@@ -8,23 +8,26 @@
     </x-ui.encabezado>
 
     <x-ui.card ajustar>
-        <div class="mb-4 grid gap-3 md:grid-cols-5">
-            <x-ui.search class="md:col-span-2" wire:model.live.debounce.300ms="buscar" :placeholder="__('Buscar por usuario o evento…')" />
-            <x-ui.select wire:model.live="entidad" :aria-label="__('Entidad')">
-                <option value="">{{ __('Todas las entidades') }}</option>
-                @foreach ($entidades as $opcion)
-                    <option value="{{ $opcion }}">{{ $opcion }}</option>
-                @endforeach
-            </x-ui.select>
-            <x-ui.select wire:model.live="accion" :aria-label="__('Acción')">
-                <option value="">{{ __('Todas las acciones') }}</option>
-                @foreach ($acciones as $valor => $etiqueta)
-                    <option value="{{ $valor }}">{{ $etiqueta }}</option>
-                @endforeach
-            </x-ui.select>
-            <div class="grid grid-cols-2 gap-2">
-                <x-ui.input type="date" wire:model.live="desde" :aria-label="__('Desde')" />
-                <x-ui.input type="date" wire:model.live="hasta" :aria-label="__('Hasta')" />
+        {{-- QA admin 21/11: en cinco columnas los filtros se cortaban («Todas las entidac», «dd/m»); ahora van en dos filas. --}}
+        <div class="mb-4 flex flex-col gap-3">
+            <div class="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(12rem,1fr)_minmax(12rem,1fr)]">
+                <x-ui.search wire:model.live.debounce.300ms="buscar" :placeholder="__('Buscar por usuario o evento…')" />
+                <x-ui.select wire:model.live="entidad" :aria-label="__('Entidad')">
+                    <option value="">{{ __('Todas las entidades') }}</option>
+                    @foreach ($entidades as $opcion)
+                        <option value="{{ $opcion }}">{{ \App\Modules\Auditoria\Services\AuditoriaService::entidad($opcion) }}</option>
+                    @endforeach
+                </x-ui.select>
+                <x-ui.select wire:model.live="accion" :aria-label="__('Acción')">
+                    <option value="">{{ __('Todas las acciones') }}</option>
+                    @foreach ($acciones as $valor => $etiqueta)
+                        <option value="{{ $valor }}">{{ $etiqueta }}</option>
+                    @endforeach
+                </x-ui.select>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 text-sm text-texto-suave">
+                <label class="flex items-center gap-2">{{ __('Desde') }} <x-ui.input class="w-40 min-w-40" type="date" wire:model.live="desde" /></label>
+                <label class="flex items-center gap-2">{{ __('Hasta') }} <x-ui.input class="w-40 min-w-40" type="date" wire:model.live="hasta" /></label>
             </div>
         </div>
 
