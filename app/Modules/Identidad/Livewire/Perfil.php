@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Modules\Identidad\Services\DispositivoService;
 use App\Modules\Identidad\Services\PerfilService;
 use App\Support\Navegacion\PaginaLivewire;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -107,7 +109,12 @@ class Perfil extends Component
             'datos' => $this->pestana === 'datos' ? $perfil->datos($usuario) : null,
             'preferencias' => $preferencias,
             'sesiones' => $this->pestana === 'sesiones' ? $perfil->sesiones($usuario) : null,
-            'dispositivo' => $this->pestana === 'dispositivo' ? $perfil->dispositivo($usuario) : null,
+            'dispositivo' => $dispositivo = ($this->pestana === 'dispositivo' ? $perfil->dispositivo($usuario) : null),
+            // En una computadora no se registra el teléfono: se muestra un QR que abre esta pantalla en el celular
+            // (revisión UX del rol Estudiante: ya llegó a Soporte una solicitud de quien lo registró «desde la compu»).
+            'qrTelefono' => $dispositivo && ! $dispositivo['activo']
+                ? (new QRCode(new QROptions(['outputBase64' => false, 'svgAddXmlHeader' => false, 'eccLevel' => 'M'])))->render(route('perfil.dispositivo'))
+                : null,
         ], titulo: __('Mi perfil'));
     }
 }

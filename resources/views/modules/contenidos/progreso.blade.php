@@ -6,7 +6,7 @@
         :descripcion="__('Porcentaje de materiales completados en cada unidad. Un material se completa a mano, con «Ya lo leí», o solo al cumplirse su regla.')">
         @if ($unidades->isEmpty())
             <x-ui.empty-state icono="chart-bar" :titulo="__('Aún no hay unidades')">
-                {{ __('Cree la primera unidad con sus materiales para seguir el avance.') }}
+                {{ $gestiona ? __('Cree la primera unidad con sus materiales para seguir el avance.') : __('Su docente todavía no organiza el curso por unidades.') }}
             </x-ui.empty-state>
         @else
             <x-ui.table :vacio="__('Aún no hay estudiantes matriculados en el grupo teórico.')">

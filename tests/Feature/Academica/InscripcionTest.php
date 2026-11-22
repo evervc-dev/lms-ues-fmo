@@ -141,7 +141,7 @@ it('CP-RF29-08 lista solo las asignaturas de la carrera del estudiante y de la p
         ->and($materias['BDD115']->inscrito)->toBeFalse();
 
     Livewire::test(Inscripcion::class)
-        ->assertSee(['Inscripción de materias', 'Ciclo II', 'BDD115', 'SIS415', 'Inscripción no habilitada'])
+        ->assertSee(['Inscripción de materias', 'Período 2026-II', 'BDD115', 'SIS415', 'Inscripción no habilitada'])
         ->assertDontSee(['PRN115', 'ANS315', 'FIS215']);
 });
 
@@ -365,4 +365,36 @@ it('CP-RF29-08 la lista se agrupa por el ciclo del plan y se busca por código o
         // Sin tildes y por un trozo del nombre, como en el catálogo (H-10 de la QA del 27/10).
         ->set('buscar', 'programacion')->assertSee('Programación Avanzada')->assertDontSee('MAT225')
         ->set('buscar', 'zzz')->assertSee('Ninguna materia coincide con su búsqueda');
+});
+
+it('CP-RF29-03 acepta la clave sin importar mayúsculas ni espacios', function () {
+    $e = escenario();
+    $bdd = inscripcionMateria($e, 'BDD115');
+    $clave = inscripcionClave($e['coordinador'], $bdd['asignatura'], 'isi-bdd 2026');
+    actingAs($e['estudiante']);
+
+    expect($clave)->toBe('ISI-BDD2026');
+    inscripcion()->automatricular($e['estudiante'], $bdd['asignatura'], '  isi-bdd2026 ', $bdd['seccion']);
+
+    expect(DB::table('enrollments')->where('student_id', $e['estudiante']->id)->where('section_id', $bdd['seccion'])->exists())->toBeTrue();
+});
+
+it('CP-RF29-08 nombra el período, pone primero las materias con grupo abierto y filtra «Solo con grupos abiertos»', function () {
+    $e = escenario();
+    inscripcionMateria($e, 'BDD115');
+    $sinGrupo = DbContext::system(function () use ($e) {
+        $id = DB::table('subjects')->insertGetId(['code' => 'ANS115', 'name' => 'Materia sin grupo', 'credits' => 4, 'department_id' => $e['dia'], 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('career_subjects')->insert(['study_plan_id' => $e['plan'], 'subject_id' => $id, 'cycle' => 2]);
+
+        return $id;
+    });
+    actingAs($e['estudiante']);
+
+    Livewire::test(Inscripcion::class)
+        ->assertSeeText('Período 2026-II')
+        ->assertSeeInOrder(['BDD115', 'ANS115'])
+        ->set('soloConGrupos', true)
+        ->assertSeeText('BDD115')->assertDontSeeText('ANS115');
+
+    expect($sinGrupo)->toBeInt();
 });

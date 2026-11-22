@@ -18,6 +18,21 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF09, RF17, RF18, RF20, RF27, RF29 · Correcciones de la revisión UX/UI del rol Estudiante
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:**
+  - **Dispositivo (RF27):** en una computadora (sin pantalla táctil ni navegador móvil) no se ofrece «Registrar este teléfono»: se explica y se muestra un QR que abre Mi perfil › Dispositivo en el celular. Ya había llegado a Soporte una solicitud de quien registró la PC.
+  - **Escanear QR (RF20):** sin teléfono registrado pide registrarlo antes y no muestra el lector; el código temporal acepta solo 6 dígitos con teclado numérico; el título es «Escanear QR», como el menú.
+  - **Mis notas (RF17):** sin notas publicadas dice «Sin notas aún» en gris, no un 0.0 rojo.
+  - **Mis materias (RF09, RF18):** «Solicitar cambio de grupo» solo dentro del plazo, con la fecha cuando ya cerró; la tarjeta entera abre la materia, con «Ingresar»; sin materiales, «Sin material» en vez de 0 %.
+  - **Inicio:** el horario con inicio y fin («Lun 07:00–08:40»).
+  - **Materia:** miga «Inicio › Mis materias › BAD115 · 01» para el estudiante; textos para él en Progreso y Actividades (sin «cómputos»); sin buscador ni filtro cuando no hay materiales; pestañas sin barra visible y con desvanecido; el aula no se parte.
+  - **Inscripción (RF29):** «Período 2026-II» en vez de «Ciclo II»; primero las materias con grupo abierto, las demás atenuadas y el filtro «Solo con grupos abiertos». La clave no distingue mayúsculas ni espacios (se guarda y se compara normalizada; las claves anteriores siguen sirviendo). La descripción sembrada ya no repite el ciclo, que dependía del plan.
+- **CP cubiertos:** CP-RF09-07, CP-RF17-01, CP-RF18-01, CP-RF20-01, CP-RF27-01, CP-RF29-03, CP-RF29-08 (pruebas nuevas); revisado en el navegador a 390 px y en escritorio.
+- **Decisiones:** del usuario el 21/11/2026: en una computadora se bloquea el registro y se muestra un QR; «ciclo» queda solo para el nivel del plan y el semestre se nombra por el período.
+- **Pendiente:** las descripciones de asignatura ya sembradas en staging conservan «Asignatura del ciclo N» hasta volver a sembrar o editarlas.
+
 ### 2026-11-21 · RF04, RF20, RF27 · Correcciones de la revisión UX/UI del rol Soporte Técnico
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

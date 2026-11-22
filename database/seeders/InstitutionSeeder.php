@@ -76,7 +76,9 @@ class InstitutionSeeder extends Seeder
             DB::table('subjects')->insert([
                 'code' => $code,
                 'name' => $name,
-                'description' => "Asignatura del ciclo {$cycle} de Ingeniería de Sistemas Informáticos.",
+                // Sin el ciclo: una asignatura está en ciclos distintos según el plan, y el detalle de inscripción decía
+                // «Ciclo 2 del plan» junto a «Asignatura del ciclo 1» (revisión UX del rol Estudiante).
+                'description' => 'Asignatura de Ingeniería de Sistemas Informáticos.',
                 'credits' => in_array($code, ['TDG115', 'SEM115'], true) ? 5 : 4,
                 'department_id' => $dept[$department],
             ] + $this->stamps());

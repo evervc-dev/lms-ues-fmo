@@ -681,7 +681,6 @@ it('CP-RF20-04 acota la rotación del parámetro a 5–30 segundos al abrir la s
     $e = escenario();
     DbContext::system(fn () => DB::table('system_settings')->updateOrInsert(['key' => 'qr_rotation_seconds_default'], ['value' => json_encode($valor)]));
 
-    actingAs($e['docente']);
     $ulid = app(AsistenciaService::class)->abrir($e['docente'], $e['seccion'], 10);
 
     expect((int) DB::table('attendance_sessions')->where('ulid', $ulid)->value('qr_rotation_seconds'))->toBe($esperado);
@@ -808,7 +807,8 @@ it('con la asistencia ya registrada la pantalla no vuelve a ofrecer el lector ni
 
     Livewire::test(EscanearQr::class)
         ->assertSee('Su asistencia de esta clase ya quedó registrada.')
-        ->assertDontSee('Escanear QR')
+        // «Escanear QR» es ahora el título de la pantalla: lo que no debe estar es el lector.
+        ->assertDontSee('lector-qr-video', false)
         ->assertDontSee('Ingresar código temporal');
 });
 

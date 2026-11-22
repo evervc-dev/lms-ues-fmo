@@ -179,7 +179,9 @@ class MatriculaService
         $periodo = (int) PeriodoService::activoId();
 
         $vigente = $this->clavesVigentes($periodo)->where('subject_id', $asignaturaId)->first(['key_hash']);
-        if ($vigente === null || ! Hash::check(trim($clave), $vigente->key_hash)) {
+        // Se compara normalizada (mayúsculas, sin espacios); también tal como se escribió, por las claves guardadas
+        // antes de normalizarlas.
+        if ($vigente === null || ! (Hash::check(self::normalizarClave($clave), $vigente->key_hash) || Hash::check(trim($clave), $vigente->key_hash))) {
             RateLimiter::hit($limite, self::BLOQUEO_SEGUNDOS);
             throw ValidationException::withMessages(['clave' => __('La clave no es válida o venció.')]);
         }
@@ -225,6 +227,15 @@ class MatriculaService
      * Pone (o cambia) la clave de una asignatura: la escrita a mano o una generada. La anterior deja de funcionar.
      * Devuelve la clave en claro una sola vez: se guarda con hash.
      */
+    /**
+     * La clave de inscripción no distingue mayúsculas ni espacios: «isi115 - ab12c» vale lo mismo que «ISI115-AB12C»
+     * (revisión UX del rol Estudiante). Se guarda y se compara así.
+     */
+    public static function normalizarClave(string $clave): string
+    {
+        return mb_strtoupper((string) preg_replace('/\s+/u', '', $clave));
+    }
+
     public function generarClave(User $actor, int $asignaturaId, ?string $vence = null, ?string $clave = null, ?int $periodoId = null): string
     {
         $this->alcance->exigir($actor, 'matricula.claves.gestionar');
@@ -233,7 +244,7 @@ class MatriculaService
         }
         $periodo = (int) PeriodoService::preparableOActivo($periodoId);
         $clave = $clave !== null && trim($clave) !== ''
-            ? trim($clave)
+            ? self::normalizarClave($clave)
             : DB::table('subjects')->where('id', $asignaturaId)->value('code').'-'.Str::upper(Str::random(5));
 
         DbContext::run(fn () => $this->guardarClave($asignaturaId, $periodo, Hash::make($clave), $vence), 'enrollment_key.generated');
@@ -248,7 +259,7 @@ class MatriculaService
     public function aplicarClaveATodas(User $actor, string $clave, ?string $vence = null, ?int $periodoId = null): int
     {
         $this->alcance->exigir($actor, 'matricula.claves.gestionar');
-        $clave = trim($clave);
+        $clave = self::normalizarClave($clave);
         if ($clave === '') {
             throw ValidationException::withMessages(['clave' => __('Escriba la clave que se aplicará a todas las asignaturas.')]);
         }

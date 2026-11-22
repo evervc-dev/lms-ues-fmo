@@ -11,7 +11,12 @@
                 <a href="{{ route('secciones.notas', ['seccion' => $m->ulid]) }}" wire:navigate class="rounded-xl bg-white p-4 ring-1 ring-borde transition hover:ring-marca-300" wire:key="nota-{{ $m->seccion_id }}">
                     <div class="flex items-start justify-between gap-3">
                         <div><x-ui.badge color="marca">{{ $m->code }}</x-ui.badge><h2 class="mt-1 font-semibold text-texto">{{ $m->name }}</h2></div>
-                        <span @class(['text-2xl font-semibold', 'text-emerald-700' => $m->final >= $minima, 'text-red-700' => $m->final < $minima])>{{ $fmt($m->final) }}</span>
+                        {{-- Sin ninguna nota publicada no hay promedio: un 0.0 en rojo parecía una materia reprobada. --}}
+                        @if (collect($m->computos)->every(fn ($c) => $c->pendiente))
+                            <span class="text-right text-sm text-texto-suave">{{ __('Sin notas aún') }}</span>
+                        @else
+                            <span @class(['text-2xl font-semibold', 'text-emerald-700' => $m->final >= $minima, 'text-red-700' => $m->final < $minima])>{{ $fmt($m->final) }}</span>
+                        @endif
                     </div>
                     <dl class="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
                         {{-- Un cómputo sin notas en el grupo nuevo conserva el del grupo anterior (ADR-062). --}}

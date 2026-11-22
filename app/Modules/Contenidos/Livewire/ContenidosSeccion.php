@@ -95,6 +95,7 @@ class ContenidosSeccion extends Component
             'gestiona' => $gestiona,
             'esEstudiante' => $esEstudiante,
             'avance' => $total ? 100 * $unidades->sum(fn ($u) => $u->recursos->where('completado', true)->count()) / $total : 0,
+            'hayMateriales' => $total > 0,
             'tipos' => ContenidoService::TIPOS,
         ]);
     }

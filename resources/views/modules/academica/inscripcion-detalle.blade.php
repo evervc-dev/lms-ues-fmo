@@ -81,7 +81,7 @@
                     </div>
                     @error('seccionElegida')<p class="mt-2 text-xs font-medium text-red-700">{{ $message }}</p>@enderror
                 </div>
-                <x-ui.field :etiqueta="__('Clave de la asignatura')" para="clave" error="clave" :ayuda="__('Se la da su docente, su coordinador o su jefe de departamento.')" requerido>
+                <x-ui.field :etiqueta="__('Clave de la asignatura')" para="clave" error="clave" :ayuda="__('Se la da su docente, su coordinador o su jefe de departamento. No importan las mayúsculas ni los espacios.')" requerido>
                     <x-ui.input id="clave" wire:model="clave" :placeholder="$asignatura->code.'-XXXXX'" autocomplete="off" />
                 </x-ui.field>
             </form>
