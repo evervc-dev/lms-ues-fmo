@@ -45,7 +45,21 @@ it('CP-RF03-08 crea la cuenta solo con SUPERADMIN_PASSWORD, con el rol exclusivo
     expect(User::query()->where('institutional_email', 'superadmin@ues.edu.sv')->count())->toBe(1)
         ->and($cuenta->getRoleNames()->all())->toBe(['superadmin'])
         ->and($cuenta->is_active)->toBeTrue()
-        ->and($cuenta->password)->not->toBe(CLAVE_SUPERADMIN);
+        ->and($cuenta->password)->not->toBe(CLAVE_SUPERADMIN)
+        // Es la cuenta de emergencia: la base solo deja tener contraseña a esa cuenta (CHECK
+        // users_password_only_emergency, que SQLite no aplica; en PostgreSQL la creación fallaba).
+        ->and($cuenta->is_emergency)->toBeTrue()
+        ->and(User::query()->whereNotNull('password')->where('is_emergency', false)->exists())->toBeFalse();
+});
+
+it('CP-RF03-08 no crea la superadmin si ya hay otra cuenta de emergencia, y lo dice', function () {
+    usuarioCon('docente');
+    DbContext::system(fn () => DB::table('users')->insert(['institutional_email' => 'emergencia@ues.edu.sv', 'first_name' => 'Cuenta', 'last_name' => 'Anterior',
+        'is_active' => true, 'is_emergency' => true, 'created_at' => now(), 'updated_at' => now()]));
+    config(['identidad.superadmin.email' => 'superadmin@ues.edu.sv', 'identidad.superadmin.password' => CLAVE_SUPERADMIN]);
+
+    $this->artisan('superadmin:crear')->expectsOutputToContain('Ya existe otra cuenta de emergencia (emergencia@ues.edu.sv)')->assertFailed();
+    expect(User::query()->where('institutional_email', 'superadmin@ues.edu.sv')->exists())->toBeFalse();
 });
 
 it('CP-RF03-08 entra por /acceso-local con la contraseña y registra el intento', function () {
