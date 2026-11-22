@@ -4,9 +4,11 @@ namespace App\Modules\Identidad\Livewire;
 
 use App\Modules\Identidad\Services\JerarquiaService;
 use App\Modules\Identidad\Services\UsuarioService;
+use App\Support\Alcance;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -92,6 +94,9 @@ class Usuarios extends Component
             'puedeCrear' => $jerarquia->puedeCrear($actor),
             'importa' => $actor->checkPermissionTo('usuarios.importar'),
             'controlTotal' => $jerarquia->controlTotal($actor),
+            // Alcance de la lista, para decirlo en el subtítulo y ofrecer solo los roles que pueden aparecer (QA Jefe 21/11).
+            'departamentosAlcance' => app(Alcance::class)->de($actor, 'usuarios.ver') === 'G' ? null
+                : DB::table('departments')->whereIn('id', app(Alcance::class)->departamentos($actor))->orderBy('code')->pluck('code')->all(),
         ]);
     }
 }
