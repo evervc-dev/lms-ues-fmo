@@ -63,7 +63,7 @@
                 <td class="text-right">
                     <div class="flex items-center justify-end gap-1">
                         @if ($f->intento)
-                            <x-ui.button tamano="sm" variante="secundario" wire:click="verIntento('{{ $f->intento->ulid }}')">
+                            <x-ui.button tamano="sm" variante="secundario" :href="route('secciones.cuestionarios.intentos.show', ['seccion' => $seccion, 'cuestionario' => $cuestionario, 'intento' => $f->intento->ulid])">
                                 {{ __('Ver respuestas') }}
                             </x-ui.button>
                         @endif
@@ -75,107 +75,4 @@
             </tr>
         @endforeach
     </x-ui.table>
-
-    <x-ui.modal nombre="ver-intento" :titulo="__('Respuestas del estudiante')" ancho="xl">
-        @if ($detalleIntento)
-            <div class="flex flex-col gap-4 text-sm">
-                <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-zinc-50 p-3 ring-1 ring-borde">
-                    <div>
-                        <p class="font-semibold text-zinc-900">{{ $detalleIntento['estudiante']->first_name }} {{ $detalleIntento['estudiante']->last_name }}</p>
-                        <p class="text-xs text-texto-suave">{{ $detalleIntento['estudiante']->email }}</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs text-texto-suave">{{ __('Estado:') }} <x-ui.badge :color="$estados[$detalleIntento['intento']->status === 'in_progress' ? 'en_curso' : 'enviado'][0]">{{ $estados[$detalleIntento['intento']->status === 'in_progress' ? 'en_curso' : 'enviado'][1] }}</x-ui.badge></span>
-                        <div class="rounded-lg bg-white px-3 py-1 ring-1 ring-borde text-center">
-                            <span class="text-xs uppercase text-texto-suave">{{ __('Nota') }}</span>
-                            <p class="font-bold text-marca-700 text-base">{{ number_format($detalleIntento['notaCalculada'], 1) }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                @php
-                    $totalPuntosMonitor = (float) collect($detalleIntento['preguntas'])->sum(fn ($p) => (float) ($p->points ?? 1.0));
-                    $numFmt = fn ($n) => rtrim(rtrim(number_format((float) $n, 2), '0'), '.');
-                @endphp
-                <div class="flex flex-col gap-4">
-                    @foreach ($detalleIntento['preguntas'] as $idx => $p)
-                        @php
-                            $puntosConfig = (float) ($p->points ?? 1.0);
-                            $maxPorPregunta = $totalPuntosMonitor > 0 ? round(10 * $puntosConfig / $totalPuntosMonitor, 2) : 1.0;
-                            $ptsReales = round(($p->puntos_estimados / max(0.01, $puntosConfig)) * $maxPorPregunta, 2);
-                        @endphp
-                        <div class="rounded-xl border border-borde p-4 flex flex-col gap-3" wire:key="rev-pregunta-{{ $p->respuesta_id }}">
-                            <div class="flex items-start justify-between gap-2">
-                                <span class="text-xs font-semibold uppercase text-texto-suave">{{ __('Pregunta :n', ['n' => $idx + 1]) }}</span>
-                                <div>
-                                    @if ($p->puntos_estimados >= $puntosConfig)
-                                        <x-ui.badge color="verde">{{ __('Correcta (:pts pts)', ['pts' => $numFmt($maxPorPregunta)]) }}</x-ui.badge>
-                                    @elseif ($p->puntos_estimados > 0)
-                                        <x-ui.badge color="ambar">{{ __(':pts de :max pts', ['pts' => $numFmt($ptsReales), 'max' => $numFmt($maxPorPregunta)]) }}</x-ui.badge>
-                                    @elseif ($p->question_type === 'essay' && $p->score === null)
-                                        <x-ui.badge color="ambar">{{ __('Ensayo por calificar (:max pts)', ['max' => $numFmt($maxPorPregunta)]) }}</x-ui.badge>
-                                    @else
-                                        <x-ui.badge color="rojo">{{ __('Incorrecta (0 de :max pts)', ['max' => $numFmt($maxPorPregunta)]) }}</x-ui.badge>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <p class="font-medium text-zinc-900">{{ $p->statement }}</p>
-
-                            @if (in_array($p->question_type, ['multiple_choice', 'true_false'], true))
-                                <div class="flex flex-col gap-1.5 pl-2">
-                                    @foreach ($p->opciones as $opc)
-                                        @php
-                                            $seleccionada = (int) $p->selected_option_id === (int) $opc->id;
-                                            $esCorrecta = (bool) $opc->is_correct;
-                                        @endphp
-                                        <div @class([
-                                            'flex items-center gap-2 rounded-lg px-3 py-2 text-xs',
-                                            'bg-emerald-50 text-emerald-900 ring-1 ring-emerald-300 font-medium' => $esCorrecta,
-                                            'bg-red-50 text-red-900 ring-1 ring-red-300 font-medium' => $seleccionada && ! $esCorrecta,
-                                            'text-zinc-600' => ! $seleccionada && ! $esCorrecta,
-                                        ])>
-                                            <span class="size-2 rounded-full {{ $seleccionada ? ($esCorrecta ? 'bg-emerald-600' : 'bg-red-600') : 'bg-transparent border border-zinc-400' }}"></span>
-                                            <span>{{ $opc->text }}</span>
-                                            @if ($seleccionada)
-                                                <span class="ml-auto font-semibold">({{ __('Respuesta del estudiante') }})</span>
-                                            @elseif ($esCorrecta)
-                                                <span class="ml-auto font-semibold text-emerald-700">({{ __('Respuesta correcta') }})</span>
-                                            @endif
-                                        </div>
-                                    @endforeach
-                                    @if (! $p->selected_option_id)
-                                        <p class="text-xs italic text-texto-suave mt-1">{{ __('(Sin responder por el estudiante)') }}</p>
-                                    @endif
-                                </div>
-                            @elseif ($p->question_type === 'short_answer')
-                                <div class="rounded-lg bg-zinc-50 p-2 text-xs ring-1 ring-borde">
-                                    <span class="text-texto-suave">{{ __('Respuesta:') }} </span>
-                                    <span class="font-medium text-zinc-900">{{ $p->answer_text ?: __('(en blanco)') }}</span>
-                                </div>
-                            @else
-                                <div class="rounded-lg bg-zinc-50 p-3 text-xs ring-1 ring-borde">
-                                    <span class="text-texto-suave block mb-1">{{ __('Ensayo entregado:') }}</span>
-                                    <p class="whitespace-pre-line text-zinc-900">{{ $p->answer_text ?: __('(sin respuesta)') }}</p>
-                                </div>
-                            @endif
-
-                            @if ($p->justification)
-                                <p class="text-xs text-texto-suave italic bg-zinc-50 rounded p-2">
-                                    <span class="font-medium">{{ __('Justificación:') }}</span> {{ $p->justification }}
-                                </p>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        @else
-            <div class="py-8 text-center text-sm text-texto-suave">
-                {{ __('Cargando respuestas del intento…') }}
-            </div>
-        @endif
-        <x-slot:pie>
-            <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'ver-intento')">{{ __('Cerrar') }}</x-ui.button>
-        </x-slot:pie>
-    </x-ui.modal>
 </div>

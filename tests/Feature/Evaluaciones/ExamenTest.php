@@ -5,6 +5,7 @@ use App\Modules\Evaluaciones\Jobs\AvisarRevisionesDisponibles;
 use App\Modules\Evaluaciones\Jobs\CerrarIntentosVencidos;
 use App\Modules\Evaluaciones\Livewire\Intento;
 use App\Modules\Evaluaciones\Livewire\MonitorCuestionario;
+use App\Modules\Evaluaciones\Livewire\RevisionIntentoDocente;
 use App\Modules\Evaluaciones\Services\CuestionarioService;
 use App\Modules\Evaluaciones\Services\ProrrogaService;
 use App\Support\DbContext;
@@ -410,11 +411,25 @@ it('muestra al docente las respuestas y la nota estimada en el monitor durante e
         ->and($detalle['preguntas'])->toHaveCount(2)
         ->and($detalle['preguntas'][0]->puntos_estimados)->toBe(1.0);
 
-    // Probar el componente Livewire MonitorCuestionario con la acción verIntento
-    Livewire::test(MonitorCuestionario::class, ['seccion' => (string) DB::table('sections')->where('id', $e['seccion'])->value('ulid'), 'cuestionario' => $x['ulid']])
+    // Probar el componente Livewire MonitorCuestionario con la acción verIntento (redirige a la pantalla dedicada)
+    $seccionUlid = (string) DB::table('sections')->where('id', $e['seccion'])->value('ulid');
+    Livewire::test(MonitorCuestionario::class, ['seccion' => $seccionUlid, 'cuestionario' => $x['ulid']])
         ->call('verIntento', $x['intento'])
-        ->assertSet('intentoRevisando', $x['intento'])
-        ->assertDispatched('abrir-modal', 'ver-intento');
+        ->assertRedirect(route('secciones.cuestionarios.intentos.show', [
+            'seccion' => $seccionUlid,
+            'cuestionario' => $x['ulid'],
+            'intento' => $x['intento'],
+        ]));
+
+    // Probar la pantalla dedicada RevisionIntentoDocente en pantalla completa
+    Livewire::test(RevisionIntentoDocente::class, [
+        'seccion' => $seccionUlid,
+        'cuestionario' => $x['ulid'],
+        'intento' => $x['intento'],
+    ])
+        ->assertOk()
+        ->assertSee('Respuestas del examen')
+        ->assertSee('5.0');
 });
 
 it('permite al docente publicar la correccion anticipada a los estudiantes cuando nadie esta respondiendo', function () {
