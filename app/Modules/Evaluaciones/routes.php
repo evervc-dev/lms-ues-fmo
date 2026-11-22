@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Storage;
 Route::middleware('auth')->group(function (): void {
     Route::livewire('/secciones/{seccion}/actividades', Actividades::class)->middleware('permission:contenidos.ver')->name('secciones.actividades');
     Route::livewire('/secciones/{seccion}/tareas/crear', NuevaTarea::class)->middleware('permission:tareas.gestionar')->name('secciones.tareas.crear');
+    Route::livewire('/secciones/{seccion}/tareas/{tarea}/editar', NuevaTarea::class)->middleware('permission:tareas.gestionar')->name('secciones.tareas.editar');
     Route::livewire('/secciones/{seccion}/tareas/{tarea}', Tarea::class)->middleware('permission:tareas.entregar|tareas.gestionar')->name('secciones.tareas.show');
     Route::livewire('/secciones/{seccion}/tareas/{tarea}/entregas', Entregas::class)->middleware('permission:calificaciones.gestionar')->name('secciones.tareas.entregas');
 

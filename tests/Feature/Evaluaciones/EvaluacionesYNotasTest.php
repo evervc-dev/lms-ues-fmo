@@ -641,3 +641,128 @@ it('«Mis notas» lista cada actividad calificada con su nota', function () {
 
     $this->get(route('mis-notas'))->assertOk()->assertSeeText(['Notas por actividad', 'Tarea 1', '9.3']);
 });
+
+it('permite al docente editar una tarea existente y actualiza sus datos', function () {
+    $e = escenario();
+    $computo = computos($e)[0];
+    $tareaUlid = tareaDe($e, $computo, ['peso' => 30]);
+
+    actingAs($e['docente']);
+
+    $nuevaApertura = now()->addDay()->format('Y-m-d\TH:i');
+    $nuevoCierre = now()->addDays(2)->format('Y-m-d\TH:i');
+    $nuevaGracia = now()->addDays(3)->format('Y-m-d\TH:i');
+
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid'], 'tarea' => $tareaUlid])
+        ->assertSet('editandoUlid', $tareaUlid)
+        ->assertSet('titulo', 'Tarea 1')
+        ->set('titulo', 'Tarea Modificada')
+        ->set('instrucciones', 'Instrucciones modificadas')
+        ->set('peso', 45)
+        ->set('abre', $nuevaApertura)
+        ->set('cierra', $nuevoCierre)
+        ->set('politica', 'grace_penalty')
+        ->set('gracia', $nuevaGracia)
+        ->set('penalizacion', 15)
+        ->set('extensiones', ['pdf', 'zip'])
+        ->set('mb', 20)
+        ->set('intentos', 2)
+        ->set('anonima', true)
+        ->call('guardar')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('secciones.tareas.show', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]));
+
+    $t = DB::table('assessments as a')->join('assignment_settings as s', 's.assessment_id', '=', 'a.id')
+        ->join('grade_items as g', 'g.id', '=', 'a.grade_item_id')
+        ->where('a.ulid', $tareaUlid)->first(['a.*', 's.*', 'g.weight_percent']);
+
+    expect($t->title)->toBe('Tarea Modificada')
+        ->and($t->instructions)->toBe('Instrucciones modificadas')
+        ->and((float) $t->weight_percent)->toBe(45.0)
+        ->and($t->late_policy)->toBe('grace_penalty')
+        ->and((int) $t->late_penalty_percent)->toBe(15)
+        ->and((int) $t->max_file_mb)->toBe(20)
+        ->and((int) $t->max_attempts)->toBe(2)
+        ->and((bool) $t->is_anonymous)->toBeTrue()
+        ->and(json_decode((string) $t->allowed_extensions, true))->toBe(['pdf', 'zip']);
+});
+
+it('valida las fechas y períodos de gracia al editar una tarea', function () {
+    $e = escenario();
+    $computo = computos($e)[0];
+    $tareaUlid = tareaDe($e, $computo);
+
+    actingAs($e['docente']);
+
+    // Cierre anterior a la apertura
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid'], 'tarea' => $tareaUlid])
+        ->set('abre', now()->addDays(2)->format('Y-m-d\TH:i'))
+        ->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))
+        ->call('guardar')
+        ->assertHasErrors(['cierra']);
+
+    // Fecha de gracia anterior al cierre
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid'], 'tarea' => $tareaUlid])
+        ->set('abre', now()->addDay()->format('Y-m-d\TH:i'))
+        ->set('cierra', now()->addDays(3)->format('Y-m-d\TH:i'))
+        ->set('politica', 'grace')
+        ->set('gracia', now()->addDays(2)->format('Y-m-d\TH:i'))
+        ->call('guardar')
+        ->assertHasErrors(['gracia']);
+});
+
+it('bloquea el cambio de modalidad en una tarea con entregas registradas', function () {
+    $e = escenario();
+    $computo = computos($e)[0];
+    $tareaUlid = tareaDe($e, $computo);
+
+    // El estudiante realiza una entrega
+    actingAs($e['estudiante']);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $tareaUlid])
+        ->set('archivo', UploadedFile::fake()->create('trabajo.pdf', 50))
+        ->call('entregar')
+        ->assertHasNoErrors();
+
+    // El docente intenta cambiar la tarea a grupal
+    actingAs($e['docente']);
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid'], 'tarea' => $tareaUlid])
+        ->assertSet('entregasCount', 1)
+        ->assertSet('modalidadBloqueada', true)
+        ->set('grupal', true)
+        ->call('guardar')
+        ->assertHasErrors(['grupal']);
+});
+
+it('muestra el boton editar tarea al docente y prohibe el acceso a estudiante o docente ajeno', function () {
+    $e = escenario();
+    $computo = computos($e)[0];
+    $tareaUlid = tareaDe($e, $computo);
+
+    // Docente de la sección ve el botón "Editar" en la vista de detalle
+    actingAs($e['docente']);
+    $this->get(route('secciones.tareas.show', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]))
+        ->assertOk()
+        ->assertSeeText(__('Editar'))
+        ->assertSee(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]));
+
+    // Docente accede a la pantalla de edición
+    $this->get(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]))
+        ->assertOk()
+        ->assertSeeText(__('Editar tarea'));
+
+    // Estudiante ve el detalle pero NO ve el botón "Editar"
+    actingAs($e['estudiante']);
+    $this->get(route('secciones.tareas.show', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]))
+        ->assertOk()
+        ->assertDontSee(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]));
+
+    // Estudiante recibe 403 al intentar acceder a la pantalla de edición
+    $this->get(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]))
+        ->assertForbidden();
+
+    // Docente ajeno recibe 403
+    $otroDocente = usuarioCon('docente');
+    actingAs($otroDocente);
+    $this->get(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]))
+        ->assertForbidden();
+});
