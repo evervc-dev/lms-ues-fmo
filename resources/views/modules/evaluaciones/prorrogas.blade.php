@@ -7,7 +7,8 @@
         {{ __('Prórrogas') }}@if ($prorrogas->isNotEmpty()) ({{ $prorrogas->count() }})@endif
     </x-ui.button>
 
-    <x-ui.modal :nombre="'prorrogas-'.$datosActividad->ulid" :titulo="__('Prórrogas · :t', ['t' => $datosActividad->title])" ancho="lg">
+    {{-- Ancho xl y lista alta: con lg el buscador, la lista y la tabla quedaban apretados (pedido del usuario). --}}
+    <x-ui.modal :nombre="'prorrogas-'.$datosActividad->ulid" :titulo="__('Prórrogas · :t', ['t' => $datosActividad->title])" ancho="xl">
         <form wire:submit="conceder" id="form-prorroga-{{ $datosActividad->ulid }}" class="flex flex-col gap-4 text-sm">
             {{-- Lista con buscador por nombre o carné (sin distinguir tildes) y casillas: un estudiante sin recorrer los 40,
                  varios o todos los que se ven. El select de una sola opción era tedioso con grupos grandes (QA 22/11/2026). --}}
@@ -30,11 +31,11 @@
                         <x-ui.button type="button" tamano="sm" variante="fantasma" x-on:click="ninguno()">{{ __('Quitar todos') }}</x-ui.button>
                     </div>
                 </div>
-                <div x-ref="lista" class="max-h-56 overflow-y-auto rounded-lg ring-1 ring-borde">
+                <div x-ref="lista" class="max-h-[min(22rem,40vh)] overflow-y-auto rounded-lg ring-1 ring-borde">
                     @foreach ($estudiantes as $est)
                         <label wire:key="prorroga-est-{{ $est->id }}" data-id="{{ $est->id }}" data-texto="{{ $est->nombre }} {{ $est->carne }}"
                             x-show="coincide($el.dataset.texto)"
-                            class="flex cursor-pointer items-center gap-3 border-b border-borde px-3 py-2 last:border-0 hover:bg-zinc-50">
+                            class="flex cursor-pointer items-center gap-3 border-b border-borde px-4 py-2.5 last:border-0 hover:bg-zinc-50">
                             <input type="checkbox" value="{{ $est->id }}" wire:model="matriculas" class="size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
                             <span class="min-w-0 flex-1 truncate text-texto">{{ $est->nombre }}</span>
                             @if ($est->carne)<span class="shrink-0 font-mono text-xs text-texto-suave">{{ $est->carne }}</span>@endif
