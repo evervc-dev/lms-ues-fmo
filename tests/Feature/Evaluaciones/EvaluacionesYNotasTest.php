@@ -766,3 +766,52 @@ it('muestra el boton editar tarea al docente y prohibe el acceso a estudiante o 
     $this->get(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]))
         ->assertForbidden();
 });
+
+it('muestra ponderacion acumulada y acciones directas al docente en la lista de actividades', function () {
+    $e = escenario();
+    $computo = computos($e)[0];
+    $tareaUlid = tareaDe($e, $computo, ['peso' => 50]);
+
+    actingAs($e['docente']);
+    $resp = $this->get(route('secciones.actividades', ['seccion' => $e['ulid']]))->assertOk();
+
+    // Ve el badge de ponderado acumulado (50 %)
+    $resp->assertSeeText('Ponderado: 50 %');
+
+    // Ve la acción directa de editar la tarea y de ver entregas
+    $resp->assertSee(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]));
+    $resp->assertSee(route('secciones.tareas.entregas', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]));
+});
+
+it('los atajos de extensiones en nueva tarea seleccionan los conjuntos predefinidos', function () {
+    $e = escenario();
+    actingAs($e['docente']);
+
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])
+        ->call('seleccionarExtensiones', 'documentos')
+        ->assertSet('extensiones', ActividadService::EXTENSIONES['Documentos'])
+        ->call('seleccionarExtensiones', 'comunes')
+        ->assertSet('extensiones', ['pdf', 'docx', 'xlsx', 'zip'])
+        ->call('seleccionarExtensiones', 'limpiar')
+        ->assertSet('extensiones', [])
+        ->call('seleccionarExtensiones', 'todas')
+        ->assertSet('extensiones', ActividadService::extensionesValidas());
+});
+
+it('calcula las preguntas disponibles en el formulario de cuestionario segun el banco y tema', function () {
+    $e = escenario();
+    $cuestionarios = app(CuestionarioService::class);
+    actingAs($e['docente']);
+    $banco = $cuestionarios->crearBanco($e['docente'], 'Banco UI Test', $e['prn']);
+    $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'P1', 'correcta' => 0, 'tema' => 'Algoritmos']);
+    $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'P2', 'correcta' => 0, 'tema' => 'Algoritmos']);
+    $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'P3', 'correcta' => 0, 'tema' => 'Bases']);
+
+    Livewire::test(NuevoCuestionario::class, ['seccion' => $e['ulid']])
+        ->set('banco', $banco)
+        ->assertViewHas('disponibles', 3)
+        ->set('tema', 'Algoritmos')
+        ->assertViewHas('disponibles', 2)
+        ->set('tema', 'Bases')
+        ->assertViewHas('disponibles', 1);
+});

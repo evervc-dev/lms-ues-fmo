@@ -50,7 +50,19 @@
     @endif
 
     @forelse ($computos as $c)
+        @php($sumaPonderada = (float) $c->actividades->sum('weight_percent'))
         <x-ui.card :titulo="$c->name.' · '.rtrim(rtrim(number_format((float) $c->weight_percent, 2, '.', ''), '0'), '.').' %'" :descripcion="\Illuminate\Support\Carbon::parse($c->starts_on)->format('d/m').' – '.\Illuminate\Support\Carbon::parse($c->ends_on)->format('d/m/Y')">
+            @if ($gestiona && $c->actividades->isNotEmpty())
+                <x-slot:acciones>
+                    @if (abs($sumaPonderada - 100) < 0.01)
+                        <x-ui.badge color="verde" :title="__('Las actividades cubren el 100 % del cómputo')">{{ __('Ponderado: 100 %') }}</x-ui.badge>
+                    @elseif ($sumaPonderada > 100)
+                        <x-ui.badge color="rojo" :title="__('Pasa del 100 % del cómputo')">{{ __('Ponderado: :n %', ['n' => rtrim(rtrim(number_format($sumaPonderada, 2, '.', ''), '0'), '.')]) }}</x-ui.badge>
+                    @else
+                        <x-ui.badge color="ambar" :title="__('Falta asignar el :n % del cómputo', ['n' => rtrim(rtrim(number_format(100 - $sumaPonderada, 2, '.', ''), '0'), '.')])">{{ __('Ponderado: :n %', ['n' => rtrim(rtrim(number_format($sumaPonderada, 2, '.', ''), '0'), '.')]) }}</x-ui.badge>
+                    @endif
+                </x-slot:acciones>
+            @endif
             @if ($c->actividades->isEmpty())
                 <p class="text-sm text-texto-suave">{{ __('Sin actividades en este cómputo.') }}</p>
             @else
@@ -73,6 +85,17 @@
                                     @else<x-ui.badge>{{ __('Pendiente') }}</x-ui.badge>@endif
                                 @else
                                     <span class="text-xs text-texto-suave">{{ $a->assessment_type === 'quiz' ? trans_choice('{1} 1 intento|[0,*] :count intentos', $a->intentos) : trans_choice('{1} 1 entrega|[0,*] :count entregas', $a->entregas) }}</span>
+                                    @if ($gestiona)
+                                        <span class="flex items-center gap-1 sm:ml-2">
+                                            @if ($a->assessment_type === 'assignment')
+                                                <x-ui.button tamano="sm" variante="fantasma" icono="pencil-square" :href="route('secciones.tareas.editar', ['seccion' => $seccion, 'tarea' => $a->ulid])" :aria-label="__('Editar tarea :t', ['t' => $a->title])" :title="__('Editar tarea')" />
+                                                <x-ui.button tamano="sm" variante="secundario" :href="route('secciones.tareas.entregas', ['seccion' => $seccion, 'tarea' => $a->ulid])">{{ __('Entregas') }}</x-ui.button>
+                                            @else
+                                                <x-ui.button tamano="sm" variante="fantasma" icono="pencil-square" :href="route('secciones.cuestionarios.editar', ['seccion' => $seccion, 'cuestionario' => $a->ulid])" :aria-label="__('Editar cuestionario :t', ['t' => $a->title])" :title="__('Editar cuestionario')" />
+                                                <x-ui.button tamano="sm" variante="secundario" :href="route('secciones.cuestionarios.show', ['seccion' => $seccion, 'cuestionario' => $a->ulid])">{{ __('Ver') }}</x-ui.button>
+                                            @endif
+                                        </span>
+                                    @endif
                                 @endisset
                             </span>
                         </li>

@@ -111,6 +111,17 @@ class NuevaTarea extends Component
         $this->criterios[] = ['nombre' => '', 'maximo' => 0];
     }
 
+    public function seleccionarExtensiones(string $tipo): void
+    {
+        $this->extensiones = match ($tipo) {
+            'documentos' => ActividadService::EXTENSIONES['Documentos'],
+            'comunes' => ['pdf', 'docx', 'xlsx', 'zip'],
+            'todas' => ActividadService::extensionesValidas(),
+            'limpiar' => [],
+            default => $this->extensiones,
+        };
+    }
+
     public function quitarCriterio(int $indice): void
     {
         if (count($this->criterios) > 1) {

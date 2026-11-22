@@ -18,7 +18,7 @@
                             <x-ui.select id="bancoC" wire:model.live="banco"><option value="">{{ __('Elija…') }}</option>@foreach ($bancos as $b)<option value="{{ $b->id }}">{{ $b->name }} ({{ trans_choice('{1} 1 pregunta|[0,*] :count preguntas', $b->preguntas) }})</option>@endforeach</x-ui.select>
                         </x-ui.field>
                         <div class="grid grid-cols-2 gap-4">
-                            <x-ui.field :etiqueta="__('Cantidad al azar')" para="cantidad" error="cantidad" :ayuda="__('0 = todas las del banco.')"><x-ui.input id="cantidad" type="number" min="0" wire:model="cantidad" /></x-ui.field>
+                            <x-ui.field :etiqueta="__('Cantidad al azar')" para="cantidad" error="cantidad" :ayuda="$banco ? trans_choice('{1} :count pregunta disponible con este filtro.|[0,*] :count preguntas disponibles con este filtro (0 = todas).', $disponibles) : __('0 = todas las del banco.')"><x-ui.input id="cantidad" type="number" min="0" wire:model="cantidad" /></x-ui.field>
                             {{-- El tema se elige de los que existen en el banco: escribirlo dejaba el filtro en 0 preguntas. --}}
                             <x-ui.field :etiqueta="__('Tema (opcional)')" para="temaC" :ayuda="$banco && $temas->isEmpty() ? __('Este banco no tiene temas.') : null">
                                 <x-ui.select id="temaC" wire:model.live="tema" :disabled="! $banco || $temas->isEmpty()">

@@ -116,6 +116,8 @@ class NuevoCuestionario extends Component
 
     public function render(CuestionarioService $cuestionarios): View
     {
+        $disponibles = $this->banco ? DB::table('questions')->where('bank_id', $this->banco)->when($this->tema, fn ($q) => $q->where('topic', $this->tema))->count() : 0;
+
         return $this->paginaDeSeccion('modules.evaluaciones.nuevo-cuestionario', [
             'editando' => $this->editandoUlid !== null,
             'intentosCount' => $this->intentosCount,
@@ -123,6 +125,7 @@ class NuevoCuestionario extends Component
             'bancos' => $cuestionarios->bancos(auth()->user()),
             // Los temas del banco elegido: antes era texto libre y una palabra mal escrita dejaba el filtro en 0.
             'temas' => $this->banco === null ? collect() : $cuestionarios->temasDelBanco(auth()->user(), (int) $this->banco),
+            'disponibles' => $disponibles,
         ]);
     }
 }

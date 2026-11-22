@@ -38,6 +38,13 @@
                         @endif
                         {{-- Se eligen del catálogo, no se escriben: una extensión mal tecleada rechazaba entregas correctas. --}}
                         <x-ui.field :etiqueta="__('Extensiones permitidas')" para="extensiones" error="extensiones" :ayuda="__('Marque las que acepta. Al menos una.')" requerido>
+                            <div class="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
+                                <span class="font-medium text-texto-suave mr-1">{{ __('Atajos:') }}</span>
+                                <button type="button" wire:click="seleccionarExtensiones('documentos')" class="rounded bg-zinc-100 px-2 py-0.5 font-medium text-texto hover:bg-zinc-200 transition">{{ __('Solo documentos') }}</button>
+                                <button type="button" wire:click="seleccionarExtensiones('comunes')" class="rounded bg-zinc-100 px-2 py-0.5 font-medium text-texto hover:bg-zinc-200 transition">{{ __('Formatos habituales') }}</button>
+                                <button type="button" wire:click="seleccionarExtensiones('todas')" class="rounded bg-zinc-100 px-2 py-0.5 font-medium text-texto hover:bg-zinc-200 transition">{{ __('Todas') }}</button>
+                                <button type="button" wire:click="seleccionarExtensiones('limpiar')" class="rounded bg-zinc-100 px-2 py-0.5 font-medium text-red-700 hover:bg-red-50 transition">{{ __('Limpiar') }}</button>
+                            </div>
                             <div class="flex flex-col gap-3 rounded-lg p-3 ring-1 ring-borde" id="extensiones">
                                 @foreach ($catalogoExtensiones as $grupo => $exts)
                                     <div wire:key="ext-{{ $loop->index }}">
