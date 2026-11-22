@@ -11,7 +11,8 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Datos base en todos los entornos; estructura y demo solo fuera de producción.
+     * Datos base en todos los entornos; estructura y personas solo fuera de producción. Las personas dependen del
+     * perfil (LMS_SEED_PERFIL): «demo», inventadas y con datos de uso; «equipo», las cuentas reales del equipo.
      * En PostgreSQL las escrituras auditadas exigen contexto: DbContext::system().
      */
     public function run(): void
@@ -23,11 +24,10 @@ class DatabaseSeeder extends Seeder
                 return;
             }
 
-            $this->call([
-                InstitutionSeeder::class,
-                DemoPeopleSeeder::class,
-                DemoAcademicSeeder::class,
-            ]);
+            $this->call(InstitutionSeeder::class);
+            $this->call(config('lms.seed_perfil') === 'equipo'
+                ? [EquipoSeeder::class]
+                : [DemoPeopleSeeder::class, DemoAcademicSeeder::class]);
         }, 'seed');
     }
 }

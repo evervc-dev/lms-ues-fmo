@@ -150,7 +150,16 @@ Fechas de la demo: hoy hay una **sesión de asistencia abierta** en PRN115-01 (d
 ## Inicio de sesión en desarrollo
 Con `LMS_DEV_LOGIN=true` aparece **«Entrar como…»** para elegir un usuario sembrado por rol, sin Google. Esto existe en local y staging; **nunca en producción** ([[Entornos]]). Se entra por `/login` → **Entrar como…** (`/dev/entrar-como`): muestra las 6 cuentas de desarrollo y un buscador por correo o nombre para entrar como cualquier otro usuario sembrado.
 
-Con `LMS_ROLES_LAXOS=true`, cambiarle el rol a una cuenta no pide limpiar antes: quitar **Estudiante** retira sus matrículas activas y quitar **Docente** termina sus grupos teóricos del período, con su historial. Al devolverle el rol queda en blanco. No borra notas ni asistencia (ADR-027). Sirve para probar en staging con la misma cuenta; **en producción se ignora** aunque esté activo.
+### Perfil de siembra «equipo»
+
+Con `LMS_SEED_PERFIL=equipo`, `php artisan migrate:fresh --seed` siembra la estructura institucional de siempre (departamentos, carreras, planes, aulas, períodos, grupos con horario, claves y plazos), pero **sin personas inventadas**:
+
+- Las cuentas son las del equipo (`database/seeders/data/testers.php`) con su **correo institucional real**, así que entran con Google. Además, `admin.dev@ues.edu.sv` (Administrador, para «Entrar como…»).
+- Los roles se reparten **al azar con semilla fija** (`LMS_SEED_SEMILLA`, 2026 por omisión): 1 Jefe de DIA, 1 Coordinador de ISI y 3 docentes, los cinco con perfil docente e imparten 2 grupos cada uno, y el resto estudiantes, solo con ese rol ([[ADR-081 Estudiante y Soporte Técnico son roles exclusivos]]). La misma semilla repite el reparto; otra lo baraja. Al terminar se imprime la tabla del reparto.
+- Los estudiantes quedan matriculados en el grupo 01 de las materias de su ciclo. **No hay notas ni asistencia inventadas.** Los demás grupos quedan sin docente, para probar la asignación.
+- La **cuenta de emergencia** ([[ADR-007 Inicio de sesión con Google]]) solo se siembra si el entorno trae `LMS_EMERGENCIA_CORREO` y `LMS_EMERGENCIA_CLAVE`, que nunca van en el repositorio. Aún sin segundo factor.
+
+En staging: poner `LMS_SEED_PERFIL=equipo` (y, si se quiere, la semilla y la cuenta de emergencia) y correr `php artisan migrate:fresh --seed --force`. El perfil por omisión sigue siendo `demo`.
 
 | Cuenta | Rol | Qué ve en la demo |
 |---|---|---|
