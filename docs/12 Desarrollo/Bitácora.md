@@ -18,13 +18,13 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
-### 2026-11-22 · RF37 · Mi plan de estudios
+### 2026-11-22 · RF11 · Subir una carpeta de materiales fallaba siempre
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** nueva pantalla «Mi plan» del estudiante (permiso `plan.ver`, alcance P): el plan por ciclo, como la malla de la oferta académica de la UES, con cada asignatura aprobada (amarillo, nota final), en curso (azul, nota actual y % evaluado), reprobada (rojo, última nota) o pendiente. Resumen con asignaturas y UV aprobadas, CUM y materias en curso. Al tocar una asignatura se marcan sus prerrequisitos (rojo) y las que desbloquea (azul). Selector para ver cualquier plan de su carrera. `PlanEstudianteService`, sin tablas nuevas.
-- **CP cubiertos:** CP-RF37-01 a CP-RF37-05.
-- **Decisiones:** del usuario el 22/11/2026: reprobada en rojo con la última nota; resaltar prerrequisitos al tocar; selector de plan, con el estado por asignatura; solo el estudiante. RF37 y su fila en la Matriz RBAC.
-- **Pendiente:** verlo desde el Perfil académico del personal.
+- **Hecho:** el selector de carpeta llamaba a `$wire.$upload` con el arreglo de archivos, y `$upload` sube un solo archivo (`files: [arreglo]`): Livewire no enviaba la subida y la carpeta quedaba vacía. Ahora usa `$uploadMultiple` (reemplazando la carpeta anterior) y espera sus callbacks; si falla, la pantalla lo dice. Además, `docker/php.ini` y `nginx.conf` limitaban a 64 MB y PHP a 20 archivos por petición, menos de lo que el sistema permite (carpetas de 50 archivos y 80 MB, entregas de 100 MB): ahora 110 MB y 60 archivos.
+- **CP cubiertos:** CP-RF11-06 (servidor, ya automatizado); la subida desde el navegador se verificó en Chrome con una carpeta de tres PDF en subcarpetas, publicada y guardada con sus rutas.
+- **Decisiones:** —
+- **Pendiente:** tras desplegar, reconstruir la imagen para que tome los nuevos límites de PHP y nginx.
 
 ### 2026-11-21 · RF09, RF17, RF18, RF20, RF27, RF29 · Correcciones de la revisión UX/UI del rol Estudiante
 - **Autor:** IA (Claude Code), a pedido del equipo
