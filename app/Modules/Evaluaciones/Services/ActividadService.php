@@ -176,12 +176,36 @@ class ActividadService
         EntregaRealizada::dispatch($entregaId);
     }
 
+    /**
+     * ¿El docente ya le puso nota a la entrega? Cuenta también la nota en borrador, aún sin publicar: el docente ya la
+     * revisó. En una tarea grupal vale la nota de cualquier integrante del equipo.
+     *
+     * @param  array<string, mixed>  $datos  Lo que devuelve tarea().
+     */
+    public function entregaCalificada(array $datos): bool
+    {
+        $entrega = $datos['entrega'] ?? null;
+        if (! $entrega) {
+            return false;
+        }
+        $matriculas = $entrega->team_id
+            ? DB::table('team_members')->where('team_id', $entrega->team_id)->pluck('enrollment_id')
+            : collect([$entrega->enrollment_id]);
+
+        return DB::table('grades')->where('grade_item_id', $datos['tarea']->item_id)->whereIn('enrollment_id', $matriculas)
+            ->whereNotNull('score')->exists();
+    }
+
     public function cancelarEntrega(User $estudiante, int $seccionId, string $ulid): void
     {
         $this->alcance->exigir($estudiante, 'tareas.entregar');
         $datos = $this->tarea($estudiante, $seccionId, $ulid);
         if ($datos['estado'] !== 'abierta' || ! $datos['entrega']) {
             throw ValidationException::withMessages(['archivo' => __('Solo puede cancelar mientras la tarea está abierta.')]);
+        }
+        // Calificada, la entrega ya no se cancela: cancelar vaciaba la nota y dejaba volver a entregar (QA 22/11).
+        if ($this->entregaCalificada($datos)) {
+            throw ValidationException::withMessages(['archivo' => __('Su entrega ya fue calificada: no se puede cancelar.')]);
         }
         DbContext::run(function () use ($datos, $estudiante) {
             DB::table('submissions')->where('id', $datos['entrega']->id)->update(['status' => 'cancelled', 'updated_at' => now()]);

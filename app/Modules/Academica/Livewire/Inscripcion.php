@@ -6,6 +6,7 @@ use App\Modules\Academica\Services\MatriculaService;
 use App\Modules\Academica\Services\PeriodoService;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -23,17 +24,24 @@ class Inscripcion extends Component
     #[Url(except: '')]
     public string $buscar = '';
 
+    /** Solo las materias con algún grupo abierto (revisión UX del rol Estudiante). */
+    #[Url(except: false)]
+    public bool $soloConGrupos = false;
+
     public function render(MatriculaService $matricula): View
     {
-        $materias = $matricula->materiasInscribibles(auth()->user(), $this->buscar);
+        $materias = $matricula->materiasInscribibles(auth()->user(), $this->buscar)
+            ->when($this->soloConGrupos, fn ($c) => $c->filter(fn ($m) => $m->secciones > 0));
 
         return $this->pagina('modules.academica.inscripcion', [
-            // Agrupadas por el ciclo del plan; salen todos los ciclos (ADR-084).
-            'porCiclo' => $materias->groupBy('cycle'),
+            // Agrupadas por el ciclo del plan; salen todos los ciclos (ADR-088).
+            // Dentro de cada ciclo, primero las que tienen grupo abierto: antes había que recorrerlas todas.
+            'porCiclo' => $materias->groupBy('cycle')->map(fn ($grupo) => $grupo->sortBy(fn ($m) => [$m->secciones > 0 ? 0 : 1, $m->code])->values()),
             'total' => $materias->count(),
-            'buscando' => trim($this->buscar) !== '',
-            'ciclo' => PeriodoService::ciclo(),
+            'buscando' => trim($this->buscar) !== '' || $this->soloConGrupos,
+            'periodo' => DB::table('academic_periods')->where('id', PeriodoService::activoId())->value('name'),
             'plazo' => $matricula->plazoDe((int) auth()->id()),
+            'plan' => $matricula->planDe((int) auth()->id()),
         ]);
     }
 }

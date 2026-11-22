@@ -25,10 +25,10 @@ class CatalogoService
     public function __construct(private Alcance $alcance) {}
 
     /**
-     * Filtra por nombre o código, por carrera (las asignaturas de alguno de sus planes de estudio) y por créditos.
+     * Filtra por nombre o código, por carrera (las asignaturas de alguno de sus planes de estudio), departamento y por créditos.
      * Con alcance D solo salen las del departamento del Jefe, aunque se pida otra carrera.
      *
-     * @param  array{buscar?: string, carrera?: int|string|null, creditos?: int|string|null}  $filtros
+     * @param  array{buscar?: string, departamento?: int|string|null, carrera?: int|string|null, creditos?: int|string|null}  $filtros
      */
     public function asignaturas(User $actor, array $filtros): LengthAwarePaginator
     {
@@ -37,16 +37,38 @@ class CatalogoService
         $patron = Busqueda::fragmentoSinTildes($buscar);
 
         return DB::table('subjects')->join('departments', 'departments.id', '=', 'subjects.department_id')
-            ->select('subjects.*', 'departments.code as departamento',
+            ->select('subjects.*', 'departments.code as departamento', 'departments.name as departamento_nombre',
                 DB::raw("(select count(*) from sections s join academic_periods p on p.id = s.period_id where s.subject_id = subjects.id and p.status = 'active') as secciones"))
             ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->whereRaw("lower(subjects.code) like ? escape '\\'", [$patron])
                 ->orWhereRaw(Busqueda::sinTildes('subjects.name')." like ? escape '\\'", [$patron])))
             ->when($alcance !== 'G', fn ($q) => $q->whereIn('subjects.department_id', $this->alcance->departamentos($actor)))
+            ->when($filtros['departamento'] ?? null, fn ($q, $d) => is_numeric($d)
+                ? $q->where('subjects.department_id', (int) $d)
+                : $q->where('departments.code', (string) $d))
             ->when($filtros['carrera'] ?? null, fn ($q, $c) => $q->whereIn('subjects.id', DB::table('career_subjects')
                 ->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')->where('study_plans.career_id', (int) $c)->select('career_subjects.subject_id')))
             ->when($filtros['creditos'] ?? null, fn ($q, $c) => $q->where('subjects.credits', (int) $c))
+            ->orderBy('departments.code')
             ->orderBy('subjects.code')
             ->paginate(25);
+    }
+
+    /**
+     * Conteo de asignaturas por departamento respetando el alcance del actor.
+     *
+     * @return array<string, int>
+     */
+    public function conteosPorDepartamento(User $actor): array
+    {
+        $alcance = $this->alcance->exigir($actor, 'asignaturas.gestionar');
+
+        return DB::table('subjects')
+            ->join('departments', 'departments.id', '=', 'subjects.department_id')
+            ->when($alcance !== 'G', fn ($q) => $q->whereIn('subjects.department_id', $this->alcance->departamentos($actor)))
+            ->groupBy('departments.code')
+            ->select('departments.code', DB::raw('count(*) as total'))
+            ->pluck('total', 'code')
+            ->all();
     }
 
     /**

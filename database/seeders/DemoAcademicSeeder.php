@@ -151,7 +151,7 @@ class DemoAcademicSeeder extends Seeder
     {
         $rows = [];
         foreach (DB::table('subjects')->get(['id', 'code']) as $subject) {
-            $rows[] = ['subject_id' => $subject->id, 'period_id' => $this->period, 'key_hash' => Hash::make('ISI-'.$subject->code, ['rounds' => 4]),
+            $rows[] = ['subject_id' => $subject->id, 'period_id' => $this->period, 'key_hash' => Hash::make('ISI-'.$subject->code, ['rounds' => 4]), 'key_encrypted' => Crypt::encryptString('ISI-'.$subject->code),
                 'valid_until' => '2026-08-14 23:59:00', 'is_active' => true] + $this->stamps(now()->parse('2026-07-20'));
         }
         $this->insertRows('enrollment_keys', $rows);
@@ -301,10 +301,12 @@ class DemoAcademicSeeder extends Seeder
     {
         $templates = DB::table('grading_component_templates')->where('period_id', $this->period)->orderBy('number')->get();
         $banks = [];
+        // Una tarea y un parcial por cómputo, dentro de sus fechas en 2026-II (ADR-085: 27/07–05/09, 06/09–10/10, 11/10–13/11, 14/11–11/12).
         $items = [
             1 => [['Tarea 1', 'assignment', 40, '2026-08-03 07:00', '2026-08-24 23:59', 'strict'], ['Parcial 1', 'quiz', 60, '2026-09-01 08:00', '2026-09-01 10:00', null]],
-            2 => [['Tarea 2', 'assignment', 40, '2026-09-21 07:00', '2026-10-16 23:59', 'grace_penalty'], ['Parcial 2', 'quiz', 60, '2026-10-15 08:00', '2026-10-15 10:00', null]],
-            3 => [['Proyecto final', 'assignment', 50, '2026-10-26 07:00', '2026-11-30 23:59', 'grace'], ['Parcial 3', 'quiz', 50, '2026-12-01 08:00', '2026-12-01 10:00', null]],
+            2 => [['Tarea 2', 'assignment', 40, '2026-09-07 07:00', '2026-10-02 23:59', 'grace_penalty'], ['Parcial 2', 'quiz', 60, '2026-10-08 08:00', '2026-10-08 10:00', null]],
+            3 => [['Laboratorio', 'assignment', 40, '2026-10-12 07:00', '2026-11-06 23:59', 'strict'], ['Parcial 3', 'quiz', 60, '2026-11-12 08:00', '2026-11-12 10:00', null]],
+            4 => [['Proyecto final', 'assignment', 50, '2026-11-16 07:00', '2026-11-30 23:59', 'grace'], ['Parcial 4', 'quiz', 50, '2026-12-03 08:00', '2026-12-03 10:00', null]],
         ];
 
         foreach ($sections as $section) {
@@ -581,8 +583,12 @@ class DemoAcademicSeeder extends Seeder
         // Intentos rechazados (diagnóstico de Soporte).
         foreach ($enrollments->random(min(2, $enrollments->count())) as $enrollment) {
             if (! $virtual) {
-                $attempts[] = ['session_id' => $sessionId, 'student_id' => $enrollment->student_id, 'result' => ['token_expired', 'out_of_range', 'invalid_device', 'no_location'][mt_rand(0, 3)],
-                    'distance_m' => mt_rand(400, 2500), 'occurred_at' => $opened->copy()->addMinutes(mt_rand(1, 14))];
+                // Solo «fuera del área» lleva distancia: «sin ubicación» con 2.310 m se contradecía (revisión UX).
+                // Se sortean igual los dos números para no mover el resto de la siembra.
+                $result = ['token_expired', 'out_of_range', 'invalid_device', 'no_location'][mt_rand(0, 3)];
+                $distance = mt_rand(400, 2500);
+                $attempts[] = ['session_id' => $sessionId, 'student_id' => $enrollment->student_id, 'result' => $result,
+                    'distance_m' => $result === 'out_of_range' ? $distance : null, 'occurred_at' => $opened->copy()->addMinutes(mt_rand(1, 14))];
             }
         }
 

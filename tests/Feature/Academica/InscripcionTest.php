@@ -107,7 +107,7 @@ it('CP-RF29-03 no acepta la clave de una asignatura de otra carrera, sin contarl
         ->and(DB::table('enrollments')->where('student_id', $e['estudiante']->id)->where('status', 'active')->exists())->toBeFalse();
 });
 
-it('CP-RF29-03 acepta la clave de una materia de su plan de un ciclo de otra paridad (ADR-084)', function () {
+it('CP-RF29-03 acepta la clave de una materia de su plan de un ciclo de otra paridad (ADR-088)', function () {
     $e = escenario();
     $clavePrn = inscripcionClave($e['coordinador'], $e['prn']);
     DbContext::system(fn () => DB::table('enrollments')->where('id', $e['matricula'])->update(['status' => 'withdrawn']));
@@ -150,7 +150,7 @@ it('CP-RF29-08 lista las asignaturas del plan de la carrera del estudiante, de c
         ->and($materias['BDD115']->inscrito)->toBeFalse();
 
     Livewire::test(Inscripcion::class)
-        ->assertSee(['Inscripción de materias', 'Ciclo II', 'PRN115', 'BDD115', 'ANS315', 'SIS415', 'Inscripción no habilitada'])
+        ->assertSee(['Inscripción de materias', 'Período 2026-II', 'PRN115', 'BDD115', 'ANS315', 'SIS415', 'Inscripción no habilitada'])
         ->assertDontSee('FIS215');
 });
 
@@ -169,7 +169,7 @@ it('CP-RF29-08 el ciclo sale del mes central del período y del parámetro ciclo
     inscripcionMesCicloDos(11);
     actingAs($e['estudiante']);
 
-    // El ciclo ya no filtra las materias (ADR-084): la lista es la misma en los dos ciclos.
+    // El ciclo ya no filtra las materias (ADR-088): la lista es la misma en los dos ciclos.
     expect($periodos->ciclo())->toBe(1)
         ->and(inscripcion()->materiasInscribibles($e['estudiante'])->pluck('code')->all())->toBe(['PRN115', 'BDD115']);
 });
@@ -275,10 +275,19 @@ it('CP-RF29-11 la pantalla de claves aplica la clave común a todo el ámbito y 
     inscripcionMateria($e, 'BDD115');
     actingAs($e['jefe']);
 
+    // QA Jefe 21/11: primero se confirma escribiendo CAMBIAR en un modal que dice cuántas asignaturas afecta.
     Livewire::test(ClavesMatricula::class)
-        ->call('aplicarATodas')->assertHasErrors(['claveComun' => 'required'])
-        ->set('claveComun', 'con espacio')->call('aplicarATodas')->assertHasErrors(['claveComun'])
-        ->set('claveComun', 'DIA-2026-II')->call('aplicarATodas')->assertHasNoErrors()->assertSet('claveNueva', 'DIA-2026-II');
+        ->call('prepararAplicarATodas')->assertHasErrors(['claveComun' => 'required'])
+        ->set('claveComun', 'con espacio')->call('prepararAplicarATodas')->assertHasErrors(['claveComun'])
+        ->set('claveComun', 'DIA-2026-II')->call('prepararAplicarATodas')->assertHasNoErrors()->assertDispatched('abrir-modal', 'confirmar-clave-comun')
+        ->assertSee('Afecta a 2 asignaturas de su ámbito.')
+        ->set('confirmacion', 'si')->call('aplicarATodas')->assertHasErrors(['confirmacion'])
+        ->assertSet('claveNueva', null);
+    expect(DB::table('enrollment_keys')->where('is_active', true)->count())->toBe(0);
+
+    Livewire::test(ClavesMatricula::class)
+        ->set('claveComun', 'DIA-2026-II')->set('confirmacion', 'cambiar')->call('aplicarATodas')->assertHasNoErrors()
+        ->assertSet('claveNueva', 'DIA-2026-II')->assertSee(['Copiar clave', 'Copiar mensaje para estudiantes']);
 
     expect(DB::table('enrollment_keys')->where('is_active', true)->count())->toBe(2);
 });
@@ -375,4 +384,61 @@ it('CP-RF29-08 la lista se agrupa por el ciclo del plan y se busca por código o
         // Sin tildes y por un trozo del nombre, como en el catálogo (H-10 de la QA del 27/10).
         ->set('buscar', 'programacion')->assertSee('Programación Avanzada')->assertDontSee('MAT225')
         ->set('buscar', 'zzz')->assertSee('Ninguna materia coincide con su búsqueda');
+});
+
+it('CP-RF29-03 acepta la clave sin importar mayúsculas ni espacios', function () {
+    $e = escenario();
+    $bdd = inscripcionMateria($e, 'BDD115');
+    $clave = inscripcionClave($e['coordinador'], $bdd['asignatura'], 'isi-bdd 2026');
+    actingAs($e['estudiante']);
+
+    expect($clave)->toBe('ISI-BDD2026');
+    inscripcion()->automatricular($e['estudiante'], $bdd['asignatura'], '  isi-bdd2026 ', $bdd['seccion']);
+
+    expect(DB::table('enrollments')->where('student_id', $e['estudiante']->id)->where('section_id', $bdd['seccion'])->exists())->toBeTrue();
+});
+
+it('CP-RF29-08 nombra el período, pone primero las materias con grupo abierto y filtra «Solo con grupos abiertos»', function () {
+    $e = escenario();
+    inscripcionMateria($e, 'BDD115');
+    $sinGrupo = DbContext::system(function () use ($e) {
+        $id = DB::table('subjects')->insertGetId(['code' => 'ANS115', 'name' => 'Materia sin grupo', 'credits' => 4, 'department_id' => $e['dia'], 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('career_subjects')->insert(['study_plan_id' => $e['plan'], 'subject_id' => $id, 'cycle' => 2]);
+
+        return $id;
+    });
+    actingAs($e['estudiante']);
+
+    Livewire::test(Inscripcion::class)
+        ->assertSeeText('Período 2026-II')
+        ->assertSeeInOrder(['BDD115', 'ANS115'])
+        ->set('soloConGrupos', true)
+        ->assertSeeText('BDD115')->assertDontSeeText('ANS115');
+
+    expect($sinGrupo)->toBeInt();
+});
+
+it('CP-RF29-22 el Jefe vuelve a ver la clave vigente sin cambiarla; la anterior al cifrado no se puede consultar', function () {
+    $e = escenario();
+    $jefeDcnm = inscripcionJefeDe($e['dcnm']);
+    actingAs($e['jefe']);
+
+    $clave = inscripcion()->generarClave($e['jefe'], $e['prn']);
+    $hash = DB::table('enrollment_keys')->where('subject_id', $e['prn'])->where('is_active', true)->value('key_hash');
+
+    Livewire::test(ClavesMatricula::class)
+        ->assertSee('Ver clave')
+        ->call('ver', $e['prn'])
+        ->assertSet('claveNueva', $clave)->assertSet('consultada', true)->assertDispatched('abrir-modal', 'clave-generada')
+        ->assertSee('Es la clave vigente: sigue funcionando.');
+
+    // Consultarla no la cambia.
+    expect(DB::table('enrollment_keys')->where('subject_id', $e['prn'])->where('is_active', true)->value('key_hash'))->toBe($hash)
+        ->and(fn () => inscripcion()->verClave($e['jefe'], $e['mat']))->toThrow(AuthorizationException::class);
+
+    // Una clave guardada solo con hash (antes del ADR-087) no se puede ver: se cambia.
+    DbContext::system(fn () => DB::table('enrollment_keys')->where('subject_id', $e['prn'])->update(['key_encrypted' => null]));
+    Livewire::test(ClavesMatricula::class)->assertSee('no consultable')
+        ->call('ver', $e['prn'])->assertSet('claveNueva', null)->assertDispatched('aviso');
+    expect(inscripcion()->verClave($jefeDcnm, $e['mat']))->toBeNull();
 });

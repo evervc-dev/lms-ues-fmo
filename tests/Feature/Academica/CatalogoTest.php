@@ -433,3 +433,22 @@ it('CP-RF07-21 crear y editar una asignatura van en su propia página, y el Jefe
     actingAs($e['docente']);
     $this->get(route('catalogo.asignaturas.crear'))->assertForbidden();
 });
+
+it('CP-RF07-04 categoriza y filtra el catálogo por departamento con pestañas y selector', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+
+    Livewire::test(Catalogo::class)
+        ->assertSee('Todos los departamentos')
+        ->assertSee('DIA')
+        ->assertSee('DCNM')
+        ->call('seleccionarDepartamento', 'DIA')
+        ->assertSet('departamento', 'DIA')
+        ->assertViewHas('asignaturas', fn ($pagina) => collect($pagina->items())->pluck('code')->all() === ['PRN115'])
+        ->call('seleccionarDepartamento', 'DCNM')
+        ->assertSet('departamento', 'DCNM')
+        ->assertViewHas('asignaturas', fn ($pagina) => collect($pagina->items())->pluck('code')->all() === ['MAT115'])
+        ->call('seleccionarDepartamento', '')
+        ->assertSet('departamento', '')
+        ->assertViewHas('asignaturas', fn ($pagina) => $pagina->total() === 2);
+});

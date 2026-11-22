@@ -55,7 +55,12 @@
             </span>
             <span class="text-xs text-texto-suave"><span wire:loading.remove wire:target="guardar, opciones, textos">✓ {{ __('Guardado') }}</span><span wire:loading wire:target="guardar, opciones, textos">{{ __('Guardando…') }}</span></span>
         @else
-            <x-ui.badge color="verde">{{ __('Intento enviado') }}</x-ui.badge>
+            <div class="flex items-center gap-2">
+                <x-ui.badge color="verde">{{ __('Intento enviado') }}</x-ui.badge>
+                <x-ui.button variante="secundario" tamano="sm" :href="route('secciones.cuestionarios.show', ['seccion' => $cuestionario->seccion, 'cuestionario' => $cuestionario->ulid])">
+                    {{ __('Volver al cuestionario') }}
+                </x-ui.button>
+            </div>
         @endunless
     </div>
 
@@ -82,12 +87,18 @@
                         @endif
                     </div>
                     @if ($revision)
+                        @php
+                            $totalPuntosQuiz = (float) $preguntas->sum(fn ($p) => (float) ($p->points ?? 1.0));
+                            $puntosPreguntaConfig = (float) ($pregunta->points ?? 1.0);
+                            $valorPregunta = $totalPuntosQuiz > 0 ? round(10 * $puntosPreguntaConfig / $totalPuntosQuiz, 2) : 1.0;
+                            $puntosObtenidos = $pregunta->score !== null ? round((float) $pregunta->score * $valorPregunta, 2) : null;
+                        @endphp
                         <p class="mt-4 text-sm">
                             @if ($pregunta->score === null)
                                 <x-ui.badge color="ambar">{{ __('Por calificar') }}</x-ui.badge>
                             @else
                                 <x-ui.badge :color="(float) $pregunta->score >= 1 ? 'verde' : ((float) $pregunta->score > 0 ? 'ambar' : 'rojo')">
-                                    {{ __(':p de 1 punto', ['p' => rtrim(rtrim(number_format((float) $pregunta->score, 2), '0'), '.')]) }}
+                                    {{ __(':p de :max pts', ['p' => rtrim(rtrim(number_format((float) $puntosObtenidos, 2), '0'), '.'), 'max' => rtrim(rtrim(number_format($valorPregunta, 2), '0'), '.')]) }}
                                 </x-ui.badge>
                             @endif
                         </p>
@@ -109,6 +120,11 @@
                 @elseif (! $terminado)
                     {{-- Modal propio en vez del confirm() del navegador (QA Estudiante 22/11). --}}
                     <x-ui.button x-on:click="$dispatch('abrir-modal', 'terminar-intento')">{{ __('Terminar intento') }}</x-ui.button>
+                @endif
+                @if ($terminado)
+                    <x-ui.button variante="secundario" :href="route('secciones.cuestionarios.show', ['seccion' => $cuestionario->seccion, 'cuestionario' => $cuestionario->ulid])">
+                        {{ __('Volver al cuestionario') }}
+                    </x-ui.button>
                 @endif
             </div>
         </div>

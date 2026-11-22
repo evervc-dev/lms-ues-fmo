@@ -1,13 +1,15 @@
 ---
 tipo: adr
-id: ADR-084
+id: ADR-088
 estado: pendiente
 fecha: 2026-11-21
 afecta: ["[[RF29]]", "[[ADR-050 Inscripción por catálogo y claves compartidas]]"]
 fuentes: ["Pruebas en staging del 21/11/2026: en 2026-II (ciclo II) el estudiante no veía ninguna materia sembrada, todas de ciclo impar"]
 ---
 
-# ADR-084 · La inscripción lista todo el plan, sin la regla de paridad
+# ADR-088 · La inscripción lista todo el plan, sin la regla de paridad
+
+> [!note] Se creó como ADR-084 en otra sesión; al integrarla en `test` (22/11/2026) ya existía [[ADR-084 Nombres con mayúsculas mezcladas se respetan]], así que pasó a ADR-088.
 
 > [!info] Pendiente de aceptar por el equipo. **Reemplaza el punto 2 de [[ADR-050 Inscripción por catálogo y claves compartidas]]** (materias de ciclo impar en el ciclo I y de ciclo par en el ciclo II).
 

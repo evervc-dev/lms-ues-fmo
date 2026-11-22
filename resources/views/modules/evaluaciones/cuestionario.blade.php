@@ -38,7 +38,8 @@
                     </div>
                 @endforeach
                 @if ($estado === 'abierta' && $misIntentos->where('status', 'in_progress')->isEmpty() && $misIntentos->count() < $cuestionario->max_attempts)
-                    <div><x-ui.button wire:click="comenzar" wire:confirm="{{ __('El tiempo empieza a correr al comenzar. ¿Continuar?') }}">{{ __('Comenzar intento') }}</x-ui.button></div>
+                    {{-- Modal propio en vez del confirm() del navegador (QA Estudiante 22/11). --}}
+                    <div><x-ui.button x-on:click="$dispatch('abrir-modal', 'comenzar-intento')">{{ __('Comenzar intento') }}</x-ui.button></div>
                 @elseif ($estado === 'proxima')
                     <p class="text-sm text-texto-suave">{{ __('El cuestionario aún no abre.') }}</p>
                 @endif
@@ -90,4 +91,18 @@
             </x-ui.card>
         @endif
     @endif
+    <x-ui.modal nombre="comenzar-intento" :titulo="__('¿Comenzar el intento?')" ancho="sm">
+        <div class="flex flex-col gap-3 text-sm">
+            <ul class="flex flex-col gap-1 text-texto">
+                <li>{{ __('Tiempo: :n minutos. Empieza a correr al comenzar y no se detiene si sale de la página.', ['n' => $cuestionario->time_limit_minutes]) }}</li>
+                <li>{{ __('Intentos: :usados de :max usados.', ['usados' => $misIntentos->count(), 'max' => $cuestionario->max_attempts]) }}</li>
+                <li>{{ $cuestionario->navigation === 'linear' ? __('Una a una: no podrá volver a preguntas anteriores.') : __('Puede moverse entre las preguntas.') }}</li>
+            </ul>
+            <p class="text-texto-suave">{{ __('Sus respuestas se guardan solas mientras responde.') }}</p>
+        </div>
+        <x-slot:pie>
+            <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'comenzar-intento')">{{ __('Todavía no') }}</x-ui.button>
+            <x-ui.button wire:click="comenzar" wire:loading.attr="disabled">{{ __('Empezar ahora') }}</x-ui.button>
+        </x-slot:pie>
+    </x-ui.modal>
 </div>
