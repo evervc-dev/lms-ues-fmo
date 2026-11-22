@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Academica\Livewire\AsignaturaFormulario;
 use App\Modules\Academica\Livewire\Catalogo;
 use App\Modules\Academica\Services\CargaAcademicaService;
 use App\Modules\Academica\Services\CatalogoService;
@@ -213,8 +214,7 @@ it('CP-RF07-07 elige varios prerrequisitos con casillas, sin la tecla Ctrl', fun
     $e = escenario();
     actingAs($e['administrador']);
 
-    $pantalla = Livewire::test(Catalogo::class)
-        ->call('nueva')
+    $pantalla = Livewire::test(AsignaturaFormulario::class)
         ->set('codigo', 'ACC115')
         ->set('nombre', 'Administración de Centros de Cómputo')
         ->set('creditos', 4)
@@ -229,7 +229,7 @@ it('CP-RF07-07 elige varios prerrequisitos con casillas, sin la tecla Ctrl', fun
         ->toBe(collect([$e['prn'], $e['mat']])->sort()->values()->all());
 
     // La pantalla ofrece casillas, no un desplegable múltiple que exigiría la tecla Ctrl.
-    $pantalla->assertSeeHtml('type="checkbox"')->assertSeeHtml('wire:model="prerrequisitos"')->assertDontSeeHtml('<select multiple');
+    $pantalla->assertSeeHtml('type="checkbox"')->assertSeeHtml('wire:model.live="prerrequisitos"')->assertDontSeeHtml('<select multiple');
 });
 
 /* ------------------------------------------------- CP-RF07-13 a CP-RF07-16 (el Jefe en su departamento, ADR-072) */
@@ -242,7 +242,8 @@ it('CP-RF07-13 muestra el Catálogo al Jefe con solo las asignaturas de su depar
 
     // MAT115 (DCNM) no está en el listado, aunque sí entre los prerrequisitos elegibles, que son de cualquier departamento.
     Livewire::test(Catalogo::class)
-        ->assertViewHas('asignaturas', fn ($asignaturas) => collect($asignaturas->items())->pluck('code')->all() === ['PRN115'])
+        ->assertViewHas('asignaturas', fn ($asignaturas) => collect($asignaturas->items())->pluck('code')->all() === ['PRN115']);
+    Livewire::test(AsignaturaFormulario::class)
         ->assertViewHas('departamentos', fn ($departamentos) => $departamentos->pluck('id')->all() === [$e['dia']]);
 });
 
@@ -318,7 +319,7 @@ it('CP-RF07-17 rechaza crear una asignatura sin carrera ni plan de estudios', fu
     $e = escenario();
     actingAs($e['jefe']);
 
-    Livewire::test(Catalogo::class)->call('nueva')->set('planes', [])
+    Livewire::test(AsignaturaFormulario::class)->set('planes', [])
         ->set('codigo', 'IND101')->set('nombre', 'Introducción a la Industrial')->set('creditos', 4)
         ->call('guardar')->assertHasErrors(['planes']);
 
@@ -330,14 +331,14 @@ it('CP-RF07-18 el Jefe crea la asignatura sin elegir departamento, en la carrera
     $industrial = carreraConPlan($e['dia'], 'IIN');
     actingAs($e['jefe']);
 
-    Livewire::test(Catalogo::class)->call('nueva')
+    Livewire::test(AsignaturaFormulario::class)
         ->assertSet('departamentoId', $e['dia'])->assertDontSee('Departamento que la imparte')
         ->assertViewHas('carreras', fn ($carreras) => $carreras->pluck('id')->sort()->values()->all() === collect([$e['isi'], $industrial['carrera']])->sort()->values()->all())
         ->set('codigo', 'IND101')->set('nombre', 'Introducción a la Industrial')->set('creditos', 4)
         ->set('planes.0.carrera', $industrial['carrera'])->assertSet('planes.0.plan', $industrial['plan'])
         ->set('planes.0.ciclo', 1)
         ->call('agregarPlan')->set('planes.1.carrera', $e['isi'])->set('planes.1.plan', $e['plan'])->set('planes.1.ciclo', 9)
-        ->call('guardar')->assertHasNoErrors();
+        ->call('guardar')->assertHasNoErrors()->assertRedirect(route('catalogo'));
 
     $id = (int) DB::table('subjects')->where('code', 'IND101')->value('id');
     expect((int) DB::table('subjects')->where('id', $id)->value('department_id'))->toBe($e['dia'])
@@ -366,7 +367,7 @@ it('CP-RF07-20 al editar agrega, cambia y quita planes sin tocar los de otro dep
     actingAs($e['jefe']);
 
     // El Jefe solo ve en el formulario los planes de su departamento.
-    Livewire::test(Catalogo::class)->call('editar', $id)->assertSet('planes', [['carrera' => $e['isi'], 'plan' => $e['plan'], 'ciclo' => 5]]);
+    Livewire::test(AsignaturaFormulario::class, ['asignatura' => 'IND103'])->assertSet('planes', [['carrera' => $e['isi'], 'plan' => $e['plan'], 'ciclo' => 5]]);
 
     catalogo()->guardarAsignatura($e['jefe'], $id, $datos + ['planes' => [['plan' => $industrial['plan'], 'ciclo' => 7]]]);
 
@@ -401,4 +402,19 @@ it('aplica a una base con datos los permisos nuevos del Jefe (asignaturas.gestio
     expect($e['jefe']->fresh()->hasPermissionTo('asignaturas.gestionar'))->toBeTrue()
         ->and($e['jefe']->fresh()->hasPermissionTo('secciones.gestionar'))->toBeTrue()
         ->and(Role::findByName('coordinador')->hasPermissionTo('asignaturas.gestionar'))->toBeFalse();
+});
+
+it('CP-RF07-21 crear y editar una asignatura van en su propia página, y el Jefe no edita una de otro departamento', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+    $this->get(route('catalogo.asignaturas.crear'))->assertOk()->assertSee('Nueva asignatura');
+    $this->get(route('catalogo.asignaturas.editar', ['asignatura' => 'PRN115']))->assertOk()->assertSee('Editar PRN115');
+    Livewire::test(Catalogo::class)->assertSee(route('catalogo.asignaturas.editar', ['asignatura' => 'PRN115']), false);
+
+    // MAT115 es del departamento de Ciencias Naturales: el Jefe de Ingeniería no la abre.
+    actingAs($e['jefe']);
+    $this->get(route('catalogo.asignaturas.editar', ['asignatura' => 'MAT115']))->assertForbidden();
+    $this->get(route('catalogo.asignaturas.editar', ['asignatura' => 'NOEXISTE']))->assertNotFound();
+    actingAs($e['docente']);
+    $this->get(route('catalogo.asignaturas.crear'))->assertForbidden();
 });

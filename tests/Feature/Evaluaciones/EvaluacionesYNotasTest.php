@@ -399,7 +399,7 @@ it('shows whole weights and rubric points without cutting their trailing zeros',
     $this->get(route('secciones.tareas.show', ['seccion' => $e['ulid'], 'tarea' => $tarea]))->assertOk()->assertSeeText('50 % del cómputo');
     $this->get(route('secciones.tareas.crear', ['seccion' => $e['ulid']]))->assertOk()->assertSeeText('(30 %)');
     $this->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()->assertSeeText('Cómputo 3 (40 %)');
-    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->assertSee('De 0 a 10.')->assertSeeHtml('<td class="text-right">10</td>');
+    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->assertSee('de 10')->assertDontSee('de 10.00')->assertSeeHtml('<td class="text-right">10</td>');
 
     actingAs($e['estudiante'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()->assertSeeText(['Cómputo 3 · 40 %', '(50 %)']);
 });

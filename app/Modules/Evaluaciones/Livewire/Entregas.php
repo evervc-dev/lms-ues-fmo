@@ -60,28 +60,60 @@ class Entregas extends Component
     }
 
     /**
-     * Abre la calificación de una entrega. Recibe también su ULID y su archivo para mostrar el documento junto
-     * al formulario: antes el docente calificaba sin poder abrir lo que estaba calificando (QA 17/11).
+     * Abre la calificación de una entrega con su documento junto al formulario (QA 17/11). El ULID y el archivo salen de
+     * la lista del servidor: antes el botón los pasaba con @js dentro de un atributo de componente, Blade no lo
+     * compilaba y el clic no hacía nada en el navegador.
      */
-    public function abrir(int $entrega, string $ulid = '', ?string $archivo = null): void
+    public function abrir(int $entrega): void
     {
+        $fila = app(ActividadService::class)->entregas(auth()->user(), $this->seccionId(), $this->tareaUlid)['entregas']
+            ->first(fn (object $e) => (int) $e->id === $entrega) ?? abort(404);
         $this->reset('nota', 'puntos', 'comentario');
         $this->entregaId = $entrega;
-        $this->entregaUlid = $ulid;
-        $this->entregaArchivo = $archivo;
+        $this->entregaUlid = (string) $fila->ulid;
+        $this->entregaArchivo = $fila->archivo;
+        // «Cambiar» abre con lo que ya tenía: antes el formulario salía vacío y había que volver a escribir todo.
+        $previa = app(ActividadService::class)->calificacionDeEntrega(auth()->user(), $this->seccionId(), $entrega);
+        $this->puntos = $previa['puntos'];
+        $this->nota = $previa['puntos'] === [] ? $previa['nota'] : null;
+        $this->comentario = (string) $previa['comentario'];
         $this->resetValidation();
         $this->dispatch('abrir-modal', 'calificar');
     }
 
-    public function calificar(ActividadService $actividades): void
+    /**
+     * Abre la entrega anterior o la siguiente de la lista sin cerrar el calificador.
+     */
+    public function moverA(int $paso, ActividadService $actividades): void
     {
+        $entregas = $actividades->entregas(auth()->user(), $this->seccionId(), $this->tareaUlid)['entregas']->values();
+        $indice = $entregas->search(fn (object $e) => (int) $e->id === (int) $this->entregaId);
+        $destino = $indice === false ? null : $entregas->get($indice + $paso);
+        if ($destino !== null) {
+            $this->abrir((int) $destino->id);
+        }
+    }
+
+    /**
+     * Guarda la calificación. Con `$seguir` («Guardar y siguiente») abre la próxima entrega sin nota.
+     */
+    public function calificar(bool $seguir = false): void
+    {
+        $actividades = app(ActividadService::class);
         $this->resetValidation();
 
         try {
             $final = $actividades->calificarEntrega(auth()->user(), $this->seccionId(), (int) $this->entregaId, $this->nota,
                 $this->puntos, $this->comentario ?: null);
-            $this->dispatch('cerrar-modal', 'calificar');
             $this->dispatch('aviso', tipo: 'exito', mensaje: __('Calificada con :n.', ['n' => number_format($final, 2)]));
+            // «Guardar y siguiente»: la próxima entrega sin nota; si ya no queda ninguna, se cierra.
+            $siguiente = $seguir ? $actividades->entregas(auth()->user(), $this->seccionId(), $this->tareaUlid)['entregas']
+                ->first(fn (object $e) => $e->score === null && (int) $e->id !== (int) $this->entregaId) : null;
+            if ($siguiente !== null) {
+                $this->abrir((int) $siguiente->id);
+            } else {
+                $this->dispatch('cerrar-modal', 'calificar');
+            }
         } catch (ValidationException $e) {
             // El rechazo de un criterio se ve junto a su campo; lo que no pertenece al formulario, como aviso.
             $delFormulario = false;

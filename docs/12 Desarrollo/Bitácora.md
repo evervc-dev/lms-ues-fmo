@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF07, RF26, RF15 · Formularios complejos fuera del modal
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** la asignatura del catálogo y el área de asistencia pasan a su propia página, como pide Layout base (más de 6 campos o campos que crecen; el mapa necesita espacio). El calificador de entregas pasa a modal de pantalla completa con el nombre de la entrega, la nota anterior precargada, «Anterior», «Siguiente» y «Guardar y siguiente». Se corrigió el botón «Calificar», que no hacía nada en el navegador (`@js` sin compilar dentro de un atributo de componente).
+- **CP cubiertos:** CP-RF07-21, CP-RF26-03, CP-RF15-10; pruebas existentes reapuntadas al componente nuevo.
+- **Decisiones:** —
+- **Pendiente:** grupos B y C de la lista de formularios (horario, clase virtual, calendario, período, cancelación; tarea y cuestionario por secciones).
+
 ### 2026-11-21 · RF08 · El grupo teórico es de la asignatura (D2)
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

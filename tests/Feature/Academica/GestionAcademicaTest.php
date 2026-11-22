@@ -1,7 +1,7 @@
 <?php
 
+use App\Modules\Academica\Livewire\AsignaturaFormulario;
 use App\Modules\Academica\Livewire\CargaAcademica;
-use App\Modules\Academica\Livewire\Catalogo;
 use App\Modules\Academica\Livewire\ClavesMatricula;
 use App\Modules\Academica\Livewire\InscripcionDetalle;
 use App\Modules\Academica\Livewire\Matricula;
@@ -81,7 +81,7 @@ describe('catálogo (RF07)', function () {
         $e = escenario();
         actingAs($e['administrador']);
 
-        Livewire::test(Catalogo::class)->call('nueva')->set('codigo', 'prn115')->set('nombre', 'Otra')->set('departamentoId', $e['dia'])->call('guardar')->assertHasErrors(['codigo']);
+        Livewire::test(AsignaturaFormulario::class)->set('codigo', 'prn115')->set('nombre', 'Otra')->set('departamentoId', $e['dia'])->call('guardar')->assertHasErrors(['codigo']);
     });
 
     it('CP-RF07-03 rejects a prerequisite cycle', function () {
@@ -89,7 +89,7 @@ describe('catálogo (RF07)', function () {
         DbContext::system(fn () => DB::table('subject_prerequisites')->insert(['subject_id' => $e['prn'], 'prerequisite_id' => $e['mat']]));
         actingAs($e['administrador']);
 
-        Livewire::test(Catalogo::class)->call('editar', $e['mat'])->set('prerrequisitos', [$e['prn']])->call('guardar')->assertHasErrors(['prerrequisitos']);
+        Livewire::test(AsignaturaFormulario::class, ['asignatura' => 'MAT115'])->set('prerrequisitos', [$e['prn']])->call('guardar')->assertHasErrors(['prerrequisitos']);
     });
 });
 

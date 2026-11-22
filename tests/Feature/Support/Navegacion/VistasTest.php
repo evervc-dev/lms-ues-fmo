@@ -36,7 +36,7 @@ function parametrosDe(string $uri, string $seccion): array
     return collect($coincidencias[1])->mapWithKeys(fn (string $parametro) => [
         $parametro => match ($parametro) {
             'seccion' => $seccion,
-            'usuario', 'periodo', 'hilo', 'banco', 'lote', 'unidad', 'carrera', 'asignatura' => '999999',
+            'usuario', 'periodo', 'hilo', 'banco', 'lote', 'unidad', 'carrera', 'asignatura', 'area' => '999999',
             default => 'x',
         },
     ])->all();

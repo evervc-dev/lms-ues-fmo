@@ -398,6 +398,19 @@ class CatalogoService
      *
      * @throws AuthorizationException
      */
+    /**
+     * Asignatura para editarla, por su código, dentro del alcance del actor (Administrador G, Jefe D).
+     *
+     * @throws AuthorizationException
+     */
+    public function asignaturaParaEditar(User $actor, string $codigo): object
+    {
+        $asignatura = DB::table('subjects')->whereRaw('upper(code) = ?', [mb_strtoupper($codigo)])->first() ?? abort(404);
+        $this->exigirAsignatura($actor, (int) $asignatura->id);
+
+        return $asignatura;
+    }
+
     private function exigirAsignatura(User $actor, ?int $asignaturaId, ?int $departamentoDestino = null): void
     {
         $alcance = $this->alcance->exigir($actor, 'asignaturas.gestionar');

@@ -8,7 +8,8 @@
  * que el servidor valida igual que si se hubiera escrito a mano. Leaflet se carga al abrir el formulario, con
  * import() dinámico, para no pesar en las demás pantallas.
  *
- * <div wire:ignore x-data="mapaArea(@js($centro))" x-on:abrir-modal.window="abrir($event.detail)"><div x-ref="mapa"></div></div>
+ * <div wire:ignore x-data="mapaArea(@js($centro))" x-init="iniciar()"><div x-ref="mapa"></div></div>  (en página)
+ * <div wire:ignore x-data="mapaArea(@js($centro))" x-on:abrir-modal.window="abrir($event.detail)"><div x-ref="mapa"></div></div>  (en modal)
  */
 
 /** Rojo UES (marca-600) para la figura y los vértices. */
@@ -37,6 +38,15 @@ export default (centroPorDefecto) => ({
         ['tipo', 'latitud', 'longitud', 'radio'].forEach((campo) => this.$wire.$watch(campo, () => this.dibujar()));
     },
 
+    /** En la página del área (sin modal): el mapa se arma al cargar y se encuadra en la figura guardada. */
+    async iniciar() {
+        await this.preparar();
+        this.$nextTick(() => {
+            this.mapa.invalidateSize();
+            this.dibujar(true);
+        });
+    },
+
     /** Al abrir el modal del área: el mapa estaba oculto y no conoce su tamaño. */
     async abrir(detalle) {
         if ((Array.isArray(detalle) ? detalle[0] : detalle) !== 'area') {
@@ -53,7 +63,7 @@ export default (centroPorDefecto) => ({
     clic({ lat, lng }) {
         const fijo = (n) => Number(n.toFixed(7));
         if (this.$wire.tipo === 'polygon') {
-            this.$wire.vertices = [...(this.$wire.vertices ?? []), [fijo(lat), fijo(lng)]];
+            this.$wire.set('vertices', [...(this.$wire.vertices ?? []), [fijo(lat), fijo(lng)]]);
         } else {
             this.$wire.latitud = String(fijo(lat));
             this.$wire.longitud = String(fijo(lng));
@@ -62,12 +72,12 @@ export default (centroPorDefecto) => ({
     },
 
     deshacer() {
-        this.$wire.vertices = (this.$wire.vertices ?? []).slice(0, -1);
+        this.$wire.set('vertices', (this.$wire.vertices ?? []).slice(0, -1));
         this.dibujar();
     },
 
     limpiar() {
-        this.$wire.vertices = [];
+        this.$wire.set('vertices', []);
         this.dibujar();
     },
 

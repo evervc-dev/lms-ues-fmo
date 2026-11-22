@@ -151,3 +151,32 @@ it('CP-RF15-06 ya no hay página ni permiso de rúbricas aparte', function () {
     actingAs($e['docente'])->get(route('secciones.tareas.crear', ['seccion' => $e['ulid']]))->assertOk()
         ->assertSeeText('Calificar con rúbrica')->assertDontSeeText('Sin rúbrica (nota directa)');
 });
+
+it('CP-RF15-10 al cambiar una nota el calificador abre con los puntos y la retroalimentación ya puestos, y pasa a la siguiente entrega', function () {
+    $e = escenario();
+    $tarea = tareaInforme($e, ['conRubrica' => true, 'criterios' => [['nombre' => 'Contenido', 'maximo' => 6], ['nombre' => 'Forma', 'maximo' => 4]]]);
+    $primera = entregaInforme($e, $tarea);
+    // Un compañero también entrega.
+    $companero = usuarioCon('estudiante');
+    DbContext::system(fn () => DB::table('enrollments')->insert(['student_id' => $companero->id, 'section_id' => $e['seccion'], 'period_id' => $e['periodo'], 'subject_id' => $e['prn'],
+        'status' => 'active', 'enrolled_via' => 'key', 'enrolled_by' => $companero->id, 'created_at' => now(), 'updated_at' => now()]));
+    actingAs($companero);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->set('archivo', UploadedFile::fake()->create('otro.pdf', 50))->call('entregar')->assertHasNoErrors();
+    $segunda = (int) DB::table('submissions')->where('id', '!=', $primera)->value('id');
+    $criterios = DB::table('rubric_criteria')->pluck('id', 'name')->all();
+    actingAs($e['docente']);
+
+    // El botón de la lista llama a abrir() con un id válido: antes llevaba un @js sin compilar y el clic no hacía nada.
+    $pantalla = Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])
+        ->assertSeeHtml('wire:click="abrir('.$primera.')"')->assertDontSeeHtml('@js(');
+
+    // «Guardar y siguiente» califica la primera y abre la que falta.
+    $pantalla->call('abrir', $primera)
+        ->set('puntos', [$criterios['Contenido'] => 5, $criterios['Forma'] => 3])->set('comentario', 'Buen análisis, cuide la ortografía.')
+        ->call('calificar', true)->assertHasNoErrors()->assertSet('entregaId', $segunda)->assertSet('puntos', [])->assertSee('Entrega 2 de 2');
+
+    // Volver a la primera la muestra con lo que ya tenía, no vacía.
+    $pantalla->call('moverA', -1)->assertSet('entregaId', $primera)
+        ->assertSet('puntos', [$criterios['Contenido'] => 5.0, $criterios['Forma'] => 3.0])->assertSet('comentario', 'Buen análisis, cuide la ortografía.');
+    expect((float) DB::table('grades')->where('enrollment_id', $e['matricula'])->value('score'))->toBe(8.0);
+});

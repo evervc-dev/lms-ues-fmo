@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Asistencia\Livewire\AreaFormulario;
 use App\Modules\Asistencia\Livewire\AreasAsistencia;
 use App\Modules\Asistencia\Livewire\AsistenciaSeccion;
 use App\Modules\Asistencia\Livewire\ClasesCanceladas;
@@ -25,6 +26,9 @@ Route::middleware('auth')->group(function (): void {
     Route::livewire('/secciones/{seccion}/asistencia/{sesion}/proyectar', ProyectarQr::class)->middleware('permission:asistencia.sesion.abrir')->name('secciones.asistencia.proyectar');
     Route::livewire('/clases-canceladas', ClasesCanceladas::class)->middleware('permission:clases.cancelar')->name('clases-canceladas');
     Route::livewire('/areas-asistencia', AreasAsistencia::class)->middleware('permission:areas-asistencia.gestionar')->name('areas-asistencia');
+    // RF26: el área se dibuja en su propia página, con el mapa grande.
+    Route::livewire('/areas-asistencia/nueva', AreaFormulario::class)->middleware('permission:areas-asistencia.gestionar')->name('areas-asistencia.crear');
+    Route::livewire('/areas-asistencia/{area}/editar', AreaFormulario::class)->middleware('permission:areas-asistencia.gestionar')->whereNumber('area')->name('areas-asistencia.editar');
 
     // RF21 y RF06 (ADR-018): conexión del docente o del Administrador con Google Calendar, solo con su cuenta @ues.edu.sv. El `state` va en la
     // sesión contra CSRF; la validación del dominio y del correo está en CalendarConexionService.
