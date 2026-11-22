@@ -36,11 +36,7 @@
                     <td class="text-right">{{ $c->por_clave }}</td>
                     <td class="text-right whitespace-nowrap">
                         <x-ui.button tamano="sm" variante="fantasma" wire:click="generar({{ $c->id }})" :wire:confirm="$c->clave_id ? __('La clave actual dejará de funcionar. ¿Generar una nueva?') : null">{{ $c->clave_id ? __('Cambiar clave') : __('Generar clave') }}</x-ui.button>
-                        @if ($c->clave_id)
-                            <x-ui.acciones-fila :etiqueta="__('Más acciones de :a', ['a' => $c->code])">
-                                <x-ui.dropdown.item icono="x-circle" peligro x-on:click="abierto = false" wire:click="desactivar({{ $c->id }})" wire:confirm="{{ __('¿Desactivar la clave de :a? Los estudiantes ya no podrán matricularse con ella.', ['a' => $c->code]) }}">{{ __('Desactivar clave') }}</x-ui.dropdown.item>
-                            </x-ui.acciones-fila>
-                        @endif
+                        @if ($c->clave_id)<x-ui.button tamano="sm" variante="peligro" wire:click="desactivar({{ $c->id }})" wire:confirm="{{ __('¿Desactivar la clave de :a? Los estudiantes ya no podrán matricularse con ella.', ['a' => $c->code]) }}">{{ __('Desactivar') }}</x-ui.button>@endif
                     </td>
                 </tr>
             @endforeach
@@ -84,15 +80,21 @@
                 <p class="text-sm font-medium text-texto">{{ trans_choice('{0} No hay asignaturas en su ámbito.|{1} Se aplicó a 1 asignatura.|[2,*] Se aplicó a :count asignaturas.', $aplicadas) }}</p>
             @endif
             <p class="text-sm text-texto-suave">{{ __('Compártala con sus estudiantes. Por seguridad no se podrá volver a ver: si se pierde, genere otra.') }}</p>
-            <p class="rounded-xl bg-marca-50 px-6 py-3 font-mono text-2xl font-semibold tracking-wider text-marca-700 ring-1 ring-marca-200">{{ $claveNueva }}</p>
+            <p class="select-all rounded-xl bg-marca-50 px-6 py-3 font-mono text-2xl font-semibold tracking-wider text-marca-700 ring-1 ring-marca-200">{{ $claveNueva }}</p>
             {{-- Copiar la clave o un mensaje listo para los estudiantes (QA Jefe 21/11: había que seleccionarla a mano). --}}
-            <div class="flex flex-wrap justify-center gap-2" x-data="{ copiado: '' }">
-                <x-ui.button tamano="sm" variante="secundario" x-on:click="navigator.clipboard?.writeText(@js($claveNueva)); copiado = 'clave'">
+            {{-- El texto se lee del data-texto al hacer clic: el modal se dibuja antes de que exista la clave y Alpine no
+                 vuelve a leer una expresión x-on:click que Livewire cambia después. --}}
+            <div class="flex flex-wrap justify-center gap-2" x-data="{ copiado: '' }" wire:key="copiar-{{ $claveNueva }}">
+                <x-ui.button tamano="sm" variante="secundario" data-texto="{{ $claveNueva }}"
+                    x-on:click="copiado = (await $copiar($el.dataset.texto)) ? 'clave' : 'error'">
                     <span x-text="copiado === 'clave' ? @js(__('Clave copiada')) : @js(__('Copiar clave'))"></span>
                 </x-ui.button>
-                <x-ui.button tamano="sm" variante="secundario" x-on:click="navigator.clipboard?.writeText(@js(__('Clave de matrícula de :a: :c. Inscríbase en «Inscripción de materias» del LMS UES FMO.', ['a' => $aplicadas !== null ? __('todas las asignaturas') : $asignaturaNueva, 'c' => $claveNueva]))); copiado = 'mensaje'">
+                <x-ui.button tamano="sm" variante="secundario"
+                    data-texto="{{ __('Clave de matrícula de :a: :c. Inscríbase en «Inscripción de materias» del LMS UES FMO.', ['a' => $aplicadas !== null ? __('todas las asignaturas') : $asignaturaNueva, 'c' => $claveNueva]) }}"
+                    x-on:click="copiado = (await $copiar($el.dataset.texto)) ? 'mensaje' : 'error'">
                     <span x-text="copiado === 'mensaje' ? @js(__('Mensaje copiado')) : @js(__('Copiar mensaje para estudiantes'))"></span>
                 </x-ui.button>
+                <p class="w-full text-xs text-red-700" x-show="copiado === 'error'" x-cloak>{{ __('El navegador no permitió copiar. Seleccione la clave y cópiela a mano.') }}</p>
             </div>
         </div>
         <x-slot:pie><x-ui.button x-on:click="$dispatch('cerrar-modal', 'clave-generada')">{{ __('Listo') }}</x-ui.button></x-slot:pie>
