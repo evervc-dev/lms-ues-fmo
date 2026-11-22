@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Academica\Events\HorarioCambiado;
 use App\Modules\Calificaciones\Services\ComputoService;
 use App\Support\Alcance;
+use App\Support\Busqueda;
 use App\Support\DbContext;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Query\Builder;
@@ -50,8 +51,8 @@ class CargaAcademicaService
                 DB::raw("(select count(*) from enrollments e where e.section_id = sections.id and e.status = 'active') as inscritos"))
             ->groupBy('sections.id', 'sections.ulid', 'sections.code', 'sections.max_capacity', 'sections.min_capacity', 'subjects.id', 'subjects.code', 'subjects.name')
             ->orderBy('subjects.code')->orderBy('sections.code');
-        $buscar = mb_strtolower(trim($filtros['buscar'] ?? ''));
-        $consulta->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->whereRaw('lower(subjects.code) like ?', ["%{$buscar}%"])->orWhereRaw('lower(subjects.name) like ?', ["%{$buscar}%"])));
+        $buscar = trim($filtros['buscar'] ?? '');
+        $consulta->when($buscar !== '', fn ($q) => $q->where(Busqueda::contiene($buscar, ['subjects.code', 'subjects.name'])));
         $consulta->when($filtros['ciclo'] ?? null, fn ($q, $c) => $q->havingRaw('min(career_subjects.cycle) = ?', [(int) $c]));
 
         $secciones = $this->visibles($consulta, $actor)->get();

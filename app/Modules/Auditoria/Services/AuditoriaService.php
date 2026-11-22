@@ -4,6 +4,7 @@ namespace App\Modules\Auditoria\Services;
 
 use App\Models\User;
 use App\Support\Alcance;
+use App\Support\Busqueda;
 use App\Support\DbContext;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Query\Builder;
@@ -192,7 +193,7 @@ class AuditoriaService
 
         return DB::transaction(function () use ($global, $departamentos, $consulta, $filtros) {
             DbContext::auditScope($global, $departamentos);
-            $buscar = mb_strtolower(trim($filtros['buscar'] ?? ''));
+            $buscar = trim($filtros['buscar'] ?? '');
 
             $q = DB::table('audit_logs')->leftJoin('users', 'users.id', '=', 'audit_logs.actor_user_id')
                 ->select('audit_logs.*', DB::raw("users.first_name || ' ' || users.last_name as actor"))
@@ -201,9 +202,7 @@ class AuditoriaService
                 ->when($filtros['hasta'] ?? null, fn ($q, $h) => $q->where('audit_logs.occurred_at', '<=', $h.' 23:59:59'))
                 ->when($filtros['accion'] ?? null, fn ($q, $a) => $q->where('audit_logs.action', $a))
                 ->when($filtros['entidad'] ?? null, fn ($q, $e) => $q->where('audit_logs.entity_type', $e))
-                ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->whereRaw('lower(users.institutional_email) like ?', ["%{$buscar}%"])
-                    ->orWhereRaw("lower(users.first_name || ' ' || users.last_name) like ?", ["%{$buscar}%"])
-                    ->orWhereRaw('lower(audit_logs.event_type) like ?', ["%{$buscar}%"])));
+                ->when($buscar !== '', fn ($q) => $q->where(Busqueda::contiene($buscar, ['users.institutional_email', "users.first_name || ' ' || users.last_name", 'audit_logs.event_type'])));
 
             return $consulta($q);
         });

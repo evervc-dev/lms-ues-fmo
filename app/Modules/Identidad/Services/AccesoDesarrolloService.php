@@ -3,6 +3,7 @@
 namespace App\Modules\Identidad\Services;
 
 use App\Models\User;
+use App\Support\Busqueda;
 use App\Support\DbContext;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -46,11 +47,8 @@ class AccesoDesarrolloService
             return collect();
         }
 
-        $patron = '%'.mb_strtolower(trim($texto)).'%';
-
         return User::query()->with('roles')->where('is_active', true)
-            ->where(fn ($query) => $query->whereRaw('lower(institutional_email) like ?', [$patron])
-                ->orWhereRaw("lower(first_name || ' ' || last_name) like ?", [$patron]))
+            ->where(Busqueda::contiene($texto, ['institutional_email', "first_name || ' ' || last_name"]))
             ->orderBy('institutional_email')->limit(10)->get();
     }
 

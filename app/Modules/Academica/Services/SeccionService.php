@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Asistencia\Services\AsistenciaService;
 use App\Modules\Identidad\Services\PerfilContextualService;
 use App\Support\Alcance;
+use App\Support\Busqueda;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -49,11 +50,11 @@ class SeccionService
     public function listar(User $usuario, string $ambito, string $buscar = ''): Collection
     {
         abort_unless(in_array($ambito, $this->ambitos($usuario), true), 403);
-        $buscar = mb_strtolower(trim($buscar));
+        $buscar = trim($buscar);
 
         $consulta = DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
             ->join('academic_periods', 'academic_periods.id', '=', 'sections.period_id')->where('academic_periods.status', 'active')
-            ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->whereRaw('lower(subjects.code) like ?', ["%{$buscar}%"])->orWhereRaw('lower(subjects.name) like ?', ["%{$buscar}%"])))
+            ->when($buscar !== '', fn ($q) => $q->where(Busqueda::contiene($buscar, ['subjects.code', 'subjects.name'])))
             ->select('sections.id', 'sections.ulid', 'sections.code as grupo', 'sections.max_capacity', 'subjects.code', 'subjects.name',
                 DB::raw("(select count(*) from enrollments e where e.section_id = sections.id and e.status = 'active') as inscritos"),
                 // Estudiantes con alguna alerta que ve el personal (RF22): el preventivo del 85 % solo avisa al estudiante.

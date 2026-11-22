@@ -95,7 +95,7 @@
             <div class="grid max-h-80 overflow-y-auto rounded-lg border border-borde p-1 md:grid-cols-2">
                 @foreach ($todas as $t)
                     @continue($t->id === $editando)
-                    <label wire:key="pre-{{ $t->id }}" x-show="filtro === '' || @js(mb_strtolower($t->code.' '.$t->name)).includes(filtro.toLowerCase())" class="flex items-center gap-3 rounded-md px-2 py-1.5 text-sm text-texto hover:bg-zinc-50">
+                    <label wire:key="pre-{{ $t->id }}" x-show="filtro === '' || @js(\App\Support\Busqueda::normalizar($t->code.' '.$t->name)).includes(filtro.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim())" class="flex items-center gap-3 rounded-md px-2 py-1.5 text-sm text-texto hover:bg-zinc-50">
                         <input type="checkbox" value="{{ $t->id }}" wire:model.live="prerrequisitos" class="size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
                         <span class="min-w-0"><span class="font-mono text-xs font-semibold">{{ $t->code }}</span> · {{ $t->name }}</span>
                     </label>

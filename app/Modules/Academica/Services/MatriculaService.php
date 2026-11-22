@@ -46,14 +46,12 @@ class MatriculaService
      */
     public function matriculas(User $actor, array $filtros = [], int $porPagina = 25): LengthAwarePaginator
     {
-        $buscar = mb_strtolower(trim($filtros['buscar'] ?? ''));
+        $buscar = trim($filtros['buscar'] ?? '');
         $consulta = DB::table('enrollments')->join('users', 'users.id', '=', 'enrollments.student_id')
             ->join('sections', 'sections.id', '=', 'enrollments.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
             ->leftJoin('student_profiles', 'student_profiles.user_id', '=', 'users.id')
             ->where('enrollments.period_id', PeriodoService::activoId())
-            ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->whereRaw('lower(users.institutional_email) like ?', ["%{$buscar}%"])
-                ->orWhereRaw("lower(users.first_name || ' ' || users.last_name) like ?", ["%{$buscar}%"])
-                ->orWhereRaw('lower(subjects.code) like ?', ["%{$buscar}%"])))
+            ->when($buscar !== '', fn ($q) => $q->where(Busqueda::contiene($buscar, ['users.institutional_email', "users.first_name || ' ' || users.last_name", 'subjects.code'])))
             ->when($filtros['seccion'] ?? null, fn ($q, $s) => $q->where('enrollments.section_id', $s))
             ->orderBy('subjects.code')->orderBy('users.last_name')
             ->select('enrollments.id', 'enrollments.status', 'enrollments.enrolled_via', 'enrollments.created_at', 'users.id as estudiante_id', 'users.first_name', 'users.last_name',
@@ -205,7 +203,7 @@ class MatriculaService
         $alcance = $this->alcance->exigir($actor, 'matricula.claves.gestionar');
         // Las claves se configuran también en un período en preparación (Ciclo de vida del período académico).
         $periodo = PeriodoService::preparableOActivo($periodoId);
-        $buscar = Busqueda::fragmento($buscar);
+        $buscar = trim($buscar);
         $ambito = match ($alcance) {
             'G' => DB::table('subjects')->select('id'),
             'D' => DB::table('subjects')->whereIn('department_id', $this->alcance->departamentos($actor))->select('id'),
@@ -214,8 +212,7 @@ class MatriculaService
         };
 
         return DB::table('subjects')
-            ->when($buscar !== '%%', fn ($q) => $q->where(fn ($q) => $q->whereRaw("lower(subjects.code) like ? escape '\\'", [$buscar])
-                ->orWhereRaw("lower(subjects.name) like ? escape '\\'", [$buscar])))
+            ->when($buscar !== '', fn ($q) => $q->where(Busqueda::contiene($buscar, ['subjects.code', 'subjects.name'])))
             ->whereIn('subjects.id', $ambito)
             ->leftJoin('enrollment_keys as k', fn ($j) => $j->on('k.subject_id', '=', 'subjects.id')->where('k.period_id', $periodo)->where('k.is_active', true))
             ->select('subjects.id', 'subjects.code', 'subjects.name', 'k.id as clave_id', 'k.valid_until', 'k.updated_at as generada',
@@ -406,12 +403,11 @@ class MatriculaService
         if ($periodo === null) {
             return collect();
         }
-        $buscar = Busqueda::fragmento($buscar);
+        $buscar = trim($buscar);
         $consulta = DB::table('enrollment_extensions as x')->join('users', 'users.id', '=', 'x.student_id')
             ->join('users as otorgante', 'otorgante.id', '=', 'x.granted_by')
             ->where('x.period_id', $periodo)
-            ->when($buscar !== '%%', fn ($q) => $q->where(fn ($q) => $q->whereRaw("lower(users.institutional_email) like ? escape '\\'", [$buscar])
-                ->orWhereRaw("lower(users.first_name || ' ' || users.last_name) like ? escape '\\'", [$buscar])))
+            ->when($buscar !== '', fn ($q) => $q->where(Busqueda::contiene($buscar, ['users.institutional_email', "users.first_name || ' ' || users.last_name"])))
             ->orderBy('users.last_name')->orderBy('users.first_name')
             ->select('x.id', 'x.student_id', 'x.until', 'x.reason', 'x.updated_at', 'users.first_name', 'users.last_name', 'users.institutional_email',
                 DB::raw("otorgante.first_name || ' ' || otorgante.last_name as otorgada_por"));

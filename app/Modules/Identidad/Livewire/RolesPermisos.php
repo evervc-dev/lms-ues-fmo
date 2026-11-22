@@ -3,6 +3,7 @@
 namespace App\Modules\Identidad\Livewire;
 
 use App\Modules\Identidad\Services\RolService;
+use App\Support\Busqueda;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\ValidationException;
@@ -42,12 +43,12 @@ class RolesPermisos extends Component
     public function render(RolService $roles): View
     {
         $matriz = $roles->matriz(auth()->user());
-        $buscar = mb_strtolower(trim($this->buscar));
+        $buscar = Busqueda::normalizar($this->buscar);
         if ($buscar !== '') {
             $matriz['grupos'] = collect($matriz['grupos'])
-                ->map(fn ($permisos, string $grupo) => str_contains(mb_strtolower($grupo), $buscar)
+                ->map(fn ($permisos, string $grupo) => str_contains(Busqueda::normalizar($grupo), $buscar)
                     ? collect($permisos)
-                    : collect($permisos)->filter(fn (string $p) => str_contains(mb_strtolower($p), $buscar))->values())
+                    : collect($permisos)->filter(fn (string $p) => str_contains(Busqueda::normalizar($p), $buscar))->values())
                 ->filter(fn ($permisos) => $permisos->isNotEmpty())
                 ->all();
         }

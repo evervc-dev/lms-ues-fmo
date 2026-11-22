@@ -4,6 +4,7 @@ namespace App\Modules\Academica\Livewire;
 
 use App\Modules\Academica\Services\MatriculaService;
 use App\Support\Alcance;
+use App\Support\Busqueda;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -111,11 +112,10 @@ class PlazosMatricula extends Component
         $usuario = auth()->user();
         $gestiona = $usuario->checkPermissionTo('matricula.plazo.gestionar');
         $otorga = $usuario->checkPermissionTo('matricula.prorroga.otorgar');
-        $termino = mb_strtolower(trim($this->estudianteBuscar));
+        $termino = trim($this->estudianteBuscar);
         $candidatos = ! $otorga || mb_strlen($termino) < 2 ? collect() : $alcance->estudiantes(DB::table('users')->join('student_careers', 'student_careers.student_id', '=', 'users.id')
             ->leftJoin('student_profiles', 'student_profiles.user_id', '=', 'users.id')->where('student_careers.status', 'active')
-            ->where(fn ($q) => $q->whereRaw('lower(users.institutional_email) like ?', ["%{$termino}%"])->orWhereRaw('lower(student_profiles.student_code) like ?', ["%{$termino}%"])
-                ->orWhereRaw("lower(users.first_name || ' ' || users.last_name) like ?", ["%{$termino}%"])), $usuario, 'matricula.prorroga.otorgar')
+            ->where(Busqueda::contiene($termino, ['users.institutional_email', 'student_profiles.student_code', "users.first_name || ' ' || users.last_name"])), $usuario, 'matricula.prorroga.otorgar')
             ->limit(8)->get(['users.id', 'users.first_name', 'users.last_name', 'users.institutional_email', 'student_profiles.student_code']);
 
         return $this->pagina('modules.academica.plazos', [
