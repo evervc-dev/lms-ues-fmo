@@ -14,6 +14,14 @@ uses(RefreshDatabase::class);
 it('encuentra personas por nombre sin importar tildes ni eñe, en los dos sentidos', function () {
     $e = escenario();
     DbContext::system(function () use ($e) {
+        // Los demás nombres del escenario son aleatorios (Faker) y a veces traían «José» o «Peña»: se fijan neutros.
+        // También el correo, que el buscador compara.
+        foreach (DB::table('users')->whereNotIn('id', [$e['docente']->id, $e['estudiante']->id])->pluck('id') as $id) {
+            DB::table('users')->where('id', $id)->update(['first_name' => 'Persona', 'last_name' => 'De Prueba', 'institutional_email' => "persona{$id}@ues.edu.sv"]);
+        }
+        foreach ([$e['docente']->id, $e['estudiante']->id] as $id) {
+            DB::table('users')->where('id', $id)->update(['institutional_email' => "cuenta{$id}@ues.edu.sv"]);
+        }
         DB::table('users')->where('id', $e['docente']->id)->update(['first_name' => 'José', 'last_name' => 'Núñez Peña']);
         DB::table('users')->where('id', $e['estudiante']->id)->update(['first_name' => 'Ramon', 'last_name' => 'Munoz']);
     });

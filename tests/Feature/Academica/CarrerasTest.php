@@ -244,7 +244,8 @@ describe('permiso carreras.ver', function () {
 
         actingAs($usuario)->get(route('carreras'))->assertForbidden();
         actingAs($usuario)->get(route('carreras.show', ['carrera' => $e['isi']]))->assertForbidden();
-    })->with(['docente', 'estudiante', 'soporte', 'administrador']);
+        // El Administrador sí tiene carreras.ver con alcance G desde ADR-083 (CP-RF07-22).
+    })->with(['docente', 'estudiante', 'soporte']);
 });
 
 describe('pantallas', function () {
