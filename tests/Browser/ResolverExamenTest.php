@@ -42,7 +42,7 @@ it('lets the student solve the exam the teacher uploaded and grades it', functio
     $pagina = navegar(route('secciones.cuestionarios.show', ['seccion' => $examen['seccion'], 'cuestionario' => $examen['ulid']]))
         ->assertSee('Examen de prueba')
         ->assertSee('Responda las 3 preguntas.');
-    aceptarConfirmaciones($pagina)->click('Comenzar intento')->assertSee('Pregunta 1 de 3');
+    $pagina->click('Comenzar intento')->click('Empezar ahora')->assertSee('Pregunta 1 de 3');
     aceptarConfirmaciones($pagina);
 
     // Las preguntas salen en orden aleatorio: se responde según el tipo que tocó en cada posición.
@@ -59,7 +59,7 @@ it('lets the student solve the exam the teacher uploaded and grades it', functio
         }
     }
 
-    $pagina->click('Terminar intento')
+    $pagina->click('Terminar intento')->click('Terminar y enviar')
         ->assertSee('Intento enviado.')
         ->assertSee('Calificado')
         ->assertNoJavaScriptErrors();

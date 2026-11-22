@@ -177,9 +177,13 @@ it('runs a quiz attempt in the exam layout and grades it automatically', functio
     $ulid = (string) DB::table('assessments')->where('title', 'Parcial 1')->value('ulid');
 
     actingAs($e['estudiante']);
+    // Comenzar y terminar se confirman con un modal propio, no con el confirm() del navegador (QA Estudiante 22/11).
+    $this->get(route('secciones.cuestionarios.show', ['seccion' => $e['ulid'], 'cuestionario' => $ulid]))->assertOk()
+        ->assertSeeText(['¿Comenzar el intento?', 'Empezar ahora'])->assertDontSee('wire:confirm', false);
     Livewire::test(Cuestionario::class, ['seccion' => $e['ulid'], 'cuestionario' => $ulid])->call('comenzar')->assertRedirect();
     $intento = (string) DB::table('quiz_attempts')->value('ulid');
-    $this->get(route('intentos.show', $intento))->assertOk()->assertSeeText('PHP es interpretado')->assertDontSee('Menú principal');
+    $this->get(route('intentos.show', $intento))->assertOk()->assertSeeText('PHP es interpretado')->assertDontSee('Menú principal')
+        ->assertSeeText(['¿Terminar el intento?', 'Le queda 1 pregunta sin responder.', 'Terminar y enviar'])->assertDontSee('wire:confirm', false);
 
     $respuesta = DB::table('attempt_answers')->value('id');
     $verdadero = DB::table('question_options')->where('text', 'Verdadero')->value('id');

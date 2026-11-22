@@ -48,7 +48,11 @@
                     <td class="text-right">{{ $c->por_clave }}</td>
                     <td class="text-right whitespace-nowrap">
                         <x-ui.button tamano="sm" variante="fantasma" wire:click="generar({{ $c->id }})" :wire:confirm="$c->clave_id ? __('La clave actual dejará de funcionar. ¿Generar una nueva?') : null">{{ $c->clave_id ? __('Cambiar clave') : __('Generar clave') }}</x-ui.button>
-                        @if ($c->clave_id)<x-ui.button tamano="sm" variante="peligro" wire:click="desactivar({{ $c->id }})" wire:confirm="{{ __('¿Desactivar la clave de :a? Los estudiantes ya no podrán matricularse con ella.', ['a' => $c->code]) }}">{{ __('Desactivar') }}</x-ui.button>@endif
+                        @if ($c->clave_id)
+                            <x-ui.acciones-fila :etiqueta="__('Más acciones de :a', ['a' => $c->code])">
+                                <x-ui.dropdown.item icono="x-circle" peligro x-on:click="abierto = false" wire:click="desactivar({{ $c->id }})" wire:confirm="{{ __('¿Desactivar la clave de :a? Los estudiantes ya no podrán matricularse con ella.', ['a' => $c->code]) }}">{{ __('Desactivar clave') }}</x-ui.dropdown.item>
+                            </x-ui.acciones-fila>
+                        @endif
                     </td>
                 </tr>
             @endforeach

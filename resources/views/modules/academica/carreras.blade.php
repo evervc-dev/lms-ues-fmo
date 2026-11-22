@@ -2,8 +2,8 @@
 <div class="flex flex-col gap-5">
     <x-ui.encabezado :titulo="$departamentoElegido ? __('Carreras de :d', ['d' => $departamentoElegido->code]) : __('Carreras')"
         :subtitulo="$departamentoElegido
-            ? __(':nombre: sus carreras, con su coordinador y su oferta del período en curso.', ['nombre' => $departamentoElegido->name])
-            : __('Carreras de su ámbito, con su coordinador y su oferta del período en curso.')">
+            ? __(':nombre: sus carreras, con su coordinador y su oferta del período en curso. Entre a una para ver sus docentes, materias y grupos.', ['nombre' => $departamentoElegido->name])
+            : __('Carreras de su ámbito, con su coordinador y su oferta del período en curso. Entre a una para ver sus docentes, materias y grupos.')">
         <div class="flex flex-wrap gap-2">
             @if ($departamentoElegido)
                 <x-ui.button variante="secundario" icono="building-library" :href="route('departamentos')">{{ __('Todos los departamentos') }}</x-ui.button>
@@ -21,7 +21,8 @@
             </x-ui.empty-state>
         </x-ui.card>
     @else
-        <x-ui.card :titulo="__('Carreras')" :descripcion="__('Entre a una carrera para ver sus docentes, materias, grupos teóricos y horarios.')">
+        {{-- Sin título propio: repetía el de la página (revisión UX del 22/11/2026). --}}
+        <x-ui.card>
             <x-ui.table>
                 <x-slot:cabecera>
                     <th>{{ __('Carrera') }}</th>

@@ -38,7 +38,10 @@ class PlanesService
 
                 return $porCarrera->map(fn ($planes, $carrera) => "{$carrera}: {$planes}")->implode(' · ');
             })
-            ->mapWithKeys(fn ($rotulo, $id) => [(int) $id => $rotulo])->all();
+            ->mapWithKeys(fn ($rotulo, $id) => [(int) $id => $rotulo])
+            // En el orden de las asignaturas pedidas: el groupBy sigue el orden de las filas, que PostgreSQL no
+            // garantiza (PlanDeEstudiosTest fallaba allí y pasaba en SQLite).
+            ->sortBy(fn ($rotulo, $id) => array_search($id, $ids, true))->all();
     }
 
     /**

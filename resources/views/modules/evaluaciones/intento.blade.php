@@ -107,7 +107,24 @@
         @if ($actual < $preguntas->count() - 1)
             <x-ui.button wire:click="ir({{ $actual + 1 }})">{{ __('Siguiente') }}</x-ui.button>
         @elseif (! $terminado)
-            <x-ui.button x-on:click="saliendo = true" wire:click="terminar" wire:confirm="{{ $sinResponder ? __('Le quedan :n preguntas sin responder. ¿Terminar el intento?', ['n' => $sinResponder]) : __('¿Terminar el intento?') }}">{{ __('Terminar intento') }}</x-ui.button>
+            {{-- Modal propio en vez del confirm() del navegador (QA Estudiante 22/11). --}}
+            <x-ui.button x-on:click="$dispatch('abrir-modal', 'terminar-intento')">{{ __('Terminar intento') }}</x-ui.button>
         @endif
     </div>
+    @unless ($terminado)
+        <x-ui.modal nombre="terminar-intento" :titulo="__('¿Terminar el intento?')" ancho="sm">
+            <div class="flex flex-col gap-3 text-sm">
+                @if ($sinResponder)
+                    <x-ui.alert tipo="aviso">{{ trans_choice('{1} Le queda 1 pregunta sin responder.|[2,*] Le quedan :count preguntas sin responder.', $sinResponder) }}</x-ui.alert>
+                @else
+                    <p class="text-texto">{{ __('Respondió todas las preguntas.') }}</p>
+                @endif
+                <p class="text-texto-suave">{{ __('Al terminar se envían sus respuestas y ya no podrá cambiarlas.') }}</p>
+            </div>
+            <x-slot:pie>
+                <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'terminar-intento')">{{ __('Seguir respondiendo') }}</x-ui.button>
+                <x-ui.button x-on:click="saliendo = true" wire:click="terminar" wire:loading.attr="disabled">{{ __('Terminar y enviar') }}</x-ui.button>
+            </x-slot:pie>
+        </x-ui.modal>
+    @endunless
 </div>
