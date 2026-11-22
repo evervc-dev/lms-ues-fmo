@@ -114,6 +114,11 @@ class JerarquiaService
      */
     public function puedeCambiarRoles(User $actor, User $usuario): bool
     {
+        // ADR-082: los roles de la cuenta superadministradora no se cambian desde la interfaz.
+        if ($usuario->hasRole(AccesoLocalService::ROL)) {
+            return false;
+        }
+
         return $this->puedeEditarDatos($actor, $usuario)
             || ($this->alcance->de($actor, 'usuarios.roles.asignar') !== null && $this->enAlcanceDelJefe($actor, $usuario->id));
     }

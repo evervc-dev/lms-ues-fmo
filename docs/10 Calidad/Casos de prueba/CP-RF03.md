@@ -21,6 +21,7 @@ Casos derivados de los criterios de aceptación de [[RF03]]. Nivel: **feature**.
 | CP-RF03-05 | **Dado** un rol autorizado, **cuando** corrige una nota o una asistencia, **entonces** la corrección queda en la auditoría con el valor anterior y el nuevo. | pasa |
 | CP-RF03-06 | **Dado** la matriz de permisos, **cuando** se busca por el nombre de un permiso o de su grupo, **entonces** quedan solo los que coinciden, con aviso si no hay ninguno, y «Limpiar filtros» la devuelve completa. | pasa |
 | CP-RF03-07 | **Dado** la pantalla de roles, **cuando** se intenta alternar un permiso que no existe, **entonces** se rechaza: los permisos los define el seeder con los nombres de la [[Matriz RBAC]] y no se crean desde la interfaz ([[ADR-032 Ajustes por el documento de roles]]). | pasa |
+| CP-RF03-08 | **Dado** la cuenta superadministradora creada con `superadmin:crear`, **entonces** entra solo por `/acceso-local` con su contraseña (no por Google, con bloqueo tras 5 intentos y cada intento en `login_history`), ve todo con alcance G sin acciones de estudiante ni de docencia, el menú le muestra todos los grupos menos Estudio y nadie le cambia los roles desde la interfaz ([[ADR-082 Cuenta superadministradora de solo lectura total]]). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF03-01 …')`.
 >

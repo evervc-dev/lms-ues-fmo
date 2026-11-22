@@ -12,6 +12,8 @@ Permisos con nombres listos para `spatie/laravel-permission`. Cada celda indica 
 
 **Roles exclusivos:** una cuenta con **Estudiante** o **Soporte Técnico** no tiene ningún otro rol; Docente, Coordinador, Jefe de Departamento y Administrador se combinan entre sí ([[ADR-081 Estudiante y Soporte Técnico son roles exclusivos]]).
 
+**Superadministrador** (`superadmin`, [[ADR-082 Cuenta superadministradora de solo lectura total]]): rol exclusivo de una sola cuenta, que no se asigna desde la interfaz. No tiene columna propia; su regla es: todos los permisos del Administrador con el mismo alcance; con **G**, todos los de consulta (`*.ver`, `oferta.estadisticas.ver`, `contenidos.analitica.ver`, `asistencia.diagnostico.ver`, `calificaciones.revision.ver`); con **P**, `notificaciones.preferencias` y `perfil.sesiones.cerrar`. Ningún permiso de acción del Estudiante ni de docencia.
+
 Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinador]] (Coord) · [[Docente]] (Doc) · [[Estudiante]] (Est) · [[Soporte Técnico]] (Sop)
 
 ## Identidad, seguridad y auditoría

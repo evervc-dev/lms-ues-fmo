@@ -8,4 +8,5 @@ return [
     'docente' => 'Docente',
     'estudiante' => 'Estudiante',
     'soporte_tecnico' => 'Soporte Técnico',
+    'superadmin' => 'Superadministrador',
 ];
