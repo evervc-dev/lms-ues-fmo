@@ -7,6 +7,7 @@ use App\Modules\Identidad\Services\AccesoLocalService;
 use Database\Seeders\Concerns\InsertsRows;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -152,7 +153,7 @@ class EquipoSeeder extends Seeder
     private function claves(int $periodo): void
     {
         $filas = DB::table('subjects')->get(['id', 'code'])->map(fn ($m) => ['subject_id' => $m->id, 'period_id' => $periodo,
-            'key_hash' => Hash::make('ISI-'.$m->code, ['rounds' => 4]), 'valid_until' => null, 'is_active' => true] + $this->stamps())->all();
+            'key_hash' => Hash::make('ISI-'.$m->code, ['rounds' => 4]), 'key_encrypted' => Crypt::encryptString('ISI-'.$m->code), 'valid_until' => null, 'is_active' => true] + $this->stamps())->all();
         $this->insertRows('enrollment_keys', $filas);
     }
 

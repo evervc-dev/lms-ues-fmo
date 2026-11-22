@@ -4,6 +4,7 @@ namespace Database\Seeders\Escenarios;
 
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -132,6 +133,7 @@ final class Esqueleto
             'subject_id' => $materia->id,
             'period_id' => $periodo->id,
             'key_hash' => Hash::make($clave, ['rounds' => 4]),
+            'key_encrypted' => Crypt::encryptString($clave),
             'valid_until' => Carbon::parse($periodo->end_date)->endOfDay(),
             'is_active' => true,
         ] + $this->sellos());

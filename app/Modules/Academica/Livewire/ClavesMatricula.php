@@ -13,7 +13,7 @@ use Livewire\Component;
 
 /**
  * Claves por asignatura (RF29, ADR-050, maqueta 36): el Coordinador (su carrera) y el Jefe (su departamento) escriben
- * o generan la clave de cada asignatura, o aplican una misma a todas. La clave se muestra una sola vez: se guarda con hash.
+ * o generan la clave de cada asignatura, o aplican una misma a todas. La vigente se puede volver a consultar (ADR-087).
  */
 #[Layout('layouts::app')]
 class ClavesMatricula extends Component
@@ -38,6 +38,9 @@ class ClavesMatricula extends Component
     /** Cuántas asignaturas recibieron la clave común; null si la clave mostrada es de una sola. */
     public ?int $aplicadas = null;
 
+    /** La clave mostrada es una que ya existía (consultada), no una recién generada. */
+    public bool $consultada = false;
+
     #[Url(except: '')]
     public string $buscar = '';
 
@@ -59,6 +62,7 @@ class ClavesMatricula extends Component
         $this->claveNueva = $matricula->generarClave(auth()->user(), $asignatura, $this->vence ?: null, $this->claveManual ?: null, $this->periodoId);
         $this->asignaturaNueva = DB::table('subjects')->where('id', $asignatura)->value('code');
         $this->aplicadas = null;
+        $this->consultada = false;
         $this->reset('claveManual');
         $this->dispatch('abrir-modal', 'clave-generada');
     }
@@ -86,6 +90,7 @@ class ClavesMatricula extends Component
         $this->aplicadas = $matricula->aplicarClaveATodas(auth()->user(), $this->claveComun, $this->vence ?: null, $this->periodoId);
         $this->claveNueva = trim($this->claveComun);
         $this->asignaturaNueva = null;
+        $this->consultada = false;
         $this->reset('claveComun', 'confirmacion');
         $this->dispatch('abrir-modal', 'clave-generada');
     }
@@ -96,6 +101,24 @@ class ClavesMatricula extends Component
             'vence' => 'nullable|date|after_or_equal:today',
             'claveComun' => ['required', 'string', 'min:6', 'max:40', 'regex:/^[A-Za-z0-9-]+$/'],
         ], ['claveComun.regex' => __('La clave solo admite letras, números y guiones.')], ['vence' => 'vencimiento', 'claveComun' => 'clave']);
+    }
+
+    /**
+     * Muestra la clave vigente de la asignatura para copiarla de nuevo, sin cambiarla (ADR-087).
+     */
+    public function ver(int $asignatura, MatriculaService $matricula): void
+    {
+        $clave = $matricula->verClave(auth()->user(), $asignatura, $this->periodoId);
+        if ($clave === null) {
+            $this->dispatch('aviso', tipo: 'error', mensaje: __('Esta clave se creó antes de que se pudieran consultar. Cámbiela para tener una que pueda volver a ver.'));
+
+            return;
+        }
+        $this->claveNueva = $clave;
+        $this->asignaturaNueva = DB::table('subjects')->where('id', $asignatura)->value('code');
+        $this->aplicadas = null;
+        $this->consultada = true;
+        $this->dispatch('abrir-modal', 'clave-generada');
     }
 
     public function desactivar(int $asignatura, MatriculaService $matricula): void

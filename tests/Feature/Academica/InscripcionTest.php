@@ -407,3 +407,28 @@ it('CP-RF29-08 nombra el período, pone primero las materias con grupo abierto y
 
     expect($sinGrupo)->toBeInt();
 });
+
+it('CP-RF29-22 el Jefe vuelve a ver la clave vigente sin cambiarla; la anterior al cifrado no se puede consultar', function () {
+    $e = escenario();
+    $jefeDcnm = inscripcionJefeDe($e['dcnm']);
+    actingAs($e['jefe']);
+
+    $clave = inscripcion()->generarClave($e['jefe'], $e['prn']);
+    $hash = DB::table('enrollment_keys')->where('subject_id', $e['prn'])->where('is_active', true)->value('key_hash');
+
+    Livewire::test(ClavesMatricula::class)
+        ->assertSee('Ver clave')
+        ->call('ver', $e['prn'])
+        ->assertSet('claveNueva', $clave)->assertSet('consultada', true)->assertDispatched('abrir-modal', 'clave-generada')
+        ->assertSee('Es la clave vigente: sigue funcionando.');
+
+    // Consultarla no la cambia.
+    expect(DB::table('enrollment_keys')->where('subject_id', $e['prn'])->where('is_active', true)->value('key_hash'))->toBe($hash)
+        ->and(fn () => inscripcion()->verClave($e['jefe'], $e['mat']))->toThrow(AuthorizationException::class);
+
+    // Una clave guardada solo con hash (antes del ADR-087) no se puede ver: se cambia.
+    DbContext::system(fn () => DB::table('enrollment_keys')->where('subject_id', $e['prn'])->update(['key_encrypted' => null]));
+    Livewire::test(ClavesMatricula::class)->assertSee('no consultable')
+        ->call('ver', $e['prn'])->assertSet('claveNueva', null)->assertDispatched('aviso');
+    expect(inscripcion()->verClave($jefeDcnm, $e['mat']))->toBeNull();
+});

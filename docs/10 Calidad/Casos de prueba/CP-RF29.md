@@ -35,5 +35,6 @@ Casos derivados de los criterios de aceptación de [[RF29]]. Nivel: **feature**.
 | CP-RF29-19 | **Dado** una prórroga para un estudiante (Coordinador o Jefe, con motivo), **entonces** solo ese estudiante puede inscribirse, con clave o manualmente; los demás siguen bloqueados. | pasa |
 | CP-RF29-20 | **Dado** una materia de otro departamento, **entonces** rige la fecha del departamento de la carrera del estudiante, no la del que ofrece la materia. | pasa |
 | CP-RF29-21 | **Dado** el Administrador, **cuando** aplica una clave a todas, **entonces** queda la misma clave en todas las asignaturas de la facultad ([[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]]). | automatizado |
+| CP-RF29-22 | **Dado** una clave vigente generada con cifrado, **cuando** el Jefe o el Coordinador pulsa «Ver clave», **entonces** la ve sin que cambie y sigue funcionando; una clave anterior (solo con hash) se rotula «no consultable». Fuera de su ámbito, 403 ([[ADR-087 La clave de matrícula se puede volver a consultar]]). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF29-01 …')`.
