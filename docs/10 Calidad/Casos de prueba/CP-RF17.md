@@ -30,5 +30,6 @@ Casos derivados de los criterios de aceptación de [[RF17]]. Nivel: **feature**.
 | CP-RF17-14 | **Dado** notas en borrador, **cuando** se cierra el período, **entonces** solo entran al resultado oficial las notas publicadas. | automatizado |
 | CP-RF17-15 | **Dado** un período cerrado y una nota que faltaba, **cuando** el Coordinador la corrige con motivo, **entonces** se crea publicada y se recalcula el resultado congelado. | automatizado |
 | CP-RF17-16 | **Dado** `grade_rounding` en `system_settings`, **entonces** la nota final se redondea con esa regla, la misma que guarda `policy_snapshot`. | automatizado |
+| CP-RF17-17 | **Dado** un grupo con los cuatro cómputos de la plantilla (25 % cada uno), **cuando** el docente cambia los pesos, **entonces** puede repartirlos (p. ej. 25 · 25 · 20 · 30) siempre que sumen 100 % y ninguno baje de 20 %; con 15 % se rechaza y no cambia nada ([[ADR-085 Cuatro cómputos por período]]). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF17-01 …')`.

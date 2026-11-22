@@ -22,7 +22,8 @@ fuentes: ["Revisión del libro de calificaciones en producción", "Decisión del
 
 ## Decisión
 **A.** *Decidida por el usuario el 22/11/2026.*
-- Los cuatro pesan **25 %** en la nota. Igual que antes, son provisionales hasta el reglamento académico (ADR-030), y el docente los ajusta en Notas > Pesos.
+- Los cuatro pesan **25 %** en la nota por defecto. Igual que antes, son provisionales hasta el reglamento académico (ADR-030).
+- Son siempre cuatro: el docente no agrega ni quita cómputos, pero ajusta sus pesos en Notas > Pesos, con dos reglas: suman exactamente 100 % y **ninguno baja de 20 %** (`ComputoService::PESO_MINIMO`). Así, 25 · 25 · 20 · 30 vale y 15 % no; ninguno pasa de 40 %. *Decidido por el usuario el 22/11/2026.*
 - Duración dentro del período: Cómputo 1 **30 %**, Cómputo 2 **25 %**, Cómputo 3 **25 %** y Cómputo 4 el resto (**20 %**). Cada uno empieza el día siguiente al fin del anterior, y el último termina el último día del período. En 2026-II quedan así: 27/07–05/09, 06/09–10/10, 11/10–13/11 y 14/11–11/12.
 - La plantilla tiene una sola fuente, `PeriodoService::COMPUTOS` y `PeriodoService::plantillaComputos()`, que usan tanto la creación de períodos como el seeder.
 

@@ -17,6 +17,12 @@ use Illuminate\Validation\ValidationException;
  */
 class ComputoService
 {
+    /**
+     * Peso mínimo de cada cómputo (ADR-085): el docente reparte el 100 % entre los cuatro, pero ninguno baja de 20 %
+     * (p. ej. 25/25/20/30 sí; 15 no). Con cuatro cómputos, ninguno puede pasar de 40 %.
+     */
+    public const PESO_MINIMO = 20;
+
     public function __construct(private Alcance $alcance) {}
 
     /**
@@ -67,7 +73,8 @@ class ComputoService
      * conservan su peso actual; la regla se verifica sobre el resultado.
      *
      * Se rechaza si la sección ya tiene notas publicadas o el acta está publicada o validada, si algún peso no es
-     * mayor que 0, si los cómputos no suman exactamente 100 % o si las actividades de un cómputo pasan del 100 %.
+     * mayor que 0, si un cómputo pesa menos de PESO_MINIMO, si los cómputos no suman exactamente 100 % o si las
+     * actividades de un cómputo pasan del 100 %.
      *
      * @param  array<int|string, int|float|string>  $computos  grading_component_id => peso
      * @param  array<int|string, int|float|string>  $actividades  grade_item_id => peso
@@ -130,6 +137,12 @@ class ComputoService
         $pesoComputo = fn (object $c): float => round((float) ($computos[$c->id] ?? $c->weight_percent), 2);
         $pesoItem = fn (object $i): float => round((float) ($actividades[$i->id] ?? $i->weight_percent), 2);
 
+        $bajo = $estructura->first(fn (object $c) => $pesoComputo($c) < self::PESO_MINIMO);
+        if ($bajo !== null) {
+            throw ValidationException::withMessages(['computos' => __(':c pesa :p %: cada cómputo debe pesar al menos :m %.', [
+                'c' => $bajo->name, 'p' => self::porcentaje($pesoComputo($bajo)), 'm' => self::PESO_MINIMO,
+            ])]);
+        }
         $total = round($estructura->sum($pesoComputo), 2);
         if (abs($total - 100) > 0.001) {
             throw ValidationException::withMessages(['computos' => __('Los cómputos suman :s %: deben sumar exactamente 100 %.', ['s' => self::porcentaje($total)])]);
