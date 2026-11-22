@@ -249,7 +249,7 @@ it('CP-RF21-01 un cambio de modalidad no borra el evento de la clase virtual', f
 it('CP-RF21-01 el evento de la clase cancelada se busca en el calendario de cada docente vigente de la sección', function () {
     $e = escenario();
     $coDocente = usuarioCon('docente');
-    DB::table('teaching_assignments')->insert(['section_id' => $e['seccion'], 'teacher_id' => $coDocente->id, 'is_responsible' => false, 'started_at' => '2026-07-01', 'created_at' => now(), 'updated_at' => now()]);
+    DbContext::system(fn () => DB::table('teaching_assignments')->insert(['section_id' => $e['seccion'], 'teacher_id' => $coDocente->id, 'is_responsible' => false, 'started_at' => '2026-07-01', 'created_at' => now(), 'updated_at' => now()]));
     conectarCalendar($e['docente']);
     conectarCalendar($coDocente);
     $clase = DbContext::system(fn () => DB::table('video_sessions')->insertGetId(['section_id' => $e['seccion'], 'topic' => 'Árboles', 'starts_at' => '2026-10-30 07:00',

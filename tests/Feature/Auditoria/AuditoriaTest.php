@@ -150,8 +150,16 @@ it('CP-RF05-01 registra quién, cuándo, desde qué IP, la acción, la entidad y
             $asistencia->marcar($e['docente'], $e['seccion'], $sesion, $e['matricula'], 'present', 'Llegó con el docente.');
         }],
         'modificación de período' => [$e['administrador'], 'academic_periods', function () use ($e) {
-            $periodo = DbContext::system(fn () => DB::table('academic_periods')->insertGetId(['name' => '2027-I', 'start_date' => '2027-02-01', 'end_date' => '2027-06-30',
-                'status' => 'planned', 'preparation_stage' => 'planning', 'created_at' => now(), 'updated_at' => now()]));
+            // Con un grupo teórico: sin oferta la planificación no avanza (exigirEtapaCumplida).
+            $periodo = DbContext::system(function () use ($e) {
+                $id = DB::table('academic_periods')->insertGetId(['name' => '2027-I', 'start_date' => '2027-02-01', 'end_date' => '2027-06-30',
+                    'status' => 'planned', 'preparation_stage' => 'planning', 'created_at' => now(), 'updated_at' => now()]);
+                $asignatura = DB::table('sections')->where('id', $e['seccion'])->value('subject_id');
+                DB::table('sections')->insert(['ulid' => (string) str()->ulid(), 'period_id' => $id, 'subject_id' => $asignatura, 'code' => '01', 'max_capacity' => 40,
+                    'created_at' => now(), 'updated_at' => now()]);
+
+                return $id;
+            });
             app(PeriodoService::class)->avanzarEtapa($e['administrador'], $periodo);
         }],
         'gestión de usuarios' => [$e['administrador'], 'users', fn () => app(UsuarioService::class)->desactivar($e['administrador'], $e['estudiante']->id, 'Retiro de la carrera.')],

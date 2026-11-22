@@ -12,6 +12,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -210,8 +211,10 @@ class AsistenciaService
 
         try {
             return $this->insertarSesion($docente, $seccionId, $minutos, $modalidad, $hoy, $rotacion, $fueraDeHorario ? $motivo : null);
-        } catch (QueryException) {
-            // Dos clics seguidos: el índice de una sola sesión abierta por grupo rechaza la segunda (ADR-076).
+        } catch (UniqueConstraintViolationException) {
+            // Dos clics seguidos: el índice de una sola sesión abierta por grupo rechaza la segunda (ADR-076). Solo
+            // ese error: antes se atrapaba cualquier QueryException y un fallo distinto (en PostgreSQL, un CHECK o la
+            // auditoría) salía como «ya hay una sesión abierta».
             throw ValidationException::withMessages(['minutos' => __('Ya hay una sesión de asistencia abierta en este grupo teórico.')]);
         }
     }

@@ -139,8 +139,9 @@ it('CP-RF04-06 audita el alta, la concesión y la remoción de roles y la baja d
     $usuarios = app(UsuarioService::class);
     actingAs($e['administrador']);
 
-    $nuevo = $usuarios->crear($e['administrador'], ['correo' => 'ab12345@ues.edu.sv', 'nombres' => 'Ana', 'apellidos' => 'Ruiz', 'rol' => 'soporte_tecnico']);
-    $usuarios->cambiarRoles($e['administrador'], $nuevo->id, ['soporte_tecnico', 'docente'], ['docente' => ['departamento' => $e['dia']]]);
+    // Administrador con Docente: Soporte Técnico ya no se combina con otro rol (ADR-081).
+    $nuevo = $usuarios->crear($e['administrador'], ['correo' => 'ab12345@ues.edu.sv', 'nombres' => 'Ana', 'apellidos' => 'Ruiz', 'rol' => 'administrador']);
+    $usuarios->cambiarRoles($e['administrador'], $nuevo->id, ['administrador', 'docente'], ['docente' => ['departamento' => $e['dia']]]);
     $usuarios->cambiarRoles($e['administrador'], $nuevo->id, ['docente']);
     $usuarios->desactivar($e['administrador'], $nuevo->id, 'Finalizó su contrato.');
 
