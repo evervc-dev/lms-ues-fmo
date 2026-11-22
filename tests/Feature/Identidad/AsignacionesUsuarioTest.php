@@ -503,5 +503,6 @@ it('CP-RF04-08 al desmarcar todos los roles avisa que la cuenta necesita al meno
         ->set('roles', [])
         ->call('siguiente')
         ->assertHasErrors(['roles' => 'required'])
+        ->assertSee(__('El usuario debe tener al menos un rol.'))
         ->assertSet('paso', 1);
 });

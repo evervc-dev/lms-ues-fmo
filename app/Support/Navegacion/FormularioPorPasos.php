@@ -19,7 +19,7 @@ trait FormularioPorPasos
     /**
      * Pasos del formulario, en orden. El último suele ser el resumen y no lleva reglas.
      *
-     * @return array<int, array{titulo: string, descripcion?: string, reglas?: array<string, mixed>, atributos?: array<string, string>}>
+     * @return array<int, array{titulo: string, descripcion?: string, reglas?: array<string, mixed>, atributos?: array<string, string>, mensajes?: array<string, string>}>
      */
     abstract public function pasos(): array;
 
@@ -27,7 +27,7 @@ trait FormularioPorPasos
     {
         $definicion = $this->pasos()[$this->paso - 1] ?? [];
         if (($definicion['reglas'] ?? []) !== []) {
-            $this->validate($definicion['reglas'], [], $definicion['atributos'] ?? []);
+            $this->validate($definicion['reglas'], $definicion['mensajes'] ?? [], $definicion['atributos'] ?? []);
         }
         $this->validarPaso($this->paso);
 
@@ -77,12 +77,22 @@ trait FormularioPorPasos
     }
 
     /**
+     * Mensajes propios de las reglas de los pasos (opcional), como `['roles.required' => '…']`.
+     *
+     * @return array<string, string>
+     */
+    protected function mensajesDeTodosLosPasos(): array
+    {
+        return array_merge(...array_column($this->pasos(), 'mensajes') ?: [[]]);
+    }
+
+    /**
      * Valida el formulario entero con las reglas de sus pasos y, si algo falla, lleva al paso del primer error.
      */
     protected function validarTodosLosPasos(): void
     {
         try {
-            $this->validate($this->reglasDeTodosLosPasos(), [], $this->atributosDeTodosLosPasos());
+            $this->validate($this->reglasDeTodosLosPasos(), $this->mensajesDeTodosLosPasos(), $this->atributosDeTodosLosPasos());
         } catch (ValidationException $e) {
             $this->paso = $this->pasoDelCampo((string) array_key_first($e->errors())) ?? $this->paso;
 

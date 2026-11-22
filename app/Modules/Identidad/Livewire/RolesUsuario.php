@@ -49,7 +49,7 @@ class RolesUsuario extends Component
     /**
      * Qué roles tiene la cuenta, los datos de ámbito de cada uno y el resumen para confirmar.
      *
-     * @return array<int, array{titulo: string, descripcion?: string, reglas?: array<string, mixed>, atributos?: array<string, string>}>
+     * @return array<int, array{titulo: string, descripcion?: string, reglas?: array<string, mixed>, atributos?: array<string, string>, mensajes?: array<string, string>}>
      */
     public function pasos(): array
     {
@@ -60,6 +60,8 @@ class RolesUsuario extends Component
                 'reglas' => ['roles' => 'required|array|min:1', 'roles.*' => ['string', Rule::in(RolService::ROLES)]],
                 // No __('roles'): esa clave es el archivo lang/es/roles.php y devuelve un arreglo (TypeError al validar).
                 'atributos' => ['roles' => __('los roles')],
+                // El mismo mensaje que da UsuarioService::cambiarRoles() si llegara vacío.
+                'mensajes' => ['roles.required' => __('El usuario debe tener al menos un rol.'), 'roles.min' => __('El usuario debe tener al menos un rol.')],
             ],
             [
                 'titulo' => __('Asignaciones'),
