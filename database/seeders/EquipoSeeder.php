@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Modules\Identidad\Services\AccesoLocalService;
 use Database\Seeders\Concerns\InsertsRows;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -15,7 +16,7 @@ use Spatie\Permission\Models\Role;
  * Perfil de siembra «equipo» (LMS_SEED_PERFIL=equipo, solo fuera de producción): la estructura institucional de
  * siempre, pero sin personas inventadas. Las cuentas son las de los integrantes del equipo
  * (database/seeders/data/testers.php) con su correo institucional real, para que entren con Google, más
- * admin.dev@ues.edu.sv y, si el .env la define, la cuenta de emergencia (ADR-007).
+ * admin.dev@ues.edu.sv y, si SUPERADMIN_PASSWORD está puesta, la cuenta superadmin (ADR-082).
  *
  * Los roles se reparten al azar con una semilla fija (LMS_SEED_SEMILLA): sembrar de nuevo da el mismo reparto y
  * cambiar la semilla lo baraja. 1 Jefe de DIA, 1 Coordinador de ISI y 3 docentes (los cinco con perfil docente
@@ -55,7 +56,7 @@ class EquipoSeeder extends Seeder
 
         $admin = $this->cuenta('admin.dev@ues.edu.sv', 'Administración', 'Desarrollo');
         $this->darRol($admin, 'administrador');
-        $this->cuentaDeEmergencia();
+        $this->cuentaSuperadmin();
 
         // Reparto al azar, reproducible con la semilla.
         $equipo = require database_path('seeders/data/testers.php');
@@ -187,19 +188,15 @@ class EquipoSeeder extends Seeder
     }
 
     /**
-     * Cuenta de emergencia (ADR-007), solo si el .env trae su correo y su contraseña; nunca van en el repositorio.
-     * Sin el segundo factor, que ADR-007 deja pendiente.
+     * Cuenta superadmin (ADR-082), con el mismo servicio que `php artisan superadmin:crear`: solo si el entorno trae
+     * SUPERADMIN_PASSWORD (config/identidad.php), que nunca va en el repositorio. Entra por /acceso-local.
      */
-    private function cuentaDeEmergencia(): void
+    private function cuentaSuperadmin(): void
     {
-        $correo = (string) config('lms.emergencia.correo', '');
-        $clave = (string) config('lms.emergencia.clave', '');
-        if ($correo === '' || $clave === '') {
+        if ((string) config('identidad.superadmin.password') === '') {
             return;
         }
-        $id = DB::table('users')->insertGetId(['institutional_email' => strtolower($correo), 'first_name' => 'Cuenta', 'last_name' => 'de Emergencia',
-            'is_active' => true, 'is_emergency' => true, 'password' => Hash::make($clave)] + $this->stamps());
-        $this->darRol($id, 'administrador');
+        app(AccesoLocalService::class)->crearCuentaSuperadmin();
     }
 
     private function cuenta(string $correo, string $nombre, string $apellido): int

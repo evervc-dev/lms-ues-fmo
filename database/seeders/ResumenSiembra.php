@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ResumenSiembra
 {
-    private const ORDEN_ROLES = ['administrador', 'jefe_departamento', 'coordinador', 'docente', 'soporte_tecnico', 'estudiante'];
+    private const ORDEN_ROLES = ['superadmin', 'administrador', 'jefe_departamento', 'coordinador', 'docente', 'soporte_tecnico', 'estudiante'];
 
     /**
      * @return array{
@@ -48,6 +48,7 @@ class ResumenSiembra
                 in_array('docente', $suyos, true) ? trans_choice('{0} sin grupos|{1} 1 grupo|[2,*] :count grupos', (int) ($gruposDe[$u->id] ?? 0)) : null,
                 in_array('estudiante', $suyos, true) ? __('ciclo :c', ['c' => $ciclos[$u->id] ?? '—']).' · '.trans_choice('{0} sin materias|{1} 1 materia|[2,*] :count materias', (int) ($materiasDe[$u->id] ?? 0)) : null,
                 $u->is_emergency ? __('cuenta de emergencia') : null,
+                in_array('superadmin', $suyos, true) ? __('entra por /acceso-local') : null,
             ])->filter()->implode(' · ');
 
             return [

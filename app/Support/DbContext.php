@@ -57,8 +57,11 @@ final class DbContext
     }
 
     /**
-     * Aplica el contexto y lo limpia al terminar: `set_config(..., true)` vive hasta el fin de la
-     * transacción exterior, así que sin limpiar se filtraría a escrituras posteriores de la misma transacción.
+     * Aplica el contexto y, al terminar, deja el que había antes: `set_config(..., true)` vive hasta el fin de la
+     * transacción exterior, así que sin restaurarlo se filtraría a escrituras posteriores de la misma transacción.
+     * Se restaura el valor anterior, no se vacía: con un DbContext dentro de otro (un Service que lo usa llamado
+     * desde un seeder o desde otro Service), vaciar dejaba al de afuera sin actor y su siguiente escritura en una
+     * tabla auditada fallaba con AC900.
      *
      * @template T
      *
@@ -68,15 +71,36 @@ final class DbContext
      */
     private static function within(array $settings, callable $work): mixed
     {
+        $anteriores = self::leer(array_keys($settings));
         self::apply($settings);
 
-        // Solo se limpia si el trabajo terminó bien. Si falla, la transacción (o su savepoint) hace rollback y
+        // Solo se restaura si el trabajo terminó bien. Si falla, la transacción (o su savepoint) hace rollback y
         // PostgreSQL deshace los set_config locales; limpiar aquí, con la transacción ya abortada, fallaría
         // (25P02) y ocultaría la excepción original.
         $resultado = $work();
-        self::apply(array_fill_keys(array_keys($settings), ''));
+        self::apply($anteriores);
 
         return $resultado;
+    }
+
+    /**
+     * Valores actuales del contexto ('' si no están fijados), para restaurarlos al salir.
+     *
+     * @param  array<int, string>  $keys
+     * @return array<string, string>
+     */
+    private static function leer(array $keys): array
+    {
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            return array_fill_keys($keys, '');
+        }
+
+        $valores = [];
+        foreach ($keys as $key) {
+            $valores[$key] = (string) (DB::selectOne('select current_setting(?, true) as valor', [$key])->valor ?? '');
+        }
+
+        return $valores;
     }
 
     /**

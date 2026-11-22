@@ -33,6 +33,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Roles laxos para pruebas
+    |--------------------------------------------------------------------------
+    |
+    | Con LMS_ROLES_LAXOS=true, quitar el rol Estudiante retira sus matrículas
+    | activas y quitar el rol Docente termina sus grupos teóricos, en vez de
+    | rechazar el cambio. Sirve para probar en staging cambiando de rol a la
+    | misma cuenta. Las notas y la asistencia se quedan (ADR-027 no deja
+    | borrarlas). En producción se ignora aunque esté activo.
+    |
+    */
+
+    'roles_laxos' => (bool) env('LMS_ROLES_LAXOS', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Perfil de siembra
     |--------------------------------------------------------------------------
     |
@@ -40,19 +55,15 @@ return [
     | uso (notas, asistencia, foros). «equipo»: la misma estructura, pero las
     | cuentas son las del equipo (seeders/data/testers.php) con su correo real,
     | más admin.dev; los roles se reparten al azar con LMS_SEED_SEMILLA y no hay
-    | notas ni asistencia inventadas. La cuenta de emergencia (ADR-007) solo se
-    | siembra si el .env trae su correo y su contraseña. Fuera de producción.
+    | notas ni asistencia inventadas. Si SUPERADMIN_PASSWORD está puesta, crea
+    | también la cuenta superadmin (ADR-082, config/identidad.php). Fuera de
+    | producción.
     |
     */
 
     'seed_perfil' => (string) env('LMS_SEED_PERFIL', 'demo'),
 
     'seed_semilla' => (int) env('LMS_SEED_SEMILLA', 2026),
-
-    'emergencia' => [
-        'correo' => (string) env('LMS_EMERGENCIA_CORREO', ''),
-        'clave' => (string) env('LMS_EMERGENCIA_CLAVE', ''),
-    ],
 
     /*
     |--------------------------------------------------------------------------

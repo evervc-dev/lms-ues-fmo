@@ -13,11 +13,11 @@ uses(RefreshDatabase::class);
 
 /**
  * Perfil de siembra «equipo» (LMS_SEED_PERFIL=equipo): las cuentas son las del equipo con su correo real, más
- * admin.dev y la cuenta de emergencia si el .env la define; roles al azar con semilla fija y sin datos de uso.
+ * admin.dev y la superadmin (ADR-082) si el entorno trae SUPERADMIN_PASSWORD; roles al azar con semilla fija y sin datos de uso.
  */
-function sembrarEquipo(int $semilla, array $emergencia = ['correo' => '', 'clave' => '']): array
+function sembrarEquipo(int $semilla, ?string $claveSuperadmin = null): array
 {
-    config(['lms.seed_semilla' => $semilla, 'lms.emergencia' => $emergencia]);
+    config(['lms.seed_semilla' => $semilla, 'identidad.superadmin.password' => $claveSuperadmin]);
     DbContext::system(function (): void {
         (new BaseSystemSeeder)->run();
         (new InstitutionSeeder)->run();
@@ -57,18 +57,19 @@ it('con la misma semilla repite el reparto y con otra lo baraja', function () {
         ->and(collect(EquipoSeeder::reparto($dues, 2026))->flatten()->sort()->values()->all())->toBe(collect($dues)->sort()->values()->all());
 });
 
-it('no siembra la cuenta de emergencia si el entorno no trae su correo y su contraseña', function () {
+it('no siembra la superadmin si el entorno no trae SUPERADMIN_PASSWORD', function () {
     sembrarEquipo(2026);
 
-    expect(DB::table('users')->where('is_emergency', true)->exists())->toBeFalse();
+    expect(DB::table('users')->where('institutional_email', 'superadmin@ues.edu.sv')->exists())->toBeFalse();
 });
 
-it('siembra la cuenta de emergencia con la contraseña del entorno', function () {
-    sembrarEquipo(2026, ['correo' => 'emergencia@ues.edu.sv', 'clave' => 'una-clave-de-prueba']);
+it('siembra la superadmin (ADR-082) con la contraseña del entorno y solo ese rol', function () {
+    $roles = sembrarEquipo(2026, 'una-clave-de-prueba');
 
-    $cuenta = DB::table('users')->where('is_emergency', true)->sole();
-    expect($cuenta->institutional_email)->toBe('emergencia@ues.edu.sv')
-        ->and(Hash::check('una-clave-de-prueba', $cuenta->password))->toBeTrue();
+    $cuenta = DB::table('users')->where('institutional_email', 'superadmin@ues.edu.sv')->sole();
+    expect(Hash::check('una-clave-de-prueba', $cuenta->password))->toBeTrue()
+        ->and($roles['superadmin@ues.edu.sv'])->toBe(['superadmin'])
+        ->and(collect(ResumenSiembra::datos()['cuentas'])->firstWhere(1, 'superadmin@ues.edu.sv')[0])->toBe('Superadministrador');
 });
 
 it('el resumen final muestra cada cuenta del equipo con su rol y su asignación, leído de la base', function () {

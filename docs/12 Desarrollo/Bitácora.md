@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · — · DbContext anidado restaura el contexto de afuera
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** `DbContext::within()` guarda los valores del contexto (`app.system_job`, `app.user_id`, `app.event_type`…) y los restaura al salir, en vez de vaciarlos. En staging, sembrar el perfil equipo con `SUPERADMIN_PASSWORD` fallaba con AC900 («Escritura en users sin actor»): `crearCuentaSuperadmin()` abre su propio `DbContext::system()` dentro del de `DatabaseSeeder`, y al cerrarse dejaba al de afuera sin contexto.
+- **CP cubiertos:** pruebas nuevas en `tests/Feature/Support/DbContextTest.php` (solo PostgreSQL). Verificado con PostgreSQL 17 en Docker: la prueba falla sin la corrección y pasa con ella, y `migrate:fresh --seed` del perfil equipo con superadmin funciona.
+- **Decisiones:** —
+- **Pendiente:** —
+
 ### 2026-11-21 · RF03 · La superadmin es la cuenta de emergencia
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
