@@ -77,3 +77,16 @@ it('CP-RF07-25 rechaza guardar un prerrequisito de otro plan de estudios y conse
     expect(DB::table('subject_prerequisites')->where('subject_id', $id)->pluck('prerequisite_id')->map(fn ($p) => (int) $p)->sort()->values()->all())
         ->toBe(collect([$e['prn'], $e['mat']])->sort()->values()->all());
 });
+
+it('CP-RF07-26 el Administrador abre la ficha de una materia desde la carrera y ve el docente de cada grupo', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+    $ficha = route('catalogo.asignaturas.editar', ['asignatura' => 'PRN115']);
+
+    $this->get(route('carreras.show', ['carrera' => $e['isi']]))->assertOk()->assertSee('href="'.$ficha.'"', false);
+    $this->get($ficha)->assertOk()
+        ->assertSeeText(['Grupos teóricos de 2026-II', 'Grupo 01', $e['docente']->first_name.' '.$e['docente']->last_name, 'Lun 07:00–08:40 · A-101', '1 / 40']);
+
+    // El Coordinador ve la carrera pero no edita el catálogo: la materia no es un enlace.
+    actingAs($e['coordinador'])->get(route('carreras.show', ['carrera' => $e['isi']]))->assertOk()->assertDontSee('href="'.$ficha.'"', false);
+});

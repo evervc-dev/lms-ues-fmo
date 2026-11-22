@@ -564,6 +564,56 @@ class CatalogoService
     /**
      * ¿Mantiene el actor la estructura institucional (departamentos, carreras, planes y aulas)? Solo con alcance G.
      */
+    /**
+     * Cuáles de esas asignaturas puede abrir el actor en el Catálogo para ver o editar: todas con alcance global, las de
+     * sus departamentos con alcance D (ADR-072) y ninguna sin asignaturas.gestionar.
+     *
+     * @param  array<int, int>  $ids
+     * @return array<int, int>
+     */
+    public function editables(User $actor, array $ids): array
+    {
+        $alcance = $this->alcance->de($actor, 'asignaturas.gestionar');
+        if ($alcance === null || $ids === []) {
+            return [];
+        }
+
+        return DB::table('subjects')->whereIn('id', $ids)
+            ->when($alcance !== 'G', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
+            ->pluck('id')->map(fn ($id) => (int) $id)->all();
+    }
+
+    /**
+     * Grupos teóricos de la asignatura en el período en curso, con su docente (el responsable primero), horario e
+     * inscritos, para la ficha de la asignatura en el Catálogo. Exige poder editarla.
+     *
+     * @return Collection<int, \stdClass>
+     */
+    public function gruposDelPeriodo(User $actor, int $asignaturaId): Collection
+    {
+        $this->exigirAsignatura($actor, $asignaturaId);
+        $periodo = PeriodoService::activoId();
+        if ($periodo === null) {
+            return collect();
+        }
+        $grupos = DB::table('sections')->where('subject_id', $asignaturaId)->where('period_id', $periodo)->orderBy('code')
+            ->get(['id', 'ulid', 'code', 'max_capacity', DB::raw("(select count(*) from enrollments e where e.section_id = sections.id and e.status = 'active') as inscritos")]);
+        $ids = $grupos->pluck('id');
+        $docentes = DB::table('teaching_assignments')->join('users', 'users.id', '=', 'teaching_assignments.teacher_id')
+            ->whereIn('section_id', $ids)->whereNull('ended_at')->orderByDesc('is_responsible')->orderBy('users.last_name')
+            ->get(['section_id', DB::raw("users.first_name || ' ' || users.last_name as nombre")])->groupBy('section_id');
+        $dias = [1 => 'Lun', 2 => 'Mar', 3 => 'Mié', 4 => 'Jue', 5 => 'Vie', 6 => 'Sáb', 7 => 'Dom'];
+        $horarios = DB::table('section_schedules')->leftJoin('classrooms', 'classrooms.id', '=', 'section_schedules.classroom_id')
+            ->whereIn('section_id', $ids)->orderBy('weekday')->orderBy('start_time')
+            ->get(['section_id', 'weekday', 'start_time', 'end_time', 'classrooms.code as aula'])->groupBy('section_id');
+
+        return $grupos->each(function (object $g) use ($docentes, $horarios, $dias): void {
+            $g->docentes = ($docentes[$g->id] ?? collect())->pluck('nombre')->all();
+            $g->horario = ($horarios[$g->id] ?? collect())
+                ->map(fn ($h) => $dias[(int) $h->weekday].' '.substr($h->start_time, 0, 5).'–'.substr($h->end_time, 0, 5).($h->aula ? ' · '.$h->aula : ''))->all();
+        });
+    }
+
     public function gestionaEstructura(User $actor): bool
     {
         return $this->alcance->de($actor, 'asignaturas.gestionar') === 'G';

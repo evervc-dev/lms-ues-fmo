@@ -33,6 +33,30 @@
         </x-ui.card>
 
         {{-- Planes de estudio (career_subjects): en qué carrera, plan y ciclo se lleva. Al crear, al menos uno. --}}
+        @if ($editando)
+            {{-- Solo lectura: quién da cada grupo este período. El docente se asigna en Carga académica. --}}
+            <x-ui.card :titulo="$periodo ? __('Grupos teóricos de :p', ['p' => $periodo]) : __('Grupos teóricos')" :descripcion="__('Docente asignado, horario e inscritos de cada grupo. El docente se asigna o cambia en Carga académica.')">
+                @if ($grupos->isEmpty())
+                    <p class="text-sm text-texto-suave">{{ $periodo ? __('La asignatura no tiene grupos teóricos en este período.') : __('No hay un período en curso.') }}</p>
+                @else
+                    <x-ui.table ajustar>
+                        <x-slot:cabecera><th>{{ __('Grupo') }}</th><th>{{ __('Docente') }}</th><th>{{ __('Horario') }}</th><th class="text-right">{{ __('Inscritos') }}</th></x-slot:cabecera>
+                        @foreach ($grupos as $g)
+                            <tr wire:key="grupo-{{ $g->id }}">
+                                <td class="whitespace-nowrap">{{ __('Grupo :g', ['g' => $g->code]) }}</td>
+                                <td>@if ($g->docentes === [])<x-ui.badge color="ambar">{{ __('Sin docente') }}</x-ui.badge>@else{{ implode(', ', $g->docentes) }}@endif</td>
+                                <td class="text-sm">@forelse ($g->horario as $bloque)<span class="block whitespace-nowrap">{{ $bloque }}</span>@empty<span class="text-texto-suave">{{ __('Sin horario') }}</span>@endforelse</td>
+                                <td class="text-right">{{ $g->inscritos }} / {{ $g->max_capacity }}</td>
+                            </tr>
+                        @endforeach
+                    </x-ui.table>
+                @endif
+                @can('secciones.asignar-docente')
+                    <div class="mt-3"><x-ui.button tamano="sm" variante="secundario" :href="route('carga-academica', ['buscar' => $codigo])">{{ __('Abrir en Carga académica') }}</x-ui.button></div>
+                @endcan
+            </x-ui.card>
+        @endif
+
         <x-ui.card :titulo="__('Carreras y planes de estudio')" :descripcion="__('En qué carrera, plan y ciclo se lleva. Una materia compartida va en varias carreras, y sus grupos los cursan estudiantes de todas.')">
             <div class="flex flex-col gap-3">
                 @if ($planes !== [])

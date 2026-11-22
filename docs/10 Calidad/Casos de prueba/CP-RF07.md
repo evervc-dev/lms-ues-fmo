@@ -39,5 +39,6 @@ Casos derivados de los criterios de aceptación de [[RF07]]. Nivel: **feature**.
 | CP-RF07-23 | **Dado** PR1 ← PR2 ← PR3 por prerrequisito, **cuando** se desactiva PR1, **entonces** las tres quedan inactivas y la confirmación y el aviso nombran PR2 y PR3; al reactivar PR1 solo vuelve ella. Si una dependiente activa es de otro departamento, el Jefe no puede desactivar (el Administrador sí). | automatizado |
 | CP-RF07-24 | **Dado** el Administrador, **cuando** crea una carrera en un departamento con su primer plan, o agrega un plan a una carrera, **entonces** quedan creados y auditados; un código o un nombre de plan repetido se rechaza. El Jefe y el Coordinador no pueden (403). | automatizado |
 | CP-RF07-25 | **Dado** una asignatura en un plan de estudios, **cuando** se eligen sus prerrequisitos, **entonces** solo se ofrecen las materias de ese plan, y guardar uno de otro pensum se rechaza nombrándolo. | automatizado |
+| CP-RF07-26 | **Dado** el Administrador (o el Jefe con una materia de su departamento) en el detalle de una carrera, **cuando** pulsa una materia, **entonces** abre su ficha en el Catálogo, que muestra los grupos del período con su docente, horario e inscritos. Quien no gestiona el catálogo no ve el enlace. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF07-01 …')`.

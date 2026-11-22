@@ -3,6 +3,7 @@
 namespace App\Modules\Academica\Livewire;
 
 use App\Modules\Academica\Services\CatalogoService;
+use App\Modules\Academica\Services\PeriodoService;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -140,6 +141,8 @@ class AsignaturaFormulario extends Component
             'todas' => $opciones,
             'sinPlan' => $planesElegidos === [],
             'elegidas' => $todas->whereIn('id', array_map('intval', $this->prerrequisitos))->values(),
+            'grupos' => $this->editando ? $catalogo->gruposDelPeriodo(auth()->user(), $this->editando) : collect(),
+            'periodo' => DB::table('academic_periods')->where('id', PeriodoService::activoId())->value('name'),
         ], titulo: $this->editando ? __('Editar :c', ['c' => $this->codigo]) : null, miga: $this->editando ? $this->codigo : null);
     }
 }
