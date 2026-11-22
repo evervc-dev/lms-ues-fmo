@@ -3,75 +3,46 @@
 namespace App\Modules\Evaluaciones\Livewire;
 
 use App\Modules\Evaluaciones\Services\CuestionarioService;
-use App\Modules\Evaluaciones\Services\ImportacionPreguntasService;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Livewire\WithFileUploads;
 
 /**
- * Banco de preguntas (RF16, maqueta 32): preguntas de 4 tipos, carga desde Excel y compartir con colegas.
+ * Banco de preguntas (RF16, maqueta 32): preguntas de 4 tipos y compartir con colegas.
  */
 #[Layout('layouts::app')]
 class Banco extends Component
 {
     use PaginaLivewire;
-    use WithFileUploads;
 
     #[Locked]
     public int $bancoId;
 
     public ?int $colega = null;
 
-    /** @var TemporaryUploadedFile|null */
-    public $archivo = null;
+    public ?int $editandoPreguntaId = null;
 
-    /**
-     * Resumen del archivo subido antes de importarlo.
-     *
-     * @var array{total: int, porTipo: array<string, int>, errores: list<string>, muestra: list<string>}|null
-     */
-    public ?array $previa = null;
+    public float $editandoPuntos = 1.0;
 
-    public function abrirImportacion(): void
+    public function editarPuntos(int $preguntaId, float $puntosActuales): void
     {
-        $this->reset('archivo', 'previa');
-        $this->resetValidation();
-        $this->dispatch('abrir-modal', 'importar-preguntas');
+        $this->editandoPreguntaId = $preguntaId;
+        $this->editandoPuntos = $puntosActuales;
+        $this->dispatch('abrir-modal', 'editar-puntos-modal');
     }
 
-    public function updatedArchivo(ImportacionPreguntasService $importacion): void
+    public function guardarPuntos(CuestionarioService $cuestionarios): void
     {
-        $this->previa = null;
-        $this->validate(['archivo' => 'required|file|mimes:xlsx,csv,txt|max:5120'], [], ['archivo' => __('archivo')]);
-        $analisis = $importacion->analizar($this->archivo->getRealPath(), $this->extension());
-        $this->previa = [
-            'total' => count($analisis['preguntas']),
-            'porTipo' => collect($analisis['preguntas'])->countBy('tipo')->all(),
-            'errores' => array_slice($analisis['errores'], 0, 50),
-            'muestra' => collect($analisis['preguntas'])->take(5)->map(fn (array $p) => $p['enunciado'])->all(),
-        ];
-    }
-
-    public function importar(ImportacionPreguntasService $importacion): void
-    {
-        $this->validate(['archivo' => 'required|file|mimes:xlsx,csv,txt|max:5120'], [], ['archivo' => __('archivo')]);
-        $total = $importacion->importar(auth()->user(), $this->bancoId, $this->archivo->getRealPath(), $this->extension());
-        $this->reset('archivo', 'previa');
-        $this->dispatch('cerrar-modal', 'importar-preguntas');
-        $this->dispatch('aviso', tipo: 'exito', mensaje: trans_choice('{1} Se importó 1 pregunta.|[2,*] Se importaron :count preguntas.', $total));
-    }
-
-    /**
-     * El archivo temporal no conserva la extensión: la da el nombre original.
-     */
-    private function extension(): string
-    {
-        return pathinfo((string) $this->archivo->getClientOriginalName(), PATHINFO_EXTENSION) ?: 'xlsx';
+        $this->validate(['editandoPuntos' => 'required|numeric|min:0.01|max:10']);
+        if ($this->editandoPreguntaId !== null) {
+            $cuestionarios->actualizarPuntosPregunta(auth()->user(), $this->bancoId, $this->editandoPreguntaId, $this->editandoPuntos);
+            $this->dispatch('cerrar-modal', 'editar-puntos-modal');
+            $this->reset('editandoPreguntaId', 'editandoPuntos');
+            $this->dispatch('aviso', tipo: 'exito', mensaje: __('Puntos de la pregunta actualizados.'));
+        }
     }
 
     public function mount(int $banco): void

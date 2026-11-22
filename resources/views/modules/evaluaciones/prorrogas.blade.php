@@ -33,7 +33,7 @@
             <x-ui.table :vacio="__('Sin prórrogas.')">
                 <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Tipo') }}</th><th>{{ __('Hasta') }}</th><th>{{ __('Motivo') }}</th></x-slot:cabecera>
                 @foreach ($prorrogas as $p)
-                    <tr wire:key="prorroga-{{ $p->id }}"><td>{{ $p->nombre }}</td><td>{{ __(\App\Modules\Evaluaciones\Services\ProrrogaService::TIPOS[$p->kind]) }}</td><td>{{ $fecha($p->until) }}</td><td>{{ $p->reason }}</td></tr>
+                    <tr wire:key="prorroga-{{ $p->id }}"><td>{{ $p->nombre }}</td><td>{{ \App\Modules\Evaluaciones\Services\ProrrogaService::nombreTipo($p->kind, $datosActividad->assessment_type) }}</td><td>{{ $fecha($p->until) }}</td><td>{{ $p->reason }}</td></tr>
                 @endforeach
             </x-ui.table>
         </form>

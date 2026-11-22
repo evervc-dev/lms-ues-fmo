@@ -40,6 +40,8 @@ class NuevaPregunta extends Component
 
     public string $justificacion = '';
 
+    public float $puntos = 1.0;
+
     public function mount(int $banco, CuestionarioService $cuestionarios): void
     {
         $this->bancoId = $banco;
@@ -58,8 +60,8 @@ class NuevaPregunta extends Component
             [
                 'titulo' => __('Enunciado'),
                 'descripcion' => __('Tipo, tema y pregunta.'),
-                'reglas' => ['tipo' => 'required|in:multiple_choice,true_false,short_answer,essay', 'enunciado' => 'required|string|max:2000'],
-                'atributos' => ['enunciado' => __('enunciado'), 'tipo' => __('tipo')],
+                'reglas' => ['tipo' => 'required|in:multiple_choice,true_false,short_answer,essay', 'enunciado' => 'required|string|max:2000', 'puntos' => 'required|numeric|min:0.01|max:10'],
+                'atributos' => ['enunciado' => __('enunciado'), 'tipo' => __('tipo'), 'puntos' => __('puntos')],
             ],
             [
                 'titulo' => __('Respuesta'),
@@ -78,6 +80,7 @@ class NuevaPregunta extends Component
 
         $cuestionarios->agregarPregunta(auth()->user(), $this->bancoId, [
             'tipo' => $this->tipo, 'enunciado' => $this->enunciado, 'tema' => $this->tema ?: null,
+            'puntos' => $this->puntos,
             'opciones' => $this->opciones, 'correcta' => $this->correcta, 'aceptadas' => $this->aceptadas,
             'justificacion' => $this->justificacion ?: null,
         ]);

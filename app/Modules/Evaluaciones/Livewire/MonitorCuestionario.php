@@ -26,6 +26,20 @@ class MonitorCuestionario extends Component
 
     public int $minutos = 10;
 
+    public ?string $intentoRevisando = null;
+
+    public function verIntento(string $intento): void
+    {
+        $this->intentoRevisando = $intento;
+        $this->dispatch('abrir-modal', 'ver-intento');
+    }
+
+    public function cerrarModalIntento(): void
+    {
+        $this->intentoRevisando = null;
+        $this->dispatch('cerrar-modal', 'ver-intento');
+    }
+
     public function mount(string $seccion, string $cuestionario): void
     {
         $this->seccion = $seccion;
@@ -55,11 +69,27 @@ class MonitorCuestionario extends Component
         $this->dispatch('aviso', tipo: 'exito', mensaje: __('Intento cerrado y corregido con lo que el estudiante había guardado.'));
     }
 
+    public function publicarCorreccion(CuestionarioService $cuestionarios): void
+    {
+        try {
+            $cuestionarios->publicarRevisionAnticipada(auth()->user(), $this->seccionId(), $this->cuestionario);
+            $this->dispatch('aviso', tipo: 'exito', mensaje: __('Corrección publicada a los estudiantes.'));
+        } catch (ValidationException $excepcion) {
+            $this->dispatch('aviso', tipo: 'error', mensaje: (string) collect($excepcion->errors())->flatten()->first());
+        }
+    }
+
     public function render(CuestionarioService $cuestionarios): View
     {
         $datos = $cuestionarios->monitor(auth()->user(), $this->seccionId(), $this->cuestionario);
+        $detalleIntento = $this->intentoRevisando !== null
+            ? $cuestionarios->intentoParaDocente(auth()->user(), $this->seccionId(), $this->cuestionario, $this->intentoRevisando)
+            : null;
 
-        return view('modules.evaluaciones.monitor-cuestionario', $datos + ['revisionVisible' => now()->gte($datos['revisionDesde'])]);
+        return view('modules.evaluaciones.monitor-cuestionario', $datos + [
+            'revisionVisible' => CuestionarioService::revisionVisible($datos['cuestionario']),
+            'detalleIntento' => $detalleIntento,
+        ]);
     }
 
     private function seccionId(): int

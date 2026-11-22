@@ -10,11 +10,14 @@
         <x-ui.formulario.paso :numero="1">
             <x-ui.card :titulo="__('Enunciado')">
                 <div class="flex flex-col gap-4">
-                    <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-4 sm:grid-cols-3">
                         <x-ui.field :etiqueta="__('Tipo')" para="tipoP" error="tipo">
                             <x-ui.select id="tipoP" wire:model.live="tipo">@foreach ($tipos as $v => $e)<option value="{{ $v }}">{{ __($e) }}</option>@endforeach</x-ui.select>
                         </x-ui.field>
                         <x-ui.field :etiqueta="__('Tema')" para="temaP"><x-ui.input id="temaP" wire:model="tema" /></x-ui.field>
+                        <x-ui.field :etiqueta="__('Puntos')" para="puntosP" error="puntos" requerido>
+                            <x-ui.input id="puntosP" type="number" step="0.01" min="0.01" max="10" wire:model="puntos" />
+                        </x-ui.field>
                     </div>
 
                     <x-ui.field :etiqueta="__('Enunciado')" para="enunciado" error="enunciado" requerido>
@@ -63,6 +66,7 @@
                     <div class="flex flex-wrap gap-1">
                         <x-ui.badge color="marca">{{ __($tipos[$tipo]) }}</x-ui.badge>
                         @if ($tema)<x-ui.badge>{{ $tema }}</x-ui.badge>@endif
+                        <x-ui.badge color="verde">{{ __(':p pts', ['p' => rtrim(rtrim(number_format((float) $puntos, 2), '0'), '.')]) }}</x-ui.badge>
                     </div>
 
                     <div>
