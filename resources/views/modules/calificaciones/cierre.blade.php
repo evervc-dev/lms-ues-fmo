@@ -1,4 +1,5 @@
 {{-- Cierre del período (RF34, maqueta 26). --}}
+{{-- El estado va solo en la insignia: antes toda fila sin validar iba en ámbar y la tabla entera quedaba amarilla (revisión UX del 22/11/2026). --}}
 @php($estados = ['draft' => ['gris', __('Sin publicar')], 'published' => ['azul', __('Por validar')], 'returned' => ['ambar', __('Devuelta')], 'validated' => ['verde', __('Validada')]])
 <div class="flex flex-col gap-5 lg:h-full">
     <x-ui.encabezado :titulo="__('Cierre del período :p', ['p' => $periodo?->name ?? '—'])" :subtitulo="__('Autorice el cierre de su departamento cuando todas las actas estén validadas por los coordinadores.')">
@@ -37,7 +38,7 @@
             <x-ui.table ajustar>
                 <x-slot:cabecera><th>{{ __('Grupo') }}</th><th>{{ __('Asignatura') }}</th><th>{{ __('Acta') }}</th></x-slot:cabecera>
                 @foreach ($secciones->sortBy(fn ($s) => $s->estado === 'validated' ? 1 : 0)->values() as $s)
-                    <tr @class(['bg-amber-50' => $s->estado !== 'validated'])><td class="font-semibold">{{ $s->code }} · {{ $s->grupo }}</td><td>{{ $s->name }}</td><td><x-ui.badge :color="$estados[$s->estado][0]">{{ $estados[$s->estado][1] }}</x-ui.badge></td></tr>
+                    <tr><td class="font-semibold">{{ $s->code }} · {{ $s->grupo }}</td><td>{{ $s->name }}</td><td><x-ui.badge :color="$estados[$s->estado][0]">{{ $estados[$s->estado][1] }}</x-ui.badge></td></tr>
                 @endforeach
             </x-ui.table>
         </x-ui.card>

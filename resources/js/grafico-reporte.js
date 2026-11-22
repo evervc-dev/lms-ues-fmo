@@ -21,14 +21,54 @@ export default (datos) => ({
         const marca = token('--color-marca-600', '#ae152d');
         const borde = token('--color-borde', '#dcdcde');
         const suave = token('--color-texto-suave', '#696969');
+        const texto = token('--color-texto', '#1f1f1f');
+        const neutra = token('--color-zinc-400', '#a1a1aa');
+        // Con mínimo (asistencia 75 %, nota 6.0): en rojo solo lo que queda por debajo, el resto en gris.
+        const umbral = datos.umbral ?? null;
+        const colores = datos.valores.map((v) => (umbral === null || v < umbral ? marca : neutra));
+
+        // El valor al final de cada barra y la línea del mínimo, sin cargar plugins extra.
+        const rotulos = {
+            id: 'rotulos',
+            afterDatasetsDraw(chart) {
+                const { ctx, chartArea, scales } = chart;
+                ctx.save();
+                ctx.font = '600 11px system-ui, sans-serif';
+                ctx.fillStyle = texto;
+                ctx.textBaseline = 'middle';
+                chart.getDatasetMeta(0).data.forEach((barra, i) => {
+                    const valor = datos.valores[i];
+                    const escrito = (datos.enteros ? String(Math.round(valor)) : valor.toLocaleString('es-SV', { maximumFractionDigits: 1 })) + datos.sufijo;
+                    const ancho = ctx.measureText(escrito).width;
+                    const x = Math.min(barra.x + 6, chartArea.right - ancho - 2);
+                    ctx.fillText(escrito, x, barra.y);
+                });
+                if (umbral !== null) {
+                    const x = scales.x.getPixelForValue(umbral);
+                    ctx.strokeStyle = texto;
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(x, chartArea.top);
+                    ctx.lineTo(x, chartArea.bottom);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = suave;
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText(`mínimo ${umbral.toLocaleString('es-SV')}${datos.sufijo}`, x + 4, chartArea.top - 2);
+                }
+                ctx.restore();
+            },
+        };
 
         this.grafico = new Chart(this.$refs.lienzo, {
             type: 'bar',
             data: {
                 labels: datos.etiquetas,
-                datasets: [{ data: datos.valores, backgroundColor: marca, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 18 }],
+                datasets: [{ data: datos.valores, backgroundColor: colores, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 18 }],
             },
+            plugins: [rotulos],
             options: {
+                layout: { padding: { top: umbral === null ? 0 : 16, right: 44 } },
                 indexAxis: 'y',
                 maintainAspectRatio: false,
                 animation: false,

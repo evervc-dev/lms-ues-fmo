@@ -47,6 +47,15 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Decisiones:** [[ADR-084 Nombres con mayúsculas mezcladas se respetan]] (pendiente). Carné: mostrar en mayúsculas sin cambiar RF04. «Año de ingreso» muestra «No registrado»; pedirlo en el alta queda para después.
 - **Pendiente:** el 502 «Application failed to respond» lo devuelve el proxy de Railway cuando la aplicación no responde; Laravel no puede dibujar ahí una página propia. Hay que revisar los logs de Railway (memoria, arranque, workers).
 
+### 2026-11-21 · — · Suite completa en verde con PostgreSQL 17
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** la suite en PostgreSQL 17 tenía 21 fallos que SQLite no ve. Casi todos eran de las pruebas: servicios llamados sin `actingAs` o escrituras directas sin `DbContext` (AC900), una cuenta no superadmin con contraseña (lo prohíbe el CHECK `users_password_only_emergency`), Soporte con Docente (ADR-081), un período sin grupos que no avanza de etapa, el actor del cambio de grupo (el Jefe, ADR-078) y un `pluck` sin `orderBy`.
+- **Corrección de código:** `AsistenciaService::abrir()` atrapaba cualquier `QueryException` y la mostraba como «ya hay una sesión abierta»; ahora solo atrapa la violación del índice único (ADR-076), y los demás errores salen como son.
+- **CP cubiertos:** sin pruebas nuevas; se ajustaron las existentes de RF03, RF04, RF05, RF07, RF09, RF18, RF20, RF21 y el seeder del equipo.
+- **Decisiones:** —
+- **Pendiente:** la prueba intermitente de `PantallasConDemoTest` sigue sin causa conocida.
+
 ### 2026-11-21 · — · DbContext anidado restaura el contexto de afuera
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

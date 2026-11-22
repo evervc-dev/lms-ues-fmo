@@ -20,8 +20,10 @@
                             <div class="flex flex-wrap gap-1"><x-ui.badge color="marca">{{ $s->code }}</x-ui.badge><x-ui.badge>{{ __('Grupo :g', ['g' => $s->grupo]) }}</x-ui.badge>@if ($s->plan)<x-ui.badge color="azul">{{ $s->plan }}</x-ui.badge>@endif</div>
                             <h2 class="mt-2 font-semibold text-texto">{{ $s->name }}</h2>
                         </div>
+                        {{-- Rojo solo cuando las alertas son una parte grande del grupo (20 % o más); si no, en ámbar. Con casi
+                             todas las tarjetas en rojo, ninguna destacaba (revisión UX del 22/11/2026). --}}
                         @if ($s->alertas > 0)
-                            <x-ui.badge color="rojo">{{ trans_choice('{1} 1 estudiante en alerta|[2,*] :count estudiantes en alerta', $s->alertas) }}</x-ui.badge>
+                            <x-ui.badge :color="$s->inscritos > 0 && $s->alertas / $s->inscritos >= 0.2 ? 'rojo' : 'ambar'" class="shrink-0">{{ trans_choice('{1} 1 en alerta|[2,*] :count en alerta', $s->alertas) }}</x-ui.badge>
                         @endif
                     </div>
                     <p class="text-sm text-texto-suave">{{ $s->docente ?? __('Sin docente') }}{{ $s->horario ? ' · '.$s->horario : '' }}</p>

@@ -26,7 +26,7 @@
 
     {{-- R-11: el gráfico resume la medida principal; la tabla de abajo tiene todos los datos. --}}
     @if ($grafico['valores'] !== [])
-        <x-ui.card :titulo="$grafico['titulo']" :descripcion="$grafico['recortado'] ? __('Se grafican las primeras :n filas; la tabla y la exportación traen todas.', ['n' => count($grafico['valores'])]) : null">
+        <x-ui.card :titulo="$grafico['titulo']" :descripcion="$grafico['recortado'] ? ($grafico['umbral'] !== null ? __('Se grafican los :n más bajos; la tabla y la exportación traen todos.', ['n' => count($grafico['valores'])]) : __('Se grafican las primeras :n filas; la tabla y la exportación traen todas.', ['n' => count($grafico['valores'])])) : ($grafico['umbral'] !== null ? __('De menor a mayor; en rojo, los que están bajo el mínimo.') : null)">
             <div wire:key="grafico-{{ $tipo }}-{{ $periodo }}-{{ $carrera }}" x-data="graficoReporte(@js($grafico))"
                 style="height: {{ 48 + 28 * count($grafico['valores']) }}px" role="img"
                 aria-label="{{ $grafico['titulo'] }}. {{ __('Los mismos datos están en la tabla de abajo.') }}">
