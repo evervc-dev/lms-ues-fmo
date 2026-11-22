@@ -49,6 +49,7 @@ return [
         'period.created' => 'Se creó un período académico',
         'period.reopened' => 'Se reabrió un período cerrado',
         'question.created' => 'Se creó una pregunta',
+        'question.imported' => 'Se importó una pregunta desde Excel',
         'question_bank.created' => 'Se creó un banco de preguntas',
         'report.scheduled' => 'Se programó el envío de un reporte',
         'resource.created' => 'Se agregó un recurso',
