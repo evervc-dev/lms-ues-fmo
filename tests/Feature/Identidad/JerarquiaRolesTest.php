@@ -436,3 +436,22 @@ it('CP-RF04-27 al Jefe no se le ofrece convertir la cuenta en Estudiante ni Sopo
         ->assertSeeHtml('value="estudiante" wire:model.live="tipoCuenta" disabled')
         ->assertSeeHtml('value="soporte_tecnico" wire:model.live="tipoCuenta" disabled');
 });
+
+it('CP-RF04-30 el Administrador y Soporte cambian el plan del estudiante desde su ficha', function (string $rol) {
+    $e = escenario();
+    $plan98 = DbContext::system(fn () => DB::table('study_plans')->insertGetId(['career_id' => $e['isi'], 'name' => 'Plan 98', 'created_at' => now(), 'updated_at' => now()]));
+    $atajo = route('usuarios.roles', ['usuario' => $e['estudiante']->id, 'paso' => 'asignaciones']);
+
+    actingAs($e[$rol])->get(route('usuarios.show', ['usuario' => $e['estudiante']->id]))->assertOk()
+        ->assertSee('Cambiar carrera, plan o ciclo')->assertSee('href="'.$atajo.'"', false);
+
+    Livewire::withQueryParams(['paso' => 'asignaciones'])->actingAs($e[$rol])->test(RolesUsuario::class, ['usuario' => $e['estudiante']->id])
+        ->assertSet('paso', 2)->assertSet('planEstudiante', $e['plan'])
+        ->set('planEstudiante', $plan98)
+        ->call('guardar')->assertHasNoErrors();
+
+    $carrera = DB::table('student_careers')->where('student_id', $e['estudiante']->id)->where('status', 'active')->first();
+    expect((int) $carrera->study_plan_id)->toBe($plan98)
+        ->and((int) $carrera->career_id)->toBe($e['isi'])
+        ->and(DB::table('student_careers')->where('student_id', $e['estudiante']->id)->count())->toBe(1);
+})->with(['administrador', 'soporte']);

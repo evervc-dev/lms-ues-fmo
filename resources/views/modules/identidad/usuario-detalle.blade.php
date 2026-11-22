@@ -48,7 +48,14 @@
             @endif
             <dl class="flex flex-col gap-3 text-sm">
                 @if ($estudiante)
-                    <div><dt class="text-texto-suave">{{ __('Estudiante') }}</dt><dd>{{ $estudiante->carrera }} · {{ $estudiante->plan }} · {{ __('ciclo :ciclo', ['ciclo' => $estudiante->ciclo]) }} · {{ __('carné :carne', ['carne' => mb_strtoupper((string) $estudiante->carne)]) }}</dd></div>
+                    <div>
+                        <dt class="text-texto-suave">{{ __('Estudiante') }}</dt>
+                        <dd>{{ $estudiante->carrera }} · {{ $estudiante->plan }} · {{ __('ciclo :ciclo', ['ciclo' => $estudiante->ciclo]) }} · {{ __('carné :carne', ['carne' => mb_strtoupper((string) $estudiante->carne)]) }}</dd>
+                        {{-- Atajo al paso de asignaciones: cuando un plan nuevo absorbe al anterior, o el estudiante cambia de carrera. --}}
+                        @if ($cambiaRoles && ! ($esEmergencia || $esPropio))
+                            <a href="{{ route('usuarios.roles', ['usuario' => $usuario->id, 'paso' => 'asignaciones']) }}" wire:navigate class="mt-1 inline-block text-xs font-medium text-marca-700 hover:underline">{{ __('Cambiar carrera, plan o ciclo') }}</a>
+                        @endif
+                    </div>
                     @isset($perfil['estudiante'])
                         <div><dt class="text-texto-suave">{{ __('Año de ingreso') }}</dt><dd>{{ $perfil['estudiante']['ingreso'] ? $perfil['estudiante']['ingreso']['anio'].' ('.$perfil['estudiante']['ingreso']['periodo'].')' : __('No registrado') }}</dd></div>
                         <div>

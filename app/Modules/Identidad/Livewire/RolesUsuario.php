@@ -51,6 +51,10 @@ class RolesUsuario extends Component
         $this->roles = $ficha['rolesActuales'];
         $this->tipoCuenta = self::tipoDe($this->roles);
         $this->precargarAsignacion($ficha['asignacion']);
+        // «Cambiar carrera o plan» de la ficha entra directo a las asignaciones (p. ej. el plan nuevo que absorbe al anterior).
+        if (request()->query('paso') === 'asignaciones') {
+            $this->paso = 2;
+        }
     }
 
     /**
