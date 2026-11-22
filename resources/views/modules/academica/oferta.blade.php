@@ -15,7 +15,9 @@
 
     <div class="grid gap-3 md:grid-cols-[minmax(0,20rem)]">
         <x-ui.select wire:model.live="filtroCarrera" :aria-label="__('Carrera')">
-            <option value="">{{ __('Todas las carreras de su alcance') }}</option>
+            @unless ($carreraObligatoria)
+                <option value="">{{ __('Todas las carreras de su alcance') }}</option>
+            @endunless
             @foreach ($carreras as $c)<option value="{{ $c->id }}">{{ $c->code }} · {{ $c->name }}</option>@endforeach
         </x-ui.select>
     </div>
