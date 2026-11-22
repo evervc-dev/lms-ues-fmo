@@ -46,11 +46,13 @@
                 x-text="semanas > 0 ? @js(__('Dura unas ')) + semanas + @js(__(' semanas.')) : @js(__('El fin debe ser después del inicio.'))"></p>
             <div class="rounded-lg bg-zinc-50 p-3 ring-1 ring-borde">
                 <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-texto-suave">{{ __('Cómputos que se crean') }}</p>
+                {{-- El ancho de cada tramo es lo que dura dentro del período; todos pesan 25 % (ADR-085). --}}
                 <div class="flex overflow-hidden rounded-md text-center text-xs font-medium text-white">
-                    <span class="bg-marca-600 py-1.5" style="width: 30%">{{ __('C1 · 30 %') }}</span>
-                    <span class="bg-marca-700 py-1.5" style="width: 30%">{{ __('C2 · 30 %') }}</span>
-                    <span class="bg-marca-800 py-1.5" style="width: 40%">{{ __('C3 · 40 %') }}</span>
+                    @foreach (\App\Modules\Academica\Services\PeriodoService::COMPUTOS as $numero => [$peso, $parte])
+                        <span @class(['py-1.5', 'bg-marca-600' => $numero % 2 === 1, 'bg-marca-800' => $numero % 2 === 0]) style="width: {{ $parte }}%">{{ __('C:n · :p %', ['n' => $numero, 'p' => $peso]) }}</span>
+                    @endforeach
                 </div>
+                <p class="mt-2 text-xs text-texto-suave">{{ __('Los cuatro pesan igual en la nota. El primero dura más (30 % del período), el segundo y el tercero lo mismo y el cuarto es el más corto.') }}</p>
                 <p class="mt-2 text-xs text-texto-suave">{{ __('Se crea en planificación. Los porcentajes son provisionales hasta el reglamento académico.') }}</p>
             </div>
         </form>

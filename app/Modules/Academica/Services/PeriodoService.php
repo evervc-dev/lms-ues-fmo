@@ -162,7 +162,39 @@ class PeriodoService
     }
 
     /**
-     * Crea el período en planificación con tres cómputos de 30 %, 30 % y 40 % (provisionales, ADR-030).
+     * Cómputos de cada período (ADR-085): número => [peso en la nota, parte del período que dura]. Pesan igual; el primero
+     * dura más y el último menos. Los pesos siguen siendo provisionales hasta el reglamento académico (ADR-030).
+     *
+     * @var array<int, array{0: int, 1: int}>
+     */
+    public const COMPUTOS = [1 => [25, 30], 2 => [25, 25], 3 => [25, 25], 4 => [25, 20]];
+
+    /**
+     * Filas de grading_component_templates para un período, sin period_id. Cada cómputo empieza el día siguiente al fin
+     * del anterior y el último termina el último día del período.
+     *
+     * @return array<int, array{number: int, name: string, weight_percent: int, starts_on: string, ends_on: string}>
+     */
+    public static function plantillaComputos(string $inicio, string $fin): array
+    {
+        $desde = Carbon::parse($inicio)->startOfDay();
+        $hasta = Carbon::parse($fin)->startOfDay();
+        $dias = (int) $desde->diffInDays($hasta) + 1;
+        $filas = [];
+        $acumulado = 0;
+        $comienzo = $desde->copy();
+        foreach (self::COMPUTOS as $numero => [$peso, $parte]) {
+            $acumulado += $parte;
+            $termina = $numero === array_key_last(self::COMPUTOS) ? $hasta->copy() : $desde->copy()->addDays((int) round($dias * $acumulado / 100) - 1);
+            $filas[] = ['number' => $numero, 'name' => "Cómputo {$numero}", 'weight_percent' => $peso, 'starts_on' => $comienzo->toDateString(), 'ends_on' => $termina->toDateString()];
+            $comienzo = $termina->copy()->addDay();
+        }
+
+        return $filas;
+    }
+
+    /**
+     * Crea el período en planificación con los cuatro cómputos de la plantilla (ADR-085).
      */
     public function crear(User $actor, string $nombre, string $inicio, string $fin): int
     {
@@ -187,14 +219,8 @@ class PeriodoService
         return DbContext::run(function () use ($nombre, $inicio, $fin) {
             $id = DB::table('academic_periods')->insertGetId(['name' => $nombre, 'start_date' => $inicio, 'end_date' => $fin,
                 'status' => 'planned', 'preparation_stage' => 'planning', 'created_at' => now(), 'updated_at' => now()]);
-            $desde = Carbon::parse($inicio);
-            foreach ([[1, 30], [2, 30], [3, 40]] as [$numero, $peso]) {
-                DB::table('grading_component_templates')->insert([
-                    'period_id' => $id, 'number' => $numero, 'name' => "Cómputo {$numero}", 'weight_percent' => $peso,
-                    'starts_on' => $desde->copy()->addWeeks(($numero - 1) * 6)->toDateString(),
-                    'ends_on' => $numero === 3 ? $fin : $desde->copy()->addWeeks($numero * 6)->subDay()->toDateString(),
-                    'created_at' => now(), 'updated_at' => now(),
-                ]);
+            foreach (self::plantillaComputos($inicio, $fin) as $computo) {
+                DB::table('grading_component_templates')->insert($computo + ['period_id' => $id, 'created_at' => now(), 'updated_at' => now()]);
             }
 
             return $id;

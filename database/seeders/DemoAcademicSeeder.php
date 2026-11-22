@@ -301,10 +301,12 @@ class DemoAcademicSeeder extends Seeder
     {
         $templates = DB::table('grading_component_templates')->where('period_id', $this->period)->orderBy('number')->get();
         $banks = [];
+        // Una tarea y un parcial por cómputo, dentro de sus fechas en 2026-II (ADR-085: 27/07–05/09, 06/09–10/10, 11/10–13/11, 14/11–11/12).
         $items = [
             1 => [['Tarea 1', 'assignment', 40, '2026-08-03 07:00', '2026-08-24 23:59', 'strict'], ['Parcial 1', 'quiz', 60, '2026-09-01 08:00', '2026-09-01 10:00', null]],
-            2 => [['Tarea 2', 'assignment', 40, '2026-09-21 07:00', '2026-10-16 23:59', 'grace_penalty'], ['Parcial 2', 'quiz', 60, '2026-10-15 08:00', '2026-10-15 10:00', null]],
-            3 => [['Proyecto final', 'assignment', 50, '2026-10-26 07:00', '2026-11-30 23:59', 'grace'], ['Parcial 3', 'quiz', 50, '2026-12-01 08:00', '2026-12-01 10:00', null]],
+            2 => [['Tarea 2', 'assignment', 40, '2026-09-07 07:00', '2026-10-02 23:59', 'grace_penalty'], ['Parcial 2', 'quiz', 60, '2026-10-08 08:00', '2026-10-08 10:00', null]],
+            3 => [['Laboratorio', 'assignment', 40, '2026-10-12 07:00', '2026-11-06 23:59', 'strict'], ['Parcial 3', 'quiz', 60, '2026-11-12 08:00', '2026-11-12 10:00', null]],
+            4 => [['Proyecto final', 'assignment', 50, '2026-11-16 07:00', '2026-11-30 23:59', 'grace'], ['Parcial 4', 'quiz', 50, '2026-12-03 08:00', '2026-12-03 10:00', null]],
         ];
 
         foreach ($sections as $section) {
