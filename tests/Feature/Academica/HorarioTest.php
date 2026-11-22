@@ -3,6 +3,7 @@
 use App\Modules\Academica\Events\HorarioCambiado;
 use App\Modules\Academica\Livewire\CargaAcademica;
 use App\Modules\Academica\Services\CargaAcademicaService;
+use App\Modules\Academica\Services\HorarioService;
 use App\Modules\Comunicacion\Notifications\Aviso;
 use App\Support\DbContext;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -140,3 +141,29 @@ it('CP-RF08-03 muestra los bloques en el modal de horario y los quita o cambia d
     $aviso = DB::table('notifications')->where('notifiable_id', $e['estudiante']->id)->where('event_code', 'schedule.changed')->sole();
     expect(json_decode($aviso->data, true)['count'])->toBe(2);
 });
+
+it('CP-RF08-03 rechaza un bloque que choca en la misma aula con otro bloque del mismo grupo', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+
+    // El escenario ya tiene PRN115 · 01 el lunes de 07:00 a 08:40 en A-101.
+    expect(fn () => carga()->agregarHorario($e['administrador'], $e['seccion'], 1, '07:00', '08:40', $e['aula']))
+        ->toThrow(ValidationException::class, 'PRN115');
+    expect(DB::table('section_schedules')->where('section_id', $e['seccion'])->count())->toBe(1);
+});
+
+it('CP-RF08-03 traduce el choque de aula de la base a un error del campo aula, no a un error 500', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+    // Simula dos envíos a la vez: la validación previa no ve el choque y decide el EXCLUDE de PostgreSQL.
+    $horarios = Mockery::mock(HorarioService::class)->makePartial();
+    $horarios->shouldReceive('chocaAula')->andReturnNull();
+    app()->instance(HorarioService::class, $horarios);
+
+    try {
+        app(CargaAcademicaService::class)->agregarHorario($e['administrador'], $e['otra'], 1, '07:00', '08:00', $e['aula']);
+        $this->fail('Debía rechazar el choque de aula.');
+    } catch (ValidationException $excepcion) {
+        expect($excepcion->errors())->toBe(['aula' => [__('El aula ya está ocupada en ese horario.')]]);
+    }
+})->skip(fn () => DB::connection()->getDriverName() !== 'pgsql', 'El EXCLUDE de aulas solo existe en PostgreSQL.');

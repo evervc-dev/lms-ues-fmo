@@ -8,8 +8,10 @@ use App\Modules\Calificaciones\Services\ComputoService;
 use App\Support\Alcance;
 use App\Support\Busqueda;
 use App\Support\DbContext;
+use App\Support\DbError;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -141,7 +143,7 @@ class CargaAcademicaService
         }
         $this->exigirTopeDeHoras($seccionId, $inicio, $fin);
         $periodo = (int) DB::table('sections')->where('id', $seccionId)->value('period_id');
-        if ($choque = $this->horarios->chocaAula($periodo, $aulaId, $dia, $inicio, $fin, $seccionId)) {
+        if ($choque = $this->horarios->chocaAula($periodo, $aulaId, $dia, $inicio, $fin)) {
             throw ValidationException::withMessages(['aula' => __('El aula ya está ocupada en ese horario por :seccion.', ['seccion' => $choque])]);
         }
         $nuevo = collect([(object) ['weekday' => $dia, 'start_time' => $inicio, 'end_time' => $fin]]);
@@ -153,13 +155,33 @@ class CargaAcademicaService
             }
         }
 
-        DbContext::run(fn () => DB::table('section_schedules')->insert([
+        // Dos envíos a la vez pueden pasar la validación anterior: el EXCLUDE de la base decide y se traduce (no un 500).
+        $this->sinChoqueEnBase(fn () => DbContext::run(fn () => DB::table('section_schedules')->insert([
             'section_id' => $seccionId, 'period_id' => $periodo, 'classroom_id' => $aulaId, 'weekday' => $dia, 'start_time' => $inicio, 'end_time' => $fin,
             'created_at' => now(), 'updated_at' => now(),
-        ]), 'section.schedule_added');
+        ]), 'section.schedule_added'));
 
         $bloque = (object) ['weekday' => $dia, 'start_time' => $inicio, 'end_time' => $fin, 'aula' => $aulaId ? DB::table('classrooms')->where('id', $aulaId)->value('code') : null];
         $this->avisarCambio($seccionId, __('Se agregó el horario :h.', ['h' => self::etiquetaBloque($bloque)]));
+    }
+
+    /**
+     * Ejecuta la escritura de un bloque y convierte el choque de aula de la base (23P01, EXCLUDE
+     * `section_schedules_classroom_no_overlap`) en un error del campo aula, con el mensaje de DbError.
+     *
+     * @throws ValidationException
+     */
+    private function sinChoqueEnBase(callable $escritura): void
+    {
+        try {
+            $escritura();
+        } catch (QueryException $excepcion) {
+            if ((string) ($excepcion->errorInfo[0] ?? $excepcion->getCode()) !== '23P01') {
+                throw $excepcion;
+            }
+
+            throw ValidationException::withMessages(['aula' => DbError::toDomain($excepcion)->getMessage()]);
+        }
     }
 
     /**
@@ -190,12 +212,12 @@ class CargaAcademicaService
         if ($aulaId === ($bloque->classroom_id === null ? null : (int) $bloque->classroom_id)) {
             throw ValidationException::withMessages(['aula' => __('El bloque ya está en esa aula.')]);
         }
-        if ($choque = $this->horarios->chocaAula((int) $bloque->period_id, $aulaId, (int) $bloque->weekday, substr($bloque->start_time, 0, 5), substr($bloque->end_time, 0, 5), $seccionId)) {
+        if ($choque = $this->horarios->chocaAula((int) $bloque->period_id, $aulaId, (int) $bloque->weekday, substr($bloque->start_time, 0, 5), substr($bloque->end_time, 0, 5), exceptoBloque: $bloqueId)) {
             throw ValidationException::withMessages(['aula' => __('El aula ya está ocupada en ese horario por :seccion.', ['seccion' => $choque])]);
         }
 
-        DbContext::run(fn () => DB::table('section_schedules')->where('id', $bloqueId)->where('section_id', $seccionId)
-            ->update(['classroom_id' => $aulaId, 'updated_at' => now()]), 'section.classroom_changed');
+        $this->sinChoqueEnBase(fn () => DbContext::run(fn () => DB::table('section_schedules')->where('id', $bloqueId)->where('section_id', $seccionId)
+            ->update(['classroom_id' => $aulaId, 'updated_at' => now()]), 'section.classroom_changed'));
 
         $nueva = $aulaId ? DB::table('classrooms')->where('id', $aulaId)->value('code') : null;
         $this->avisarCambio($seccionId, __('El horario :h cambió de aula: ahora es :a.', [

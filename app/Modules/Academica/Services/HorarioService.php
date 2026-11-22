@@ -34,7 +34,12 @@ class HorarioService
             && substr($x->start_time, 0, 5) < substr($y->end_time, 0, 5) && substr($y->start_time, 0, 5) < substr($x->end_time, 0, 5)));
     }
 
-    public function chocaAula(int $periodoId, ?int $aulaId, int $dia, string $inicio, string $fin, ?int $excepto = null): ?string
+    /**
+     * Grupo («PRN115 · 01») que ya ocupa el aula ese día y en esa franja, si hay. El EXCLUDE de la base no mira el grupo,
+     * así que al agregar un bloque cuentan también los del mismo grupo: `$excepto` (un grupo entero) solo sirve para
+     * marcar choques con otros grupos, y `$exceptoBloque` deja fuera el bloque que se está moviendo de aula.
+     */
+    public function chocaAula(int $periodoId, ?int $aulaId, int $dia, string $inicio, string $fin, ?int $excepto = null, ?int $exceptoBloque = null): ?string
     {
         if ($aulaId === null) {
             return null;
@@ -45,6 +50,7 @@ class HorarioService
             ->where('section_schedules.period_id', $periodoId)->where('classroom_id', $aulaId)->where('weekday', $dia)
             ->where('start_time', '<', $fin)->where('end_time', '>', $inicio)
             ->when($excepto, fn ($q) => $q->where('section_schedules.section_id', '!=', $excepto))
+            ->when($exceptoBloque, fn ($q) => $q->where('section_schedules.id', '!=', $exceptoBloque))
             ->value(DB::raw("subjects.code || ' · ' || sections.code"));
     }
 
