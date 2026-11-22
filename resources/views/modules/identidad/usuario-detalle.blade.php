@@ -38,6 +38,12 @@
 
     <div class="grid gap-5 lg:grid-cols-2">
         <x-ui.card :titulo="__('Asignaciones vigentes')">
+            @if ($asignaGrupos)
+                {{-- Atajo de RF08: asignar un grupo teórico sin ir a Carga académica. --}}
+                <x-slot:acciones>
+                    <x-ui.button tamano="sm" variante="secundario" icono="plus" wire:click="abrirAsignarGrupo">{{ __('Asignar grupo teórico') }}</x-ui.button>
+                </x-slot:acciones>
+            @endif
             <dl class="flex flex-col gap-3 text-sm">
                 @if ($estudiante)
                     <div><dt class="text-texto-suave">{{ __('Estudiante') }}</dt><dd>{{ $estudiante->carrera }} · {{ $estudiante->plan }} · {{ __('ciclo :ciclo', ['ciclo' => $estudiante->ciclo]) }} · {{ __('carné :carne', ['carne' => $estudiante->carne]) }}</dd></div>
@@ -108,6 +114,50 @@
                 @endforeach
             </x-ui.table>
         </x-ui.card>
+    @endif
+
+    @if ($asignaGrupos)
+        <x-ui.modal nombre="asignar-grupo" ancho="lg" :titulo="__('Asignar grupo teórico')" :subtitulo="__('A :n, en los grupos de su alcance.', ['n' => $usuario->fullName()])">
+            <div class="flex flex-col gap-4">
+                <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+                    <x-ui.search wire:model.live.debounce.300ms="buscarGrupo" :placeholder="__('Buscar materia por código o nombre…')" />
+                    @if ($periodosGrupo->count() > 1)
+                        <x-ui.select wire:model.live="periodoGrupo" :aria-label="__('Período')">
+                            @foreach ($periodosGrupo as $p)<option value="{{ $p->id }}">{{ $p->name }}{{ $p->status === 'planned' ? ' · '.__('en preparación') : '' }}</option>@endforeach
+                        </x-ui.select>
+                    @endif
+                </div>
+                <label class="flex items-start gap-3 text-sm">
+                    <input type="checkbox" wire:model.live="responsableGrupo" class="mt-0.5 size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
+                    <span class="flex flex-col"><span class="font-medium text-texto">{{ __('Como responsable') }}</span><span class="text-xs text-texto-suave">{{ __('Si el grupo ya tiene responsable, ese pasa a co-docente.') }}</span></span>
+                </label>
+                <ul class="flex max-h-96 flex-col divide-y divide-borde overflow-y-auto rounded-lg ring-1 ring-borde">
+                    @forelse ($gruposParaAsignar as $g)
+                        @php($yaEsta = $g->docentes->contains('id', $usuario->id))
+                        <li wire:key="grupo-{{ $g->id }}" class="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                            <div class="min-w-0 text-sm">
+                                <p class="font-medium text-texto"><span class="font-mono text-xs font-semibold">{{ $g->code }}</span> · {{ __('Grupo :g', ['g' => $g->grupo]) }} — {{ $g->name }}</p>
+                                <p class="text-xs text-texto-suave">
+                                    {{ $g->horario !== [] ? implode(' · ', $g->horario) : __('Sin horario') }}
+                                    · {{ $g->docentes->isEmpty() ? __('sin docente') : $g->docentes->map(fn ($d) => $d->first_name.' '.$d->last_name)->implode(', ') }}
+                                </p>
+                            </div>
+                            @if ($yaEsta)
+                                <x-ui.badge color="verde">{{ __('Ya lo imparte') }}</x-ui.badge>
+                            @else
+                                <x-ui.button tamano="sm" wire:click="asignarGrupo({{ $g->id }})" wire:loading.attr="disabled" wire:target="asignarGrupo({{ $g->id }})">{{ __('Asignar') }}</x-ui.button>
+                            @endif
+                        </li>
+                    @empty
+                        <li class="px-3 py-6 text-center text-sm text-texto-suave">{{ $buscarGrupo !== '' ? __('Ningún grupo coincide con la búsqueda.') : __('No hay grupos teóricos en su alcance para este período.') }}</li>
+                    @endforelse
+                </ul>
+                <p class="text-xs text-texto-suave">{{ __('Se rechaza si choca con el horario de otro grupo que ya imparte o si el grupo llegó al máximo de docentes.') }}</p>
+            </div>
+            <x-slot:pie>
+                <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'asignar-grupo')">{{ __('Listo') }}</x-ui.button>
+            </x-slot:pie>
+        </x-ui.modal>
     @endif
 
     @if ($editaDatos)

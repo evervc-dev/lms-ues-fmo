@@ -3,6 +3,7 @@
 use App\Modules\Academica\Livewire\CargaAcademica;
 use App\Modules\Academica\Services\CargaAcademicaService;
 use App\Modules\Academica\Services\MatriculaService;
+use App\Modules\Identidad\Livewire\UsuarioDetalle;
 use App\Support\Alcance;
 use App\Support\DbContext;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -248,4 +249,34 @@ it('CP-RF08-12 un grupo de una materia compartida lo ven los coordinadores de to
 
     // Un grupo de una materia que no está en su plan sigue fuera de su alcance.
     expect($visibles)->not->toContain($e['otra']);
+});
+
+it('CP-RF08-14 desde la ficha del docente se le asigna un grupo teórico, con las mismas reglas que en Carga académica', function () {
+    $e = escenario();
+    $nuevo = DbContext::system(function () use ($e) {
+        $docente = usuarioCon('docente');
+        DB::table('teacher_profiles')->insert(['user_id' => $docente->id, 'department_id' => $e['dia'], 'created_at' => now(), 'updated_at' => now()]);
+
+        return $docente;
+    });
+    $grupoNuevo = DbContext::system(fn () => DB::table('sections')->insertGetId(['ulid' => (string) str()->ulid(), 'period_id' => $e['periodo'], 'subject_id' => $e['prn'],
+        'code' => '02', 'max_capacity' => 40, 'created_at' => now(), 'updated_at' => now()]));
+
+    // El Jefe ve el atajo en la ficha del docente y le asigna el grupo 02 como co-docente.
+    actingAs($e['jefe']);
+    Livewire::test(UsuarioDetalle::class, ['usuario' => $nuevo->id])
+        ->assertSee('Asignar grupo teórico')
+        ->call('abrirAsignarGrupo')->assertSee('Grupo 02')
+        ->set('responsableGrupo', false)
+        ->call('asignarGrupo', $grupoNuevo)
+        ->assertSee('Ya lo imparte');
+
+    expect(DB::table('teaching_assignments')->where('section_id', $grupoNuevo)->where('teacher_id', $nuevo->id)->whereNull('ended_at')->value('is_responsible'))->toBeFalsy()->not->toBeNull();
+
+    // Un estudiante no ve el atajo en su ficha: no es docente.
+    Livewire::test(UsuarioDetalle::class, ['usuario' => $e['estudiante']->id])->assertDontSee('Asignar grupo teórico');
+
+    // Soporte no asigna docentes: no ve el atajo.
+    actingAs($e['soporte']);
+    expect(app(Alcance::class)->de($e['soporte'], 'secciones.asignar-docente'))->toBeNull();
 });

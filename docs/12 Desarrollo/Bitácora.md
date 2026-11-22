@@ -18,44 +18,12 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
-### 2026-11-21 · RF07 · Desactivar una asignatura desactiva sus dependientes
-- **Autor:** IA (Claude Code), a pedido del equipo de pruebas
-- **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** `CatalogoService::cambiarEstadoAsignatura()` desactiva en la misma transacción la cadena de asignaturas activas que dependen de la elegida por prerrequisito; la confirmación y el aviso las nombran.
-- **CP cubiertos:** CP-RF07-23.
-- **Decisiones:** toda la cadena (no solo las directas); si una dependiente activa es de otro departamento, el Jefe no puede desactivar; al reactivar solo cambia la elegida. Desactivar sigue sin tocar los grupos existentes, así que una materia en curso no se interrumpe.
-- **Pendiente:** —
-
-### 2026-11-21 · Transversal · Búsquedas sin tildes ni eñe
+### 2026-11-21 · RF06, RF08 · Asignar grupo desde la ficha y calendario por mes
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** todos los buscadores usan `App\Support\Busqueda` (`porNombre()`, `contiene()` o `normalizar()`): usuarios, grupos teóricos, carga académica, matrícula (y su selector de estudiante), claves y prórrogas, plazos, auditoría, contenidos, roles y permisos, diagnóstico de asistencia, «Entrar como» y el filtro de prerrequisitos.
-- **CP cubiertos:** pruebas de regla en `tests/Unit/Support/BusquedaTest.php` y `tests/Feature/Support/BusquedaSinTildesTest.php`; CP-RF07-05 sigue pasando.
-- **Decisiones:** regla común: se ignoran mayúsculas, tildes, diéresis y la eñe del español (`á é í ó ú ü ñ`), en los dos sentidos, y se neutralizan `%` y `_`. Se compara con `replace()` anidados, igual en SQLite y PostgreSQL (ADR-033); no se usa `unaccent`. Todo buscador nuevo debe usar `Busqueda`.
-- **Pendiente:** —
-
-### 2026-11-21 · RF03 · Cuenta superadministradora (staging)
-- **Autor:** IA (Claude Code), a pedido del equipo
-- **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** rol `superadmin`, comando `superadmin:crear`, ingreso por `/acceso-local`, rechazo por Google, menú con todos los grupos menos Estudio.
-- **CP cubiertos:** CP-RF03-08.
-- **Decisiones:** [[ADR-082 Cuenta superadministradora de solo lectura total]] (pendiente): sin 2FA por decisión del usuario; contraseña en `SUPERADMIN_PASSWORD`.
-- **Pendiente:** definir `SUPERADMIN_PASSWORD` en Railway y correr `php artisan superadmin:crear`; retirar la cuenta antes de producción.
-
-### 2026-11-21 · RF07 · El Administrador navega departamentos y carreras
-- **Autor:** IA (Claude Code), a pedido del equipo
-- **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** `/departamentos` → `/carreras?departamento=` → detalle de la carrera; `carreras.ver` para el Administrador (G).
-- **CP cubiertos:** CP-RF07-22.
-- **Decisiones:** [[ADR-083 El Administrador navega departamentos y carreras]] (pendiente), amplía ADR-047.
-- **Pendiente:** —
-
-### 2026-11-21 · RF04, RF06, RF10 · Departamento antes que carrera, carreras en el catálogo y oferta del Coordinador
-- **Autor:** IA (Claude Code), a pedido del equipo
-- **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** al asignar Coordinador o Estudiante se elige el departamento y luego una de sus carreras; el catálogo muestra la columna Carreras (el Jefe, solo las de su departamento y sin Depto.; el Administrador, todas y con Depto.); en la oferta, el Coordinador ya no tiene «todas las carreras» y abre en su primera carrera por código.
-- **CP cubiertos:** CP-RF04-28, CP-RF06-12, CP-RF10-03.
-- **Decisiones:** sin ADR (interfaz).
+- **Hecho:** en la ficha de un docente activo, «Asignar grupo teórico» lista los grupos del alcance de quien asigna y usa `CargaAcademicaService::asignarDocente` (mismas reglas). El calendario de evaluaciones se ve por mes, dentro del período, con colores por ámbito; en el teléfono, puntos y la lista del mes. La lista con la sincronización queda debajo.
+- **CP cubiertos:** CP-RF08-14, CP-RF06-12.
+- **Decisiones:** —
 - **Pendiente:** —
 
 ### 2026-11-21 · RF03, RF04 · Estudiante y Soporte Técnico son roles exclusivos

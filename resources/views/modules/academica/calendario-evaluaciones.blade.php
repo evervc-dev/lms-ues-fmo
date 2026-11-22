@@ -14,7 +14,75 @@
         @endif
     </x-ui.encabezado>
 
-    <x-ui.card :titulo="__('Fechas del período')"
+    {{-- Vista de mes (RF06): de lunes a domingo, dentro de las fechas del período. Pulsar un día propone esa fecha al agregar. --}}
+    @php($colorAmbito = fn ($f) => $f->department_id !== null ? 'bg-sky-50 text-sky-800 ring-sky-200' : ($f->career_id !== null ? 'bg-emerald-50 text-emerald-800 ring-emerald-200' : 'bg-marca-50 text-marca-800 ring-marca-200'))
+    @php($puntoAmbito = fn ($f) => $f->department_id !== null ? 'bg-sky-500' : ($f->career_id !== null ? 'bg-emerald-500' : 'bg-marca-600'))
+    @php($agrega = $abierto && $ambitos !== [])
+    <x-ui.card>
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+                <button type="button" wire:click="mesAnterior" @disabled(! $hayAnterior) class="inline-flex size-9 items-center justify-center rounded-lg ring-1 ring-borde hover:bg-zinc-50 disabled:opacity-40" aria-label="{{ __('Mes anterior') }}"><x-ui.icon name="arrow-left" class="size-4" /></button>
+                <h2 class="min-w-40 text-center text-lg font-semibold capitalize text-texto">{{ $mesVisible->translatedFormat('F Y') }}</h2>
+                <button type="button" wire:click="mesSiguiente" @disabled(! $haySiguiente) class="inline-flex size-9 items-center justify-center rounded-lg ring-1 ring-borde hover:bg-zinc-50 disabled:opacity-40" aria-label="{{ __('Mes siguiente') }}"><x-ui.icon name="chevron-right" class="size-4" /></button>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-texto-suave">
+                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-marca-600"></span>{{ __('Todo el período') }}</span>
+                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-sky-500"></span>{{ __('Departamento') }}</span>
+                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-emerald-500"></span>{{ __('Carrera') }}</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-7 overflow-hidden rounded-lg ring-1 ring-borde" role="grid" aria-label="{{ __('Calendario de :m', ['m' => $mesVisible->translatedFormat('F Y')]) }}">
+            @foreach ([__('Lun'), __('Mar'), __('Mié'), __('Jue'), __('Vie'), __('Sáb'), __('Dom')] as $nombreDia)
+                <div class="border-b border-borde bg-zinc-50 py-2 text-center text-xs font-semibold uppercase tracking-wide text-texto-suave" role="columnheader">{{ $nombreDia }}</div>
+            @endforeach
+            @foreach ($semanas as $semana)
+                @foreach ($semana as $d)
+                    @php($pulsable = $agrega && $d['enPeriodo'])
+                    <div wire:key="dia-{{ $d['fecha'] }}" role="gridcell"
+                        @class(['flex min-h-14 flex-col gap-1 border-b border-r border-borde p-1 text-left sm:min-h-24 sm:p-1.5 [&:nth-child(7n)]:border-r-0',
+                            'bg-white' => $d['enPeriodo'] && $d['delMes'], 'bg-zinc-50/70' => ! $d['delMes'] || ! $d['enPeriodo']])>
+                        @if ($pulsable)
+                            <button type="button" wire:click="elegirDia('{{ $d['fecha'] }}')" title="{{ __('Agregar una fecha el :f', ['f' => \Illuminate\Support\Carbon::parse($d['fecha'])->format('d/m/Y')]) }}"
+                                @class(['self-start rounded-full px-1.5 text-xs font-medium leading-6 hover:bg-marca-50 hover:text-marca-700', 'bg-marca-600 text-white hover:bg-marca-700 hover:text-white' => $d['hoy'], 'text-texto' => ! $d['hoy'] && $d['delMes'], 'text-texto-desactivado' => ! $d['delMes']])>{{ $d['dia'] }}</button>
+                        @else
+                            <span @class(['self-start rounded-full px-1.5 text-xs leading-6', 'bg-marca-600 font-medium text-white' => $d['hoy'], 'text-texto-desactivado' => ! $d['hoy']])>{{ $d['dia'] }}</span>
+                        @endif
+                        {{-- En el teléfono, un punto por fecha; desde sm, la fecha con su título. --}}
+                        @if ($d['eventos']->isNotEmpty())
+                            <div class="flex flex-wrap gap-1 sm:hidden">
+                                @foreach ($d['eventos'] as $f)<span class="size-2 rounded-full {{ $puntoAmbito($f) }}" title="{{ $f->title }}"></span>@endforeach
+                            </div>
+                            <div class="hidden flex-col gap-1 sm:flex">
+                                @foreach ($d['eventos']->take(3) as $f)
+                                    <span class="truncate rounded px-1.5 py-0.5 text-xs font-medium ring-1 {{ $colorAmbito($f) }}" title="{{ $f->title }} · {{ $f->ambito }}">{{ $f->title }}</span>
+                                @endforeach
+                                @if ($d['eventos']->count() > 3)<span class="px-1 text-xs text-texto-suave">{{ __('+:n más', ['n' => $d['eventos']->count() - 3]) }}</span>@endif
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            @endforeach
+        </div>
+
+        {{-- En el teléfono los títulos no caben en la cuadrícula: las fechas del mes van en lista. --}}
+        @php($delMes = $fechas->filter(fn ($f) => \Illuminate\Support\Carbon::parse($f->starts_at)->timezone(config('app.timezone'))->format('Y-m') === $mesVisible->format('Y-m')))
+        <div class="mt-4 flex flex-col gap-2 sm:hidden">
+            @forelse ($delMes as $f)
+                <div wire:key="agenda-{{ $f->id }}" class="flex items-start gap-3 text-sm">
+                    <span class="mt-1.5 size-2.5 shrink-0 rounded-full {{ $puntoAmbito($f) }}"></span>
+                    <div class="min-w-0"><p class="font-medium text-texto">{{ $f->title }}</p><p class="text-xs text-texto-suave">{{ \Illuminate\Support\Carbon::parse($f->starts_at)->timezone(config('app.timezone'))->translatedFormat($f->ends_at ? 'D j, H:i' : 'D j') }} · {{ $f->ambito }}</p></div>
+                </div>
+            @empty
+                <p class="text-sm text-texto-suave">{{ __('No hay fechas este mes.') }}</p>
+            @endforelse
+        </div>
+        @if ($agrega)
+            <p class="mt-3 text-xs text-texto-suave">{{ __('Pulse un día del período para agregar una fecha que empiece ese día.') }}</p>
+        @endif
+    </x-ui.card>
+
+    <x-ui.card :titulo="__('Lista de fechas y sincronización')"
         :descripcion="__('El evento queda en el calendario de quien lo sincroniza e invita solo a los docentes y estudiantes de ese ámbito. Las fechas de todo el período las fija el Administrador; usted gestiona las suyas.')">
         @if ($abierto && $calendarHabilitado && ! $calendarConectado)
             <x-ui.alert tipo="info" class="mb-4">

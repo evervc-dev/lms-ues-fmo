@@ -27,5 +27,6 @@ Casos derivados de los criterios de aceptación de [[RF08]]. Nivel: **feature**.
 | CP-RF08-11 | **Dado** un Coordinador, **cuando** abre Carga académica o intenta crear un grupo teórico, **entonces** no ve «Nuevo grupo teórico» y recibe 403; sí programa el horario de los grupos de su carrera ([[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]]). | automatizado |
 | CP-RF08-12 | **Dado** una materia en planes de dos carreras con un grupo para cada una, **cuando** el Coordinador de una lista los grupos, **entonces** solo ve el de su carrera (y los anteriores sin carrera de materias de su plan). | automatizado |
 | CP-RF08-13 | **Dado** un período en curso y otro en preparación, **cuando** el Jefe elige el de preparación en la carga académica, **entonces** crea allí sus grupos; en un período cerrado no se crean. | automatizado |
+| CP-RF08-14 | **Dado** quien asigna docentes (Administrador, Jefe o Coordinador), **cuando** abre la ficha de un docente activo, **entonces** puede asignarle un grupo teórico de su alcance desde «Asignar grupo teórico», con las mismas reglas que en Carga académica (choque de horario, máximo de docentes). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF08-01 …')`.
