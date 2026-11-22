@@ -108,7 +108,7 @@ trait ConAsignacion
     public function carrerasDelDepartamento(?int $departamentoId): Collection
     {
         return $departamentoId === null ? collect()
-            : $this->opciones['carreras']->filter(fn (object $carrera) => (int) $carrera->department_id === $departamentoId)->values();
+            : $this->opciones()['carreras']->filter(fn (object $carrera) => (int) $carrera->department_id === $departamentoId)->values();
     }
 
     /**
@@ -214,12 +214,13 @@ trait ConAsignacion
      */
     protected function departamentoInicial(?int $carreraId): ?int
     {
-        $carrera = $carreraId === null ? null : $this->opciones['carreras']->firstWhere('id', $carreraId);
+        $opciones = $this->opciones();
+        $carrera = $carreraId === null ? null : $opciones['carreras']->firstWhere('id', $carreraId);
         if ($carrera !== null) {
             return (int) $carrera->department_id;
         }
 
-        return $this->opciones['departamentos']->count() === 1 ? (int) $this->opciones['departamentos']->first()->id : null;
+        return $opciones['departamentos']->count() === 1 ? (int) $opciones['departamentos']->first()->id : null;
     }
 
     private function carreraEsDelDepartamento(?int $carreraId, ?int $departamentoId): bool

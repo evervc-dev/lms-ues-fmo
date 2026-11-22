@@ -3,6 +3,7 @@
 namespace App\Modules\Academica\Livewire;
 
 use App\Modules\Academica\Services\CarreraService;
+use App\Support\Alcance;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -31,7 +32,7 @@ class CarreraDetalle extends Component
         $detalle = $carreras->detalle(auth()->user(), $this->carreraId);
 
         // El Administrador llega desde un departamento: la miga intermedia lo devuelve a las carreras de ese departamento.
-        $intermedias = $detalle['vision'] !== 'G' ? [] : [[
+        $intermedias = app(Alcance::class)->de(auth()->user(), 'carreras.ver') !== 'G' ? [] : [[
             'etiqueta' => $detalle['carrera']->departamentoCodigo,
             'url' => route('carreras', ['departamento' => $detalle['carrera']->department_id]),
         ]];

@@ -63,10 +63,12 @@ class Catalogo extends Component
     {
         $asignaturas = $catalogo->asignaturas(auth()->user(), ['buscar' => $this->buscar, 'carrera' => $this->carrera, 'creditos' => $this->filtroCreditos]);
 
+        $ids = $asignaturas->pluck('id')->all();
+
         return $this->pagina('modules.academica.catalogo', [
             'asignaturas' => $asignaturas,
-            'prerrequisitosDe' => $catalogo->prerrequisitos($asignaturas->pluck('id')->all()),
-            'carrerasDe' => $catalogo->carreras(auth()->user(), $asignaturas->pluck('id')->all()),
+            'prerrequisitosDe' => $catalogo->prerrequisitos($ids),
+            'carrerasDe' => $catalogo->carreras(auth()->user(), $ids),
             'veDepartamento' => $catalogo->veDepartamento(auth()->user()),
             'gestionaEstructura' => $catalogo->gestionaEstructura(auth()->user()),
             'carreras' => $catalogo->carrerasConPlanes(auth()->user()),

@@ -30,7 +30,7 @@ class CarreraService
      * Departamentos de la universidad para el Administrador (alcance G, ADR-083): cada uno con su jefe vigente y sus
      * carreras, asignaturas activas y grupos teóricos del período en curso. El Jefe y el Coordinador no lo usan.
      *
-     * @return Collection<int, object>
+     * @return Collection<int, \stdClass>
      *
      * @throws AuthorizationException
      */
@@ -113,7 +113,7 @@ class CarreraService
      * Detalle de una carrera del ámbito del actor: coordinador, docentes y materias del plan con
      * sus grupos y horarios del período en curso.
      *
-     * @return array{carrera: object, vision: string, periodo: ?string, planes: array<int, string>, coordinador: ?object,
+     * @return array{carrera: object, periodo: ?string, planes: array<int, string>, coordinador: ?object,
      *               docentes: Collection<int, object>, materias: Collection<int, object>}
      */
     public function detalle(User $actor, int $carreraId): array
@@ -143,7 +143,6 @@ class CarreraService
 
         return [
             'carrera' => $carrera,
-            'vision' => $vision,
             'periodo' => $periodoId === null ? null : DB::table('academic_periods')->where('id', $periodoId)->value('name'),
             'planes' => DB::table('study_plans')->where('career_id', $carreraId)->orderBy('name')->pluck('name')->all(),
             'coordinador' => $this->coordinadores([$carreraId])->first(),
