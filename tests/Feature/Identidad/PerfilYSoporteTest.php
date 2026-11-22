@@ -127,11 +127,41 @@ it('grants and revokes permissions but never removes role management from admini
     $e = escenario();
     actingAs($e['administrador']);
 
-    Livewire::test(RolesPermisos::class)->call('alternar', 'docente', 'reportes.ver');
+    Livewire::test(RolesPermisos::class)->call('marcar', 'docente', 'reportes.ver')->call('guardar');
     expect(Role::findByName('docente')->hasPermissionTo('reportes.ver'))->toBeFalse();
 
-    Livewire::test(RolesPermisos::class)->call('alternar', 'administrador', 'roles.gestionar')->assertDispatched('aviso', tipo: 'error');
+    Livewire::test(RolesPermisos::class)->call('marcar', 'administrador', 'roles.gestionar')->call('guardar')->assertDispatched('aviso', tipo: 'error');
     expect(Role::findByName('administrador')->hasPermissionTo('roles.gestionar'))->toBeTrue();
+});
+
+it('CP-RF03-09 acumula los cambios de permisos y no aplica nada hasta «Guardar cambios»', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+
+    $pantalla = Livewire::test(RolesPermisos::class)
+        ->call('marcar', 'docente', 'reportes.ver')
+        ->call('marcar', 'coordinador', 'reportes.ver')
+        ->assertSet('cambios', ['docente|reportes.ver' => false, 'coordinador|reportes.ver' => false])
+        ->assertSee(__('Tiene 2 cambios sin guardar.'));
+    expect(Role::findByName('docente')->hasPermissionTo('reportes.ver'))->toBeTrue();
+
+    // Volver a marcar la casilla la deja como estaba guardada y quita el cambio.
+    $pantalla->call('marcar', 'coordinador', 'reportes.ver')->assertSet('cambios', ['docente|reportes.ver' => false])
+        ->call('guardar')->assertSet('cambios', [])->assertDispatched('aviso', tipo: 'exito');
+    expect(Role::findByName('docente')->hasPermissionTo('reportes.ver'))->toBeFalse()
+        ->and(Role::findByName('coordinador')->hasPermissionTo('reportes.ver'))->toBeTrue();
+});
+
+it('CP-RF03-09 descartar no cambia nada y la pantalla muestra el nombre legible del permiso', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+
+    Livewire::test(RolesPermisos::class)
+        ->assertSee(['Publicar actas', 'actas.publicar', 'con este rol'])
+        ->call('marcar', 'docente', 'reportes.ver')->call('descartar')->assertSet('cambios', []);
+    expect(Role::findByName('docente')->hasPermissionTo('reportes.ver'))->toBeTrue();
+
+    Livewire::test(RolesPermisos::class)->set('buscar', 'publicar actas')->assertSee('actas.publicar')->assertDontSee('reportes.ver');
 });
 
 it('CP-RF27-06 muestra en «Resueltas» el motivo con que Soporte rechazó la solicitud', function () {
