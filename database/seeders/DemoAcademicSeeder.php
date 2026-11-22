@@ -581,8 +581,12 @@ class DemoAcademicSeeder extends Seeder
         // Intentos rechazados (diagnóstico de Soporte).
         foreach ($enrollments->random(min(2, $enrollments->count())) as $enrollment) {
             if (! $virtual) {
-                $attempts[] = ['session_id' => $sessionId, 'student_id' => $enrollment->student_id, 'result' => ['token_expired', 'out_of_range', 'invalid_device', 'no_location'][mt_rand(0, 3)],
-                    'distance_m' => mt_rand(400, 2500), 'occurred_at' => $opened->copy()->addMinutes(mt_rand(1, 14))];
+                // Solo «fuera del área» lleva distancia: «sin ubicación» con 2.310 m se contradecía (revisión UX).
+                // Se sortean igual los dos números para no mover el resto de la siembra.
+                $result = ['token_expired', 'out_of_range', 'invalid_device', 'no_location'][mt_rand(0, 3)];
+                $distance = mt_rand(400, 2500);
+                $attempts[] = ['session_id' => $sessionId, 'student_id' => $enrollment->student_id, 'result' => $result,
+                    'distance_m' => $result === 'out_of_range' ? $distance : null, 'occurred_at' => $opened->copy()->addMinutes(mt_rand(1, 14))];
             }
         }
 

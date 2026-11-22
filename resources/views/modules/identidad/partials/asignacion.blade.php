@@ -115,7 +115,7 @@
                         default => __('Se toma del correo institucional; escríbalo solo si el correo no tiene un carné válido.'),
                     }">
                     @if ($carneDelCorreo !== null)
-                        <x-ui.input id="carne" :value="$carneDelCorreo" disabled />
+                        <x-ui.input id="carne" :value="mb_strtoupper($carneDelCorreo)" disabled />
                     @else
                         <x-ui.input id="carne" wire:model="carne" maxlength="20" :disabled="$carneFijo" placeholder="gs21004" />
                     @endif

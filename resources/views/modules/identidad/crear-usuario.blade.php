@@ -29,13 +29,22 @@
         <x-ui.formulario.paso :numero="2">
             <x-ui.card :titulo="__('Rol y asignación')" :descripcion="__('Cada rol pide los datos de su ámbito: la carrera, el departamento o el plan de estudios.')">
                 <div class="flex flex-col gap-4">
-                    <x-ui.field :etiqueta="__('Rol')" para="rolNuevo" error="rolNuevo" requerido>
-                        <x-ui.select id="rolNuevo" wire:model.live="rolNuevo">
-                            @foreach ($this->rolesCreables as $opcion)
-                                <option value="{{ $opcion }}">{{ __('roles.'.$opcion) }}</option>
-                            @endforeach
-                        </x-ui.select>
-                    </x-ui.field>
+                    {{-- Con un solo rol posible (p. ej. Soporte sin permiso de crear docentes) no se ofrece un select de una opción. --}}
+                    @if (count($this->rolesCreables) === 1)
+                        <div class="text-sm">
+                            <p class="font-medium text-texto">{{ __('Rol') }}</p>
+                            <p class="mt-1 text-texto">{{ __('roles.'.$this->rolesCreables[0]) }}</p>
+                            <p class="mt-1 text-xs text-texto-suave">{{ __('Es el único rol que usted puede dar al crear una cuenta.') }}</p>
+                        </div>
+                    @else
+                        <x-ui.field :etiqueta="__('Rol')" para="rolNuevo" error="rolNuevo" requerido>
+                            <x-ui.select id="rolNuevo" wire:model.live="rolNuevo">
+                                @foreach ($this->rolesCreables as $opcion)
+                                    <option value="{{ $opcion }}">{{ __('roles.'.$opcion) }}</option>
+                                @endforeach
+                            </x-ui.select>
+                        </x-ui.field>
+                    @endif
 
                     @include('modules.identidad.partials.asignacion', [
                         'rolAsignacion' => $rolNuevo,
@@ -97,7 +106,7 @@
                             </div>
                             <div>
                                 <dt class="text-xs font-semibold uppercase tracking-wide text-texto-suave">{{ __('Carné') }}</dt>
-                                <dd class="mt-1 text-texto">{{ $this->carneDelCorreo ?? ($carne ?: '—') }}</dd>
+                                <dd class="mt-1 text-texto">{{ mb_strtoupper((string) ($this->carneDelCorreo ?? $carne)) ?: '—' }}</dd>
                             </div>
                     @endswitch
                 </dl>
@@ -106,7 +115,7 @@
                     <div class="mt-4">@include('modules.identidad.partials.relevo', ['rol' => $rolNuevo, 'titular' => $relevos[$rolNuevo]])</div>
                 @endisset
 
-                <x-ui.alert class="mt-4" tipo="info">{{ __('La cuenta entra con Google y queda activa desde el primer ingreso.') }}</x-ui.alert>
+                <x-ui.alert class="mt-4" tipo="info">{{ __('La cuenta se crea activa. La persona entra con su cuenta de Google institucional.') }}</x-ui.alert>
             </x-ui.card>
         </x-ui.formulario.paso>
     </x-ui.formulario>

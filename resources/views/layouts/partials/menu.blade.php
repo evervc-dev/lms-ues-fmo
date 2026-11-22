@@ -54,10 +54,17 @@
                             <x-ui.icon name="arrow-top-right-on-square" x-show="! {{ $contraido }}" class="size-3.5 text-texto-suave" />
                             <span class="sr-only">{{ __('(se abre en otra pestaña)') }}</span>
                         @endif
-                        @if ($opcion->contador > 0)
-                            <span x-show="! {{ $contraido }}" aria-label="{{ trans_choice('{1} 1 pendiente|[2,*] :count pendientes', $opcion->contador) }}"
-                                class="rounded-full bg-marca-600 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-white">{{ $opcion->contador > 99 ? '99+' : $opcion->contador }}</span>
-                            <span x-show="{{ $contraido }}" x-cloak class="absolute right-1.5 top-1.5 size-2 rounded-full bg-marca-600" aria-hidden="true"></span>
+                        @if ($opcion->claveContador !== null)
+                            {{-- La pantalla que resuelve lo pendiente avisa con el evento «contador-menu» y el número cambia sin recargar. --}}
+                            <span class="contents" x-data="{ n: {{ $opcion->contador }} }"
+                                x-on:contador-menu.window="if ($event.detail.clave === @js($opcion->claveContador)) n = $event.detail.valor">
+                                <span x-show="! {{ $contraido }} && n > 0" @if ($opcion->contador === 0) x-cloak @endif
+                                    aria-label="{{ trans_choice('{0} 0 pendientes|{1} 1 pendiente|[2,*] :count pendientes', $opcion->contador) }}"
+                                    x-bind:aria-label="n === 1 ? @js(__('1 pendiente')) : n + ' ' + @js(__('pendientes'))"
+                                    x-text="n > 99 ? '99+' : n"
+                                    class="rounded-full bg-marca-600 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-white">{{ $opcion->contador > 99 ? '99+' : $opcion->contador }}</span>
+                                <span x-show="{{ $contraido }} && n > 0" x-cloak class="absolute right-1.5 top-1.5 size-2 rounded-full bg-marca-600" aria-hidden="true"></span>
+                            </span>
                         @endif
                         @if ($opcion->pendiente)
                             <span x-show="! {{ $contraido }}" class="size-1.5 rounded-full bg-texto-desactivado" title="{{ __('En construcción') }}"></span>

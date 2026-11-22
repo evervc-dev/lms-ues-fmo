@@ -49,6 +49,7 @@ class ImportacionService
     public function plantilla(User $actor): array
     {
         $alcance = $this->alcance->exigir($actor, 'usuarios.importar');
+        $columnas = $this->columnas($actor);
 
         $carrera = DB::table('careers')
             ->when($alcance === 'C', fn ($q) => $q->whereIn('careers.id', $this->alcance->carreras($actor)))
@@ -57,18 +58,31 @@ class ImportacionService
             ->first(['careers.code', 'study_plans.name as plan']);
 
         return [
-            'columnas' => self::COLUMNAS,
-            'filas' => [[
-                'll22017',
-                'Luis Alberto',
-                'López Ramírez',
-                'll22017@ues.edu.sv',
-                'estudiante',
-                $carrera?->code ?? '{código de la carrera}',
-                $carrera?->plan ?? '{nombre del plan}',
-                '1',
-            ]],
+            'columnas' => $columnas,
+            'filas' => [array_values(array_intersect_key([
+                'carnet' => 'll22017',
+                'nombres' => 'Luis Alberto',
+                'apellidos' => 'López Ramírez',
+                'correo' => 'll22017@ues.edu.sv',
+                'rol' => 'estudiante',
+                'carrera' => $carrera?->code ?? '{código de la carrera}',
+                'plan' => $carrera?->plan ?? '{nombre del plan}',
+                'ciclo' => '1',
+            ], array_flip($columnas)))],
         ];
+    }
+
+    /**
+     * Columnas que se le piden a quien importa. Quien solo puede importar estudiantes (Soporte) no recibe la columna
+     * `rol`: sin ella la fila es de un estudiante (revisión UX del rol Soporte). El Administrador la conserva.
+     *
+     * @return array<int, string>
+     */
+    public function columnas(User $actor): array
+    {
+        return $this->jerarquia->controlTotal($actor)
+            ? self::COLUMNAS
+            : array_values(array_diff(self::COLUMNAS, ['rol']));
     }
 
     /**

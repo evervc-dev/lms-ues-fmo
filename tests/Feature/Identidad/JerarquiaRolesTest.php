@@ -292,6 +292,9 @@ it('CP-RF04-17 hides access history and device from the head in the user page', 
 
 it('shows each action only to whoever may use it in the user page', function () {
     $e = escenario();
+    // Con un acceso registrado: sin accesos la tabla no se dibuja (revisión UX del rol Soporte).
+    DB::table('login_history')->insert(['user_id' => $e['estudiante']->id, 'attempted_email' => $e['estudiante']->institutional_email, 'ip_address' => '127.0.0.1',
+        'result' => 'success', 'occurred_at' => now()]);
 
     actingAs($e['soporte'])->get(route('usuarios.show', $e['estudiante']->id))->assertOk()->assertSeeText(['Editar datos', 'Últimos accesos']);
     actingAs($e['soporte'])->get(route('usuarios.show', $e['docente']->id))->assertOk()->assertDontSeeText(['Editar datos', 'Roles y asignaciones']);

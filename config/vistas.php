@@ -82,8 +82,8 @@ return [
     'matricula.claves' => ['uri' => '/matricula/claves', 'permiso' => 'matricula.claves.gestionar', 'titulo' => 'Claves por asignatura', 'modulo' => 'Academica', 'rf' => ['RF29'], 'op' => 495, 'migas' => ['matricula'], 'maqueta' => '36 Claves por asignatura'],
     'matricula.solicitudes' => ['uri' => '/matricula/solicitudes', 'permiso' => 'matricula.cambio.resolver', 'titulo' => 'Solicitudes de cambio de grupo', 'modulo' => 'Academica', 'rf' => ['RF09'], 'op' => 407, 'migas' => ['matricula'], 'maqueta' => '37 Solicitudes de cambio de grupo'],
     'matricula.plazos' => ['uri' => '/matricula/plazos', 'permiso' => 'matricula.plazo.gestionar|matricula.prorroga.otorgar', 'titulo' => 'Plazos de matrícula', 'modulo' => 'Academica', 'rf' => ['RF29'], 'op' => 495, 'migas' => ['matricula']],
-    'usuarios.importar' => ['uri' => '/usuarios/importar', 'permiso' => 'usuarios.importar', 'titulo' => 'Importar estudiantes', 'modulo' => 'Identidad', 'rf' => ['RF04'], 'op' => 387],
-    'usuarios.lote' => ['uri' => '/usuarios/lotes/{lote}', 'permiso' => 'usuarios.importar', 'titulo' => 'Lote de importación', 'modulo' => 'Identidad', 'rf' => ['RF04'], 'op' => 387, 'migas' => ['usuarios.importar']],
+    'usuarios.importar' => ['uri' => '/usuarios/importar', 'permiso' => 'usuarios.importar', 'titulo' => 'Importar estudiantes', 'modulo' => 'Identidad', 'rf' => ['RF04'], 'op' => 387, 'migas' => ['usuarios']],
+    'usuarios.lote' => ['uri' => '/usuarios/lotes/{lote}', 'permiso' => 'usuarios.importar', 'titulo' => 'Lote de importación', 'modulo' => 'Identidad', 'rf' => ['RF04'], 'op' => 387, 'migas' => ['usuarios', 'usuarios.importar']],
     'actas' => ['uri' => '/actas', 'permiso' => 'actas.validar', 'titulo' => 'Actas por validar', 'modulo' => 'Calificaciones', 'rf' => ['RF34'], 'op' => 515, 'maqueta' => '25 Actas por validar'],
     'clases-canceladas' => ['uri' => '/clases-canceladas', 'permiso' => 'clases.cancelar', 'titulo' => 'Clases canceladas', 'modulo' => 'Asistencia', 'rf' => ['RF32'], 'op' => 507, 'maqueta' => '43 Clases canceladas'],
     'cierre' => ['uri' => '/cierre', 'permiso' => 'cierre.autorizar', 'titulo' => 'Cierre del período', 'modulo' => 'Calificaciones', 'rf' => ['RF34'], 'op' => 515, 'maqueta' => '26 Cierre del período'],
@@ -107,7 +107,7 @@ return [
     'areas-asistencia.crear' => ['uri' => '/areas-asistencia/nueva', 'permiso' => 'areas-asistencia.gestionar', 'titulo' => 'Nueva área', 'modulo' => 'Asistencia', 'rf' => ['RF26'], 'op' => 483, 'migas' => ['areas-asistencia']],
     'areas-asistencia.editar' => ['uri' => '/areas-asistencia/{area}/editar', 'permiso' => 'areas-asistencia.gestionar', 'titulo' => 'Editar área', 'modulo' => 'Asistencia', 'rf' => ['RF26'], 'op' => 483, 'migas' => ['areas-asistencia']],
     'integraciones' => ['uri' => '/integraciones', 'permiso' => 'integraciones.gestionar', 'titulo' => 'Integraciones', 'modulo' => 'Identidad', 'rf' => ['RNF09'], 'op' => null, 'maqueta' => '51 Integraciones'],
-    'dispositivos' => ['uri' => '/dispositivos', 'permiso' => 'dispositivos.gestionar', 'titulo' => 'Solicitudes de dispositivo', 'modulo' => 'Identidad', 'rf' => ['RF27'], 'op' => 487, 'maqueta' => '30 Solicitudes de dispositivo'],
+    'dispositivos' => ['uri' => '/dispositivos', 'permiso' => 'dispositivos.gestionar', 'titulo' => 'Cambios de teléfono', 'modulo' => 'Identidad', 'rf' => ['RF27'], 'op' => 487, 'maqueta' => '30 Solicitudes de dispositivo'],
     'asistencia.diagnostico' => ['uri' => '/asistencia/diagnostico', 'permiso' => 'asistencia.diagnostico.ver', 'titulo' => 'Diagnóstico de asistencia', 'modulo' => 'Asistencia', 'rf' => ['RF20'], 'op' => 451, 'maqueta' => '31 Diagnóstico de asistencia'],
 
     // Consultas

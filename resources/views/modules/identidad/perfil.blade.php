@@ -10,7 +10,7 @@
                 <div><dt class="text-texto-suave">{{ __('Nombre') }}</dt><dd class="font-medium">{{ $usuario->fullName() }}</dd></div>
                 <div><dt class="text-texto-suave">{{ __('Correo institucional') }}</dt><dd class="font-medium">{{ $usuario->institutional_email }}</dd></div>
                 @if ($datos['estudiante'])
-                    <div><dt class="text-texto-suave">{{ __('Carné') }}</dt><dd class="font-medium">{{ $datos['estudiante']->carne }}</dd></div>
+                    <div><dt class="text-texto-suave">{{ __('Carné') }}</dt><dd class="font-medium">{{ mb_strtoupper((string) $datos['estudiante']->carne) }}</dd></div>
                     <div><dt class="text-texto-suave">{{ __('Carrera') }}</dt><dd class="font-medium">{{ $datos['estudiante']->carrera }} · {{ $datos['estudiante']->plan }}</dd></div>
                     <div><dt class="text-texto-suave">{{ __('Ciclo') }}</dt><dd class="font-medium">{{ $datos['estudiante']->ciclo }}</dd></div>
                 @endif

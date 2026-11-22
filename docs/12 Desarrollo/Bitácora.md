@@ -18,14 +18,19 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
-### 2026-11-21 · — · Suite completa en verde con PostgreSQL 17
+### 2026-11-21 · RF04, RF20, RF27 · Correcciones de la revisión UX/UI del rol Soporte Técnico
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** la suite en PostgreSQL 17 tenía 21 fallos que SQLite no ve. Casi todos eran de las pruebas: servicios llamados sin `actingAs` o escrituras directas sin `DbContext` (AC900), una cuenta no superadmin con contraseña (lo prohíbe el CHECK `users_password_only_emergency`), Soporte con Docente (ADR-081), un período sin grupos que no avanza de etapa, el actor del cambio de grupo (el Jefe, ADR-078) y un `pluck` sin `orderBy`.
-- **Corrección de código:** `AsistenciaService::abrir()` atrapaba cualquier `QueryException` y la mostraba como «ya hay una sesión abierta»; ahora solo atrapa la violación del índice único (ADR-076), y los demás errores salen como son.
-- **CP cubiertos:** sin pruebas nuevas; se ajustaron las existentes de RF03, RF04, RF05, RF07, RF09, RF18, RF20, RF21 y el seeder del equipo.
-- **Decisiones:** —
-- **Pendiente:** la prueba intermitente de `PantallasConDemoTest` sigue sin causa conocida.
+- **Hecho:**
+  - **Cambios de teléfono (RF27):** un solo nombre en el menú, la página y el Inicio. El motivo aparece al pulsar «Rechazar» y se valida antes de resolver, sin un «¿Continuar?» extra; los errores se limpian al cambiar de solicitud. Al resolver, el contador del menú se actualiza sin recargar (evento `contador-menu`). El aviso de los 30 días se mide contra la fecha de la solicitud y sin contarla a ella: antes salía en Resueltas por la propia solicitud aprobada y no en Pendientes. En el teléfono, la lista y el detalle no se apilan.
+  - **Usuarios (RF04):** tarjetas en el teléfono (la tabla partía el nombre letra por letra), buscador «Nombre o correo…», el rol como texto fijo cuando solo hay uno, un solo mensaje de activación, el indicador de pasos con subtítulo en todos los pasos. Ficha: «Perfil académico» en vez de «Ver perfil», «Nunca ha iniciado sesión» y «No registrado» en vez de «—», sin tabla de accesos vacía.
+  - **Carné:** se guarda como dice RF04 (en minúsculas, del correo) y se muestra siempre en mayúsculas, también en los CSV.
+  - **Importar:** la miga es «Inicio › Usuarios › Importar estudiantes» y la plantilla de Soporte ya no pide la columna `rol`.
+  - **Diagnóstico (RF20):** «Resultado» junto al estudiante; «Sin ubicación» no muestra distancia. La distancia contradictoria venía del seeder de demostración, corregido.
+  - **Encabezado:** en el teléfono queda el período abreviado («2026-II»).
+- **CP cubiertos:** CP-RF27-04, CP-RF27-05 (nuevas), CP-RF04-12, CP-RF04-20, CP-RF04-23, CP-RF20-13; revisado en el navegador a 390 px.
+- **Decisiones:** [[ADR-084 Nombres con mayúsculas mezcladas se respetan]] (pendiente). Carné: mostrar en mayúsculas sin cambiar RF04. «Año de ingreso» muestra «No registrado»; pedirlo en el alta queda para después.
+- **Pendiente:** el 502 «Application failed to respond» lo devuelve el proxy de Railway cuando la aplicación no responde; Laravel no puede dibujar ahí una página propia. Hay que revisar los logs de Railway (memoria, arranque, workers).
 
 ### 2026-11-21 · — · DbContext anidado restaura el contexto de afuera
 - **Autor:** IA (Claude Code), a pedido del equipo

@@ -1,6 +1,6 @@
-{{-- Solicitudes de dispositivo (RF27, maqueta 30). --}}
+{{-- Cambios de teléfono (RF27, maqueta 30). En el teléfono se ve la lista o el detalle, no los dos apilados. --}}
 <div class="flex flex-col gap-5">
-    <x-ui.encabezado :titulo="__('Solicitudes de dispositivo')" :subtitulo="__('Cambios de teléfono de asistencia. La identidad ya la garantiza la sesión de Google del estudiante.')" />
+    <x-ui.encabezado :titulo="__('Cambios de teléfono')" :subtitulo="__('Cambios de teléfono de asistencia. La identidad ya la garantiza la sesión de Google del estudiante.')" />
 
     <x-ui.tabs :pestanas="[
         ['etiqueta' => __('Pendientes'), 'url' => route('dispositivos'), 'activa' => $estado === 'pending'],
@@ -11,7 +11,7 @@
         <x-ui.card><x-ui.empty-state icono="device-phone-mobile" :titulo="$estado === 'pending' ? __('No hay solicitudes pendientes') : __('Aún no hay solicitudes resueltas')" /></x-ui.card>
     @else
         <div class="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-            <x-ui.card :titulo="trans_choice('{1} 1 solicitud|[0,*] :count solicitudes', $this->solicitudes->count())">
+            <x-ui.card :titulo="trans_choice('{1} 1 solicitud|[0,*] :count solicitudes', $this->solicitudes->count())" @class(['hidden lg:block' => $verDetalle])>
                 <ul class="-mx-2 flex flex-col gap-1">
                     @foreach ($this->solicitudes as $s)
                         <li wire:key="sol-{{ $s->id }}">
@@ -36,7 +36,11 @@
             </x-ui.card>
 
             @if ($actual = $this->actual)
-                <x-ui.card :titulo="$actual->first_name.' '.$actual->last_name" :descripcion="$actual->institutional_email.($actual->student_code ? ' · '.$actual->student_code : '')">
+                <div @class(['flex flex-col gap-3', 'hidden lg:flex' => ! $verDetalle])>
+                <div class="lg:hidden">
+                    <x-ui.button variante="secundario" tamano="sm" icono="arrow-left" wire:click="volver">{{ __('Volver a la lista') }}</x-ui.button>
+                </div>
+                <x-ui.card :titulo="$actual->first_name.' '.$actual->last_name" :descripcion="$actual->institutional_email.($actual->student_code ? ' · '.mb_strtoupper($actual->student_code) : '')">
                     @can('asistencia.diagnostico.ver')
                         <x-slot:acciones>
                             <x-ui.button tamano="sm" variante="secundario" icono="signal" :href="route('asistencia.diagnostico', ['buscar' => $actual->student_code ?: $actual->institutional_email])">{{ __('Ver su diagnóstico') }}</x-ui.button>
@@ -47,9 +51,6 @@
                             <p class="text-texto-suave">{{ __('Motivo') }}</p>
                             <p class="mt-1 text-texto">{{ $actual->reason }}</p>
                         </div>
-                        @if ($historial['cambioReciente'])
-                            <x-ui.alert tipo="aviso">{{ __('Ya cambió de teléfono en los últimos 30 días.') }} {{ $actual->justification_path ? __('Adjuntó una justificación.') : __('No adjuntó justificación.') }}</x-ui.alert>
-                        @endif
                         <div>
                             <p class="mb-2 text-texto-suave">{{ __('Historial de teléfonos') }}</p>
                             <x-ui.table :vacio="__('Sin teléfonos registrados.')">
@@ -64,15 +65,30 @@
                             </x-ui.table>
                         </div>
 
+                        @if ($historial['cambioReciente'])
+                            <x-ui.alert tipo="aviso">
+                                {{ __('Ya había cambiado de teléfono en los 30 días anteriores a esta solicitud.') }}
+                                {{ $actual->justification_path ? __('Adjuntó una justificación.') : __('No adjuntó justificación.') }}
+                            </x-ui.alert>
+                        @endif
+
                         @if ($actual->status === 'pending')
-                            <x-ui.field :etiqueta="__('Motivo del rechazo')" para="motivoRechazo" error="motivoRechazo" requerido
-                                :ayuda="__('Obligatorio para rechazar; el estudiante lo recibe en su aviso. Si aprueba, deje el campo vacío.')">
-                                <x-ui.textarea id="motivoRechazo" wire:model="motivoRechazo" rows="2" />
-                            </x-ui.field>
-                            <div class="flex flex-wrap justify-end gap-2">
-                                <x-ui.button variante="peligro" wire:click="rechazar" wire:confirm="{{ __('Se rechazará la solicitud y el estudiante recibirá el motivo. ¿Continuar?') }}">{{ __('Rechazar') }}</x-ui.button>
-                                <x-ui.button icono="check-circle" wire:click="aprobar" wire:confirm="{{ __('Se revocará el teléfono actual del estudiante. ¿Continuar?') }}">{{ __('Aprobar') }}</x-ui.button>
-                            </div>
+                            @if ($rechazando)
+                                {{-- El motivo se valida al confirmar; no se pide un «¿Continuar?» extra porque ya se pulsó «Rechazar». --}}
+                                <x-ui.field :etiqueta="__('Motivo del rechazo')" para="motivoRechazo" error="motivoRechazo" requerido
+                                    :ayuda="__('El estudiante lo recibe en su aviso.')">
+                                    <x-ui.textarea id="motivoRechazo" wire:model="motivoRechazo" rows="2" />
+                                </x-ui.field>
+                                <div class="flex flex-wrap justify-end gap-2">
+                                    <x-ui.button variante="secundario" wire:click="cancelarRechazo">{{ __('Cancelar') }}</x-ui.button>
+                                    <x-ui.button variante="peligro" wire:click="rechazar">{{ __('Confirmar rechazo') }}</x-ui.button>
+                                </div>
+                            @else
+                                <div class="flex flex-wrap justify-end gap-2">
+                                    <x-ui.button variante="secundario" wire:click="iniciarRechazo">{{ __('Rechazar') }}</x-ui.button>
+                                    <x-ui.button icono="check-circle" wire:click="aprobar" wire:confirm="{{ __('Se revocará el teléfono actual del estudiante. ¿Continuar?') }}">{{ __('Aprobar') }}</x-ui.button>
+                                </div>
+                            @endif
                         @else
                             @if ($actual->status === 'rejected' && $actual->resolution_note)
                                 <div>
@@ -84,6 +100,7 @@
                         @endif
                     </div>
                 </x-ui.card>
+                </div>
             @endif
         </div>
     @endif

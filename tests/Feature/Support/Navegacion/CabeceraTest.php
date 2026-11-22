@@ -27,7 +27,7 @@ it('shows one panel block per role of the user', function () {
         ->get(route('inicio'))
         ->assertOk()
         ->assertSeeTextInOrder(['Docente', 'Clases de hoy', 'Coordinador', 'Matrículas activas de estudiantes'])
-        ->assertDontSeeText('Solicitudes de teléfono pendientes');
+        ->assertDontSeeText('Cambios de teléfono pendientes');
 });
 
 it('shows the active period in the header', function () {

@@ -99,7 +99,7 @@ return [
             'titulo' => 'Soporte',
             'rol' => 'soporte_tecnico',
             'opciones' => [
-                ['clave' => 'solicitudes-de-dispositivo', 'etiqueta' => 'Solicitudes de dispositivo', 'ruta' => 'dispositivos', 'permiso' => 'dispositivos.gestionar', 'icono' => 'device-phone-mobile', 'contador' => 'dispositivos-pendientes'],
+                ['clave' => 'solicitudes-de-dispositivo', 'etiqueta' => 'Cambios de teléfono', 'ruta' => 'dispositivos', 'permiso' => 'dispositivos.gestionar', 'icono' => 'device-phone-mobile', 'contador' => 'dispositivos-pendientes'],
                 ['clave' => 'diagnostico-de-asistencia', 'etiqueta' => 'Diagnóstico de asistencia', 'ruta' => 'asistencia.diagnostico', 'permiso' => 'asistencia.diagnostico.ver', 'icono' => 'signal'],
                 ['clave' => 'usuarios', 'etiqueta' => 'Usuarios', 'ruta' => 'usuarios', 'permiso' => 'usuarios.ver', 'icono' => 'users'],
                 ['clave' => 'importar-estudiantes', 'etiqueta' => 'Importar estudiantes', 'ruta' => 'usuarios.importar', 'permiso' => 'usuarios.importar', 'icono' => 'arrow-up-tray', 'secundaria' => true],

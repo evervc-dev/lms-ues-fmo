@@ -100,7 +100,7 @@
                             <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th class="text-right">{{ __('Minutos') }}</th><th class="text-right">%</th></x-slot:cabecera>
                             @foreach ($previa[$grupo] as $e)
                                 <tr wire:key="previa-{{ $grupo }}-{{ $e->matricula }}">
-                                    <td>{{ $e->nombre }}@if ($e->carnet)<p class="text-xs text-texto-suave">{{ $e->carnet }}</p>@endif</td>
+                                    <td>{{ $e->nombre }}@if ($e->carnet)<p class="text-xs text-texto-suave">{{ mb_strtoupper($e->carnet) }}</p>@endif</td>
                                     <td class="text-right">{{ $e->minutos }}</td>
                                     <td class="text-right"><x-ui.badge :color="$e->estado === 'present' ? 'verde' : 'rojo'">{{ number_format($e->porcentaje, 2, ',', ' ') }} %</x-ui.badge></td>
                                 </tr>

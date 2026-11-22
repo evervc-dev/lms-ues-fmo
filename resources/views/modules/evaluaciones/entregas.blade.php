@@ -98,7 +98,7 @@
                     <fieldset>
                         <legend class="mb-1 text-sm font-medium">{{ __('Integrantes (sin equipo todavía)') }}</legend>
                         @forelse ($equipos['sinEquipo'] as $m)
-                            <label wire:key="sin-equipo-{{ $m->matricula }}" class="flex items-center gap-2 py-0.5 text-sm"><input type="checkbox" wire:model="integrantes" value="{{ $m->matricula }}" /> {{ $m->last_name }}, {{ $m->first_name }} <span class="text-xs text-texto-suave">{{ $m->student_code }}</span></label>
+                            <label wire:key="sin-equipo-{{ $m->matricula }}" class="flex items-center gap-2 py-0.5 text-sm"><input type="checkbox" wire:model="integrantes" value="{{ $m->matricula }}" /> {{ $m->last_name }}, {{ $m->first_name }} <span class="text-xs text-texto-suave">{{ mb_strtoupper((string) $m->student_code) }}</span></label>
                         @empty
                             <p class="text-sm text-texto-suave">{{ __('Todos los estudiantes ya tienen equipo.') }}</p>
                         @endforelse

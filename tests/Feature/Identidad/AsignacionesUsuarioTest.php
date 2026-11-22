@@ -357,7 +357,7 @@ it('CP-RF04-12 toma el carné del correo institucional y solo pide escribirlo si
         ->and(AsignacionService::carneDeCorreo('gs21004@ues.edu.sv'))->toBe('gs21004');
 
     Livewire::test(RolesUsuario::class, ['usuario' => DbContext::system(fn () => User::factory()->create(['institutional_email' => 'mc26003@ues.edu.sv']))->id])
-        ->set('roles', ['estudiante'])->call('siguiente')->assertSet('paso', 2)->assertSee('value="mc26003"', false);
+        ->set('roles', ['estudiante'])->call('siguiente')->assertSet('paso', 2)->assertSee('value="MC26003"', false);
 });
 
 it('CP-RF04-12 no modifica el carné, cambia de carrera dejando la anterior changed y no quita el rol con matrículas activas', function () {

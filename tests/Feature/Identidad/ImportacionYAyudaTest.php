@@ -131,9 +131,11 @@ it('CP-RF04-20 ofrece la plantilla con los encabezados y un ejemplo que pasa la 
     Livewire::test(ImportarUsuarios::class)->call('plantilla')->assertFileDownloaded('plantilla-importacion-estudiantes.csv');
 
     $plantilla = app(ImportacionService::class)->plantilla($e['soporte']);
-    expect($plantilla['columnas'])->toBe(ImportacionService::COLUMNAS)
+    // Soporte solo importa estudiantes: la plantilla no le pide la columna rol (revisión UX del rol Soporte).
+    expect($plantilla['columnas'])->toBe(['carnet', 'nombres', 'apellidos', 'correo', 'carrera', 'plan', 'ciclo'])
         ->and($plantilla['filas'])->toHaveCount(1)
-        ->and($plantilla['filas'][0])->toHaveCount(count(ImportacionService::COLUMNAS));
+        ->and($plantilla['filas'][0])->toHaveCount(7)
+        ->and(app(ImportacionService::class)->plantilla($e['administrador'])['columnas'])->toBe(ImportacionService::COLUMNAS);
 
     $filas = $plantilla['filas'];
 
@@ -201,7 +203,7 @@ it('CP-RF04-23 la carga masiva rechaza la fila con un nombre sin espacios y norm
     $e = escenario();
     actingAs($e['soporte']);
     $archivo = csvDeImportacion([
-        ['AB26001', 'ana maría', 'RUIZ de león', 'ab26001@ues.edu.sv', 'estudiante', 'ISI', 'Plan 25', '1'],
+        ['AB26001', 'ana maría', 'RUIZ DE LEÓN', 'ab26001@ues.edu.sv', 'estudiante', 'ISI', 'Plan 25', '1'],
         ['RD26002', 'Rosa', str_repeat('m', 80), 'rd26002@ues.edu.sv', 'estudiante', 'ISI', 'Plan 25', '1'],
     ]);
 

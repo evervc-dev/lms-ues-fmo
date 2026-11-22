@@ -111,6 +111,7 @@ class Menu
             contador: $existe && isset($opcion['contador']) ? $this->contadores->para($opcion['contador'], $usuario) : 0,
             secundaria: (bool) ($opcion['secundaria'] ?? false),
             externa: (bool) ($opcion['externa'] ?? false),
+            claveContador: $existe ? ($opcion['contador'] ?? null) : null,
         );
     }
 }

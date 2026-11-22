@@ -91,7 +91,7 @@ class ReporteService
                     ->pipe(function (Collection $filas) {
                         $carreras = $this->carrerasDeEstudiantes($filas->pluck('estudiante')->all());
 
-                        return $filas->map(fn ($a) => [$a->last_name.', '.$a->first_name, $a->student_code, $carreras[$a->estudiante] ?? '—',
+                        return $filas->map(fn ($a) => [$a->last_name.', '.$a->first_name, mb_strtoupper((string) $a->student_code), $carreras[$a->estudiante] ?? '—',
                             $a->code.' · '.$a->grupo, __(self::ALERTAS[AsistenciaService::alertaDeGravedad((int) $a->gravedad)] ?? '—'), Carbon::parse($a->opened_at)->format('d/m/Y')]);
                     }),
             ],

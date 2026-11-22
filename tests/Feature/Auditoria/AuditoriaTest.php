@@ -150,16 +150,8 @@ it('CP-RF05-01 registra quién, cuándo, desde qué IP, la acción, la entidad y
             $asistencia->marcar($e['docente'], $e['seccion'], $sesion, $e['matricula'], 'present', 'Llegó con el docente.');
         }],
         'modificación de período' => [$e['administrador'], 'academic_periods', function () use ($e) {
-            // Con un grupo teórico: sin oferta la planificación no avanza (exigirEtapaCumplida).
-            $periodo = DbContext::system(function () use ($e) {
-                $id = DB::table('academic_periods')->insertGetId(['name' => '2027-I', 'start_date' => '2027-02-01', 'end_date' => '2027-06-30',
-                    'status' => 'planned', 'preparation_stage' => 'planning', 'created_at' => now(), 'updated_at' => now()]);
-                $asignatura = DB::table('sections')->where('id', $e['seccion'])->value('subject_id');
-                DB::table('sections')->insert(['ulid' => (string) str()->ulid(), 'period_id' => $id, 'subject_id' => $asignatura, 'code' => '01', 'max_capacity' => 40,
-                    'created_at' => now(), 'updated_at' => now()]);
-
-                return $id;
-            });
+            $periodo = DbContext::system(fn () => DB::table('academic_periods')->insertGetId(['name' => '2027-I', 'start_date' => '2027-02-01', 'end_date' => '2027-06-30',
+                'status' => 'planned', 'preparation_stage' => 'planning', 'created_at' => now(), 'updated_at' => now()]));
             app(PeriodoService::class)->avanzarEtapa($e['administrador'], $periodo);
         }],
         'gestión de usuarios' => [$e['administrador'], 'users', fn () => app(UsuarioService::class)->desactivar($e['administrador'], $e['estudiante']->id, 'Retiro de la carrera.')],
@@ -263,4 +255,15 @@ it('pagina la auditoría con «Anterior» y «Siguiente» en español, sin mostr
 
     actingAs($e['administrador'])->get(route('auditoria'))->assertOk()
         ->assertSeeText(['Anterior', 'Siguiente'])->assertDontSee('pagination.');
+});
+
+it('CP-RF20-13 no muestra distancia en un intento sin ubicación aunque la fila traiga una', function () {
+    $e = escenario();
+    DbContext::system(function () use ($e) {
+        $sesion = DB::table('attendance_sessions')->insertGetId(['ulid' => (string) str()->ulid(), 'section_id' => $e['seccion'], 'session_date' => now()->toDateString(), 'status' => 'closed', 'opened_by' => $e['docente']->id, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('attendance_scan_attempts')->insert(['session_id' => $sesion, 'student_id' => $e['estudiante']->id, 'result' => 'no_location', 'distance_m' => 2310, 'occurred_at' => now()]);
+    });
+    actingAs($e['soporte']);
+
+    Livewire::test(DiagnosticoAsistencia::class)->assertSee('Sin ubicación')->assertDontSee('2,310 m')->assertDontSee('2310 m');
 });

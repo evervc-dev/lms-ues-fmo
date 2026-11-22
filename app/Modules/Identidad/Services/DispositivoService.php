@@ -13,6 +13,7 @@ use App\Modules\Identidad\Notifications\DispositivoCambioSolicitado;
 use App\Support\Alcance;
 use App\Support\DbContext;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -98,16 +99,18 @@ class DispositivoService
     }
 
     /**
-     * Teléfonos y cambios anteriores del estudiante.
+     * Teléfonos del estudiante y si ya había cambiado en los 30 días previos a la solicitud que se revisa. Se mide
+     * contra la fecha de la solicitud y sin contarla a ella: antes, una solicitud recién aprobada se contaba a sí
+     * misma y el aviso salía en Resueltas y no en Pendientes, que es donde ayuda a decidir.
      *
      * @return array{dispositivos: Collection<int, object>, cambioReciente: bool}
      */
-    public function historial(int $estudianteId): array
+    public function historial(int $estudianteId, ?object $solicitud = null): array
     {
         $dispositivos = DB::table('student_devices')->where('student_id', $estudianteId)->orderByDesc('created_at')
             ->get(['id', 'status', 'created_at', 'last_used_at', 'revoked_at']);
 
-        return ['dispositivos' => $dispositivos, 'cambioReciente' => $this->cambioReciente($estudianteId)];
+        return ['dispositivos' => $dispositivos, 'cambioReciente' => $this->cambioReciente($estudianteId, $solicitud)];
     }
 
     public function aprobar(User $actor, int $solicitudId): void
@@ -190,10 +193,17 @@ class DispositivoService
             ->pluck('id')->all();
     }
 
-    private function cambioReciente(int $estudianteId): bool
+    /**
+     * ¿Se le aprobó un cambio en los 30 días previos? Sin solicitud, hasta hoy (al pedir uno nuevo); con ella, hasta
+     * la fecha en que la hizo y sin contarla.
+     */
+    private function cambioReciente(int $estudianteId, ?object $solicitud = null): bool
     {
+        $hasta = $solicitud ? Carbon::parse($solicitud->created_at) : now();
+
         return DB::table('device_change_requests')->where('student_id', $estudianteId)->where('status', 'approved')
-            ->where('resolved_at', '>=', now()->subDays(30))->exists();
+            ->when($solicitud, fn ($q) => $q->where('id', '<>', $solicitud->id))
+            ->where('resolved_at', '>=', $hasta->copy()->subDays(30))->where('resolved_at', '<=', $hasta)->exists();
     }
 
     private function pendiente(int $solicitudId): object

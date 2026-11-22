@@ -17,8 +17,10 @@
             </div>
             @if ($verPerfil || $editaDatos || $cambiaRoles || $concedeCrearDocente)
                 <x-slot:acciones>
+                    {{-- Jerarquía: las acciones de consulta y edición van con borde y «Roles y asignaciones», la principal,
+                         en rojo. «Perfil académico» (RF36) muestra notas, asistencia y grupos; no entra como el usuario. --}}
                     @if ($verPerfil)
-                        <x-ui.button variante="fantasma" icono="eye" :href="route('personas.show', ['usuario' => $usuario->id])">{{ __('Ver perfil') }}</x-ui.button>
+                        <x-ui.button variante="secundario" icono="eye" :href="route('personas.show', ['usuario' => $usuario->id])">{{ __('Perfil académico') }}</x-ui.button>
                     @endif
                     @if ($concedeCrearDocente)
                         <x-ui.button variante="secundario" icono="academic-cap" wire:click="permitirCrearDocentes({{ $creaDocentes ? 'false' : 'true' }})" wire:confirm="{{ $creaDocentes ? __('¿Retirar el permiso de crear docentes? El cambio queda en la auditoría.') : __('¿Permitir que esta persona cree cuentas de docente? El cambio queda en la auditoría.') }}">
@@ -46,9 +48,9 @@
             @endif
             <dl class="flex flex-col gap-3 text-sm">
                 @if ($estudiante)
-                    <div><dt class="text-texto-suave">{{ __('Estudiante') }}</dt><dd>{{ $estudiante->carrera }} · {{ $estudiante->plan }} · {{ __('ciclo :ciclo', ['ciclo' => $estudiante->ciclo]) }} · {{ __('carné :carne', ['carne' => $estudiante->carne]) }}</dd></div>
+                    <div><dt class="text-texto-suave">{{ __('Estudiante') }}</dt><dd>{{ $estudiante->carrera }} · {{ $estudiante->plan }} · {{ __('ciclo :ciclo', ['ciclo' => $estudiante->ciclo]) }} · {{ __('carné :carne', ['carne' => mb_strtoupper((string) $estudiante->carne)]) }}</dd></div>
                     @isset($perfil['estudiante'])
-                        <div><dt class="text-texto-suave">{{ __('Año de ingreso') }}</dt><dd>{{ $perfil['estudiante']['ingreso'] ? $perfil['estudiante']['ingreso']['anio'].' ('.$perfil['estudiante']['ingreso']['periodo'].')' : '—' }}</dd></div>
+                        <div><dt class="text-texto-suave">{{ __('Año de ingreso') }}</dt><dd>{{ $perfil['estudiante']['ingreso'] ? $perfil['estudiante']['ingreso']['anio'].' ('.$perfil['estudiante']['ingreso']['periodo'].')' : __('No registrado') }}</dd></div>
                         <div>
                             <dt class="text-texto-suave">{{ __('Materias inscritas este período') }}</dt>
                             <dd class="mt-1 flex flex-wrap gap-1">
@@ -91,17 +93,20 @@
 
         <x-ui.card :titulo="__('Cuenta')">
             <dl class="grid grid-cols-2 gap-3 text-sm">
-                <div><dt class="text-texto-suave">{{ __('Último acceso') }}</dt><dd>{{ $usuario->last_login_at?->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? '—' }}</dd></div>
+                <div><dt class="text-texto-suave">{{ __('Último acceso') }}</dt><dd>{{ $usuario->last_login_at?->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? __('Nunca ha iniciado sesión') }}</dd></div>
                 <div><dt class="text-texto-suave">{{ __('Creada') }}</dt><dd>{{ $usuario->created_at?->timezone('America/El_Salvador')->format('d/m/Y') }}</dd></div>
                 @if ($verAccesos)
-                    <div><dt class="text-texto-suave">{{ __('Teléfono de asistencia') }}</dt><dd>{{ $dispositivo ? __('Registrado el :fecha', ['fecha' => \Illuminate\Support\Carbon::parse($dispositivo->created_at)->format('d/m/Y')]) : '—' }}</dd></div>
+                    <div><dt class="text-texto-suave">{{ __('Teléfono de asistencia') }}</dt><dd>{{ $dispositivo ? __('Registrado el :fecha', ['fecha' => \Illuminate\Support\Carbon::parse($dispositivo->created_at)->format('d/m/Y')]) : __('No registrado') }}</dd></div>
                 @endif
-                <div><dt class="text-texto-suave">{{ __('Desactivada') }}</dt><dd>{{ $usuario->deactivated_at?->format('d/m/Y') ?? '—' }}</dd></div>
+                @if ($usuario->deactivated_at)
+                    <div><dt class="text-texto-suave">{{ __('Desactivada') }}</dt><dd>{{ $usuario->deactivated_at->format('d/m/Y') }}</dd></div>
+                @endif
             </dl>
         </x-ui.card>
     </div>
 
-    @if ($verAccesos)
+    {{-- Sin accesos, «Nunca ha iniciado sesión» ya lo dice la tarjeta Cuenta: no se dibuja una tabla vacía. --}}
+    @if ($verAccesos && $accesos->isNotEmpty())
         <x-ui.card :titulo="__('Últimos accesos')">
             <x-ui.table :vacio="__('Sin accesos registrados.')">
                 <x-slot:cabecera><th>{{ __('Fecha') }}</th><th>{{ __('IP') }}</th><th>{{ __('Resultado') }}</th></x-slot:cabecera>

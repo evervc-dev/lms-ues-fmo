@@ -82,7 +82,7 @@
                                         {{ $nombreDe($this->opciones['carreras'], $carreraEstudiante) }}
                                         · {{ $nombreDe($this->opciones['planes'], $planEstudiante) }}
                                         · {{ __('ciclo :c', ['c' => $cicloEstudiante ?? '—']) }}
-                                        · {{ $carne ?: __('carné por asignar') }}
+                                        · {{ $carne ? mb_strtoupper($carne) : __('carné por asignar') }}
                                 @endswitch
                             </dd>
                         </div>
