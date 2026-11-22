@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF08 · El grupo teórico es de la asignatura (D2)
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** el alcance de carrera de los grupos, las carreras de un grupo y la cancelación por carrera salen del plan de estudios, no de `sections.career_id`, que queda como dato de la carrera que lo solicitó.
+- **CP cubiertos:** CP-RF08-12, CP-RF32-04 y CP-RF34-13 reescritos con la regla nueva.
+- **Decisiones:** [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]] (pendiente): Coordinador ve los grupos de las materias de su plan; la cancelación de una carrera alcanza al grupo entero; career_id informativo.
+- **Pendiente:** D6 (aceptar las ADR pendientes).
+
 ### 2026-11-21 · RF20 · Marca de entrada y salida en clase presencial
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

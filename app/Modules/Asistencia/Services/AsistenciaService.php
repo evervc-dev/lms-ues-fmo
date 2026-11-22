@@ -86,17 +86,16 @@ class AsistenciaService
 
     /**
      * Condición SQL: el registro cuenta para el porcentaje porque su sesión no cae en un día cancelado (RF32), sea
-     * por una cancelación aprobada de la sección, de la carrera del grupo o de toda la facultad. La carrera del grupo es
-     * `sections.career_id` (ADR-074); los grupos anteriores, sin carrera, toman las carreras con su materia en el plan.
+     * por una cancelación aprobada de la sección, de una carrera del grupo o de toda la facultad. Las carreras del grupo
+     * son todas las que llevan su materia en el plan: la cancelación de una carrera alcanza al grupo entero (ADR-080).
      */
     public static function cuentaSql(string $tabla = 'r'): string
     {
         return 'not exists (select 1 from attendance_sessions cs join class_cancellations cc on cc.date = cs.session_date'
             ." where cs.id = {$tabla}.session_id and cc.status = 'approved' and cc.kind = 'cancellation'"
             ." and (cc.scope = 'faculty' or (cc.scope = 'section' and cc.section_id = {$tabla}.section_id)"
-            ." or (cc.scope = 'career' and cc.career_id in (select sx.career_id from sections sx where sx.id = {$tabla}.section_id and sx.career_id is not null"
-            .' union select sp.career_id from sections sx join career_subjects csx on csx.subject_id = sx.subject_id'
-            ." join study_plans sp on sp.id = csx.study_plan_id where sx.id = {$tabla}.section_id and sx.career_id is null))))";
+            ." or (cc.scope = 'career' and cc.career_id in (select sp.career_id from sections sx join career_subjects csx on csx.subject_id = sx.subject_id"
+            ." join study_plans sp on sp.id = csx.study_plan_id where sx.id = {$tabla}.section_id))))";
     }
 
     /**
@@ -758,8 +757,7 @@ class AsistenciaService
     }
 
     /**
-     * Carreras de un grupo: la suya (`sections.career_id`, ADR-074) o, si es anterior y no la tiene, las que llevan
-     * su materia en el plan.
+     * Carreras de un grupo: todas las que llevan su materia en el plan (ADR-080).
      *
      * @return Collection<int, int>
      */

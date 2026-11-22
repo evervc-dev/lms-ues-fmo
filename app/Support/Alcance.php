@@ -140,31 +140,24 @@ class Alcance
     }
 
     /**
-     * Grupos teóricos de las carreras dadas (ADR-074): los que se crearon para ellas y, de los anteriores sin carrera,
-     * los de materias de sus planes. Un grupo creado para otra carrera no entra aunque la materia sea compartida.
+     * Grupos teóricos de las carreras dadas: los de materias de sus planes de estudio. El grupo es de la asignatura y
+     * lo comparten todas las carreras que la llevan (ADR-080); `sections.career_id` solo dice qué carrera lo solicitó.
      *
      * @param  array<int, int>  $carreras
      */
     public function seccionesDeCarreras(array $carreras): Builder
     {
-        return DB::table('sections')->where(fn ($q) => $q->whereIn('sections.career_id', $carreras)
-            ->orWhere(fn ($q) => $q->whereNull('sections.career_id')->whereIn('sections.subject_id', $this->asignaturasDeCarreras($carreras))))
-            ->select('sections.id');
+        return DB::table('sections')->whereIn('sections.subject_id', $this->asignaturasDeCarreras($carreras))->select('sections.id');
     }
 
     /**
-     * Carreras de un grupo: la suya (`sections.career_id`, ADR-074) o, si es anterior y no la tiene, las que llevan su
-     * materia en el plan. Es la regla inversa de seccionesDeCarreras().
+     * Carreras de un grupo: todas las que llevan su materia en un plan de estudios (ADR-080). Es la regla inversa de
+     * seccionesDeCarreras().
      *
      * @return array<int, int>
      */
     public static function carrerasDeSeccion(int $seccionId): array
     {
-        $propia = DB::table('sections')->where('id', $seccionId)->value('career_id');
-        if ($propia !== null) {
-            return [(int) $propia];
-        }
-
         return DB::table('sections')->join('career_subjects as cs', 'cs.subject_id', '=', 'sections.subject_id')
             ->join('study_plans as sp', 'sp.id', '=', 'cs.study_plan_id')->where('sections.id', $seccionId)
             ->pluck('sp.career_id')->map(fn ($id) => (int) $id)->unique()->values()->all();

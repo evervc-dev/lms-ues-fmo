@@ -225,7 +225,7 @@ it('CP-RF08-11 el Coordinador no crea grupos teóricos, pero sigue programando e
     expect(DB::table('section_schedules')->where('section_id', $e['seccion'])->where('weekday', 3)->exists())->toBeTrue();
 });
 
-it('CP-RF08-12 el Coordinador solo ve los grupos teóricos de su carrera aunque la materia esté en el plan de otra', function () {
+it('CP-RF08-12 un grupo de una materia compartida lo ven los coordinadores de todas las carreras que la llevan (ADR-080)', function () {
     $e = escenario();
     // PRN115 también está en el plan de Industrial, y el Jefe le crea un grupo para Industrial.
     [$industrial, $plan] = DbContext::system(function () use ($e) {
@@ -241,8 +241,11 @@ it('CP-RF08-12 el Coordinador solo ve los grupos teóricos de su carrera aunque 
 
     $visibles = $carga->secciones($e['coordinador'], $e['periodo'])->pluck('id')->all();
 
-    expect($visibles)->toContain($deIsi, $e['seccion']) // El grupo viejo sin carrera sigue visible: PRN115 está en su plan.
-        ->not->toContain($deIndustrial)
+    // La carrera que lo solicitó queda como dato, pero no limita: PRN115 está en el plan de ISI.
+    expect($visibles)->toContain($deIsi, $e['seccion'], $deIndustrial)
         ->and((int) DB::table('sections')->where('id', $deIndustrial)->value('career_id'))->toBe($industrial)
-        ->and(app(Alcance::class)->puedeEnSeccion($e['coordinador'], 'calificaciones.ver', $deIndustrial))->toBeFalse();
+        ->and(app(Alcance::class)->puedeEnSeccion($e['coordinador'], 'calificaciones.ver', $deIndustrial))->toBeTrue();
+
+    // Un grupo de una materia que no está en su plan sigue fuera de su alcance.
+    expect($visibles)->not->toContain($e['otra']);
 });

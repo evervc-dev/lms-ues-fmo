@@ -66,16 +66,19 @@ it('CP-RF09-18 no inscribe a un estudiante con la cuenta desactivada', function 
     expect(fn () => $this->matricula->inscribir($this->e['coordinador'], $this->e['estudiante']->id, $this->destino))->toThrow(ValidationException::class, 'no es estudiante activo');
 });
 
-it('CP-RF34-13 las carreras de un grupo son la suya, o las del plan si es anterior a ADR-074', function () {
+it('CP-RF34-13 las carreras de un grupo son todas las que llevan su materia en el plan, no la que lo solicitó (ADR-080)', function () {
     $e = $this->e;
     expect(Alcance::carrerasDeSeccion($e['seccion']))->toBe([$e['isi']]);
 
     $industrial = DbContext::system(function () use ($e) {
         $ind = DB::table('careers')->insertGetId(['department_id' => $e['dia'], 'code' => 'IND', 'name' => 'Ingeniería Industrial', 'created_at' => now(), 'updated_at' => now()]);
+        $plan = DB::table('study_plans')->insertGetId(['career_id' => $ind, 'name' => 'Plan 26', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('career_subjects')->insert(['study_plan_id' => $plan, 'subject_id' => $e['prn'], 'cycle' => 2]);
         DB::table('sections')->where('id', $this->destino)->update(['career_id' => $ind]);
 
         return $ind;
     });
 
-    expect(Alcance::carrerasDeSeccion($this->destino))->toBe([$industrial]);
+    expect(Alcance::carrerasDeSeccion($this->destino))->toEqualCanonicalizing([$e['isi'], $industrial])
+        ->and(Alcance::carrerasDeSeccion($e['seccion']))->toEqualCanonicalizing([$e['isi'], $industrial]);
 });
