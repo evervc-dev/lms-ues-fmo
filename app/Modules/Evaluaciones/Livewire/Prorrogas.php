@@ -9,8 +9,8 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * Prórrogas de una actividad (RF15, RF35): el docente amplía a un estudiante la entrega de la tarea o el plazo
- * para pedir revisión de la nota.
+ * Prórrogas de una actividad (RF15, RF35): el docente amplía a uno o varios estudiantes la entrega de la tarea o
+ * el plazo para pedir revisión de la nota. Los elige en una lista con buscador por nombre o carné.
  */
 class Prorrogas extends Component
 {
@@ -20,7 +20,8 @@ class Prorrogas extends Component
     #[Locked]
     public string $actividad = '';
 
-    public ?int $matricula = null;
+    /** @var array<int, int> Matrículas elegidas en la lista. */
+    public array $matriculas = [];
 
     public string $tipo = '';
 
@@ -36,7 +37,7 @@ class Prorrogas extends Component
 
     public function abrir(ProrrogaService $prorrogas): void
     {
-        $this->reset('matricula', 'hasta', 'motivo');
+        $this->reset('matriculas', 'hasta', 'motivo');
         $this->tipo = (string) array_key_first($prorrogas->deActividad(auth()->user(), $this->seccionId(), $this->actividad)['tipos']);
         $this->resetValidation();
         $this->dispatch('abrir-modal', 'prorrogas-'.$this->actividad);
@@ -45,16 +46,20 @@ class Prorrogas extends Component
     public function conceder(ProrrogaService $prorrogas): void
     {
         $this->validate([
-            'matricula' => 'required|integer',
+            'matriculas' => 'required|array|min:1',
+            'matriculas.*' => 'integer',
             'tipo' => 'required|string|in:'.implode(',', array_keys(ProrrogaService::TIPOS)),
             'hasta' => 'required|date',
             'motivo' => 'required|string|max:500',
-        ], [], ['matricula' => __('estudiante'), 'tipo' => __('tipo'), 'hasta' => __('fecha'), 'motivo' => __('motivo')]);
+        ], ['matriculas.required' => __('Elija al menos un estudiante.'), 'matriculas.min' => __('Elija al menos un estudiante.')],
+            ['matriculas' => __('estudiantes'), 'tipo' => __('tipo'), 'hasta' => __('fecha'), 'motivo' => __('motivo')]);
 
-        $prorrogas->conceder(auth()->user(), $this->seccionId(), $this->actividad, (int) $this->matricula, $this->tipo, $this->hasta, $this->motivo);
+        $resultado = $prorrogas->concederVarios(auth()->user(), $this->seccionId(), $this->actividad, $this->matriculas, $this->tipo, $this->hasta, $this->motivo);
+        $total = $resultado['nuevas'] + $resultado['reemplazadas'];
 
-        $this->reset('matricula', 'hasta', 'motivo');
-        $this->dispatch('aviso', tipo: 'exito', mensaje: __('Prórroga guardada. Se avisó al estudiante.'));
+        $this->reset('matriculas', 'hasta', 'motivo');
+        $this->dispatch('aviso', tipo: 'exito', mensaje: trans_choice('{1} Prórroga guardada. Se avisó al estudiante.|[2,*] Prórroga guardada para :count estudiantes. Se avisó a cada uno.', $total)
+            .($resultado['reemplazadas'] > 0 ? ' '.trans_choice('{1} Se reemplazó 1 que ya existía.|[2,*] Se reemplazaron :count que ya existían.', $resultado['reemplazadas']) : ''));
     }
 
     public function render(ProrrogaService $prorrogas): View

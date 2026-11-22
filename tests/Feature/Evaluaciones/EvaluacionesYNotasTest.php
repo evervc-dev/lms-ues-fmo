@@ -16,6 +16,7 @@ use App\Modules\Evaluaciones\Livewire\Prorrogas;
 use App\Modules\Evaluaciones\Livewire\Tarea;
 use App\Modules\Evaluaciones\Services\ActividadService;
 use App\Modules\Evaluaciones\Services\CuestionarioService;
+use App\Modules\Evaluaciones\Services\ProrrogaService;
 use App\Support\DbContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -145,12 +146,42 @@ it('las prórrogas de una tarea anónima usan los mismos seudónimos que Entrega
 
     actingAs($e['docente']);
     $nombre = $e['estudiante']->last_name.', '.$e['estudiante']->first_name;
+    // Ni el nombre ni el carné: el carné también revelaría quién entregó (ADR-006).
+    $carne = (string) DB::table('student_profiles')->where('user_id', $e['estudiante']->id)->value('student_code');
     Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $tarea])->assertSee('Estudiante 1')->assertDontSee($nombre)
-        ->set('matricula', $e['matricula'])->set('tipo', 'submission')->set('hasta', now()->addDays(3)->format('Y-m-d\\TH:i'))->set('motivo', 'Constancia médica')
+        ->assertDontSee(mb_strtoupper($carne))
+        ->set('matriculas', [$e['matricula']])->set('tipo', 'submission')->set('hasta', now()->addDays(3)->format('Y-m-d\\TH:i'))->set('motivo', 'Constancia médica')
         ->call('conceder')->assertHasNoErrors()->assertDontSee($nombre);
 
     Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->call('publicar');
     Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $tarea])->assertSee($nombre)->assertDontSee('Estudiante 1');
+});
+
+it('CP-RF15-08 da la misma prórroga a varios estudiantes a la vez y reemplaza la que ya tenían', function () {
+    $e = escenario();
+    $tarea = tareaDe($e, computos($e)[0]);
+    $otras = DbContext::system(function () use ($e) {
+        return collect(range(1, 2))->map(function (int $i) use ($e) {
+            $estudiante = usuarioCon('estudiante');
+
+            return DB::table('enrollments')->insertGetId(['student_id' => $estudiante->id, 'section_id' => $e['seccion'], 'period_id' => $e['periodo'], 'subject_id' => $e['prn'],
+                'status' => 'active', 'enrolled_via' => 'key', 'enrolled_by' => $estudiante->id, 'created_at' => now(), 'updated_at' => now()]);
+        })->all();
+    });
+    actingAs($e['docente']);
+    $hasta = now()->addDays(3)->format('Y-m-d\\TH:i');
+    // Una ya tenía prórroga: se reemplaza por la nueva.
+    app(ProrrogaService::class)->conceder($e['docente'], $e['seccion'], $tarea, $e['matricula'], 'submission', $hasta, 'Primera prórroga');
+
+    Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $tarea])
+        ->assertSee('Buscar por nombre o carné…')
+        ->call('conceder')->assertHasErrors(['matriculas'])
+        ->set('matriculas', [$e['matricula'], ...$otras])->set('tipo', 'submission')->set('hasta', $hasta)->set('motivo', 'Corte de luz en la facultad')
+        ->call('conceder')->assertHasNoErrors()
+        ->assertDispatched('aviso', tipo: 'exito', mensaje: 'Prórroga guardada para 3 estudiantes. Se avisó a cada uno. Se reemplazó 1 que ya existía.');
+
+    expect(DB::table('assessment_extensions')->where('kind', 'submission')->count())->toBe(3)
+        ->and(DB::table('assessment_extensions')->pluck('reason')->unique()->values()->all())->toBe(['Corte de luz en la facultad']);
 });
 
 it('ya no pide la dificultad al crear una pregunta del banco', function () {

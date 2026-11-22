@@ -452,7 +452,7 @@ it('CP-RF15-08 lets a student with an extension submit a closed task on time, wi
 
     actingAs($e['docente']);
     Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $t['ulid']])
-        ->call('abrir')->set('matricula', $otraMatricula)->set('tipo', 'submission')
+        ->call('abrir')->set('matriculas', [$otraMatricula])->set('tipo', 'submission')
         ->set('hasta', now()->timezone('America/El_Salvador')->addDay()->format('Y-m-d\TH:i'))->set('motivo', 'Problema de conexión')
         ->call('conceder')->assertHasNoErrors()->assertSeeText('Problema de conexión');
 
