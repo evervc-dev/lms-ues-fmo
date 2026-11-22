@@ -77,11 +77,11 @@ class MisMaterias extends Component
         $plazoCambio = $periodo === null ? null : app(MatriculaService::class)->plazoDeCambio($periodo);
 
         // Pensum de cada materia dentro de la carrera del estudiante: «Plan 98 · Plan 25» si la llevan los dos.
-        $carreras = DB::table('student_careers')->where('student_id', $usuario->id)->where('status', 'active')->pluck('career_id')->map(fn ($id) => (int) $id)->all();
+        $planes = app(PlanesService::class);
 
         return $this->pagina('modules.academica.mis-materias', [
             'materias' => $materias,
-            'planes' => app(PlanesService::class)->etiquetas($materias->pluck('asignatura_id'), $carreras ?: null),
+            'planes' => $planes->etiquetas($materias->pluck('asignatura_id'), $planes->carrerasDelEstudiante($usuario->id)),
             'plazoCambio' => $plazoCambio,
             'cambioAbierto' => $plazoCambio !== null && now()->lte($plazoCambio),
         ]);

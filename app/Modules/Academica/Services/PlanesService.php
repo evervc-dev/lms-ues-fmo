@@ -38,10 +38,34 @@ class PlanesService
 
                 return $porCarrera->map(fn ($planes, $carrera) => "{$carrera}: {$planes}")->implode(' · ');
             })
-            ->mapWithKeys(fn ($rotulo, $id) => [(int) $id => $rotulo])
-            // En el orden de las asignaturas pedidas: el groupBy sigue el orden de las filas, que PostgreSQL no
-            // garantiza (PlanDeEstudiosTest fallaba allí y pasaba en SQLite).
-            ->sortBy(fn ($rotulo, $id) => array_search($id, $ids, true))->all();
+            ->mapWithKeys(fn ($rotulo, $id) => [(int) $id => $rotulo])->all();
+    }
+
+    /**
+     * Rótulos para un estudiante, por código de asignatura: solo los planes de su carrera activa («Plan 25», o
+     * «Plan 98 · Plan 25» si la llevan los dos). Para pantallas cuyas filas traen el código y no el id.
+     *
+     * @param  iterable<int, string>  $codigos
+     * @return array<string, string> código => rótulo
+     */
+    public function delEstudiante(int $estudianteId, iterable $codigos): array
+    {
+        $porId = DB::table('subjects')->whereIn('code', collect($codigos)->unique()->values()->all())->pluck('code', 'id');
+        $etiquetas = $this->etiquetas($porId->keys(), $this->carrerasDelEstudiante($estudianteId));
+
+        return $porId->mapWithKeys(fn ($codigo, $id) => isset($etiquetas[(int) $id]) ? [$codigo => $etiquetas[(int) $id]] : [])->all();
+    }
+
+    /**
+     * Carreras activas del estudiante, o null si no tiene (entonces no se filtra).
+     *
+     * @return array<int, int>|null
+     */
+    public function carrerasDelEstudiante(int $estudianteId): ?array
+    {
+        $carreras = DB::table('student_careers')->where('student_id', $estudianteId)->where('status', 'active')->pluck('career_id')->map(fn ($id) => (int) $id)->all();
+
+        return $carreras === [] ? null : $carreras;
     }
 
     public function deAsignatura(int $asignatura, ?array $carreras = null): ?string

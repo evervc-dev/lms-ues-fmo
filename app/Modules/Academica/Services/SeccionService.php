@@ -168,7 +168,9 @@ class SeccionService
             'titulo' => $seccion->code.' · '.$seccion->grupo,
             'codigo' => $seccion->code,
             'asignatura' => $seccion->name,
-            'plan' => app(PlanesService::class)->deAsignatura((int) $seccion->asignatura_id),
+            // El estudiante ve solo los planes de su carrera; el personal, todos (con la carrera si son varias).
+            'plan' => app(PlanesService::class)->deAsignatura((int) $seccion->asignatura_id,
+                auth()->user()?->hasRole('estudiante') ? app(PlanesService::class)->carrerasDelEstudiante((int) auth()->id()) : null),
             'grupo' => $seccion->grupo,
             'periodo' => $seccion->periodo,
             'periodoCerrado' => $seccion->status === 'closed',

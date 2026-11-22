@@ -60,3 +60,19 @@ it('muestra carrera y pensum en el Catálogo y el pensum en Carga académica', f
     $this->get(route('catalogo'))->assertOk()->assertSeeText(['Carrera y plan', 'ISI · Plan 25, Plan 98', 'LMA · Plan 20']);
     $this->get(route('carga-academica'))->assertOk()->assertSeeText('Plan 25 · Plan 98');
 });
+
+it('el estudiante ve en Inicio, Mis notas y la cabecera solo los planes de su carrera', function () {
+    $e = escenario();
+    $extra = segundoPlanYCarrera($e);
+    // PRN115 también se lleva en LMA: el personal lo ve, el estudiante de ISI no.
+    DbContext::system(fn () => DB::table('career_subjects')->insert(['study_plan_id' => $extra['plan20'], 'subject_id' => $e['prn'], 'cycle' => 3]));
+
+    actingAs($e['estudiante']);
+    $this->get(route('inicio'))->assertOk()->assertSeeText('Plan 25 · Plan 98');
+    $this->get(route('mis-notas'))->assertOk()->assertSeeText('Plan 25 · Plan 98');
+    $this->get(route('secciones.contenidos', ['seccion' => $e['ulid']]))->assertOk()
+        ->assertSeeText('Plan 25 · Plan 98')->assertDontSeeText('LMA: Plan 20');
+
+    actingAs($e['docente'])->get(route('secciones.contenidos', ['seccion' => $e['ulid']]))->assertOk()
+        ->assertSeeText('ISI: Plan 25, Plan 98 · LMA: Plan 20');
+});

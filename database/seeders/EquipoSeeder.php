@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Modules\Calificaciones\Services\ComputoService;
 use App\Modules\Identidad\Services\AccesoLocalService;
 use Database\Seeders\Concerns\InsertsRows;
 use Illuminate\Database\Seeder;
@@ -122,6 +123,8 @@ class EquipoSeeder extends Seeder
                         DB::table('section_schedules')->insert(['section_id' => $id, 'period_id' => $periodo, 'classroom_id' => $aulas[$n * 2 + $turno],
                             'weekday' => $dia, 'start_time' => $this->correr($inicio, $turno), 'end_time' => $this->correr($fin, $turno)] + $this->stamps($alta));
                     }
+                    // Los cuatro cómputos de 25 % del período, como al abrir el grupo en Carga académica (ADR-085).
+                    app(ComputoService::class)->copiarPlantilla($id);
                     $grupos[] = (object) ['id' => $id, 'subject_id' => $materias[$codigo]->id, 'ciclo' => $ciclo, 'grupo' => $grupo, 'franja' => "{$i}-{$turno}"];
                 }
             }
