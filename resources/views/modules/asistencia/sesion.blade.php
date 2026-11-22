@@ -147,14 +147,24 @@
         </x-slot:pie>
     </x-ui.modal>
 
-    <x-ui.modal nombre="cancelar-clase" :titulo="__('Solicitar cancelación o cambio de modalidad')">
+    <x-ui.modal nombre="cancelar-clase" :titulo="__('Solicitar cancelación o cambio de modalidad')" :subtitulo="__('La aprueba el Coordinador; al aprobarla se avisa al grupo teórico.')">
         <form wire:submit="solicitarCancelacion" id="form-cancelar" class="flex flex-col gap-4">
-            <div class="grid gap-4 sm:grid-cols-2">
-                <x-ui.field :etiqueta="__('Fecha de la clase')" para="fechaCancelacion" error="fechaCancelacion"><x-ui.input id="fechaCancelacion" type="date" wire:model="fechaCancelacion" /></x-ui.field>
-                <x-ui.field :etiqueta="__('Tipo')" para="tipoCancelacion"><x-ui.select id="tipoCancelacion" wire:model="tipoCancelacion"><option value="cancellation">{{ __('Cancelar la clase') }}</option><option value="virtual">{{ __('Pasar a virtual') }}</option><option value="in_person">{{ __('Pasar a presencial') }}</option></x-ui.select></x-ui.field>
-            </div>
-            <x-ui.field :etiqueta="__('Motivo')" para="motivoCancelacion" error="motivoCancelacion" requerido><x-ui.textarea id="motivoCancelacion" wire:model="motivoCancelacion" /></x-ui.field>
-            <p class="text-xs text-texto-suave">{{ __('Es para una clase de hoy en adelante, no solo la de esta sesión: elija la fecha (se propone mañana). La aprueba el Coordinador: al aprobarla se avisa al grupo teórico y esa clase no cuenta para la asistencia.') }}</p>
+            <fieldset>
+                <legend class="mb-2 text-sm font-medium text-zinc-800">{{ __('¿Qué necesita?') }}</legend>
+                <div class="grid gap-2 sm:grid-cols-3">
+                    @foreach (['cancellation' => [__('Cancelar la clase'), __('Ese día no hay clase y no cuenta para la asistencia.')], 'virtual' => [__('Pasar a virtual'), __('La asistencia se toma con el reporte de Meet, no con QR.')], 'in_person' => [__('Pasar a presencial'), __('La asistencia se toma con QR en el aula.')]] as $valor => [$titulo, $efecto])
+                        <label wire:key="tipo-{{ $valor }}" @class(['flex cursor-pointer flex-col gap-0.5 rounded-lg p-3 ring-1 transition', 'bg-marca-50 ring-2 ring-marca-600' => $tipoCancelacion === $valor, 'ring-borde hover:bg-zinc-50' => $tipoCancelacion !== $valor])>
+                            <input type="radio" wire:model.live="tipoCancelacion" value="{{ $valor }}" class="sr-only">
+                            <span class="text-sm font-medium text-texto">{{ $titulo }}</span>
+                            <span class="text-xs text-texto-suave">{{ $efecto }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </fieldset>
+            <x-ui.field :etiqueta="__('Fecha de la clase')" para="fechaCancelacion" error="fechaCancelacion" :ayuda="__('De hoy en adelante, no solo la de esta sesión. Se propone mañana.')">
+                <x-ui.input id="fechaCancelacion" type="date" wire:model="fechaCancelacion" min="{{ now()->toDateString() }}" class="sm:max-w-56" />
+            </x-ui.field>
+            <x-ui.field :etiqueta="__('Motivo')" para="motivoCancelacion" error="motivoCancelacion" requerido><x-ui.textarea id="motivoCancelacion" wire:model="motivoCancelacion" rows="3" :placeholder="__('Fumigación del edificio, asueto, actividad de la carrera…')" /></x-ui.field>
         </form>
         <x-slot:pie>
             <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'cancelar-clase')">{{ __('Cancelar') }}</x-ui.button>

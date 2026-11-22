@@ -23,13 +23,30 @@
     </x-ui.table>
 
     <x-ui.modal nombre="nuevo-periodo" :titulo="__('Nuevo período')">
-        <form wire:submit="crear" id="form-periodo" class="flex flex-col gap-4">
-            <x-ui.field :etiqueta="__('Nombre')" para="nombre" error="nombre" :ayuda="__('Ej.: 2027-I')" requerido><x-ui.input id="nombre" wire:model="nombre" /></x-ui.field>
+        {{-- La duración se calcula mientras se eligen las fechas; los cómputos se muestran como quedarán. --}}
+        <form wire:submit="crear" id="form-periodo" class="flex flex-col gap-4"
+            x-data="{ ini: $wire.inicio, fin: $wire.fin, get semanas() {
+                const a = new Date(this.ini), b = new Date(this.fin);
+                if (isNaN(a) || isNaN(b)) return null;
+                const dias = Math.round((b - a) / 86400000);
+                return dias > 0 ? Math.round(dias / 7) : 0;
+            } }">
+            <x-ui.field :etiqueta="__('Nombre')" para="nombre" error="nombre" :ayuda="__('Año y ciclo, como 2027-I o 2027-II.')" requerido><x-ui.input id="nombre" wire:model="nombre" placeholder="2027-I" /></x-ui.field>
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-ui.field :etiqueta="__('Inicio')" para="inicio" error="inicio" requerido><x-ui.input id="inicio" type="date" wire:model="inicio" /></x-ui.field>
-                <x-ui.field :etiqueta="__('Fin')" para="fin" error="fin" requerido><x-ui.input id="fin" type="date" wire:model="fin" /></x-ui.field>
+                <x-ui.field :etiqueta="__('Inicio')" para="inicio" error="inicio" requerido><x-ui.input id="inicio" type="date" wire:model="inicio" x-on:input="ini = $event.target.value" /></x-ui.field>
+                <x-ui.field :etiqueta="__('Fin')" para="fin" error="fin" requerido><x-ui.input id="fin" type="date" wire:model="fin" x-on:input="fin = $event.target.value" /></x-ui.field>
             </div>
-            <p class="text-xs text-texto-suave">{{ __('Se crea en planificación con tres cómputos de 30 %, 30 % y 40 % (provisionales hasta el reglamento académico).') }}</p>
+            <p class="-mt-2 text-xs" x-show="semanas !== null" :class="semanas > 0 ? 'text-texto-suave' : 'text-red-700'"
+                x-text="semanas > 0 ? @js(__('Dura unas ')) + semanas + @js(__(' semanas.')) : @js(__('El fin debe ser después del inicio.'))"></p>
+            <div class="rounded-lg bg-zinc-50 p-3 ring-1 ring-borde">
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-texto-suave">{{ __('Cómputos que se crean') }}</p>
+                <div class="flex overflow-hidden rounded-md text-center text-xs font-medium text-white">
+                    <span class="bg-marca-600 py-1.5" style="width: 30%">{{ __('C1 · 30 %') }}</span>
+                    <span class="bg-marca-700 py-1.5" style="width: 30%">{{ __('C2 · 30 %') }}</span>
+                    <span class="bg-marca-800 py-1.5" style="width: 40%">{{ __('C3 · 40 %') }}</span>
+                </div>
+                <p class="mt-2 text-xs text-texto-suave">{{ __('Se crea en planificación. Los porcentajes son provisionales hasta el reglamento académico.') }}</p>
+            </div>
         </form>
         <x-slot:pie>
             <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'nuevo-periodo')">{{ __('Cancelar') }}</x-ui.button>

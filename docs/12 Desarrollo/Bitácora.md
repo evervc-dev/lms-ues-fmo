@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF06, RF08, RF21, RF32 · Modales medianos más claros
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** horario del grupo (bloques actuales con su aula y aviso de choque, días con botones, duración calculada), clase virtual (hora de fin, atajos de duración, qué pasa sin enlace de Meet), fecha del calendario («Todo el día»), nuevo período (duración en semanas y los tres cómputos) y solicitud de cancelación (tipo en tarjetas con su efecto). Solo vistas; no cambian los Services.
+- **CP cubiertos:** sin casos nuevos; pasan las pruebas existentes de cada formulario.
+- **Decisiones:** —
+- **Pendiente:** grupo C (tarea y cuestionario por secciones; regla de avance del recurso).
+
 ### 2026-11-21 · RF07, RF26, RF15 · Formularios complejos fuera del modal
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

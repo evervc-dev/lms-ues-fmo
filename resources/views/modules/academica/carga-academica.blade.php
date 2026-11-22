@@ -101,37 +101,74 @@
 
     @if ($gestiona)
 
-        <x-ui.modal nombre="horario" :titulo="__('Horario').($actual ? ' · '.$actual->code.' · '.$actual->grupo : '')">
-            @if ($actual && $actual->bloques->isNotEmpty())
-                {{-- Cada cambio avisa a los estudiantes matriculados y a los docentes de la sección (RF08). --}}
-                <ul class="mb-4 divide-y divide-borde rounded-lg border border-borde text-sm">
-                    @foreach ($actual->bloques as $b)
-                        <li wire:key="bloque-{{ $b->id }}" class="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
-                            <span>{{ $b->etiqueta }}</span>
-                            <div class="flex items-center gap-2">
-                                <div class="w-44"><x-ui.select :aria-label="__('Aula de :b', ['b' => $b->etiqueta])" wire:change="cambiarAula({{ $b->id }}, $event.target.value)">
-                                    <option value="" @selected($b->aulaId === null)>{{ __('Virtual / sin aula') }}</option>
-                                    @foreach ($aulas as $a)<option value="{{ $a->id }}" @selected($b->aulaId === (int) $a->id)>{{ $a->code }} ({{ $a->capacity }})</option>@endforeach
-                                </x-ui.select></div>
-                                <x-ui.button tamano="sm" variante="fantasma" wire:click="quitarHorario({{ $b->id }})" wire:confirm="{{ __('¿Quitar este horario? Se avisará a los estudiantes y docentes del grupo teórico.') }}">{{ __('Quitar') }}</x-ui.button>
-                            </div>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
-            <form wire:submit="agregarHorario" id="form-horario" class="flex flex-col gap-4">
-                <div class="grid gap-4 sm:grid-cols-3">
-                    <x-ui.field :etiqueta="__('Día')" para="dia" error="dia"><x-ui.select id="dia" wire:model="dia">@foreach ($dias as $n => $d)<option value="{{ $n }}">{{ $d }}</option>@endforeach</x-ui.select></x-ui.field>
-                    <x-ui.field :etiqueta="__('Inicio')" para="inicio" error="inicio"><x-ui.input id="inicio" type="time" wire:model="inicio" /></x-ui.field>
-                    <x-ui.field :etiqueta="__('Fin')" para="fin" error="fin"><x-ui.input id="fin" type="time" wire:model="fin" /></x-ui.field>
-                </div>
-                <x-ui.field :etiqueta="__('Aula')" para="aulaId" error="aula">
-                    <x-ui.select id="aulaId" wire:model="aulaId"><option value="">{{ __('Virtual / sin aula') }}</option>@foreach ($aulas as $a)<option value="{{ $a->id }}">{{ $a->code }} ({{ $a->capacity }})</option>@endforeach</x-ui.select>
-                </x-ui.field>
-            </form>
+        <x-ui.modal nombre="horario" :titulo="__('Horario').($actual ? ' · '.$actual->code.' · '.$actual->grupo : '')"
+            :subtitulo="__('Cada cambio avisa a los estudiantes matriculados y a los docentes del grupo teórico.')">
+            <div class="flex flex-col gap-5">
+                {{-- Bloques actuales (RF08): el aula se cambia en la misma fila. --}}
+                <section class="flex flex-col gap-2">
+                    <h3 class="text-sm font-semibold text-texto">{{ __('Bloques actuales') }}</h3>
+                    @if ($actual && $actual->bloques->isNotEmpty())
+                        @if ($actual->choque)
+                            <x-ui.alert tipo="aviso">{{ __('El aula de un bloque ya la ocupa :g a esa hora: cámbiela.', ['g' => $actual->choque]) }}</x-ui.alert>
+                        @endif
+                        <ul class="divide-y divide-borde rounded-lg ring-1 ring-borde">
+                            @foreach ($actual->bloques as $b)
+                                <li wire:key="bloque-{{ $b->id }}" class="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                                    <span class="flex items-center gap-2 text-sm font-medium text-texto">
+                                        <x-ui.icon name="clock" class="size-4 shrink-0 text-texto-suave" />{{ $b->etiqueta }}
+                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="min-w-0 flex-1 sm:w-48 sm:flex-none">
+                                            <x-ui.select :aria-label="__('Aula de :b', ['b' => $b->etiqueta])" wire:change="cambiarAula({{ $b->id }}, $event.target.value)">
+                                                <option value="" @selected($b->aulaId === null)>{{ __('Virtual / sin aula') }}</option>
+                                                @foreach ($aulas as $a)<option value="{{ $a->id }}" @selected($b->aulaId === (int) $a->id)>{{ $a->code }} ({{ $a->capacity }})</option>@endforeach
+                                            </x-ui.select>
+                                        </div>
+                                        <button type="button" wire:click="quitarHorario({{ $b->id }})" wire:confirm="{{ __('¿Quitar este horario? Se avisará a los estudiantes y docentes del grupo teórico.') }}"
+                                            class="inline-flex h-10 shrink-0 items-center gap-1 rounded-lg px-2 text-sm text-texto-suave hover:bg-red-50 hover:text-red-700" aria-label="{{ __('Quitar :b', ['b' => $b->etiqueta]) }}">
+                                            <x-ui.icon name="x-mark" class="size-5" /><span class="sm:sr-only">{{ __('Quitar') }}</span>
+                                        </button>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="rounded-lg border border-dashed border-borde px-4 py-4 text-center text-sm text-texto-suave">{{ __('Aún no tiene horario. Agregue el primer bloque abajo.') }}</p>
+                    @endif
+                </section>
+
+                {{-- Nuevo bloque: el día con botones y la duración calculada mientras se escribe. --}}
+                <form wire:submit="agregarHorario" id="form-horario" class="flex flex-col gap-4 rounded-lg bg-zinc-50 p-4 ring-1 ring-borde"
+                    x-data="{ get duracion() {
+                        const [hi, mi] = ($wire.inicio || '').split(':').map(Number), [hf, mf] = ($wire.fin || '').split(':').map(Number);
+                        const m = (hf * 60 + mf) - (hi * 60 + mi);
+                        return Number.isFinite(m) && m > 0 ? (m >= 60 ? Math.floor(m / 60) + ' h ' : '') + (m % 60 ? (m % 60) + ' min' : '') : null;
+                    } }">
+                    <h3 class="text-sm font-semibold text-texto">{{ __('Agregar un bloque') }}</h3>
+                    <fieldset>
+                        <legend class="mb-1.5 text-sm font-medium text-zinc-800">{{ __('Día') }}</legend>
+                        <div class="grid grid-cols-6 gap-1.5">
+                            @foreach ($dias as $n => $d)
+                                <label wire:key="dia-{{ $n }}" @class(['flex h-10 cursor-pointer items-center justify-center rounded-lg text-sm font-medium ring-1 transition', 'bg-marca-600 text-white ring-marca-600' => (int) $dia === (int) $n, 'bg-white text-texto ring-borde hover:bg-zinc-100' => (int) $dia !== (int) $n]) title="{{ $d }}">
+                                    <input type="radio" wire:model.live="dia" value="{{ $n }}" class="sr-only">{{ mb_substr($d, 0, 3) }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('dia')<p class="mt-1 text-xs font-medium text-red-700">{{ $message }}</p>@enderror
+                    </fieldset>
+                    <div class="grid grid-cols-2 gap-4">
+                        <x-ui.field :etiqueta="__('Inicio')" para="inicio" error="inicio"><x-ui.input id="inicio" type="time" wire:model.live="inicio" /></x-ui.field>
+                        <x-ui.field :etiqueta="__('Fin')" para="fin" error="fin"><x-ui.input id="fin" type="time" wire:model.live="fin" /></x-ui.field>
+                    </div>
+                    <p class="-mt-2 text-xs" :class="duracion ? 'text-texto-suave' : 'text-red-700'" x-text="duracion ? @js(__('Duración: ')) + duracion : @js(__('El fin debe ser después del inicio.'))"></p>
+                    <x-ui.field :etiqueta="__('Aula')" para="aulaId" error="aula" :ayuda="__('Se rechaza si el aula o el docente ya están ocupados en ese horario.')">
+                        <x-ui.select id="aulaId" wire:model="aulaId"><option value="">{{ __('Virtual / sin aula') }}</option>@foreach ($aulas as $a)<option value="{{ $a->id }}">{{ $a->code }} ({{ $a->capacity }})</option>@endforeach</x-ui.select>
+                    </x-ui.field>
+                </form>
+            </div>
             <x-slot:pie>
-                <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'horario')">{{ __('Cancelar') }}</x-ui.button>
-                <x-ui.button type="submit" form="form-horario">{{ __('Agregar') }}</x-ui.button>
+                <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'horario')">{{ __('Cerrar') }}</x-ui.button>
+                <x-ui.button type="submit" form="form-horario" icono="plus">{{ __('Agregar bloque') }}</x-ui.button>
             </x-slot:pie>
         </x-ui.modal>
     @endif

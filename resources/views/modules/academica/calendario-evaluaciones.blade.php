@@ -67,15 +67,24 @@
     </x-ui.card>
 
     <x-ui.modal nombre="agregar-fecha" :titulo="__('Agregar fecha al calendario de evaluaciones')">
-        <form wire:submit="agregarFecha" id="form-agregar-fecha" class="flex flex-col gap-4">
+        {{-- «Todo el día» deja el fin vacío, que es como el Service guarda un evento de día completo. --}}
+        <form wire:submit="agregarFecha" id="form-agregar-fecha" class="flex flex-col gap-4" x-data="{ todoElDia: ! $wire.finFecha }">
             <x-ui.field :etiqueta="__('Evento')" para="fecha-titulo" error="tituloFecha" requerido><x-ui.input id="fecha-titulo" wire:model="tituloFecha" maxlength="255" :placeholder="__('Primer parcial')" /></x-ui.field>
             <x-ui.field :etiqueta="__('Ámbito')" para="fecha-ambito" error="ambito" :ayuda="__('A quién le aplica la fecha y a quién se invita al sincronizar.')" requerido>
                 <x-ui.select id="fecha-ambito" wire:model="ambito">
                     @foreach ($ambitos as $a)<option value="{{ $a['valor'] }}">{{ $a['etiqueta'] }}</option>@endforeach
                 </x-ui.select>
             </x-ui.field>
-            <x-ui.field :etiqueta="__('Inicio')" para="fecha-inicio" error="inicioFecha" requerido><x-ui.input id="fecha-inicio" type="datetime-local" wire:model="inicioFecha" /></x-ui.field>
-            <x-ui.field :etiqueta="__('Fin')" para="fecha-fin" error="finFecha" :ayuda="__('Déjelo vacío para un evento de todo el día.')"><x-ui.input id="fecha-fin" type="datetime-local" wire:model="finFecha" /></x-ui.field>
+            <label class="flex items-center gap-2 text-sm text-texto">
+                <input type="checkbox" x-model="todoElDia" x-on:change="if (todoElDia) $wire.set('finFecha', '')" class="size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
+                {{ __('Todo el día') }}
+            </label>
+            <div class="grid gap-4" :class="todoElDia ? '' : 'sm:grid-cols-2'">
+                <x-ui.field :etiqueta="__('Inicio')" para="fecha-inicio" error="inicioFecha" requerido><x-ui.input id="fecha-inicio" type="datetime-local" wire:model="inicioFecha" /></x-ui.field>
+                <div x-show="! todoElDia" x-cloak>
+                    <x-ui.field :etiqueta="__('Fin')" para="fecha-fin" error="finFecha"><x-ui.input id="fecha-fin" type="datetime-local" wire:model="finFecha" /></x-ui.field>
+                </div>
+            </div>
         </form>
         <x-slot:pie>
             <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'agregar-fecha')">{{ __('Cancelar') }}</x-ui.button>
