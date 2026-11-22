@@ -85,6 +85,7 @@ return [
                 ['clave' => 'roles', 'etiqueta' => 'Roles y permisos', 'ruta' => 'roles', 'permiso' => 'roles.gestionar', 'icono' => 'shield-check'],
                 ['clave' => 'periodos', 'etiqueta' => 'Períodos', 'ruta' => 'periodos', 'permiso' => 'periodos.gestionar', 'icono' => 'calendar-days'],
                 ['clave' => 'calendario-evaluaciones', 'etiqueta' => 'Calendario de evaluaciones', 'ruta' => 'periodos.calendario', 'permiso' => 'periodos.calendario.gestionar', 'icono' => 'calendar-days'],
+                ['clave' => 'departamentos', 'etiqueta' => 'Departamentos', 'ruta' => 'departamentos', 'permiso' => 'carreras.ver', 'icono' => 'building-library'],
                 ['clave' => 'catalogo', 'etiqueta' => 'Catálogo', 'ruta' => 'catalogo', 'permiso' => 'asignaturas.gestionar', 'icono' => 'squares-2x2'],
                 ['clave' => 'carga-academica', 'etiqueta' => 'Carga académica', 'ruta' => 'carga-academica', 'permiso' => 'secciones.gestionar', 'icono' => 'building-office'],
                 ['clave' => 'matricula', 'etiqueta' => 'Matrícula', 'ruta' => 'matricula', 'permiso' => 'matricula.gestionar', 'icono' => 'user-plus'],

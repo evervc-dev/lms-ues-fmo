@@ -1,12 +1,18 @@
 {{-- Carreras del ámbito del actor (RF07, RF08). --}}
 <div class="flex flex-col gap-5">
-    <x-ui.encabezado :titulo="__('Carreras')"
-        :subtitulo="__('Carreras de su ámbito, con su coordinador y su oferta del período en curso.')" />
+    <x-ui.encabezado :titulo="$departamentoElegido ? __('Carreras de :d', ['d' => $departamentoElegido->code]) : __('Carreras')"
+        :subtitulo="$departamentoElegido
+            ? __(':nombre: sus carreras, con su coordinador y su oferta del período en curso.', ['nombre' => $departamentoElegido->name])
+            : __('Carreras de su ámbito, con su coordinador y su oferta del período en curso.')">
+        @if ($departamentoElegido)
+            <x-ui.button variante="secundario" icono="building-library" :href="route('departamentos')">{{ __('Todos los departamentos') }}</x-ui.button>
+        @endif
+    </x-ui.encabezado>
 
     @if ($carreras->isEmpty())
         <x-ui.card>
             <x-ui.empty-state icono="academic-cap" :titulo="__('No hay carreras')">
-                {{ __('No tiene carreras asignadas en su departamento ni en su coordinación.') }}
+                {{ $departamentoElegido ? __('Este departamento todavía no tiene carreras.') : __('No tiene carreras asignadas en su departamento ni en su coordinación.') }}
             </x-ui.empty-state>
         </x-ui.card>
     @else

@@ -30,7 +30,13 @@ class CarreraDetalle extends Component
     {
         $detalle = $carreras->detalle(auth()->user(), $this->carreraId);
 
-        return $this->pagina('modules.academica.carrera-detalle', $detalle,
+        // El Administrador llega desde un departamento: la miga intermedia lo devuelve a las carreras de ese departamento.
+        $intermedias = $detalle['vision'] !== 'G' ? [] : [[
+            'etiqueta' => $detalle['carrera']->departamentoCodigo,
+            'url' => route('carreras', ['departamento' => $detalle['carrera']->department_id]),
+        ]];
+
+        return $this->pagina('modules.academica.carrera-detalle', $detalle, intermedias: $intermedias,
             titulo: __('Carrera :nombre', ['nombre' => $detalle['carrera']->name]));
     }
 }
