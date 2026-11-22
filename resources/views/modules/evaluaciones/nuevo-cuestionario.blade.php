@@ -1,7 +1,7 @@
 {{-- Nuevo cuestionario (RF16). --}}
 <div class="flex flex-col gap-5">
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
-    <form wire:submit="guardar" class="flex flex-col gap-5">
+    <form wire:submit="guardar" class="flex flex-col gap-5 [&_input]:scroll-mb-24 [&_select]:scroll-mb-24 [&_textarea]:scroll-mb-24">
         <div class="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
             @include('modules.evaluaciones.partials.datos-actividad', ['sufijo' => 'C', 'titulo' => __('Nuevo cuestionario')])
 
