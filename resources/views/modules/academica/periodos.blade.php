@@ -13,9 +13,15 @@
                 <td><a href="{{ route('periodos.show', $p->id) }}" wire:navigate class="font-semibold text-texto hover:text-marca-700 hover:underline">{{ $p->name }}</a></td>
                 <td>{{ \Illuminate\Support\Carbon::parse($p->start_date)->format('d/m/Y') }} – {{ \Illuminate\Support\Carbon::parse($p->end_date)->format('d/m/Y') }}</td>
                 <td><x-ui.badge :color="['active' => 'verde', 'planned' => 'azul', 'closed' => 'gris'][$p->status]">{{ __($estados[$p->status]) }}</x-ui.badge></td>
-                <td>{{ $p->status === 'planned' ? __($etapas[$p->preparation_stage]) : '—' }}</td>
-                <td class="text-right">{{ $p->secciones }}</td>
-                <td class="text-right">{{ number_format($p->matriculas) }}</td>
+                {{-- QA admin 21/11: el período en curso mostraba «—»; ahora su etapa real y, el cerrado, «Concluido». --}}
+                <td>{{ $p->status === 'closed' ? __('Concluido') : __($etapas[$p->preparation_stage] ?? '—') }}</td>
+                @if ($p->status === 'closed' && (int) $p->secciones === 0)
+                    {{-- Un período cerrado sin grupos no tiene historial cargado (p. ej., la siembra del equipo): no son ceros reales. --}}
+                    <td colspan="2" class="text-right text-xs text-texto-suave" title="{{ __('El período se cerró sin grupos teóricos registrados en el sistema.') }}">{{ __('Sin historial en el sistema') }}</td>
+                @else
+                    <td class="text-right">{{ $p->secciones }}</td>
+                    <td class="text-right">{{ number_format($p->matriculas) }}</td>
+                @endif
                 {{-- P-01 (QA 27/10): la acción visible; antes solo el nombre llevaba al detalle. --}}
                 <td class="text-right"><x-ui.button tamano="sm" variante="secundario" :href="route('periodos.show', $p->id)">{{ $p->status === 'closed' ? __('Ver') : __('Gestionar') }}</x-ui.button></td>
             </tr>
