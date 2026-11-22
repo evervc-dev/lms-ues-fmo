@@ -23,12 +23,13 @@
             </x-ui.select>
         </div>
         <x-ui.table ajustar :vacio="__('No hay asignaturas con esos filtros.')">
-            <x-slot:cabecera><th>{{ __('Código') }}</th><th>{{ __('Asignatura') }}</th><th>{{ __('Depto.') }}</th><th class="text-right">{{ __('Créditos') }}</th><th>{{ __('Prerrequisitos') }}</th><th class="text-right">{{ __('Grupos') }}</th><th></th></x-slot:cabecera>
+            <x-slot:cabecera><th>{{ __('Código') }}</th><th>{{ __('Asignatura') }}</th>@if ($veDepartamento)<th>{{ __('Depto.') }}</th>@endif<th>{{ __('Carreras') }}</th><th class="text-right">{{ __('Créditos') }}</th><th>{{ __('Prerrequisitos') }}</th><th class="text-right">{{ __('Grupos') }}</th><th></th></x-slot:cabecera>
             @foreach ($asignaturas as $a)
                 <tr wire:key="asig-{{ $a->id }}" @class(['text-texto-suave' => ! $a->is_active])>
                     <td class="font-mono text-xs font-semibold">{{ $a->code }}</td>
                     <td>{{ $a->name }}@unless ($a->is_active) <x-ui.badge>{{ __('Inactiva') }}</x-ui.badge>@endunless</td>
-                    <td>{{ $a->departamento }}</td>
+                    @if ($veDepartamento)<td>{{ $a->departamento }}</td>@endif
+                    <td><div class="flex flex-wrap gap-1">@forelse ($carrerasDe[$a->id] ?? [] as $c)<x-ui.badge color="marca">{{ $c }}</x-ui.badge>@empty<span class="text-texto-suave">—</span>@endforelse</div></td>
                     <td class="text-right">{{ $a->credits }}</td>
                     <td><div class="flex flex-wrap gap-1">@forelse ($prerrequisitosDe[$a->id] ?? [] as $p)<x-ui.badge>{{ $p }}</x-ui.badge>@empty<span class="text-texto-suave">—</span>@endforelse</div></td>
                     <td class="text-right">{{ $a->secciones }}</td>

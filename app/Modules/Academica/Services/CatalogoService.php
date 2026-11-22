@@ -63,6 +63,33 @@ class CatalogoService
     }
 
     /**
+     * Carreras donde se lleva cada asignatura (las de sus planes de estudio), sin repetir y por código. El Jefe
+     * (alcance D) solo ve las carreras de su departamento; el Administrador, todas.
+     *
+     * @param  array<int, int>  $ids
+     * @return array<int, array<int, string>>
+     */
+    public function carreras(User $actor, array $ids): array
+    {
+        $alcance = $this->alcance->exigir($actor, 'asignaturas.gestionar');
+
+        return DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
+            ->join('careers', 'careers.id', '=', 'study_plans.career_id')
+            ->whereIn('career_subjects.subject_id', $ids)
+            ->when($alcance !== 'G', fn ($q) => $q->whereIn('careers.department_id', $this->alcance->departamentos($actor)))
+            ->distinct()->orderBy('careers.code')->get(['career_subjects.subject_id', 'careers.code'])
+            ->groupBy('subject_id')->map(fn ($g) => $g->pluck('code')->unique()->values()->all())->all();
+    }
+
+    /**
+     * ¿Ve la columna del departamento? Solo con alcance global: el Jefe ya sabe que todas son de su departamento.
+     */
+    public function veDepartamento(User $actor): bool
+    {
+        return $this->alcance->exigir($actor, 'asignaturas.gestionar') === 'G';
+    }
+
+    /**
      * Crea o edita una asignatura con sus prerrequisitos y sus planes de estudio (`career_subjects`: plan y ciclo).
      * Al crearla se exige al menos un plan, para que no quede fuera de toda carrera. Con alcance D (el Jefe), los planes
      * deben ser de carreras de su departamento; los de otros departamentos que ya tenga se conservan sin tocarlos.
