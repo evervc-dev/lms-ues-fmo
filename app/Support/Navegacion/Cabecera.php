@@ -26,7 +26,7 @@ class Cabecera
         return [
             'usuario' => $usuario,
             'iniciales' => $usuario->iniciales(),
-            'roles' => $usuario->getRoleNames()->map(fn (string $rol) => __('roles.'.$rol))->join(', ', ' y '),
+            'roles' => $usuario->getRoleNames()->map(fn (string $rol) => __('roles.'.$rol).$this->ambito($usuario, $rol))->join(', ', ' y '),
             'menu' => $this->menu->para($usuario),
             'periodoActivo' => DB::table('academic_periods')->where('status', 'active')->value('name'),
             'asistenciaAbierta' => $this->asistenciaAbierta($usuario),
@@ -61,6 +61,22 @@ class Cabecera
     /**
      * Indica si el estudiante no tiene un dispositivo móvil de confianza registrado y activo (RF27).
      */
+    /**
+     * Unidad de la asignación vigente junto al rol: «Jefe de Departamento · DIA», «Coordinador · ISI» (QA Jefe 21/11).
+     */
+    private function ambito(User $usuario, string $rol): string
+    {
+        $codigo = match ($rol) {
+            'jefe_departamento' => DB::table('department_heads')->join('departments', 'departments.id', '=', 'department_heads.department_id')
+                ->where('department_heads.user_id', $usuario->id)->whereNull('department_heads.valid_to')->value('departments.code'),
+            'coordinador' => DB::table('career_coordinators')->join('careers', 'careers.id', '=', 'career_coordinators.career_id')
+                ->where('career_coordinators.user_id', $usuario->id)->whereNull('career_coordinators.valid_to')->value('careers.code'),
+            default => null,
+        };
+
+        return $codigo === null ? '' : ' · '.$codigo;
+    }
+
     private function sinDispositivo(User $usuario): bool
     {
         if (! $usuario->hasRole('estudiante')) {

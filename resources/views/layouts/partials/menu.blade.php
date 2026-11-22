@@ -24,11 +24,23 @@
     )?.scrollIntoView({ block: 'nearest' }))"
 >
     @foreach ($menu['grupos'] as $grupo)
-        <div class="flex flex-col gap-0.5">
-            @if ($menu['conTitulos'] && $grupo['titulo'])
-                <p x-show="! {{ $contraido }}" class="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-texto-suave">{{ $grupo['titulo'] }}</p>
+        {{-- Grupos plegables (QA admin 21/11: con 17 opciones, Inicio quedaba fuera de vista). Se recuerda por persona en
+             este navegador; el grupo de la página actual siempre se abre. Contraído a íconos, se ven todos. --}}
+        @php($plegable = $menu['conTitulos'] && $grupo['titulo'])
+        @php($claveGrupo = 'menu.grupo.'.\Illuminate\Support\Str::slug((string) $grupo['titulo']))
+        @php($conActiva = collect($grupo['opciones'])->contains(fn ($o) => $o->activa))
+        <div class="flex flex-col gap-0.5"
+            x-data="{ abierto: @js($conActiva) || (() => { try { return localStorage.getItem(@js($claveGrupo)) !== '0' } catch { return true } })(),
+                alternar() { this.abierto = ! this.abierto; try { localStorage.setItem(@js($claveGrupo), this.abierto ? '1' : '0') } catch {} } }">
+            @if ($plegable)
+                <button type="button" x-show="! {{ $contraido }}" x-on:click="alternar()" :aria-expanded="abierto.toString()"
+                    class="flex items-center justify-between rounded-md px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-texto-suave hover:text-texto">
+                    <span>{{ $grupo['titulo'] }}</span>
+                    <x-ui.icon name="chevron-down" class="size-3.5 transition-transform" x-bind:class="abierto ? '' : '-rotate-90'" />
+                </button>
                 <hr x-show="{{ $contraido }}" x-cloak class="mx-2 mb-1 border-borde">
             @endif
+            <div class="flex flex-col gap-0.5" x-show="! @js($plegable) || abierto || {{ $contraido }}">
             @foreach ($grupo['opciones'] as $opcion)
                 @if ($opcion->disponible())
                     @php($conConsulta = str_contains((string) $opcion->url, '?'))
@@ -78,6 +90,7 @@
                     </span>
                 @endif
             @endforeach
+            </div>
         </div>
     @endforeach
 

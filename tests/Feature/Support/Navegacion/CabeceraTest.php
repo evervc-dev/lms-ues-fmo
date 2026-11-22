@@ -75,3 +75,10 @@ it('renders the projection layout without student data', function () {
 
     expect($html)->toContain('PRN115 · Asistencia', 'QR')->not->toContain('Menú principal');
 });
+
+it('muestra junto al rol la unidad que dirige o coordina', function () {
+    $e = escenario();
+
+    $this->actingAs($e['jefe'])->get(route('inicio'))->assertOk()->assertSeeText('Jefe de Departamento · DIA');
+    $this->actingAs($e['coordinador'])->get(route('inicio'))->assertOk()->assertSeeText('· ISI');
+});
