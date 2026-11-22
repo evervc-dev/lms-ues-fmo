@@ -63,6 +63,22 @@ x-imagen: &imagen
     GOOGLE_ALLOWED_DOMAIN: ues.edu.sv
     LMS_DEV_LOGIN: ${LMS_DEV_LOGIN:-false}
     LMS_DEMO_SEED: ${LMS_DEMO_SEED:-false}
+    # El contenedor solo ve las variables listadas aquí: lo que se ponga en Coolify y no esté en esta lista no llega
+    # a la app. Perfil de siembra (demo o equipo) y su semilla.
+    LMS_SEED_PERFIL: ${LMS_SEED_PERFIL:-demo}
+    LMS_SEED_SEMILLA: ${LMS_SEED_SEMILLA:-2026}
+    # Cuenta superadmin (ADR-082): la contraseña nunca va en el repositorio, solo en las variables de Coolify.
+    SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-superadmin@ues.edu.sv}
+    SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
+    # Pruebas en staging (se ignoran en producción): cambio de rol sin limpiar antes y asistencia fuera de horario.
+    LMS_ROLES_LAXOS: ${LMS_ROLES_LAXOS:-false}
+    ASIS_BYPASS_WEEKEND: ${ASIS_BYPASS_WEEKEND:-false}
+    ASIS_MARGEN_HORARIO: ${ASIS_MARGEN_HORARIO:-15}
+    LMS_ESCENARIOS_CLAVE: ${LMS_ESCENARIOS_CLAVE:-}
+    LMS_AREA_NOMBRE: ${LMS_AREA_NOMBRE:-Campus UES FMO (San Miguel)}
+    LMS_AREA_LAT: ${LMS_AREA_LAT:-13.4393}
+    LMS_AREA_LNG: ${LMS_AREA_LNG:--88.1597}
+    LMS_AREA_RADIO: ${LMS_AREA_RADIO:-450}
 
 services:
   app:
