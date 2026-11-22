@@ -70,3 +70,20 @@ it('siembra datos de demo coherentes: cada evaluación cierra dentro de su cómp
 
     expect($fueraDelComputo)->toBe([])->and($aTiempoDespuesDelCierre)->toBe(0);
 });
+
+it('siembra los planes de ISI con materias propias y ninguna matrícula fuera del plan del estudiante', function () {
+    $this->seed();
+    $planesDe = fn (string $codigo) => DB::table('career_subjects as cs')->join('study_plans as sp', 'sp.id', '=', 'cs.study_plan_id')
+        ->join('subjects as s', 's.id', '=', 'cs.subject_id')->where('s.code', $codigo)->orderBy('sp.name')->pluck('sp.name')->all();
+
+    expect($planesDe('PRN115'))->toBe(['Plan 25', 'Plan 98'])
+        ->and($planesDe('ISI115'))->toBe(['Plan 25'])
+        ->and($planesDe('HDP115'))->toBe(['Plan 98']);
+
+    // Cada matrícula sembrada es de una materia del plan del estudiante.
+    $fueraDelPlan = DB::table('enrollments as e')->join('student_careers as sc', fn ($j) => $j->on('sc.student_id', '=', 'e.student_id')->where('sc.status', 'active'))
+        ->whereNotExists(fn ($q) => $q->select(DB::raw(1))->from('career_subjects as cs')
+            ->whereColumn('cs.study_plan_id', 'sc.study_plan_id')->whereColumn('cs.subject_id', 'e.subject_id'))
+        ->count();
+    expect($fueraDelPlan)->toBe(0);
+});
