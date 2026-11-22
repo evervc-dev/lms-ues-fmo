@@ -16,7 +16,7 @@
         'envioFallo' => __('No se pudo enviar al servidor.'),
     ]), @js((bool) config('app.debug')))"
     x-on:dispositivo-registrado.window="guardarToken($event.detail.token)">
-    <x-ui.encabezado :titulo="__('Escanear QR')" :subtitulo="$yaRegistrada ? __('Su asistencia de esta clase ya quedó registrada.') : __('Escanee el QR que proyecta su docente o ingrese el código temporal que le dictó.')" />
+    <x-ui.encabezado :titulo="__('Registro de asistencia')" :subtitulo="$yaRegistrada ? __('Su asistencia de esta clase ya quedó registrada.') : __('Escanee el QR que proyecta su docente o ingrese el código temporal que le dictó.')" />
 
     {{-- Ya marcó en la sesión abierta: no se ofrece el lector ni el código (QA 17/11). --}}
     @if ($yaRegistrada)
@@ -24,17 +24,16 @@
             {{ $yaRegistrada->code }} · {{ $yaRegistrada->name }} · {{ \Illuminate\Support\Carbon::parse($yaRegistrada->salida ?? $yaRegistrada->hora)->timezone('America/El_Salvador')->format('H:i') }}
         </x-ui.alert>
         <x-ui.button variante="secundario" :href="route('mi-asistencia')">{{ __('Ver mi asistencia') }}</x-ui.button>
-    @elseif (! $tieneTelefono)
-        <x-ui.alert tipo="aviso" :titulo="__('Registre su teléfono')">
-            {{ __('Para marcar con QR necesita registrar primero, desde su teléfono, el dispositivo con el que marcará asistencia.') }}
-        </x-ui.alert>
-        @can('dispositivo.registrar')
-            <x-ui.button icono="device-phone-mobile" :href="route('perfil.dispositivo')">{{ __('Ir a Mi perfil › Dispositivo') }}</x-ui.button>
-        @endcan
-    @endif
+    @else
 
-    @if (! $yaRegistrada && $tieneTelefono)
-    <div class="relative flex aspect-square flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl bg-marca-950 p-6 text-center text-white">
+    {{-- En una computadora no se ofrece el escáner: se marca con el teléfono autorizado (RF27, ADR-045). --}}
+    <div x-show="esComputadora" x-cloak>
+        <x-ui.alert tipo="info" :titulo="__('Abra esta página desde su teléfono')">
+            {{ __('El escáner de QR solo funciona en el teléfono que registró en Mi perfil. Si no tiene teléfono, pida a su docente un código temporal y escríbalo abajo.') }}
+        </x-ui.alert>
+    </div>
+
+    <div x-show="! esComputadora" class="relative flex aspect-square flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl bg-marca-950 p-6 text-center text-white">
         <video id="lector-qr-video" x-ref="video" x-show="estado === 'leyendo'" x-cloak muted playsinline class="absolute inset-0 size-full object-cover"></video>
 
         {{-- Visor: dónde poner el QR, y su contorno en verde cuando se detecta. --}}
@@ -111,24 +110,16 @@
         @endif
     </div>
 
-    @endif
-
-    @if (! $yaRegistrada)
     @if ($registrado)
         <x-ui.alert tipo="exito" :titulo="$registrado['salida'] ? __('Salida registrada') : __('Asistencia registrada')">{{ __(':m · :h', ['m' => $registrado['materia'], 'h' => now()->timezone('America/El_Salvador')->format('H:i')]) }}</x-ui.alert>
     @endif
 
     <x-ui.card :titulo="__('Ingresar código temporal')">
-        <form wire:submit="usarCodigo" class="flex items-start gap-2">
+        <form wire:submit="usarCodigo" class="flex items-end gap-2">
             <x-ui.field class="flex-1" :etiqueta="__('Código de 6 dígitos')" para="codigo" error="codigo">
-                <x-ui.input id="codigo" wire:model="codigo" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code"
-                    x-on:input="$el.value = $el.value.replace(/\D/g, '').slice(0, 6)" class="font-mono text-lg tracking-widest" />
+                <x-ui.input id="codigo" wire:model="codigo" inputmode="numeric" maxlength="6" autocomplete="one-time-code" class="font-mono text-lg tracking-widest" />
             </x-ui.field>
-            {{-- Como en Estudiantes: el error bajo el campo no debe bajar el botón. --}}
-            <div class="flex flex-col gap-1.5">
-                <span class="invisible text-sm font-medium" aria-hidden="true">{{ __('Registrar') }}</span>
-                <x-ui.button type="submit">{{ __('Registrar') }}</x-ui.button>
-            </div>
+            <x-ui.button type="submit">{{ __('Registrar') }}</x-ui.button>
         </form>
         <p class="mt-2 text-xs text-texto-suave">{{ __('El código vence a los 30 segundos y solo sirve para usted.') }}</p>
     </x-ui.card>
