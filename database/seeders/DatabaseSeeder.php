@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Support\DbContext;
+use Illuminate\Console\Command;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -29,5 +30,30 @@ class DatabaseSeeder extends Seeder
                 ? [EquipoSeeder::class]
                 : [DemoPeopleSeeder::class, DemoAcademicSeeder::class]);
         }, 'seed');
+
+        $this->imprimirResumen();
+    }
+
+    /**
+     * Lo último que se ve: cómo quedó la distribución de cuentas, roles y grupos, leída de la base.
+     */
+    private function imprimirResumen(): void
+    {
+        /** @var Command|null $consola */
+        $consola = $this->command;
+        if ($consola === null || app()->isProduction()) {
+            return;
+        }
+        $datos = ResumenSiembra::datos();
+        $equipo = config('lms.seed_perfil') === 'equipo';
+
+        $consola->newLine();
+        $consola->info($equipo
+            ? __('Distribución final · perfil equipo · semilla :s (cambie LMS_SEED_SEMILLA para barajar)', ['s' => config('lms.seed_semilla')])
+            : __('Distribución final · perfil demo'));
+        $consola->table([__('Rol'), __('Cuentas')], $datos['porRol']);
+        $consola->line($datos['detalleCompleto'] ? __('Cuentas:') : __('Cuentas de desarrollo (hay demasiadas para listarlas todas):'));
+        $consola->table([__('Rol'), __('Correo'), __('Nombre'), __('Asignación')], $datos['cuentas']);
+        $consola->table([__('Período'), ''], $datos['periodo']);
     }
 }

@@ -4,6 +4,7 @@ use App\Support\DbContext;
 use Database\Seeders\BaseSystemSeeder;
 use Database\Seeders\EquipoSeeder;
 use Database\Seeders\InstitutionSeeder;
+use Database\Seeders\ResumenSiembra;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -67,4 +68,21 @@ it('siembra la cuenta de emergencia con la contraseña del entorno', function ()
     $cuenta = DB::table('users')->where('is_emergency', true)->sole();
     expect($cuenta->institutional_email)->toBe('emergencia@ues.edu.sv')
         ->and(Hash::check('una-clave-de-prueba', $cuenta->password))->toBeTrue();
+});
+
+it('el resumen final muestra cada cuenta del equipo con su rol y su asignación, leído de la base', function () {
+    sembrarEquipo(2026);
+    $reparto = EquipoSeeder::reparto(array_keys(require database_path('seeders/data/testers.php')), 2026);
+    $datos = ResumenSiembra::datos();
+    $fila = fn (string $due) => collect($datos['cuentas'])->firstWhere(1, "{$due}@ues.edu.sv");
+
+    expect($datos['detalleCompleto'])->toBeTrue()
+        ->and($datos['cuentas'])->toHaveCount(21)
+        ->and($fila($reparto['jefe'])[0])->toBe('Jefe de Departamento + Docente')
+        ->and($fila($reparto['jefe'])[3])->toContain('Jefe de DIA')
+        ->and($fila($reparto['coordinador'])[3])->toContain('Coordina ISI')
+        ->and($fila($reparto['estudiantes'][0])[0])->toBe('Estudiante')
+        ->and($fila($reparto['estudiantes'][0])[3])->toContain('ciclo')
+        ->and(collect($datos['porRol'])->firstWhere(0, 'Total de cuentas')[1])->toBe(21)
+        ->and(collect($datos['periodo'])->firstWhere(0, 'Notas / registros de asistencia')[1])->toBe('0 / 0');
 });

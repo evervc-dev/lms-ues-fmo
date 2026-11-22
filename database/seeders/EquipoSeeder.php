@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Database\Seeders\Concerns\InsertsRows;
-use Illuminate\Console\Command;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +20,7 @@ use Spatie\Permission\Models\Role;
  * Los roles se reparten al azar con una semilla fija (LMS_SEED_SEMILLA): sembrar de nuevo da el mismo reparto y
  * cambiar la semilla lo baraja. 1 Jefe de DIA, 1 Coordinador de ISI y 3 docentes (los cinco con perfil docente
  * e imparten grupos) y el resto estudiantes, que solo tienen ese rol (ADR-081). No se inventan notas ni asistencia:
- * se prueban desde cero. Al terminar imprime el reparto.
+ * se prueban desde cero. El reparto lo imprime DatabaseSeeder al final (ResumenSiembra).
  */
 class EquipoSeeder extends Seeder
 {
@@ -92,7 +91,6 @@ class EquipoSeeder extends Seeder
         $this->plazos($periodo, $admin);
         $this->matriculas($periodo, $grupos, array_map(fn ($due) => [$ids[$due], $cicloDe[$due]], $estudiantes));
 
-        $this->imprimirReparto($semilla, $equipo, $jefe, $coordinador, $docentes, $estudiantes, $cicloDe);
     }
 
     /**
@@ -232,31 +230,5 @@ class EquipoSeeder extends Seeder
     private function correr(string $hora, int $turno): string
     {
         return $turno === 0 ? $hora : Carbon::createFromFormat('H:i', $hora)->addHours(6)->format('H:i');
-    }
-
-    /**
-     * @param  array<string, array{nombre: string, apellido: string}>  $equipo
-     * @param  array<int, string>  $docentes
-     * @param  array<int, string>  $estudiantes
-     * @param  array<string, int>  $cicloDe
-     */
-    private function imprimirReparto(int $semilla, array $equipo, string $jefe, string $coordinador, array $docentes, array $estudiantes, array $cicloDe): void
-    {
-        // Sin consola (por ejemplo, llamado desde una prueba) no hay dónde imprimir: Seeder::$command queda en null.
-        /** @var Command|null $consola */
-        $consola = $this->command;
-        if ($consola === null) {
-            return;
-        }
-        $nombre = fn (string $due) => $equipo[$due]['nombre'].' '.$equipo[$due]['apellido'];
-        $filas = [[__('Jefe de Departamento (DIA) y docente'), $jefe, $nombre($jefe)], [__('Coordinador (ISI) y docente'), $coordinador, $nombre($coordinador)]];
-        foreach ($docentes as $due) {
-            $filas[] = [__('Docente'), $due, $nombre($due)];
-        }
-        foreach ($estudiantes as $due) {
-            $filas[] = [__('Estudiante · ciclo :c', ['c' => $cicloDe[$due]]), $due, $nombre($due)];
-        }
-        $consola->info(__('Reparto del equipo (semilla :s; cambie LMS_SEED_SEMILLA para barajar):', ['s' => $semilla]));
-        $consola->table([__('Rol'), 'DUE', __('Nombre')], $filas);
     }
 }
