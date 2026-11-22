@@ -273,7 +273,12 @@ class PanelService
 
         return $this->gestion($secciones) + [
             'actas' => ['validadas' => DB::table('grade_sheets')->whereIn('section_id', $secciones)->where('status', 'validated')->count(), 'total' => $secciones->count()],
-            'auditoria' => DB::table('audit_logs')->whereIn('department_id', $deps)->orderByDesc('occurred_at')->limit(4)->get(['event_type', 'entity_type', 'occurred_at']),
+            // Con quién lo hizo y, si es una cuenta, sobre quién: el panel las muestra en frases (QA Jefe 21/11).
+            'auditoria' => DB::table('audit_logs')->leftJoin('users as actor', 'actor.id', '=', 'audit_logs.actor_user_id')
+                ->leftJoin('users as sujeto', fn ($j) => $j->on('sujeto.id', '=', 'audit_logs.entity_id')->where('audit_logs.entity_type', 'users'))
+                ->whereIn('audit_logs.department_id', $deps)->orderByDesc('audit_logs.occurred_at')->limit(4)
+                ->get(['audit_logs.event_type', 'audit_logs.entity_type', 'audit_logs.entity_id', 'audit_logs.occurred_at',
+                    DB::raw("actor.first_name || ' ' || actor.last_name as actor"), DB::raw("sujeto.first_name || ' ' || sujeto.last_name as sobre")]),
         ];
     }
 

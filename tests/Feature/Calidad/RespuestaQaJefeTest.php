@@ -100,7 +100,8 @@ it('el panel del Jefe dice que la asistencia y la matrícula son de los estudian
     $e = escenario();
 
     actingAs($e['jefe'])->get(route('inicio'))->assertOk()
-        ->assertSeeText(['Matrículas activas de estudiantes', 'Asistencia de estudiantes', 'no incluye la de los docentes', 'Grupos teóricos sin docente asignado'])
+        // QA Jefe 21/11: rótulos cortos; que son de los estudiantes lo dice el detalle.
+        ->assertSeeText(['Matrículas activas', 'De estudiantes, una por materia', 'De los estudiantes matriculados', 'no incluye la de los docentes', 'Sin docente'])
         ->assertDontSeeText('Matrícula del período');
 });
 
@@ -214,4 +215,20 @@ it('la Ayuda escribe los avisos de los manuales con palabras y sin emojis', func
 
     actingAs($e['estudiante'])->get(route('ayuda', ['manual' => 'bienvenida']))->assertOk()
         ->assertSee('Atención: Solo un teléfono')->assertDontSee(['⚠️', '💡', 'ℹ️', '⛔', '✅']);
+});
+
+it('el panel del Jefe lleva «Sin docente» a Carga académica y muestra la auditoría en frases', function () {
+    $e = escenario();
+    if (DB::connection()->getDriverName() !== 'pgsql') {
+        DB::table('audit_logs')->insert(['occurred_at' => now(), 'department_id' => $e['dia'], 'event_type' => 'user.roles_changed', 'entity_type' => 'users',
+            'entity_id' => $e['docente']->id, 'action' => 'update', 'actor_user_id' => $e['administrador']->id]);
+    }
+    // MAT115 · 01 (de DCNM) no cuenta; se deja PRN115 · 01 sin docente para que el Jefe de DIA vea la tarjeta enlazada.
+    DbContext::system(fn () => DB::table('teaching_assignments')->where('section_id', $e['seccion'])->update(['ended_at' => now()->toDateString()]));
+
+    $pagina = actingAs($e['jefe'])->get(route('inicio'))->assertOk()
+        ->assertSee(route('carga-academica', ['estado' => 'sin_docente']), false);
+    if (DB::connection()->getDriverName() !== 'pgsql') {
+        $pagina->assertSeeText(['Cambiaron los roles de una cuenta', $e['docente']->first_name])->assertDontSeeText('user.roles_changed');
+    }
 });

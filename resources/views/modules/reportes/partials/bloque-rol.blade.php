@@ -115,15 +115,24 @@
         {{-- Las etiquetas dicen de quién y de qué es cada cifra: antes «Asistencia» o «Matrícula» no
              aclaraban si eran de los docentes o de los estudiantes (revisión del rol Jefe de departamento). --}}
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <x-ui.stat :etiqueta="__('Matrículas activas de estudiantes')" :valor="number_format($b['matricula'])" icono="users"
-                :detalle="trans_choice('{1} 1 grupo teórico|[0,*] :count grupos teóricos', $b['secciones']).' · '.__('una por estudiante y materia')" />
-            <x-ui.stat :etiqueta="__('Asistencia de estudiantes')" :valor="$b['asistencia'] !== null ? $b['asistencia'].' %' : '—'" icono="clipboard-document-check"
-                :tono="$b['asistencia'] !== null && $b['asistencia'] < 85 ? 'aviso' : 'exito'"
-                :detalle="__('Marcas de los matriculados en estos grupos teóricos; no incluye la de los docentes')" />
-            <x-ui.stat :etiqueta="__('Matrículas de estudiantes en riesgo')" :valor="$b['riesgo']" icono="exclamation-triangle" :tono="$b['riesgo'] ? 'error' : 'exito'"
-                :detalle="__('Asistencia bajo el 75 % o riesgo de reprobar por notas')" />
-            <x-ui.stat :etiqueta="__('Grupos teóricos sin docente asignado')" :valor="$b['sinDocente']" icono="user-plus" :tono="$b['sinDocente'] ? 'aviso' : 'exito'"
-                :detalle="trans_choice('{0} Todos tienen docente|{1} 1 grupo teórico por asignar|[2,*] :count grupos teóricos por asignar', $b['sinDocente'])" />
+            {{-- Rótulos cortos y el detalle abajo (QA Jefe 21/11); las explicaciones van en gris, el verde solo dice «todo bien». --}}
+            <x-ui.stat :etiqueta="__('Matrículas activas')" :valor="number_format($b['matricula'])" icono="users"
+                :detalle="__('De estudiantes, una por materia').' · '.trans_choice('{1} 1 grupo teórico|[0,*] :count grupos teóricos', $b['secciones'])" />
+            <x-ui.stat :etiqueta="__('Asistencia')" :valor="$b['asistencia'] !== null ? $b['asistencia'].' %' : '—'" icono="clipboard-document-check"
+                :tono="$b['asistencia'] !== null && $b['asistencia'] < 85 ? 'aviso' : 'neutro'"
+                :detalle="__('De los estudiantes matriculados; no incluye la de los docentes')" />
+            <x-ui.stat :etiqueta="__('En riesgo')" :valor="$b['riesgo']" icono="exclamation-triangle" :tono="$b['riesgo'] ? 'error' : 'neutro'"
+                :detalle="__('Matrículas con asistencia bajo el 75 % o riesgo de reprobar por notas')" />
+            @php($vaACarga = $b['sinDocente'] > 0 && auth()->user()->checkPermissionTo('secciones.asignar-docente'))
+            @if ($vaACarga)
+                {{-- Lleva a Carga académica filtrada por «Sin docente» (QA admin 21/11). --}}
+                <a href="{{ route('carga-academica', ['estado' => 'sin_docente']) }}" wire:navigate class="rounded-xl transition hover:ring-2 hover:ring-marca-200">
+            @endif
+            <x-ui.stat :etiqueta="__('Sin docente')" :valor="$b['sinDocente']" icono="user-plus" :tono="$b['sinDocente'] ? 'aviso' : 'exito'"
+                :detalle="$vaACarga ? __('Grupos teóricos por asignar · ver en Carga académica') : trans_choice('{0} Todos los grupos teóricos tienen docente|{1} 1 grupo teórico por asignar|[2,*] :count grupos teóricos por asignar', $b['sinDocente'])" />
+            @if ($vaACarga)
+                </a>
+            @endif
         </div>
         @if ($rol === 'coordinador')
             <x-ui.card class="mt-4" :titulo="__('Pendientes de decisión')">
@@ -143,7 +152,20 @@
                     <x-ui.button class="mt-3" tamano="sm" variante="secundario" :href="route('cierre')">{{ __('Ir al cierre') }}</x-ui.button>
                 </x-ui.card>
                 <x-ui.card :titulo="__('Auditoría reciente')" :descripcion="__('Últimos cambios registrados en su departamento.')">
-                    @forelse ($b['auditoria'] as $a)<p class="py-1 font-mono text-xs">{{ $fecha($a->occurred_at)->format('d/m H:i') }} · {{ $a->event_type ?: $a->entity_type }}</p>@empty<p class="text-sm text-texto-suave">{{ __('Sin eventos.') }}</p>@endforelse
+                    {{-- En frases: quién, qué y sobre quién (QA Jefe 21/11); antes solo «user.roles_changed». --}}
+                    @forelse ($b['auditoria'] as $a)
+                        <p class="border-b border-zinc-100 py-1.5 text-sm last:border-0">
+                            <span class="text-xs text-texto-suave">{{ $fecha($a->occurred_at)->format('d/m H:i') }}</span>
+                            · <span class="font-medium">{{ $a->actor ?: __('El sistema') }}</span>:
+                            {{ \App\Modules\Auditoria\Services\AuditoriaService::evento($a->event_type) }}
+                            <span class="text-texto-suave">({{ $a->sobre ?: \App\Modules\Auditoria\Services\AuditoriaService::entidad($a->entity_type).($a->entity_id ? ' #'.$a->entity_id : '') }})</span>
+                        </p>
+                    @empty
+                        <p class="text-sm text-texto-suave">{{ __('Sin eventos.') }}</p>
+                    @endforelse
+                    @if (auth()->user()->checkPermissionTo('auditoria.ver'))
+                        <x-ui.button class="mt-3" tamano="sm" variante="secundario" :href="route('auditoria')">{{ __('Ver la auditoría') }}</x-ui.button>
+                    @endif
                 </x-ui.card>
             </div>
         @else
