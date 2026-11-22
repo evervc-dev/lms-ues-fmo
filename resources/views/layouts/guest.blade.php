@@ -10,14 +10,21 @@
 <head>
     @include('layouts::partials.head')
 </head>
-<body class="flex min-h-full flex-col items-center justify-center px-4 py-10 font-sans text-zinc-900 antialiased">
+<body class="flex min-h-full flex-col items-center justify-center px-4 py-10 font-sans text-texto antialiased">
+    {{-- Franja institucional: el rojo UES de la cabecera del sitio oficial (Guía de estilo, sección 2). --}}
+    <div class="fixed inset-x-0 top-0 h-1 bg-marca-600" aria-hidden="true"></div>
+
     <main class="flex w-full flex-col items-center gap-6">
-        <div class="flex flex-col items-center gap-2 text-center">
-            <span class="grid size-12 place-items-center rounded-xl bg-marca-600 text-sm font-bold text-white">UES</span>
-            <p class="text-sm font-medium text-zinc-600">{{ __('Universidad de El Salvador · Facultad Multidisciplinaria de Oriente') }}</p>
+        {{-- Marcador «UES»: el escudo oficial se coloca cuando la universidad entregue el archivo; no se dibuja ni se inventa. --}}
+        <div class="flex items-center gap-3 text-left">
+            <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-marca-600 text-sm font-bold tracking-tight text-white shadow-[0_2px_8px_rgba(174,21,45,0.25)]">UES</span>
+            <div class="flex flex-col">
+                <p class="text-sm font-semibold uppercase tracking-wide text-marca-700">{{ __('Universidad de El Salvador') }}</p>
+                <p class="text-sm text-texto-suave">{{ __('Facultad Multidisciplinaria Oriental') }}</p>
+            </div>
         </div>
         <div @class([
-            'w-full rounded-2xl bg-white p-6 shadow-sm ring-1 ring-zinc-200 sm:p-8',
+            'w-full rounded-2xl border-t-4 border-marca-600 bg-white p-6 shadow-sm ring-1 ring-borde sm:p-8',
             match ($ancho) {
                 'xl' => 'max-w-5xl',
                 'lg' => 'max-w-2xl',
@@ -25,17 +32,20 @@
             },
         ])>
             @if ($title)
-                <h1 class="mb-4 text-xl font-semibold text-zinc-900">{{ $title }}</h1>
+                <h1 class="mb-4 text-xl font-semibold text-texto">{{ $title }}</h1>
             @endif
             {{ $slot }}
         </div>
     </main>
-    <footer class="mt-8 text-xs text-zinc-500">
-        LMS UES FMO
-        {{-- La Ayuda pide sesión: sin ella, el enlace volvía al login. --}}
-        @if (Route::has('ayuda') && auth()->check())
-            · <a href="{{ route('ayuda') }}" class="hover:underline">{{ __('Ayuda') }}</a>
-        @endif
+    <footer class="mt-8 flex flex-col items-center gap-1 text-center text-xs text-texto-suave">
+        <p>
+            {{ __('LMS UES FMO · Aula virtual de Ingeniería de Sistemas Informáticos') }}
+            {{-- La Ayuda pide sesión: sin ella, el enlace volvía al login. --}}
+            @if (Route::has('ayuda') && auth()->check())
+                · <a href="{{ route('ayuda') }}" class="hover:underline">{{ __('Ayuda') }}</a>
+            @endif
+        </p>
+        <p>© {{ now()->year }} {{ __('Universidad de El Salvador · Facultad Multidisciplinaria Oriental') }}</p>
     </footer>
     <x-ui.toasts />
     @livewireScripts
