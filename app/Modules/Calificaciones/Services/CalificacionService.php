@@ -271,7 +271,11 @@ class CalificacionService
     /**
      * Boleta del estudiante en una sección (RF17): por cómputo y por unidad, solo con notas publicadas.
      *
-     * @return array{computos: Collection<int, object>, notas: Collection<int|string, \stdClass>, heredadas: Collection<int, object>, final: float, porUnidad: Collection<int|string, float>}
+     * «final» es el promedio de lo ya calificado; «evaluado», qué porcentaje del curso tiene nota, y «puntos», lo que
+     * eso aporta a la nota final sobre 10. Con 8.8 en un cómputo del 30 %, lleva 2.6 puntos: mostrar solo el 8.8
+     * hacía creer al estudiante que ya había aprobado (revisión UX del 22/11/2026).
+     *
+     * @return array{computos: Collection<int, object>, notas: Collection<int|string, \stdClass>, heredadas: Collection<int, object>, final: float, evaluado: float, puntos: float, porUnidad: Collection<int|string, float>}
      */
     public function boleta(User $estudiante, int $seccionId): array
     {
@@ -284,8 +288,11 @@ class CalificacionService
         $porUnidad = $computos->flatMap(fn ($c) => $c->items)->filter(fn ($i) => $i->is_published && $i->unidad)
             ->groupBy('unidad')->map(fn ($items) => self::redondear($items->avg(fn ($i) => (float) ($notas[$i->id]->score ?? 0))));
 
+        $final = $this->notaFinal($computos, $notas, soloPublicadas: true, cadena: $heredadas);
+        $evaluado = (float) $computos->reject(fn ($c) => $this->computoPendiente($c, $notas, $heredadas))->sum(fn ($c) => (float) $c->weight_percent);
+
         return ['computos' => $computos, 'notas' => $notas, 'heredadas' => $heredadas,
-            'final' => $this->notaFinal($computos, $notas, soloPublicadas: true, cadena: $heredadas), 'porUnidad' => $porUnidad];
+            'final' => $final, 'evaluado' => $evaluado, 'puntos' => self::redondear($final * $evaluado / 100), 'porUnidad' => $porUnidad];
     }
 
     /**
@@ -303,6 +310,8 @@ class CalificacionService
             ->map(function ($m) use ($estudiante) {
                 $b = $this->boleta($estudiante, (int) $m->seccion_id);
                 $m->final = $b['final'];
+                $m->evaluado = $b['evaluado'];
+                $m->puntos = $b['puntos'];
                 $m->computos = $b['computos']->map(fn ($c) => (object) ['nombre' => $c->name, 'peso' => (float) $c->weight_percent,
                     'nota' => $this->notaComputo($c, $b['notas'], true, $b['heredadas']),
                     'pendiente' => $this->computoPendiente($c, $b['notas'], $b['heredadas']),

@@ -19,7 +19,8 @@
                 <x-ui.badge color="verde">{{ $salida ? __('Marca de salida abierta') : __('Abierta') }}</x-ui.badge>
                 <span x-data="{ s: {{ $segundos }} }" x-init="setInterval(() => s > 0 && s--, 1000)" class="font-mono text-sm" x-text="`${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`"></span>
                 <x-ui.button variante="secundario" icono="qr-code" :href="route('secciones.asistencia.proyectar', ['seccion' => $resumen['ulid'], 'sesion' => $sesion->ulid])" :navegar="false" target="_blank">{{ __('Proyectar QR') }}</x-ui.button>
-                <x-ui.button variante="peligro" wire:click="cerrar" wire:confirm="{{ $salida ? __('Quienes marcaron solo la entrada o solo la salida quedarán con tardanza. ¿Cerrar la marca de salida?') : __('Quienes no marcaron quedarán ausentes. ¿Cerrar la sesión?') }}">{{ $salida ? __('Cerrar salida') : __('Cerrar sesión') }}</x-ui.button>
+                {{-- «Cerrar asistencia» y no «Cerrar sesión»: así se llama también salir de la cuenta (revisión UX del 22/11/2026). --}}
+                <x-ui.button variante="peligro" wire:click="cerrar" wire:confirm="{{ $salida ? __('Quienes marcaron solo la entrada o solo la salida quedarán con tardanza. ¿Cerrar la marca de salida?') : __('Quienes no marcaron quedarán ausentes. ¿Cerrar la asistencia?') }}">{{ $salida ? __('Cerrar salida') : __('Cerrar asistencia') }}</x-ui.button>
             @else
                 <x-ui.badge>{{ __('Cerrada') }}</x-ui.badge>
             @endif
