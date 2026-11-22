@@ -525,3 +525,14 @@ it('señala las solicitudes de cancelación por aprobar cuya fecha ya pasó', fu
     $this->travel(3)->days();
     Livewire::test(ClasesCanceladas::class)->assertSee('Fecha pasada')->assertSee('Cancelaciones y cambios de modalidad');
 });
+
+it('CP-RF26-03 la lista de áreas las muestra en un mapa de solo lectura y permite enfocarlas', function () {
+    $e = escenario();
+    DbContext::system(fn () => DB::table('attendance_areas')->insert(['name' => 'Edificio de Ingeniería', 'area_type' => 'circle', 'center_lat' => 13.4393,
+        'center_lng' => -88.1597, 'radius_m' => 120, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]));
+    actingAs($e['administrador']);
+
+    $this->get(route('areas-asistencia'))->assertOk()
+        ->assertSee('mapaAreas(', false)->assertSee('x-ref="vista"', false)
+        ->assertSee('Ver en el mapa')->assertSee('Edificio de Ingenier', false);
+});
