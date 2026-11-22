@@ -124,21 +124,33 @@
     @if ($gestiona)
         <x-ui.card :titulo="__('Cómo se completa')" :descripcion="__('Lo que ya está completado no se desmarca al cambiar la regla.')">
             <form wire:submit="cambiarRegla" class="flex flex-col gap-4">
-                <x-ui.field class="max-w-md" :etiqueta="__('Forma de completarlo')" para="completion" error="completion"
-                    :ayuda="__('A mano, el estudiante pulsa «Ya lo leí». Con una regla, la plataforma lo marca sola al cumplirse.')">
-                    <x-ui.select id="completion" wire:model.live="completion">
-                        <option value="manual">{{ __('A mano: el estudiante marca «Ya lo leí»') }}</option>
-                        <option value="automatic">{{ __('Con una regla: se marca solo') }}</option>
-                    </x-ui.select>
-                </x-ui.field>
+                {{-- Una sola elección: a mano o la regla que lo marca solo. Antes eran dos listas encadenadas («forma» y «regla»). --}}
+                @php($opcionActual = $completion === 'manual' ? 'manual' : $reglaTipo)
+                <fieldset>
+                    <legend class="mb-1 text-sm font-medium text-zinc-800">{{ __('¿Cuándo se marca como completado?') }}</legend>
+                    <p class="mb-2 text-xs text-texto-suave">{{ __('Vigente: :r', ['r' => $reglaEnPalabras ?: __('el estudiante pulsa «Ya lo leí»')]) }}</p>
+                    <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                        @foreach (['manual' => [__('A mano'), __('El estudiante pulsa «Ya lo leí».')]] + collect($reglas)->map(fn ($etiqueta, $valor) => [__($etiqueta), match ($valor) {
+                            'opened' => __('Se marca solo al abrir el recurso.'),
+                            'min_score' => __('Al sacar la nota mínima en un cuestionario.'),
+                            'submission' => __('Al entregar una tarea.'),
+                            'forum_posts' => __('Al escribir mensajes en un hilo del foro.'),
+                            default => '',
+                        }])->all() as $valor => [$nombreOpcion, $detalleOpcion])
+                            <label wire:key="opcion-{{ $valor }}" @class(['flex cursor-pointer flex-col gap-0.5 rounded-lg p-3 ring-1 transition', 'bg-marca-50 ring-2 ring-marca-600' => $opcionActual === $valor, 'ring-borde hover:bg-zinc-50' => $opcionActual !== $valor])>
+                                <input type="radio" name="opcion-completado" value="{{ $valor }}" @checked($opcionActual === $valor) class="sr-only"
+                                    @if ($valor === 'manual') x-on:change="$wire.set('completion', 'manual')"
+                                    @else x-on:change="$wire.set('completion', 'automatic', false); $wire.set('reglaTipo', @js($valor))" @endif>
+                                <span class="text-sm font-medium text-texto">{{ $nombreOpcion }}</span>
+                                <span class="text-xs text-texto-suave">{{ $detalleOpcion }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('completion')<p class="mt-1 text-xs font-medium text-red-700">{{ $message }}</p>@enderror
+                    @error('reglaTipo')<p class="mt-1 text-xs font-medium text-red-700">{{ $message }}</p>@enderror
+                </fieldset>
 
                 @if ($completion === 'automatic')
-                    <x-ui.field class="max-w-md" :etiqueta="__('Regla')" para="reglaTipo" error="reglaTipo">
-                        <x-ui.select id="reglaTipo" wire:model.live="reglaTipo">
-                            @foreach ($reglas as $valor => $etiqueta)<option value="{{ $valor }}">{{ __($etiqueta) }}</option>@endforeach
-                        </x-ui.select>
-                    </x-ui.field>
-
                     @if ($reglaTipo === 'min_score')
                         <div class="grid max-w-xl gap-4 sm:grid-cols-2">
                             <x-ui.field :etiqueta="__('Cuestionario')" para="reglaEvaluacion" error="reglaEvaluacion" requerido>
