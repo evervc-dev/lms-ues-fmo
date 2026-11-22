@@ -49,6 +49,9 @@ class EquipoSeeder extends Seeder
         $carreraIsi = (int) DB::table('careers')->where('code', 'ISI')->value('id');
         $planes = DB::table('study_plans')->where('career_id', $carreraIsi)->pluck('id', 'name');
         $periodo = (int) DB::table('academic_periods')->where('name', '2026-II')->value('id');
+        // 2026-I ya pasó: InstitutionSeeder lo deja planificado y la demo lo cierra al sembrar su historial. Sin
+        // historial, aquí se cierra igual, para que no aparezca como período en preparación.
+        DB::table('academic_periods')->where('name', '2026-I')->update(['status' => 'closed', 'updated_at' => now()]);
 
         $admin = $this->cuenta('admin.dev@ues.edu.sv', 'Administración', 'Desarrollo');
         $this->darRol($admin, 'administrador');

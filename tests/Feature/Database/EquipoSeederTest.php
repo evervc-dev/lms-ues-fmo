@@ -41,6 +41,7 @@ it('siembra solo las cuentas del equipo y admin.dev, con 1 jefe, 1 coordinador, 
         ->and(collect($roles)->filter(fn ($r) => $r === ['estudiante'])->count())->toBe(count($equipo) - 5)
         // ADR-081: ningún estudiante tiene otro rol.
         ->and(collect($roles)->filter(fn ($r) => in_array('estudiante', $r, true) && count($r) > 1))->toBeEmpty()
+        ->and(DB::table('academic_periods')->pluck('status', 'name')->all())->toBe(['2026-I' => 'closed', '2026-II' => 'active', '2027-I' => 'planned'])
         ->and(DB::table('grades')->count())->toBe(0)
         ->and(DB::table('attendance_records')->count())->toBe(0)
         ->and(DB::table('enrollments')->where('status', 'active')->count())->toBeGreaterThan(0)
