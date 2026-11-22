@@ -35,7 +35,8 @@ fuentes: ["Decisión del usuario del 21/11/2026 (D3 de la revisión de flujos)"]
 | No | Sí | Tarde (vale 0,5) |
 | No | No | Ausente |
 
-- «Entrada» es un registro Presente o Tarde anterior a la apertura de la salida. No se tocan las **justificadas** ni los registros que el docente **corrigió a mano** (`corrected_by`).
+- «Entrada» es un registro Presente o Tarde al cerrar la salida: la marca del estudiante o la **corrección del docente** a quien llegó tarde y no alcanzó a marcar (decisión del usuario del 21/11/2026). No se tocan las **justificadas**.
+- Quien llega después de cerrada la entrada no puede marcarla: con la salida queda Tarde, salvo que el docente le marque la entrada. Lo que se corrige después de cerrar la salida ya no se recalcula.
 - Si el docente nunca abre la salida, la sesión se calcula como antes: solo cuenta la entrada.
 
 ## Consecuencias

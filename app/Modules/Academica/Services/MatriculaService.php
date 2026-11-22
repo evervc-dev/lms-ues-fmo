@@ -195,7 +195,8 @@ class MatriculaService
     }
 
     /**
-     * Claves vigentes por asignatura del período (Coordinador, sus carreras; Jefe, su departamento).
+     * Claves vigentes por asignatura del período (Administrador, toda la facultad; Jefe, su departamento; Coordinador,
+     * sus carreras). Con «Aplicar a todas», el Administrador pone una sola clave para la facultad (ADR-080).
      *
      * @return Collection<int, object>
      */
@@ -205,10 +206,12 @@ class MatriculaService
         // Las claves se configuran también en un período en preparación (Ciclo de vida del período académico).
         $periodo = PeriodoService::preparableOActivo($periodoId);
         $buscar = Busqueda::fragmento($buscar);
-        $ambito = $alcance === 'D'
-            ? DB::table('subjects')->whereIn('department_id', $this->alcance->departamentos($actor))->select('id')
-            : DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
-                ->whereIn('study_plans.career_id', $this->alcance->carreras($actor))->select('career_subjects.subject_id');
+        $ambito = match ($alcance) {
+            'G' => DB::table('subjects')->select('id'),
+            'D' => DB::table('subjects')->whereIn('department_id', $this->alcance->departamentos($actor))->select('id'),
+            default => DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
+                ->whereIn('study_plans.career_id', $this->alcance->carreras($actor))->select('career_subjects.subject_id'),
+        };
 
         return DB::table('subjects')
             ->when($buscar !== '%%', fn ($q) => $q->where(fn ($q) => $q->whereRaw("lower(subjects.code) like ? escape '\\'", [$buscar])

@@ -479,7 +479,8 @@ class AsistenciaService
     /**
      * Quienes no marcaron quedan ausentes y la sesión pasa a cerrada. Al cerrar la ventana de salida (ADR-079) se
      * recalcula cada registro: con entrada y salida queda el estado de la entrada; con una sola, tarde; sin ninguna,
-     * ausente. No se tocan las justificadas ni lo que el docente corrigió a mano. Va dentro del DbContext de quien la llama.
+     * ausente. Una corrección del docente a Presente o Tarde hecha antes vale como marca de entrada; las justificadas no
+     * se tocan (ADR-079). Va dentro del DbContext de quien la llama.
      */
     private function registrarCierre(object $sesion): void
     {
@@ -492,10 +493,11 @@ class AsistenciaService
                 'method' => 'manual', 'recorded_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
         }
         if ($activo && $sesion->exit_opened_at !== null) {
-            $sinCorregir = DB::table('attendance_records')->where('session_id', $sesion->id)->whereNull('corrected_by');
-            // Entrada sin salida: tarde. Salida sin entrada (ausente al cerrar la entrada): tarde.
-            (clone $sinCorregir)->where('status', 'present')->whereNull('exit_recorded_at')->update(['status' => 'late', 'updated_at' => now()]);
-            (clone $sinCorregir)->where('status', 'absent')->whereNotNull('exit_recorded_at')->update(['status' => 'late', 'updated_at' => now()]);
+            $registros = DB::table('attendance_records')->where('session_id', $sesion->id);
+            // Entrada sin salida: tarde. Salida sin entrada (ausente al cerrar la entrada): tarde. La entrada puede ser la
+            // marca del estudiante o la corrección del docente; las justificadas no entran en ninguna de las dos.
+            (clone $registros)->where('status', 'present')->whereNull('exit_recorded_at')->update(['status' => 'late', 'updated_at' => now()]);
+            (clone $registros)->where('status', 'absent')->whereNotNull('exit_recorded_at')->update(['status' => 'late', 'updated_at' => now()]);
         }
         DB::table('attendance_sessions')->where('id', $sesion->id)->where('status', 'open')->update(['status' => 'closed', 'closed_at' => now(), 'updated_at' => now()]);
     }

@@ -23,7 +23,7 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
 - **Hecho:** el alcance de carrera de los grupos, las carreras de un grupo y la cancelación por carrera salen del plan de estudios, no de `sections.career_id`, que queda como dato de la carrera que lo solicitó.
 - **CP cubiertos:** CP-RF08-12, CP-RF32-04 y CP-RF34-13 reescritos con la regla nueva.
-- **Decisiones:** [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]] (pendiente): Coordinador ve los grupos de las materias de su plan; la cancelación de una carrera alcanza al grupo entero; career_id informativo.
+- **Decisiones:** [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]] (pendiente): Coordinador ve los grupos de las materias de su plan; la cancelación de una carrera alcanza al grupo entero; career_id informativo; el Administrador pone la clave única de la facultad (CP-RF29-21). En [[ADR-079 Marca de entrada y salida en clase presencial]], la entrada que el docente marca a mano vale como marca al cerrar la salida (CP-RF20-17).
 - **Pendiente:** D6 (aceptar las ADR pendientes).
 
 ### 2026-11-21 · RF20 · Marca de entrada y salida en clase presencial

@@ -282,6 +282,19 @@ it('CP-RF29-11 «Aplicar a todas» no está al alcance del docente ni del estudi
     expect(DB::table('enrollment_keys')->exists())->toBeFalse();
 })->with(['docente', 'estudiante']);
 
+it('CP-RF29-21 el Administrador pone una sola clave para todas las asignaturas de la facultad (ADR-080)', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+
+    expect(inscripcion()->claves($e['administrador'])->pluck('code')->all())->toBe(['MAT115', 'PRN115'])
+        ->and(inscripcion()->aplicarClaveATodas($e['administrador'], 'FMO-2026-II'))->toBe(2);
+
+    $hashes = DB::table('enrollment_keys')->where('is_active', true)->pluck('key_hash', 'subject_id');
+    expect($hashes->keys()->all())->toEqualCanonicalizing([$e['prn'], $e['mat']])
+        ->and($hashes->every(fn (string $hash) => Hash::check('FMO-2026-II', $hash)))->toBeTrue();
+    $this->get(route('matricula.claves'))->assertOk();
+});
+
 it('CP-RF29-12 el Jefe gestiona las claves de su departamento y no las de otro', function () {
     $e = escenario();
     $jefeDcnm = inscripcionJefeDe($e['dcnm']);

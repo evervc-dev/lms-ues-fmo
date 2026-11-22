@@ -42,7 +42,7 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 | `secciones.cupo` | G | D | | | | | [[RF08]], [[ADR-037 Jerarquía de creación y asignación de roles]] |
 | `matricula.gestionar` | G | D | C | S | | G | [[RF09]], [[ADR-030 Matrícula ampliada]], [[ADR-032 Ajustes por el documento de roles]], [[ADR-037 Jerarquía de creación y asignación de roles]] |
 | `matricula.cambio.resolver` | | D | | | | | [[RF09]], [[ADR-078 El Jefe resuelve el cambio de grupo y no se validan prerrequisitos]] |
-| `matricula.claves.gestionar` | | D | C | | | | [[RF29]], [[ADR-050 Inscripción por catálogo y claves compartidas]] |
+| `matricula.claves.gestionar` | G | D | C | | | | [[RF29]], [[ADR-050 Inscripción por catálogo y claves compartidas]], [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]] (el Administrador pone la clave única de la facultad) |
 | `matricula.automatricular` | | | | | P | | [[RF29]] |
 | `matricula.plazo.gestionar` | G | D | C | | | | [[RF29]], [[ADR-051 Fecha límite de inscripción por departamento]] (el Coordinador, en los departamentos de sus carreras) |
 | `matricula.plazo.prorrogar` | | D | | | | | [[RF29]], [[ADR-051 Fecha límite de inscripción por departamento]] |

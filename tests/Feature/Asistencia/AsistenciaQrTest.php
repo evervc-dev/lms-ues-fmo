@@ -889,24 +889,32 @@ it('CP-RF20-16 con una sola marca, de entrada o de salida, queda tarde', functio
         ->and(estadoDe($companero['matricula']))->toBe('late');
 });
 
-it('CP-RF20-17 sin ninguna marca queda ausente, y no se tocan las justificadas ni las correcciones del docente', function () {
+it('CP-RF20-17 sin ninguna marca queda ausente, la corrección del docente vale como entrada y la justificada no cambia', function () {
     $e = escenarioQr();
-    $corregido = companeroConTelefono($e, 'telefono-corregido');
+    $tardeConSalida = companeroConTelefono($e, 'telefono-tarde-con-salida');
+    $tardeSinSalida = companeroConTelefono($e, 'telefono-tarde-sin-salida');
     $justificado = companeroConTelefono($e, 'telefono-justificado');
     $servicio = app(AsistenciaService::class);
-    escanear(['token' => $corregido['token']] + $e, qrProyectado($e), estudiante: $corregido['usuario']);
     $this->travel(90)->minutes();
     abrirSalida($e);
 
-    // Durante la salida, el docente corrige a mano a dos estudiantes: esos estados ya no se recalculan.
+    // Dos llegaron tarde y no marcaron la entrada: el docente se la marca a mano. Uno marca la salida y el otro no.
     actingAs($e['docente']);
-    $servicio->marcar($e['docente'], $e['seccion'], $e['sesion'], $corregido['matricula'], 'present', 'Salió a una diligencia de la escuela.');
+    $servicio->marcar($e['docente'], $e['seccion'], $e['sesion'], $tardeConSalida['matricula'], 'present', 'Llegó tarde por el transporte; se le marca la entrada.');
+    $servicio->marcar($e['docente'], $e['seccion'], $e['sesion'], $tardeSinSalida['matricula'], 'present', 'Llegó tarde por el transporte; se le marca la entrada.');
     $servicio->marcar($e['docente'], $e['seccion'], $e['sesion'], $justificado['matricula'], 'justified', 'Constancia médica presentada en clase.');
+    escanear(['token' => $tardeConSalida['token']] + $e, qrProyectado($e), estudiante: $tardeConSalida['usuario']);
     cerrarSesionQr($e);
 
     expect(estadoDe($e['matricula']))->toBe('absent')
-        ->and(estadoDe($corregido['matricula']))->toBe('present')
+        ->and(estadoDe($tardeConSalida['matricula']))->toBe('present')
+        ->and(estadoDe($tardeSinSalida['matricula']))->toBe('late')
         ->and(estadoDe($justificado['matricula']))->toBe('justified');
+
+    // Corregir después de cerrar la salida ya no se recalcula.
+    actingAs($e['docente']);
+    $servicio->marcar($e['docente'], $e['seccion'], $e['sesion'], $tardeSinSalida['matricula'], 'present', 'Presentó constancia de la diligencia.');
+    expect(estadoDe($tardeSinSalida['matricula']))->toBe('present');
 });
 
 it('CP-RF20-18 si el docente nunca abre la salida, solo cuenta la entrada', function () {

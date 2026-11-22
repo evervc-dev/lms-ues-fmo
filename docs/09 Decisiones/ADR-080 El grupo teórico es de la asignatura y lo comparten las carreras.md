@@ -25,9 +25,10 @@ fuentes: ["Decisión del usuario del 21/11/2026 (D2 de la revisión de flujos)"]
 - La **cancelación por carrera** (RF32) alcanza al **grupo entero**: toda clase de una materia del plan de esa carrera, también para los estudiantes de otras carreras.
 - `sections.career_id` queda **solo como dato** de la carrera que solicitó el grupo. Al crearlo se sigue eligiendo (filtra las materias), pero no limita a nadie.
 - Sigue vigente de ADR-074 que solo el Administrador (G) y el Jefe (D) crean grupos (`secciones.crear`).
+- **Clave de matrícula de la facultad:** la clave sigue guardándose por asignatura y período, pero en la facultad se asigna una sola para todas. El Administrador recibe `matricula.claves.gestionar` (G) y con «Aplicar a todas» la pone en todas las asignaturas; el Jefe (D) y el Coordinador (C) pueden seguir cambiando la de su ámbito ([[ADR-050 Inscripción por catálogo y claves compartidas]]).
 
 ## Consecuencias
 - El Coordinador vuelve a ver los grupos de materias compartidas, como MAT115.
 - El acta de un grupo compartido la puede validar el Coordinador de cualquiera de sus carreras; la primera validación vale.
 - Los avisos a coordinadores y los reportes por carrera usan la misma regla.
-- Sin migración: la columna se conserva.
+- Sin cambio de esquema: la columna se conserva. La migración `2026_11_21_190000_grant_faculty_enrollment_keys_to_admin` concede el permiso de claves al Administrador en bases con datos.
