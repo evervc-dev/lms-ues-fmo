@@ -197,14 +197,19 @@
             </form>
         </div>
         <x-slot:pie>
-            <div class="flex flex-1 items-center gap-2">
-                <x-ui.button variante="fantasma" tamano="sm" icono="arrow-left" wire:click="moverA(-1)" :disabled="$posicion === false || $posicion === 0">{{ __('Anterior') }}</x-ui.button>
-                <x-ui.button variante="fantasma" tamano="sm" wire:click="moverA(1)" :disabled="$posicion === false || $posicion >= $entregas->count() - 1">{{ __('Siguiente') }} <x-ui.icon name="chevron-right" class="size-4" /></x-ui.button>
-                <span class="hidden text-xs text-texto-suave sm:inline">{{ trans_choice('{0} Todas calificadas|{1} Falta 1 sin nota|[2,*] Faltan :count sin nota', $pendientes) }}</span>
+            {{-- Un solo bloque: en el teléfono el pie apilaba cinco botones y se comía un cuarto de la pantalla. --}}
+            <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
+                <div class="flex items-center justify-between gap-2 sm:flex-1 sm:justify-start">
+                    <x-ui.button variante="fantasma" tamano="sm" icono="arrow-left" wire:click="moverA(-1)" :disabled="$posicion === false || $posicion === 0">{{ __('Anterior') }}</x-ui.button>
+                    <span class="text-xs text-texto-suave sm:order-last">{{ trans_choice('{0} Todas calificadas|{1} Falta 1 sin nota|[2,*] Faltan :count sin nota', $pendientes) }}</span>
+                    <x-ui.button variante="fantasma" tamano="sm" wire:click="moverA(1)" :disabled="$posicion === false || $posicion >= $entregas->count() - 1">{{ __('Siguiente') }} <x-ui.icon name="chevron-right" class="size-4" /></x-ui.button>
+                </div>
+                <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+                    <span class="hidden sm:inline-flex"><x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'calificar')">{{ __('Cerrar') }}</x-ui.button></span>
+                    <x-ui.button type="submit" form="form-calificar" variante="secundario">{{ __('Guardar') }}</x-ui.button>
+                    <x-ui.button type="button" wire:click="calificar(true)">{{ __('Guardar y siguiente') }}</x-ui.button>
+                </div>
             </div>
-            <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'calificar')">{{ __('Cerrar') }}</x-ui.button>
-            <x-ui.button type="submit" form="form-calificar" variante="secundario">{{ __('Guardar') }}</x-ui.button>
-            <x-ui.button type="button" wire:click="calificar(true)">{{ __('Guardar y siguiente') }}</x-ui.button>
         </x-slot:pie>
     </x-ui.modal>
 </div>
