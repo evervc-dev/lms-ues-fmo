@@ -2,13 +2,12 @@
 
 namespace App\Modules\Identidad\Livewire;
 
+use App\Models\User;
 use App\Modules\Identidad\Services\JerarquiaService;
 use App\Modules\Identidad\Services\UsuarioService;
-use App\Support\Alcance;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -18,6 +17,8 @@ use Livewire\WithPagination;
 /**
  * Usuarios (RF04, maqueta 29, ADR-037). Administrador: todo; Soporte: crea estudiantes (y docentes con permiso);
  * Jefe: ve su personal; Coordinador: importa estudiantes de su carrera.
+ *
+ * @property-read LengthAwarePaginator<int, User> $usuarios
  */
 #[Layout('layouts::app')]
 class Usuarios extends Component
@@ -94,9 +95,10 @@ class Usuarios extends Component
             'puedeCrear' => $jerarquia->puedeCrear($actor),
             'importa' => $actor->checkPermissionTo('usuarios.importar'),
             'controlTotal' => $jerarquia->controlTotal($actor),
-            // Alcance de la lista, para decirlo en el subtítulo y ofrecer solo los roles que pueden aparecer (QA Jefe 21/11).
-            'departamentosAlcance' => app(Alcance::class)->de($actor, 'usuarios.ver') === 'G' ? null
-                : DB::table('departments')->whereIn('id', app(Alcance::class)->departamentos($actor))->orderBy('code')->pluck('code')->all(),
+            // Cuentas de la página cuyos roles puede cambiar (el Jefe, las de su departamento: ADR-037).
+            'rolesEditables' => collect($this->usuarios->items())
+                ->filter(fn ($usuario) => $usuario->id !== $actor->id && $jerarquia->puedeCambiarRoles($actor, $usuario))
+                ->pluck('id')->all(),
         ]);
     }
 }
