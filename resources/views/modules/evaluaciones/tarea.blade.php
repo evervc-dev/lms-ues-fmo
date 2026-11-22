@@ -38,7 +38,9 @@
                             @endif
                             @if ($entrega->late_penalty_applied > 0) · {{ __('penalización :p %', ['p' => rtrim(rtrim(number_format((float) $entrega->late_penalty_applied, 2, '.', ''), '0'), '.')]) }}@endif
                         </x-ui.alert>
-                        @if ($estado === 'abierta')<x-ui.button variante="peligro" tamano="sm" wire:click="cancelar" wire:confirm="{{ __('¿Cancelar su entrega?') }}">{{ __('Cancelar entrega') }}</x-ui.button>@endif
+                        {{-- Ya calificada no se ofrece cancelar: hacerlo borraba la nota y dejaba entregar otra vez. --}}
+                        @if ($estado === 'abierta' && ! $calificada)<x-ui.button variante="peligro" tamano="sm" wire:click="cancelar" wire:confirm="{{ __('¿Cancelar su entrega?') }}">{{ __('Cancelar entrega') }}</x-ui.button>@endif
+                        @if ($estado === 'abierta' && $calificada)<p class="text-xs text-texto-suave">{{ __('Su docente ya calificó esta entrega; no se puede cancelar.') }}</p>@endif
                     @endif
 
                     @if ($nota)

@@ -22,7 +22,7 @@ Casos derivados de los criterios de aceptación de [[RF15]]. Nivel: **browser + 
 | CP-RF15-06 | **Dado** una rúbrica, **cuando** el docente escribe los puntos de cada criterio, **entonces** la nota se calcula automáticamente y ningún criterio admite más de su máximo. | pasa |
 | CP-RF15-07 | **Dado** una tarea con **calificación anónima** activada, **cuando** el docente califica, **entonces** ve «Estudiante 1, 2…» en vez de los nombres hasta que publica las notas ([[ADR-032 Ajustes por el documento de roles]]). | pasa |
 | CP-RF15-08 | **Dado** una tarea cerrada, **cuando** el docente da una prórroga de entrega a un estudiante, **entonces** ese estudiante entrega hasta la fecha a tiempo y sin penalización; solo el docente de la sección la da, y no existe para cuestionarios ([[ADR-040 Solicitud de revisión de calificaciones]]). | pasa |
-| CP-RF15-09 | **Dado** una entrega calificada, **cuando** el estudiante la cancela, **entonces** su nota se vacía y la próxima entrega vuelve a la bandeja del docente. | automatizado |
+| CP-RF15-09 | **Dado** una entrega que el docente ya calificó (con nota publicada o en borrador), **cuando** el estudiante intenta cancelarla, **entonces** no se ofrece «Cancelar entrega», el sistema lo rechaza y la nota se conserva. Sin nota, la entrega sí se puede cancelar mientras la tarea esté abierta ([[ADR-086 Una entrega calificada no se cancela]]). | automatizado |
 | CP-RF15-10 | **Dado** una entrega ya calificada, **cuando** el docente la vuelve a abrir, **entonces** ve la nota, los puntos y la retroalimentación que tenía; «Guardar y siguiente» abre la próxima sin nota y se puede pasar a la anterior o la siguiente. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF15-01 …')`.
