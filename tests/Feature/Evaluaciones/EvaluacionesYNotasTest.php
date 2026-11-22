@@ -183,7 +183,13 @@ it('runs a quiz attempt in the exam layout and grades it automatically', functio
     Livewire::test(Cuestionario::class, ['seccion' => $e['ulid'], 'cuestionario' => $ulid])->call('comenzar')->assertRedirect();
     $intento = (string) DB::table('quiz_attempts')->value('ulid');
     $this->get(route('intentos.show', $intento))->assertOk()->assertSeeText('PHP es interpretado')->assertDontSee('Menú principal')
-        ->assertSeeText(['¿Terminar el intento?', 'Le queda 1 pregunta sin responder.', 'Terminar y enviar'])->assertDontSee('wire:confirm', false);
+        ->assertSeeText(['¿Terminar el intento?', 'Le queda 1 pregunta sin responder.', 'Terminar y enviar'])->assertDontSee('wire:confirm', false)
+        // Panel de avance junto a la pregunta, con el modo de navegación explicado.
+        ->assertSeeText(['0 de 1 respondidas', 'Sin responder'])->assertSeeTextInOrder(['PHP es interpretado', '0 de 1 respondidas']);
+    $libre = DB::table('quiz_settings')->value('navigation') !== 'linear';
+    $this->get(route('intentos.show', $intento))->assertSeeText($libre ? 'Navegación libre: toque un número' : 'Una a una: responda en orden.');
+    DbContext::system(fn () => DB::table('quiz_settings')->update(['navigation' => $libre ? 'linear' : 'free']));
+    $this->get(route('intentos.show', $intento))->assertSeeText($libre ? 'Una a una: responda en orden.' : 'Navegación libre: toque un número');
 
     $respuesta = DB::table('attempt_answers')->value('id');
     $verdadero = DB::table('question_options')->where('text', 'Verdadero')->value('id');
