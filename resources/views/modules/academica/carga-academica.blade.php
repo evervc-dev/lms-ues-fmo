@@ -57,12 +57,8 @@
                     {{-- Las acciones van en un menú «⋯»: tres botones de texto por fila ensanchaban la tabla (QA admin 21/11). --}}
                     <td class="text-right">
                         @if ($gestiona || $cambiaCupo || $asignaDocentes)
-                            <x-ui.dropdown ancho="w-48">
-                                <x-slot:disparador>
-                                    <span class="inline-flex size-8 items-center justify-center rounded-lg text-texto-suave hover:bg-zinc-100 hover:text-texto" title="{{ __('Acciones') }}">
-                                        <x-ui.icon name="ellipsis-horizontal" class="size-5" /><span class="sr-only">{{ __('Acciones de :g', ['g' => $s->code.' · '.$s->grupo]) }}</span>
-                                    </span>
-                                </x-slot:disparador>
+                            {{-- Menú flotante: en la tabla al alto de sus filas, uno absoluto se recortaba en las últimas. --}}
+                            <x-ui.acciones-fila :etiqueta="__('Acciones de :g', ['g' => $s->code.' · '.$s->grupo])">
                                 @if ($gestiona)
                                     <x-ui.dropdown.item icono="clock" x-on:click="abierto = false" wire:click="abrir('horario', {{ $s->id }})">{{ __('Horario y aula') }}</x-ui.dropdown.item>
                                 @endif
@@ -72,7 +68,7 @@
                                 @if ($asignaDocentes)
                                     <x-ui.dropdown.item icono="user-plus" x-on:click="abierto = false" wire:click="abrir('docente', {{ $s->id }})">{{ __('Asignar docente') }}</x-ui.dropdown.item>
                                 @endif
-                            </x-ui.dropdown>
+                            </x-ui.acciones-fila>
                         @endif
                     </td>
                 </tr>
