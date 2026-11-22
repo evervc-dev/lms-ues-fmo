@@ -36,12 +36,6 @@ class RolesUsuario extends Component
     /** @var array<int, string> */
     public array $roles = [];
 
-    /**
-     * Tipo de cuenta del primer paso: «personal» (Docente, Coordinador, Jefe y Administrador, que se combinan) o uno
-     * de los roles exclusivos de ADR-081. Ordena la elección; la lista de roles sigue siendo $roles.
-     */
-    public ?string $tipoCuenta = null;
-
     public function mount(int $usuario, UsuarioService $usuarios, JerarquiaService $jerarquia): void
     {
         $this->usuarioId = $usuario;
@@ -49,45 +43,7 @@ class RolesUsuario extends Component
         abort_unless($jerarquia->puedeCambiarRoles(auth()->user(), $ficha['usuario']), 403);
 
         $this->roles = $ficha['rolesActuales'];
-        $this->tipoCuenta = self::tipoDe($this->roles);
         $this->precargarAsignacion($ficha['asignacion']);
-        // «Cambiar carrera o plan» de la ficha entra directo a las asignaciones (p. ej. el plan nuevo que absorbe al anterior).
-        if (request()->query('paso') === 'asignaciones') {
-            $this->paso = 2;
-        }
-    }
-
-    /**
-     * Al cambiar el tipo de cuenta: un rol exclusivo queda solo; el personal conserva los roles del personal que ya tenía.
-     * Los roles que el actor no puede cambiar no se tocan: la vista no ofrece un tipo que obligue a quitarlos.
-     */
-    public function updatedTipoCuenta(?string $tipo): void
-    {
-        $fijos = array_values(array_diff($this->roles, app(JerarquiaService::class)->rolesAsignables(auth()->user())));
-        $this->roles = match ($tipo) {
-            'estudiante', 'soporte_tecnico' => array_values(array_unique([...$fijos, $tipo])),
-            default => array_values(array_diff($this->roles, JerarquiaService::ROLES_EXCLUSIVOS)),
-        };
-        $this->resetValidation('roles');
-    }
-
-    public function updatedRoles(): void
-    {
-        $this->tipoCuenta = self::tipoDe($this->roles) ?? $this->tipoCuenta;
-    }
-
-    /**
-     * @param  array<int, string>  $roles
-     */
-    private static function tipoDe(array $roles): ?string
-    {
-        foreach (JerarquiaService::ROLES_EXCLUSIVOS as $exclusivo) {
-            if (in_array($exclusivo, $roles, true)) {
-                return $exclusivo;
-            }
-        }
-
-        return $roles === [] ? null : 'personal';
     }
 
     /**
@@ -102,7 +58,8 @@ class RolesUsuario extends Component
                 'titulo' => __('Roles'),
                 'descripcion' => __('Marque los que tendrá la cuenta.'),
                 'reglas' => ['roles' => 'required|array|min:1', 'roles.*' => ['string', Rule::in(RolService::ROLES)]],
-                'atributos' => ['roles' => __('roles')],
+                // No __('roles'): esa clave es el archivo lang/es/roles.php y devuelve un arreglo (TypeError al validar).
+                'atributos' => ['roles' => __('los roles')],
             ],
             [
                 'titulo' => __('Asignaciones'),
