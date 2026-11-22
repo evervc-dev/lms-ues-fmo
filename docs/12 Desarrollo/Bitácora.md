@@ -18,14 +18,88 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
-### 2026-11-21 · RF29, RF04, RF08 · Correcciones de staging (tarde)
-- **Autor:** IA (Claude Code), a pedido del equipo de pruebas
+### 2026-11-22 · RF04 · La ficha muestra solo los perfiles de los roles actuales
+- **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** la inscripción lista todo el plan sin paridad; la miga del grupo teórico lleva a una pestaña permitida (antes, 403 al Jefe); la lista de usuarios muestra «Roles» a quien puede cambiarlos; el choque de aula ya no da error 500.
-- **CP cubiertos:** CP-RF29-03, 08 y 09 (ajustados), CP-RF04-29, CP-RF36-07 (miga), CP-RF08-03 (choque de aula).
-- **Decisiones:** [[ADR-084 La inscripción lista todo el plan sin la regla de paridad]] (pendiente). El Jefe sigue sin crear ni desactivar cuentas (ADR-037).
-- **Pendiente:** grupos sembrados que no salen en `/matricula`: falta el diagnóstico de los datos de staging.
+- **Hecho:** a una cuenta que fue estudiante y hoy es solo docente, la ficha le seguía mostrando «Estudiante · ISI · Plan 98 · ciclo 9 · carné …»: al quitar un rol, su perfil se conserva como historial y la vista lo mostraba solo por existir. Ahora `UsuarioService::ficha()` y `PerfilService::datos()` arman cada bloque (estudiante, docente, coordinador, jefe y el teléfono de asistencia) solo si la cuenta tiene hoy ese rol. Si se le devuelve el rol, el historial vuelve a verse.
+- **CP cubiertos:** CP-RF04-12 (prueba nueva).
+- **Decisiones:** del usuario el 22/11/2026: solo la información del perfil ligado al rol actual.
+- **Pendiente:** —
 
+### 2026-11-21 · RF09, RF17, RF18, RF20, RF27, RF29 · Correcciones de la revisión UX/UI del rol Estudiante
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:**
+  - **Dispositivo (RF27):** en una computadora (sin pantalla táctil ni navegador móvil) no se ofrece «Registrar este teléfono»: se explica y se muestra un QR que abre Mi perfil › Dispositivo en el celular. Ya había llegado a Soporte una solicitud de quien registró la PC.
+  - **Escanear QR (RF20):** sin teléfono registrado pide registrarlo antes y no muestra el lector; el código temporal acepta solo 6 dígitos con teclado numérico; el título es «Escanear QR», como el menú.
+  - **Mis notas (RF17):** sin notas publicadas dice «Sin notas aún» en gris, no un 0.0 rojo.
+  - **Mis materias (RF09, RF18):** «Solicitar cambio de grupo» solo dentro del plazo, con la fecha cuando ya cerró; la tarjeta entera abre la materia, con «Ingresar»; sin materiales, «Sin material» en vez de 0 %.
+  - **Inicio:** el horario con inicio y fin («Lun 07:00–08:40»).
+  - **Materia:** miga «Inicio › Mis materias › BAD115 · 01» para el estudiante; textos para él en Progreso y Actividades (sin «cómputos»); sin buscador ni filtro cuando no hay materiales; pestañas sin barra visible y con desvanecido; el aula no se parte.
+  - **Inscripción (RF29):** «Período 2026-II» en vez de «Ciclo II»; primero las materias con grupo abierto, las demás atenuadas y el filtro «Solo con grupos abiertos». La clave no distingue mayúsculas ni espacios (se guarda y se compara normalizada; las claves anteriores siguen sirviendo). La descripción sembrada ya no repite el ciclo, que dependía del plan.
+- **CP cubiertos:** CP-RF09-07, CP-RF17-01, CP-RF18-01, CP-RF20-01, CP-RF27-01, CP-RF29-03, CP-RF29-08 (pruebas nuevas); revisado en el navegador a 390 px y en escritorio.
+- **Decisiones:** del usuario el 21/11/2026: en una computadora se bloquea el registro y se muestra un QR; «ciclo» queda solo para el nivel del plan y el semestre se nombra por el período.
+- **Pendiente:** las descripciones de asignatura ya sembradas en staging conservan «Asignatura del ciclo N» hasta volver a sembrar o editarlas.
+
+### 2026-11-21 · RF04, RF20, RF27 · Correcciones de la revisión UX/UI del rol Soporte Técnico
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:**
+  - **Cambios de teléfono (RF27):** un solo nombre en el menú, la página y el Inicio. El motivo aparece al pulsar «Rechazar» y se valida antes de resolver, sin un «¿Continuar?» extra; los errores se limpian al cambiar de solicitud. Al resolver, el contador del menú se actualiza sin recargar (evento `contador-menu`). El aviso de los 30 días se mide contra la fecha de la solicitud y sin contarla a ella: antes salía en Resueltas por la propia solicitud aprobada y no en Pendientes. En el teléfono, la lista y el detalle no se apilan.
+  - **Usuarios (RF04):** tarjetas en el teléfono (la tabla partía el nombre letra por letra), buscador «Nombre o correo…», el rol como texto fijo cuando solo hay uno, un solo mensaje de activación, el indicador de pasos con subtítulo en todos los pasos. Ficha: «Perfil académico» en vez de «Ver perfil», «Nunca ha iniciado sesión» y «No registrado» en vez de «—», sin tabla de accesos vacía.
+  - **Carné:** se guarda como dice RF04 (en minúsculas, del correo) y se muestra siempre en mayúsculas, también en los CSV.
+  - **Importar:** la miga es «Inicio › Usuarios › Importar estudiantes» y la plantilla de Soporte ya no pide la columna `rol`.
+  - **Diagnóstico (RF20):** «Resultado» junto al estudiante; «Sin ubicación» no muestra distancia. La distancia contradictoria venía del seeder de demostración, corregido.
+  - **Encabezado:** en el teléfono queda el período abreviado («2026-II»).
+- **CP cubiertos:** CP-RF27-04, CP-RF27-05 (nuevas), CP-RF04-12, CP-RF04-20, CP-RF04-23, CP-RF20-13; revisado en el navegador a 390 px.
+- **Decisiones:** [[ADR-084 Nombres con mayúsculas mezcladas se respetan]] (pendiente). Carné: mostrar en mayúsculas sin cambiar RF04. «Año de ingreso» muestra «No registrado»; pedirlo en el alta queda para después.
+- **Pendiente:** el 502 «Application failed to respond» lo devuelve el proxy de Railway cuando la aplicación no responde; Laravel no puede dibujar ahí una página propia. Hay que revisar los logs de Railway (memoria, arranque, workers).
+
+### 2026-11-21 · — · Suite completa en verde con PostgreSQL 17
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** la suite en PostgreSQL 17 tenía 21 fallos que SQLite no ve. Casi todos eran de las pruebas: servicios llamados sin `actingAs` o escrituras directas sin `DbContext` (AC900), una cuenta no superadmin con contraseña (lo prohíbe el CHECK `users_password_only_emergency`), Soporte con Docente (ADR-081), un período sin grupos que no avanza de etapa, el actor del cambio de grupo (el Jefe, ADR-078) y un `pluck` sin `orderBy`.
+- **Corrección de código:** `AsistenciaService::abrir()` atrapaba cualquier `QueryException` y la mostraba como «ya hay una sesión abierta»; ahora solo atrapa la violación del índice único (ADR-076), y los demás errores salen como son.
+- **CP cubiertos:** sin pruebas nuevas; se ajustaron las existentes de RF03, RF04, RF05, RF07, RF09, RF18, RF20, RF21 y el seeder del equipo.
+- **Decisiones:** —
+- **Pendiente:** la prueba intermitente de `PantallasConDemoTest` sigue sin causa conocida.
+
+### 2026-11-21 · — · DbContext anidado restaura el contexto de afuera
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** `DbContext::within()` guarda los valores del contexto (`app.system_job`, `app.user_id`, `app.event_type`…) y los restaura al salir, en vez de vaciarlos. En staging, sembrar el perfil equipo con `SUPERADMIN_PASSWORD` fallaba con AC900 («Escritura en users sin actor»): `crearCuentaSuperadmin()` abre su propio `DbContext::system()` dentro del de `DatabaseSeeder`, y al cerrarse dejaba al de afuera sin contexto.
+- **CP cubiertos:** pruebas nuevas en `tests/Feature/Support/DbContextTest.php` (solo PostgreSQL). Verificado con PostgreSQL 17 en Docker: la prueba falla sin la corrección y pasa con ella, y `migrate:fresh --seed` del perfil equipo con superadmin funciona.
+- **Decisiones:** —
+- **Pendiente:** —
+
+### 2026-11-21 · RF03 · La superadmin es la cuenta de emergencia
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** `AccesoLocalService::crearCuentaSuperadmin()` marca la cuenta con `is_emergency`. En staging (PostgreSQL), sembrar con `SUPERADMIN_PASSWORD` fallaba por el CHECK `users_password_only_emergency`; las pruebas corren en SQLite, que no lo aplica.
+- **CP cubiertos:** CP-RF03-08 (ampliado: la regla del CHECK se comprueba en cualquier motor y hay un caso de otra cuenta de emergencia).
+- **Decisiones:** superadmin = cuenta de emergencia ([[ADR-082 Cuenta superadministradora de solo lectura total]]).
+- **Pendiente:** correr la suite en PostgreSQL 17; este error lo habría detectado.
+
+### 2026-11-21 · — · Perfil de siembra «equipo»
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** `EquipoSeeder` y `LMS_SEED_PERFIL=equipo`: estructura institucional, cuentas reales del equipo y admin.dev, roles al azar con `LMS_SEED_SEMILLA` (1 jefe, 1 coordinador, 3 docentes, resto estudiantes), matrículas sin notas ni asistencia y la superadmin de ADR-082 si `SUPERADMIN_PASSWORD` está puesta.
+- **CP cubiertos:** —
+- **Decisiones:** reparto y cuentas decididos por el usuario el 21/11/2026. La cuenta privilegiada es la superadmin de ADR-082 (no una cuenta de emergencia aparte).
+- **Pendiente:** —
+### 2026-11-21 · RF04 · Roles laxos para pruebas en staging
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** `LMS_ROLES_LAXOS` (`config/lms.php`, ignorada en producción). Con ella, `UsuarioService::cambiarRoles()` no exige limpiar antes: quitar Estudiante retira sus matrículas activas (con `enrollment_changes` y rechazo de solicitudes de cambio de grupo) y quitar Docente termina sus grupos de períodos no cerrados. La pantalla de roles avisa del modo.
+- **CP cubiertos:** CP-RF04-29.
+- **Decisiones:** retirar y terminar en vez de borrar en cascada: los triggers de ADR-027 impiden borrar matrículas, notas y asistencia (decidido por el usuario el 21/11/2026).
+- **Pendiente:** poner `LMS_ROLES_LAXOS=true` en el entorno de staging.
+### 2026-11-21 · RF06, RF08 · Asignar grupo desde la ficha y calendario por mes
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** en la ficha de un docente activo, «Asignar grupo teórico» lista los grupos del alcance de quien asigna y usa `CargaAcademicaService::asignarDocente` (mismas reglas). El calendario de evaluaciones se ve por mes, dentro del período, con colores por ámbito; en el teléfono, puntos y la lista del mes. La lista con la sincronización queda debajo.
+- **CP cubiertos:** CP-RF08-14, CP-RF06-13.
+- **Decisiones:** —
 ### 2026-11-21 · RF07 · Desactivar una asignatura desactiva sus dependientes
 - **Autor:** IA (Claude Code), a pedido del equipo de pruebas
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

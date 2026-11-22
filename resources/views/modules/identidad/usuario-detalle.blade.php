@@ -48,14 +48,7 @@
             @endif
             <dl class="flex flex-col gap-3 text-sm">
                 @if ($estudiante)
-                    <div>
-                        <dt class="text-texto-suave">{{ __('Estudiante') }}</dt>
-                        <dd>{{ $estudiante->carrera }} · {{ $estudiante->plan }} · {{ __('ciclo :ciclo', ['ciclo' => $estudiante->ciclo]) }} · {{ __('carné :carne', ['carne' => mb_strtoupper((string) $estudiante->carne)]) }}</dd>
-                        {{-- Atajo al paso de asignaciones: cuando un plan nuevo absorbe al anterior, o el estudiante cambia de carrera. --}}
-                        @if ($cambiaRoles && ! ($esEmergencia || $esPropio))
-                            <a href="{{ route('usuarios.roles', ['usuario' => $usuario->id, 'paso' => 'asignaciones']) }}" wire:navigate class="mt-1 inline-block text-xs font-medium text-marca-700 hover:underline">{{ __('Cambiar carrera, plan o ciclo') }}</a>
-                        @endif
-                    </div>
+                    <div><dt class="text-texto-suave">{{ __('Estudiante') }}</dt><dd>{{ $estudiante->carrera }} · {{ $estudiante->plan }} · {{ __('ciclo :ciclo', ['ciclo' => $estudiante->ciclo]) }} · {{ __('carné :carne', ['carne' => mb_strtoupper((string) $estudiante->carne)]) }}</dd></div>
                     @isset($perfil['estudiante'])
                         <div><dt class="text-texto-suave">{{ __('Año de ingreso') }}</dt><dd>{{ $perfil['estudiante']['ingreso'] ? $perfil['estudiante']['ingreso']['anio'].' ('.$perfil['estudiante']['ingreso']['periodo'].')' : __('No registrado') }}</dd></div>
                         <div>
@@ -102,7 +95,8 @@
             <dl class="grid grid-cols-2 gap-3 text-sm">
                 <div><dt class="text-texto-suave">{{ __('Último acceso') }}</dt><dd>{{ $usuario->last_login_at?->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? __('Nunca ha iniciado sesión') }}</dd></div>
                 <div><dt class="text-texto-suave">{{ __('Creada') }}</dt><dd>{{ $usuario->created_at?->timezone('America/El_Salvador')->format('d/m/Y') }}</dd></div>
-                @if ($verAccesos)
+                {{-- El teléfono de asistencia es del estudiante: a un docente no se le muestra «No registrado». --}}
+                @if ($verAccesos && in_array('estudiante', $rolesActuales, true))
                     <div><dt class="text-texto-suave">{{ __('Teléfono de asistencia') }}</dt><dd>{{ $dispositivo ? __('Registrado el :fecha', ['fecha' => \Illuminate\Support\Carbon::parse($dispositivo->created_at)->format('d/m/Y')]) : __('No registrado') }}</dd></div>
                 @endif
                 @if ($usuario->deactivated_at)

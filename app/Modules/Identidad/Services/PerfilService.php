@@ -19,17 +19,20 @@ class PerfilService
      */
     public function datos(User $usuario): array
     {
+        // Solo los perfiles de los roles que tiene hoy: los de un rol quitado se conservan como historial (QA 22/11/2026).
+        $tiene = fn (string $rol): bool => $usuario->hasRole($rol);
+
         return [
-            'estudiante' => DB::table('student_careers')->join('careers', 'careers.id', '=', 'student_careers.career_id')
+            'estudiante' => ! $tiene('estudiante') ? null : DB::table('student_careers')->join('careers', 'careers.id', '=', 'student_careers.career_id')
                 ->join('study_plans', 'study_plans.id', '=', 'student_careers.study_plan_id')
                 ->leftJoin('student_profiles', 'student_profiles.user_id', '=', 'student_careers.student_id')
                 ->where('student_careers.student_id', $usuario->id)->where('student_careers.status', 'active')
                 ->first(['careers.name as carrera', 'study_plans.name as plan', 'student_careers.current_cycle as ciclo', 'student_profiles.student_code as carne']),
-            'departamento' => DB::table('teacher_profiles')->join('departments', 'departments.id', '=', 'teacher_profiles.department_id')
+            'departamento' => ! $tiene('docente') ? null : DB::table('teacher_profiles')->join('departments', 'departments.id', '=', 'teacher_profiles.department_id')
                 ->where('user_id', $usuario->id)->value('departments.name'),
-            'coordina' => DB::table('career_coordinators')->join('careers', 'careers.id', '=', 'career_coordinators.career_id')
+            'coordina' => ! $tiene('coordinador') ? [] : DB::table('career_coordinators')->join('careers', 'careers.id', '=', 'career_coordinators.career_id')
                 ->where('user_id', $usuario->id)->whereNull('valid_to')->pluck('careers.name')->all(),
-            'dirige' => DB::table('department_heads')->join('departments', 'departments.id', '=', 'department_heads.department_id')
+            'dirige' => ! $tiene('jefe_departamento') ? [] : DB::table('department_heads')->join('departments', 'departments.id', '=', 'department_heads.department_id')
                 ->where('user_id', $usuario->id)->whereNull('valid_to')->pluck('departments.name')->all(),
         ];
     }

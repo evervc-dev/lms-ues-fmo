@@ -85,6 +85,8 @@ class UsuarioService
 
     /**
      * Ficha del usuario: roles, asignaciones vigentes, perfil académico, dispositivo y últimos accesos.
+     * Cada bloque se arma solo si la cuenta tiene hoy el rol: al quitar un rol, su perfil (p. ej. la carrera y el
+     * carné de estudiante) se conserva como historial y antes seguía saliendo en la ficha (QA 22/11/2026).
      *
      * @return array<string, mixed>
      */
@@ -97,31 +99,33 @@ class UsuarioService
         }
         $vigentes = $this->asignaciones->vigentes($usuarioId);
         $departamento = fn (?int $id): ?string => $id === null ? null : DB::table('departments')->where('id', $id)->value('name');
+        $roles = $usuario->roles->pluck('name')->all();
+        $tiene = fn (string $rol): bool => in_array($rol, $roles, true);
 
         return [
             'usuario' => $usuario,
             'rolesActuales' => $usuario->roles->pluck('name')->all(),
             'esEmergencia' => (bool) $usuario->is_emergency,
             'asignacion' => $vigentes,
-            'docenteEn' => $departamento($vigentes['departamentoDocente']),
-            'estudiante' => DB::table('student_careers')->join('careers', 'careers.id', '=', 'student_careers.career_id')
+            'docenteEn' => $tiene('docente') ? $departamento($vigentes['departamentoDocente']) : null,
+            'estudiante' => ! $tiene('estudiante') ? null : DB::table('student_careers')->join('careers', 'careers.id', '=', 'student_careers.career_id')
                 ->join('study_plans', 'study_plans.id', '=', 'student_careers.study_plan_id')
                 ->leftJoin('student_profiles', 'student_profiles.user_id', '=', 'student_careers.student_id')
                 ->where('student_careers.student_id', $usuarioId)->where('student_careers.status', 'active')
                 ->first(['careers.name as carrera', 'study_plans.name as plan', 'student_careers.current_cycle as ciclo', 'student_profiles.student_code as carne']),
-            'secciones' => DB::table('teaching_assignments')->join('sections', 'sections.id', '=', 'teaching_assignments.section_id')
+            'secciones' => ! $tiene('docente') ? collect() : DB::table('teaching_assignments')->join('sections', 'sections.id', '=', 'teaching_assignments.section_id')
                 ->join('subjects', 'subjects.id', '=', 'sections.subject_id')->join('academic_periods', 'academic_periods.id', '=', 'sections.period_id')
                 ->where('teacher_id', $usuarioId)->whereNull('ended_at')->where('academic_periods.status', 'active')
                 ->orderBy('subjects.code')->get(['subjects.code', 'subjects.name', 'sections.code as grupo', 'teaching_assignments.is_responsible']),
-            'coordina' => array_filter([$vigentes['carreraCoordina'] === null ? null : DB::table('careers')->where('id', $vigentes['carreraCoordina'])->value('name')]),
-            'dirige' => array_filter([$departamento($vigentes['departamentoJefatura'])]),
-            // El Jefe (alcance D) no ve el dispositivo ni los accesos (ADR-037).
-            'dispositivo' => $global ? DB::table('student_devices')->where('student_id', $usuarioId)->where('status', 'active')->first(['created_at', 'last_used_at']) : null,
+            'coordina' => ! $tiene('coordinador') ? [] : array_filter([$vigentes['carreraCoordina'] === null ? null : DB::table('careers')->where('id', $vigentes['carreraCoordina'])->value('name')]),
+            'dirige' => ! $tiene('jefe_departamento') ? [] : array_filter([$departamento($vigentes['departamentoJefatura'])]),
+            // El Jefe (alcance D) no ve el dispositivo ni los accesos (ADR-037). El teléfono de asistencia es del estudiante.
+            'dispositivo' => $global && $tiene('estudiante') ? DB::table('student_devices')->where('student_id', $usuarioId)->where('status', 'active')->first(['created_at', 'last_used_at']) : null,
             'accesos' => $global ? DB::table('login_history')->where('user_id', $usuarioId)->orderByDesc('occurred_at')->limit(10)
                 ->get(['occurred_at', 'ip_address', 'result', 'failure_reason']) : collect(),
             'verAccesos' => $global,
             // RF36 (CP-RF36-08): carreras y ciclo de las materias del docente; año de ingreso y materias del estudiante.
-            'perfil' => $this->perfiles->bloques($usuarioId, $usuario->roles->pluck('name')->all(), true),
+            'perfil' => $this->perfiles->bloques($usuarioId, $roles, true),
         ];
     }
 
