@@ -77,8 +77,7 @@ it('el resumen final muestra cada cuenta del equipo con su rol y su asignación,
     $datos = ResumenSiembra::datos();
     $fila = fn (string $due) => collect($datos['cuentas'])->firstWhere(1, "{$due}@ues.edu.sv");
 
-    expect($datos['detalleCompleto'])->toBeTrue()
-        ->and($datos['cuentas'])->toHaveCount(21)
+    expect($datos['cuentas'])->toHaveCount(21)
         ->and($fila($reparto['jefe'])[0])->toBe('Jefe de Departamento + Docente')
         ->and($fila($reparto['jefe'])[3])->toContain('Jefe de DIA')
         ->and($fila($reparto['coordinador'])[3])->toContain('Coordina ISI')

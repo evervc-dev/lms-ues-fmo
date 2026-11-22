@@ -52,7 +52,7 @@ class DatabaseSeeder extends Seeder
             ? __('Distribución final · perfil equipo · semilla :s (cambie LMS_SEED_SEMILLA para barajar)', ['s' => config('lms.seed_semilla')])
             : __('Distribución final · perfil demo'));
         $consola->table([__('Rol'), __('Cuentas')], $datos['porRol']);
-        $consola->line($datos['detalleCompleto'] ? __('Cuentas:') : __('Cuentas de desarrollo (hay demasiadas para listarlas todas):'));
+        $consola->line(trans_choice('{1} La cuenta:|[2,*] Las :count cuentas:', count($datos['cuentas'])));
         $consola->table([__('Rol'), __('Correo'), __('Nombre'), __('Asignación')], $datos['cuentas']);
         $consola->table([__('Período'), ''], $datos['periodo']);
     }

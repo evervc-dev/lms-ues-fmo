@@ -7,20 +7,16 @@ use Illuminate\Support\Facades\DB;
 /**
  * Resumen de cómo quedó la siembra, leído de la base (no de lo que cada seeder creyó crear): cuántas cuentas hay
  * por rol, quién tiene qué rol y qué asignación, y cuántos grupos y matrículas tiene el período en curso.
- * DatabaseSeeder lo imprime al final. Con muchas cuentas (perfil demo) solo detalla las de desarrollo.
+ * DatabaseSeeder lo imprime al final, con todas las cuentas.
  */
 class ResumenSiembra
 {
-    /** Hasta cuántas cuentas se listan una por una. */
-    public const DETALLE_MAXIMO = 40;
-
     private const ORDEN_ROLES = ['administrador', 'jefe_departamento', 'coordinador', 'docente', 'soporte_tecnico', 'estudiante'];
 
     /**
      * @return array{
      *     porRol: list<array{0: string, 1: int}>,
      *     cuentas: list<array{0: string, 1: string, 2: string, 3: string}>,
-     *     detalleCompleto: bool,
      *     periodo: list<array{0: string, 1: string}>
      * }
      */
@@ -33,11 +29,7 @@ class ResumenSiembra
             ->filter(fn ($fila) => $fila[1] > 0)->values()->all();
         $porRol[] = [__('Total de cuentas'), DB::table('users')->count()];
 
-        $total = DB::table('users')->count();
-        $detalleCompleto = $total <= self::DETALLE_MAXIMO;
-        $usuarios = DB::table('users')
-            ->when(! $detalleCompleto, fn ($q) => $q->where('institutional_email', 'like', '%.dev@ues.edu.sv')->orWhere('is_emergency', true))
-            ->get(['id', 'institutional_email', 'first_name', 'last_name', 'is_emergency']);
+        $usuarios = DB::table('users')->get(['id', 'institutional_email', 'first_name', 'last_name', 'is_emergency']);
 
         $periodo = (int) DB::table('academic_periods')->where('status', 'active')->value('id');
         $jefaturas = DB::table('department_heads as h')->join('departments as d', 'd.id', '=', 'h.department_id')->whereNull('h.valid_to')->pluck('d.code', 'h.user_id');
@@ -73,7 +65,6 @@ class ResumenSiembra
         return [
             'porRol' => $porRol,
             'cuentas' => $cuentas,
-            'detalleCompleto' => $detalleCompleto,
             'periodo' => [
                 [__('Período en curso'), (string) (DB::table('academic_periods')->where('id', $periodo)->value('name') ?? '—')],
                 [__('Grupos teóricos'), (string) $grupos],

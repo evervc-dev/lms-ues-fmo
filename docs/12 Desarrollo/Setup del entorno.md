@@ -159,7 +159,7 @@ Con `LMS_SEED_PERFIL=equipo`, `php artisan migrate:fresh --seed` siembra la estr
 - Los estudiantes quedan matriculados en el grupo 01 de las materias de su ciclo. **No hay notas ni asistencia inventadas.** Los demás grupos quedan sin docente, para probar la asignación.
 - La **cuenta de emergencia** ([[ADR-007 Inicio de sesión con Google]]) solo se siembra si el entorno trae `LMS_EMERGENCIA_CORREO` y `LMS_EMERGENCIA_CLAVE`, que nunca van en el repositorio. Aún sin segundo factor.
 
-Al final de `migrate:fresh --seed`, con cualquier perfil, se imprime la **distribución final** leída de la base: cuentas por rol, cada cuenta con su rol y su asignación (jefatura, coordinación, grupos o ciclo y materias; en la demo solo las cuentas `*.dev`), y los grupos, docentes y matrículas del período en curso.
+Al final de `migrate:fresh --seed`, con cualquier perfil, se imprime la **distribución final** leída de la base: cuentas por rol, **todas** las cuentas con su rol y su asignación (jefatura, coordinación, grupos o ciclo y materias), y los grupos, docentes y matrículas del período en curso.
 
 En staging: poner `LMS_SEED_PERFIL=equipo` (y, si se quiere, la semilla y la cuenta de emergencia) y correr `php artisan migrate:fresh --seed --force`. El perfil por omisión sigue siendo `demo`.
 
