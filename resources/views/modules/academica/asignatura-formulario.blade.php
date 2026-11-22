@@ -82,7 +82,7 @@
         </x-ui.card>
 
         {{-- H-11 (QA 27/10): casillas en lugar de <select multiple>, que exigía Ctrl e iba mal en pantallas táctiles. --}}
-        <x-ui.card :titulo="__('Prerrequisitos')" :descripcion="__('Informativos: orientan al estudiante, pero no se exigen al matricular (ADR-078).')">
+        <x-ui.card :titulo="__('Prerrequisitos')" :descripcion="__('Materias del mismo plan de estudios. Informativos: orientan al estudiante, pero no se exigen al matricular (ADR-078).')">
         <div x-data="{ filtro: '' }" class="flex flex-col gap-3">
             @if ($elegidas->isNotEmpty())
                 <div class="flex flex-wrap gap-1.5" aria-label="{{ __('Prerrequisitos elegidos') }}">
@@ -92,12 +92,15 @@
                 </div>
             @endif
             <x-ui.input id="filtro-prerrequisitos" type="search" x-model="filtro" :placeholder="__('Filtrar por código o nombre…')" :aria-label="__('Filtrar prerrequisitos')" />
-            <div class="grid max-h-80 overflow-y-auto rounded-lg border border-borde p-1 md:grid-cols-2">
+            @if ($sinPlan && $todas->isEmpty())
+                <p class="rounded-lg bg-zinc-50 p-3 text-sm text-texto-suave ring-1 ring-borde">{{ __('Elija primero la carrera y el plan de estudios: aquí salen las materias de ese pensum.') }}</p>
+            @endif
+            <div @class(['grid max-h-80 overflow-y-auto rounded-lg border border-borde p-1 md:grid-cols-2', 'hidden' => $todas->isEmpty()])>
                 @foreach ($todas as $t)
                     @continue($t->id === $editando)
                     <label wire:key="pre-{{ $t->id }}" x-show="filtro === '' || @js(\App\Support\Busqueda::normalizar($t->code.' '.$t->name)).includes(filtro.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim())" class="flex items-center gap-3 rounded-md px-2 py-1.5 text-sm text-texto hover:bg-zinc-50">
                         <input type="checkbox" value="{{ $t->id }}" wire:model.live="prerrequisitos" class="size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
-                        <span class="min-w-0"><span class="font-mono text-xs font-semibold">{{ $t->code }}</span> · {{ $t->name }}</span>
+                        <span class="min-w-0"><span class="font-mono text-xs font-semibold">{{ $t->code }}</span> · {{ $t->name }}@if ($t->ciclo)<span class="text-xs text-texto-suave"> · {{ __('ciclo :n', ['n' => $t->ciclo]) }}</span>@endif</span>
                     </label>
                 @endforeach
             </div>

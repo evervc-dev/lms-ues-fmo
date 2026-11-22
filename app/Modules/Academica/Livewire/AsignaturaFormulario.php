@@ -122,13 +122,23 @@ class AsignaturaFormulario extends Component
     {
         $departamentos = $catalogo->departamentosGestionables(auth()->user());
         $todas = DB::table('subjects')->orderBy('code')->get(['id', 'code', 'name']);
+        // Solo las materias del pensum de la asignatura: las de los planes elegidos (o de todos los planes de la carrera
+        // elegida, si aún no elige plan). Las ya marcadas se siguen mostrando para poder quitarlas.
+        $planesElegidos = collect($this->planes)->flatMap(fn (array $fila) => ($fila['plan'] ?? null)
+            ? [(int) $fila['plan']]
+            : (($fila['carrera'] ?? null) ? DB::table('study_plans')->where('career_id', (int) $fila['carrera'])->pluck('id')->map(fn ($p) => (int) $p)->all() : []))
+            ->unique()->values()->all();
+        $delPlan = $catalogo->asignaturasDePlanes($planesElegidos);
+        $marcadas = array_map('intval', $this->prerrequisitos);
+        $opciones = $delPlan->concat($todas->whereIn('id', $marcadas)->whereNotIn('id', $delPlan->pluck('id'))->map(fn ($t) => (object) ['id' => (int) $t->id, 'code' => $t->code, 'name' => $t->name, 'ciclo' => null]))->values();
 
         return $this->pagina('modules.academica.asignatura-formulario', [
             'departamentos' => $departamentos,
             // El Jefe que dirige un solo departamento no lo elige: la asignatura queda en el suyo (ADR-072).
             'eligeDepartamento' => $catalogo->gestionaEstructura(auth()->user()) || $departamentos->count() > 1,
             'carreras' => $catalogo->carrerasConPlanes(auth()->user()),
-            'todas' => $todas,
+            'todas' => $opciones,
+            'sinPlan' => $planesElegidos === [],
             'elegidas' => $todas->whereIn('id', array_map('intval', $this->prerrequisitos))->values(),
         ], titulo: $this->editando ? __('Editar :c', ['c' => $this->codigo]) : null, miga: $this->editando ? $this->codigo : null);
     }
