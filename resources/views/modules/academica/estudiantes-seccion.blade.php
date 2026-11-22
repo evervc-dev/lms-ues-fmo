@@ -4,9 +4,14 @@
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
 
     <x-ui.card ajustar :titulo="__('Estudiantes')" :descripcion="trans_choice('{1} 1 matrícula activa|[0,*] :count matrículas activas', $estudiantes->where('status', 'active')->count())">
-        <form wire:submit="inscribir" class="mb-4 flex flex-wrap items-end gap-2">
+        {{-- Alineado arriba, con un rótulo invisible sobre el botón: con items-end el mensaje de error, que va bajo el campo,
+             empujaba el botón hacia abajo. --}}
+        <form wire:submit="inscribir" class="mb-4 flex flex-wrap items-start gap-2">
             <x-ui.field class="min-w-64 flex-1" :etiqueta="__('Inscribir por carné o correo')" para="carne" error="carne"><x-ui.input id="carne" wire:model="carne" placeholder="gs21004" /></x-ui.field>
-            <x-ui.button type="submit" icono="user-plus">{{ __('Inscribir') }}</x-ui.button>
+            <div class="flex flex-col gap-1.5">
+                <span class="invisible text-sm font-medium" aria-hidden="true">{{ __('Inscribir') }}</span>
+                <x-ui.button type="submit" icono="user-plus">{{ __('Inscribir') }}</x-ui.button>
+            </div>
         </form>
 
         <x-ui.table ajustar :vacio="__('Aún no hay estudiantes en el grupo teórico.')">

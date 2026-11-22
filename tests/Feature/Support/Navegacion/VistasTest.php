@@ -109,7 +109,6 @@ it('returns 404 for a section that does not exist', function () {
 
 it('renders the projection view without the application menu', function () {
     $e = escenario();
-    $this->actingAs($e['docente']);
     $sesion = app(AsistenciaService::class)->abrir($e['docente'], $e['seccion'], 10);
 
     $this->actingAs($e['docente'])->get(route('secciones.asistencia.proyectar', ['seccion' => $e['ulid'], 'sesion' => $sesion]))
@@ -140,7 +139,6 @@ it('shows the open attendance notice only to enrolled students', function () {
 
 it('deja de mostrar el aviso de la cabecera cuando el estudiante ya marcó en esa sesión', function () {
     $e = escenario();
-    $this->actingAs($e['docente']);
     $sesion = app(AsistenciaService::class)->abrir($e['docente'], $e['seccion'], 10);
 
     $this->actingAs($e['estudiante'])->get(route('inicio'))->assertOk()->assertSeeText('Asistencia abierta');
@@ -152,7 +150,6 @@ it('deja de mostrar el aviso de la cabecera cuando el estudiante ya marcó en es
 
 it('no muestra al estudiante el aviso de una sesión de asistencia de otro día que quedó abierta', function () {
     $e = escenario();
-    $this->actingAs($e['docente']);
     app(AsistenciaService::class)->abrir($e['docente'], $e['seccion'], 10);
     $this->travel(1)->days();
 
@@ -182,3 +179,14 @@ it('mantiene la barra de pestañas en las pantallas de la sección que ocupan to
         ->assertSee('-mb-px shrink-0 overflow-x-auto', false)
         ->assertSee(route('secciones.contenidos', ['seccion' => $e['ulid']]));
 })->with(['secciones.revisiones', 'secciones.estudiantes', 'secciones.acta']);
+
+it('la miga del grupo lleva a una pestaña que el usuario puede abrir: al Jefe no lo manda a Contenidos (403)', function () {
+    $e = escenario();
+
+    $pagina = $this->actingAs($e['jefe'])->get(route('secciones.estudiantes', ['seccion' => $e['ulid']]))->assertOk();
+    $pagina->assertDontSee('href="'.route('secciones.contenidos', ['seccion' => $e['ulid']]).'"', false);
+    $this->get(route('secciones.contenidos', ['seccion' => $e['ulid']]))->assertForbidden();
+
+    $this->actingAs($e['docente'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()
+        ->assertSee('href="'.route('secciones.contenidos', ['seccion' => $e['ulid']]).'"', false);
+});

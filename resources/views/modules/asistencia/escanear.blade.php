@@ -119,12 +119,16 @@
     @endif
 
     <x-ui.card :titulo="__('Ingresar código temporal')">
-        <form wire:submit="usarCodigo" class="flex items-end gap-2">
+        <form wire:submit="usarCodigo" class="flex items-start gap-2">
             <x-ui.field class="flex-1" :etiqueta="__('Código de 6 dígitos')" para="codigo" error="codigo">
                 <x-ui.input id="codigo" wire:model="codigo" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code"
                     x-on:input="$el.value = $el.value.replace(/\D/g, '').slice(0, 6)" class="font-mono text-lg tracking-widest" />
             </x-ui.field>
-            <x-ui.button type="submit">{{ __('Registrar') }}</x-ui.button>
+            {{-- Como en Estudiantes: el error bajo el campo no debe bajar el botón. --}}
+            <div class="flex flex-col gap-1.5">
+                <span class="invisible text-sm font-medium" aria-hidden="true">{{ __('Registrar') }}</span>
+                <x-ui.button type="submit">{{ __('Registrar') }}</x-ui.button>
+            </div>
         </form>
         <p class="mt-2 text-xs text-texto-suave">{{ __('El código vence a los 30 segundos y solo sirve para usted.') }}</p>
     </x-ui.card>
