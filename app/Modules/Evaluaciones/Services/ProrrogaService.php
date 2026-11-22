@@ -53,7 +53,7 @@ class ProrrogaService
     /**
      * Prórrogas de la actividad, los estudiantes de la sección y los tipos que el docente puede dar.
      *
-     * @return array{datosActividad: object, prorrogas: Collection<int, object>, estudiantes: Collection<int, object>, tipos: array<string, string>}
+     * @return array{datosActividad: object, prorrogas: Collection<int, \stdClass>, estudiantes: Collection<int, \stdClass>, tipos: array<string, string>}
      */
     public function deActividad(User $docente, int $seccionId, string $ulid): array
     {

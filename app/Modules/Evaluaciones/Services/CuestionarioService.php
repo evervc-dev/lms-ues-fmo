@@ -126,7 +126,7 @@ class CuestionarioService
     }
 
     /**
-     * @param  array{tipo: string, enunciado: string, tema?: string|null, opciones?: array<int, string>, correcta?: int|string|null, aceptadas?: string|null, justificacion?: string|null}  $datos
+     * @param  array{tipo: string, enunciado: string, tema?: string|null, opciones?: array<int, string>, correcta?: int|string|null, aceptadas?: string|null, justificacion?: string|null, puntos?: float|int|string|null}  $datos  puntos: valor de la pregunta, de más de 0 a 10 (1 si no se envía)
      */
     public function agregarPregunta(User $docente, int $bancoId, array $datos): void
     {
@@ -682,7 +682,7 @@ class CuestionarioService
     /**
      * Respuestas y puntuación de un intento para que el docente lo revise (RF16).
      *
-     * @return array{estudiante: object, intento: object, cuestionario: object, preguntas: Collection<int, object>, notaCalculada: float}
+     * @return array{estudiante: object, intento: \stdClass, cuestionario: object, preguntas: Collection<int, \stdClass>, notaCalculada: float}
      */
     public function intentoParaDocente(User $docente, int $seccionId, string $cuestionarioUlid, string $intentoUlid): array
     {
