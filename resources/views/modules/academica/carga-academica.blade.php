@@ -40,7 +40,7 @@
             <x-slot:cabecera><th>{{ __('Asignatura / grupo') }}</th><th>{{ __('Docentes') }}</th><th>{{ __('Horario y aula') }}</th><th class="text-right">{{ __('Cupo') }}</th><th>{{ __('Estado') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
             @foreach ($this->secciones as $s)
                 <tr wire:key="carga-{{ $s->id }}" @class(['bg-red-50/40' => $s->estado === 'choque'])>
-                    <td><span class="font-semibold">{{ $s->code }}</span> · {{ $s->name }}<p class="text-xs text-texto-suave">{{ __('Grupo :g', ['g' => $s->grupo]) }}{{ $s->ciclo ? ' · '.__('ciclo :c', ['c' => $s->ciclo]) : '' }}</p></td>
+                    <td><span class="font-semibold">{{ $s->code }}</span> · {{ $s->name }}<p class="text-xs text-texto-suave">{{ __('Grupo :g', ['g' => $s->grupo]) }}{{ $s->ciclo ? ' · '.__('ciclo :c', ['c' => $s->ciclo]) : '' }}{{ $s->plan ? ' · '.$s->plan : '' }}</p></td>
                     <td>
                         @forelse ($s->docentes as $d)
                             <span class="flex items-center gap-1">{{ $d->first_name }} {{ $d->last_name }}@unless ($d->is_responsible)<span class="text-xs text-texto-suave">({{ __('co-docente') }})</span>@endunless

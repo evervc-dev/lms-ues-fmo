@@ -3,7 +3,7 @@
      período («2026-II»), como en el resto de la plataforma (revisión UX del rol Estudiante). --}}
 <div class="flex flex-col gap-5">
     <x-ui.encabezado :titulo="__('Inscripción de materias')"
-        :subtitulo="$periodo ? __('Período :p · materias de su carrera que se imparten en este período.', ['p' => $periodo]) : __('No hay un período en curso.')" />
+        :subtitulo="$periodo ? ($plan ? __('Período :p · materias de su :plan que se imparten en este período.', ['p' => $periodo, 'plan' => $plan]) : __('Período :p · materias de su carrera que se imparten en este período.', ['p' => $periodo])) : __('No hay un período en curso.')" />
 
     @if ($plazo['vencido'])
         <x-ui.alert tipo="aviso">{{ __('El plazo de inscripción terminó el :fecha. Si necesita inscribirse, pida una prórroga a su coordinador.', ['fecha' => $plazo['fecha']->format('d/m/Y')]) }}</x-ui.alert>
@@ -35,7 +35,7 @@
         @foreach ($porCiclo as $cicloDelPlan => $materias)
             <section wire:key="ciclo-{{ $cicloDelPlan }}" class="flex flex-col gap-3">
                 <h2 class="flex items-baseline gap-2 text-sm font-semibold uppercase tracking-wide text-texto-suave">
-                    {{ __('Ciclo :n del plan', ['n' => $cicloDelPlan]) }}
+                    {{ $plan ? __('Ciclo :n del :plan', ['n' => $cicloDelPlan, 'plan' => $plan]) : __('Ciclo :n del plan', ['n' => $cicloDelPlan]) }}
                     <span class="text-xs font-normal normal-case tracking-normal">{{ trans_choice('{1} 1 materia|[2,*] :count materias', $materias->count()) }}</span>
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

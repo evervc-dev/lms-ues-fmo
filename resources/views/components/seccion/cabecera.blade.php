@@ -11,6 +11,9 @@
                 <x-ui.badge color="marca">{{ $seccion['codigo'] }}</x-ui.badge>
                 <x-ui.badge>{{ __('Grupo :grupo', ['grupo' => $seccion['grupo']]) }}</x-ui.badge>
                 <x-ui.badge :color="$seccion['periodoCerrado'] ? 'gris' : 'verde'">{{ $seccion['periodo'] }}</x-ui.badge>
+                @if ($seccion['plan'] ?? null)
+                    <x-ui.badge color="azul" :title="__('Plan de estudios')">{{ $seccion['plan'] }}</x-ui.badge>
+                @endif
             </div>
             <h2 class="mt-2 text-xl font-semibold text-texto">{{ $seccion['asignatura'] }}</h2>
             <dl class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-texto-suave">

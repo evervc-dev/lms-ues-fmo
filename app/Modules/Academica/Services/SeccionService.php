@@ -55,7 +55,7 @@ class SeccionService
         $consulta = DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
             ->join('academic_periods', 'academic_periods.id', '=', 'sections.period_id')->where('academic_periods.status', 'active')
             ->when($buscar !== '', fn ($q) => $q->where(Busqueda::contiene($buscar, ['subjects.code', 'subjects.name'])))
-            ->select('sections.id', 'sections.ulid', 'sections.code as grupo', 'sections.max_capacity', 'subjects.code', 'subjects.name',
+            ->select('sections.id', 'sections.ulid', 'sections.code as grupo', 'sections.max_capacity', 'subjects.id as asignatura_id', 'subjects.code', 'subjects.name',
                 DB::raw("(select count(*) from enrollments e where e.section_id = sections.id and e.status = 'active') as inscritos"),
                 // Estudiantes con alguna alerta que ve el personal (RF22): el preventivo del 85 % solo avisa al estudiante.
                 DB::raw('(select count(distinct a.enrollment_id) from academic_alerts a join enrollments e on e.id = a.enrollment_id where e.section_id = sections.id and a.closed_at is null'
@@ -70,8 +70,11 @@ class SeccionService
         $horarios = DB::table('section_schedules')->leftJoin('classrooms', 'classrooms.id', '=', 'section_schedules.classroom_id')
             ->whereIn('section_id', $secciones->pluck('id'))->orderBy('weekday')->orderBy('start_time')->get()->groupBy('section_id');
 
-        return $secciones->each(function ($s) use ($docentes, $horarios, $dias) {
+        $planes = app(PlanesService::class)->etiquetas($secciones->pluck('asignatura_id'));
+
+        return $secciones->each(function ($s) use ($docentes, $horarios, $dias, $planes) {
             $s->docente = $docentes[$s->id] ?? null;
+            $s->plan = $planes[$s->asignatura_id] ?? null;
             // Con la hora de fin (QA Jefe y Estudiante 21/11): «Vie 07:00 · Vie 08:50» parecía un rango y eran dos inicios.
             $s->horario = ($horarios[$s->id] ?? collect())->map(fn ($h) => $dias[$h->weekday].' '.substr($h->start_time, 0, 5).'–'.substr($h->end_time, 0, 5))->implode(' · ');
         });
@@ -135,7 +138,7 @@ class SeccionService
     }
 
     /**
-     * @return array{ulid: string, titulo: string, codigo: string, asignatura: string, grupo: string, periodo: string, periodoCerrado: bool, docentes: array<int, string>, horario: array<int, string>}|null
+     * @return array{ulid: string, titulo: string, codigo: string, asignatura: string, plan: string|null, grupo: string, periodo: string, periodoCerrado: bool, docentes: array<int, string>, horario: array<int, string>}|null
      */
     public function resumen(string $ulid): ?array
     {
@@ -143,7 +146,7 @@ class SeccionService
             ->join('subjects', 'subjects.id', '=', 'sections.subject_id')
             ->join('academic_periods', 'academic_periods.id', '=', 'sections.period_id')
             ->where('sections.ulid', $ulid)
-            ->first(['sections.id', 'sections.ulid', 'sections.code as grupo', 'subjects.code', 'subjects.name', 'academic_periods.name as periodo', 'academic_periods.status']);
+            ->first(['sections.id', 'sections.ulid', 'sections.code as grupo', 'subjects.id as asignatura_id', 'subjects.code', 'subjects.name', 'academic_periods.name as periodo', 'academic_periods.status']);
 
         if ($seccion === null) {
             return null;
@@ -165,6 +168,7 @@ class SeccionService
             'titulo' => $seccion->code.' · '.$seccion->grupo,
             'codigo' => $seccion->code,
             'asignatura' => $seccion->name,
+            'plan' => app(PlanesService::class)->deAsignatura((int) $seccion->asignatura_id),
             'grupo' => $seccion->grupo,
             'periodo' => $seccion->periodo,
             'periodoCerrado' => $seccion->status === 'closed',

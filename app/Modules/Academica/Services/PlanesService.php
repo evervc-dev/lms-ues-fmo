@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Modules\Academica\Services;
+
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Pensum (plan de estudios) al que pertenece cada asignatura, para mostrarlo junto a ella en todas las listas: «Plan 98 ·
+ * Plan 25». Una asignatura de varias carreras antepone la carrera: «ISI: Plan 98, Plan 25 · IND: Plan 2010». Solo arma
+ * rótulos; quien la llama ya exigió el permiso y filtró por alcance.
+ */
+class PlanesService
+{
+    /**
+     * @param  iterable<int, int|string>  $asignaturas  ids de subjects
+     * @param  array<int, int>|null  $carreras  solo los planes de estas carreras (p. ej. la del estudiante)
+     * @return array<int, string> subject_id => rótulo
+     */
+    public function etiquetas(iterable $asignaturas, ?array $carreras = null): array
+    {
+        $ids = collect($asignaturas)->map(fn ($id) => (int) $id)->unique()->values()->all();
+        if ($ids === []) {
+            return [];
+        }
+
+        return DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
+            ->join('careers', 'careers.id', '=', 'study_plans.career_id')
+            ->whereIn('career_subjects.subject_id', $ids)
+            ->when($carreras !== null, fn ($q) => $q->whereIn('careers.id', $carreras))
+            ->orderBy('careers.code')->orderBy('study_plans.id')
+            ->get(['career_subjects.subject_id', 'careers.code as carrera', 'study_plans.name as plan'])
+            ->groupBy('subject_id')
+            ->map(function ($filas) {
+                $porCarrera = $filas->groupBy('carrera')->map(fn ($g) => $g->pluck('plan')->unique()->implode(', '));
+                if ($porCarrera->count() === 1) {
+                    return $filas->pluck('plan')->unique()->implode(' · ');
+                }
+
+                return $porCarrera->map(fn ($planes, $carrera) => "{$carrera}: {$planes}")->implode(' · ');
+            })
+            ->mapWithKeys(fn ($rotulo, $id) => [(int) $id => $rotulo])->all();
+    }
+
+    public function deAsignatura(int $asignatura, ?array $carreras = null): ?string
+    {
+        return $this->etiquetas([$asignatura], $carreras)[$asignatura] ?? null;
+    }
+}

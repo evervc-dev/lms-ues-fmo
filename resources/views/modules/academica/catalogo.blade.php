@@ -23,7 +23,7 @@
             </x-ui.select>
         </div>
         <x-ui.table ajustar :vacio="__('No hay asignaturas con esos filtros.')">
-            <x-slot:cabecera><th>{{ __('Código') }}</th><th>{{ __('Asignatura') }}</th>@if ($veDepartamento)<th>{{ __('Depto.') }}</th>@endif<th>{{ __('Carreras') }}</th><th class="text-right">{{ __('Créditos') }}</th><th>{{ __('Prerrequisitos') }}</th><th class="text-right">{{ __('Grupos') }}</th><th></th></x-slot:cabecera>
+            <x-slot:cabecera><th>{{ __('Código') }}</th><th>{{ __('Asignatura') }}</th>@if ($veDepartamento)<th>{{ __('Depto.') }}</th>@endif<th>{{ __('Carrera y plan') }}</th><th class="text-right">{{ __('Créditos') }}</th><th>{{ __('Prerrequisitos') }}</th><th class="text-right">{{ __('Grupos') }}</th><th></th></x-slot:cabecera>
             @foreach ($asignaturas as $a)
                 <tr wire:key="asig-{{ $a->id }}" @class(['text-texto-suave' => ! $a->is_active])>
                     <td class="font-mono text-xs font-semibold">{{ $a->code }}</td>

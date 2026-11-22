@@ -17,7 +17,7 @@
                     class="flex flex-col gap-3 rounded-xl bg-white p-4 ring-1 ring-borde transition hover:ring-marca-300">
                     <div class="flex items-start justify-between gap-2">
                         <div>
-                            <div class="flex gap-1"><x-ui.badge color="marca">{{ $s->code }}</x-ui.badge><x-ui.badge>{{ __('Grupo :g', ['g' => $s->grupo]) }}</x-ui.badge></div>
+                            <div class="flex flex-wrap gap-1"><x-ui.badge color="marca">{{ $s->code }}</x-ui.badge><x-ui.badge>{{ __('Grupo :g', ['g' => $s->grupo]) }}</x-ui.badge>@if ($s->plan)<x-ui.badge color="azul">{{ $s->plan }}</x-ui.badge>@endif</div>
                             <h2 class="mt-2 font-semibold text-texto">{{ $s->name }}</h2>
                         </div>
                         @if ($s->alertas > 0)

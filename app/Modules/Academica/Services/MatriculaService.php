@@ -287,6 +287,15 @@ class MatriculaService
     }
 
     /**
+     * Nombre del plan de estudios (pensum) activo del estudiante, como «Plan 25».
+     */
+    public function planDe(int $estudianteId): ?string
+    {
+        return DB::table('student_careers')->join('study_plans', 'study_plans.id', '=', 'student_careers.study_plan_id')
+            ->where('student_careers.student_id', $estudianteId)->where('student_careers.status', 'active')->value('study_plans.name');
+    }
+
+    /**
      * Plazo efectivo de inscripción del estudiante (RF29, ADR-051): la mayor entre la fecha del departamento de su
      * carrera activa (o, sin ella, inicio del período + N semanas), la prórroga del Jefe a ese departamento y la
      * prórroga personal. Vale hasta el final de ese día. Sin período en curso no hay plazo que vencer.
