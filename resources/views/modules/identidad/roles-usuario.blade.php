@@ -17,6 +17,10 @@
                     @if (count($rolesAsignables) < count($rolesDisponibles))
                         <p class="mb-2 text-xs text-texto-suave">{{ __('Solo puede cambiar los roles que tiene habilitados; los demás se muestran sin edición.') }}</p>
                     @endif
+                    @if (\App\Modules\Identidad\Services\UsuarioService::rolesLaxos())
+                        {{-- LMS_ROLES_LAXOS (solo pruebas): quitar un rol libera lo que lo retenía. --}}
+                        <x-ui.alert tipo="aviso" class="mb-3" :titulo="__('Modo de pruebas')">{{ __('Quitar Estudiante retira sus matrículas activas y quitar Docente termina sus grupos teóricos del período, sin pedir que lo haga antes. Las notas y la asistencia anteriores se conservan.') }}</x-ui.alert>
+                    @endif
                     {{-- ADR-081 (amplía ADR-053): Estudiante y Soporte Técnico son roles exclusivos. --}}
                     <p class="mb-2 text-xs text-texto-suave">{{ __('Estudiante y Soporte Técnico no se combinan con ningún otro rol. Docente, Coordinador, Jefe de Departamento y Administrador sí se combinan entre sí.') }}</p>
                     <div class="grid gap-2 sm:grid-cols-2">

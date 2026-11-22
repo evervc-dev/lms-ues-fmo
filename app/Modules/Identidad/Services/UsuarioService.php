@@ -269,7 +269,10 @@ class UsuarioService
         if (in_array('administrador', $quitados, true) && $this->esUltimoAdministrador($usuarioId)) {
             throw ValidationException::withMessages(['roles' => __('Es el último Administrador activo: asigne el rol a otra persona antes de quitárselo.')]);
         }
-        $this->exigirSinDependencias($usuarioId, $quitados);
+        $laxo = self::rolesLaxos();
+        if (! $laxo) {
+            $this->exigirSinDependencias($usuarioId, $quitados);
+        }
 
         $faltantes = [];
         foreach ($nuevos as $rol) {
@@ -281,7 +284,10 @@ class UsuarioService
             throw ValidationException::withMessages($faltantes);
         }
 
-        DbContext::run(function () use ($actor, $usuario, $roles, $quitados, $nuevos, $asignaciones) {
+        DbContext::run(function () use ($actor, $usuario, $roles, $quitados, $nuevos, $asignaciones, $laxo) {
+            if ($laxo) {
+                $this->liberarDependencias($actor, $usuario->id, $quitados);
+            }
             if ($quitados !== []) {
                 $usuario->removeRole($quitados);
             }
@@ -304,6 +310,47 @@ class UsuarioService
      *
      * @param  array<int, string>  $quitados
      */
+    /**
+     * Modo de pruebas (LMS_ROLES_LAXOS, nunca en producción): quitar un rol libera lo que lo retenía en vez de
+     * rechazar el cambio, para poder probar con la misma cuenta cambiándole el rol.
+     */
+    public static function rolesLaxos(): bool
+    {
+        return config('lms.roles_laxos') === true && ! app()->isProduction();
+    }
+
+    /**
+     * Libera, solo en modo de pruebas, lo que impide quitar un rol: retira las matrículas activas del estudiante
+     * (con su historial, como un retiro normal, y rechaza sus solicitudes de cambio de grupo) y termina hoy los
+     * grupos teóricos del docente. No borra nada: ADR-027 no deja borrar matrículas, notas ni asistencia. Al
+     * volver a darle el rol, la cuenta queda en blanco: sin matrículas ni grupos vigentes. Corre dentro del
+     * DbContext de cambiarRoles().
+     *
+     * @param  array<int, string>  $quitados
+     */
+    private function liberarDependencias(User $actor, int $usuarioId, array $quitados): void
+    {
+        $motivo = __('Modo de pruebas: se quitó el rol a la cuenta.');
+        if (in_array('estudiante', $quitados, true)) {
+            $matriculas = DB::table('enrollments')->join('academic_periods', 'academic_periods.id', '=', 'enrollments.period_id')
+                ->where('enrollments.student_id', $usuarioId)->where('enrollments.status', 'active')->where('academic_periods.status', '!=', 'closed')
+                ->pluck('enrollments.id');
+            foreach ($matriculas as $matricula) {
+                DB::table('enrollments')->where('id', $matricula)->update(['status' => 'withdrawn', 'updated_at' => now()]);
+                DB::table('enrollment_changes')->insert(['enrollment_id' => $matricula, 'change_type' => 'withdrawn', 'reason' => $motivo, 'actor_id' => $actor->id, 'occurred_at' => now()]);
+                DB::table('section_change_requests')->where('enrollment_id', $matricula)->where('status', 'pending')
+                    ->update(['status' => 'rejected', 'resolved_by' => $actor->id, 'resolved_at' => now(), 'updated_at' => now()]);
+            }
+        }
+        if (in_array('docente', $quitados, true)) {
+            // Solo los de períodos no cerrados: el historial de quién impartió un período cerrado no se toca.
+            $abiertos = DB::table('sections')->join('academic_periods', 'academic_periods.id', '=', 'sections.period_id')
+                ->where('academic_periods.status', '!=', 'closed')->select('sections.id');
+            DB::table('teaching_assignments')->where('teacher_id', $usuarioId)->whereNull('ended_at')->whereIn('section_id', $abiertos)
+                ->update(['ended_at' => now()->toDateString(), 'is_responsible' => false, 'updated_at' => now()]);
+        }
+    }
+
     private function exigirSinDependencias(int $usuarioId, array $quitados): void
     {
         if (in_array('docente', $quitados, true)) {

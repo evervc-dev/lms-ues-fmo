@@ -276,7 +276,7 @@ it('no muestra fechas como sincronizadas si la integración con Google Calendar 
     Livewire::test(CalendarioEvaluaciones::class)->assertDontSee('Sincronizada')->assertSee('No disponible');
 });
 
-it('CP-RF06-12 el calendario se ve por mes, dentro del período, y pulsar un día lo propone como inicio', function () {
+it('CP-RF06-13 el calendario se ve por mes, dentro del período, y pulsar un día lo propone como inicio', function () {
     $e = escenario();
     actingAs($e['administrador']);
     calendarioPeriodo()->agregar($e['administrador'], $e['periodo'], 'Segundo parcial', '2026-11-10 08:00', null);

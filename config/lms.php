@@ -33,6 +33,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Roles laxos para pruebas
+    |--------------------------------------------------------------------------
+    |
+    | Con LMS_ROLES_LAXOS=true, quitar el rol Estudiante retira sus matrículas
+    | activas y quitar el rol Docente termina sus grupos teóricos, en vez de
+    | rechazar el cambio. Sirve para probar en staging cambiando de rol a la
+    | misma cuenta. Las notas y la asistencia se quedan (ADR-027 no deja
+    | borrarlas). En producción se ignora aunque esté activo.
+    |
+    */
+
+    'roles_laxos' => (bool) env('LMS_ROLES_LAXOS', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Área de asistencia de los seeders
     |--------------------------------------------------------------------------
     |
