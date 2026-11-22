@@ -87,3 +87,10 @@ it('siembra los planes de ISI con materias propias y ninguna matrícula fuera de
         ->count();
     expect($fueraDelPlan)->toBe(0);
 });
+
+it('siembra las fechas del calendario de evaluaciones sin marcarlas como agendadas en Google', function () {
+    $this->seed();
+
+    expect(DB::table('period_calendar_events')->count())->toBe(4)
+        ->and(DB::table('google_sync_refs')->where('entity_type', 'period_calendar_event')->exists())->toBeFalse();
+});
