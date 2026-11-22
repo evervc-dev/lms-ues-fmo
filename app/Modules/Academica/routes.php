@@ -13,6 +13,7 @@ use App\Modules\Academica\Livewire\EstudiantesSeccion;
 use App\Modules\Academica\Livewire\Inscripcion;
 use App\Modules\Academica\Livewire\InscripcionDetalle;
 use App\Modules\Academica\Livewire\Matricula;
+use App\Modules\Academica\Livewire\MiPlan;
 use App\Modules\Academica\Livewire\MisMaterias;
 use App\Modules\Academica\Livewire\Oferta;
 use App\Modules\Academica\Livewire\ParticipantesSeccion;
@@ -48,6 +49,7 @@ Route::middleware('auth')->group(function (): void {
     // RF29 (ADR-051): fecha límite por departamento (Administrador G, Jefe D, Coordinador C) y prórrogas (Jefe D, Coordinador C).
     Route::livewire('/matricula/plazos', PlazosMatricula::class)->middleware('permission:matricula.plazo.gestionar|matricula.prorroga.otorgar')->name('matricula.plazos');
     Route::livewire('/materias', MisMaterias::class)->middleware('permission:matricula.automatricular')->name('materias');
+    Route::livewire('/mi-plan', MiPlan::class)->middleware('permission:plan.ver')->name('mi-plan');
     // Estudiante (RF29, ADR-050): materias de su carrera y ciclo, y su detalle con «Inscribirme con clave».
     Route::livewire('/inscripcion', Inscripcion::class)->middleware('permission:matricula.automatricular')->name('inscripcion');
     Route::livewire('/inscripcion/{asignatura}', InscripcionDetalle::class)->middleware('permission:matricula.automatricular')->whereNumber('asignatura')->name('inscripcion.show');

@@ -31,6 +31,7 @@ return [
         'matricula.cambio.resolver' => ['jefe_departamento' => 'D'],
         'matricula.claves.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C', 'superadmin' => 'G'],
         'matricula.automatricular' => ['estudiante' => 'P'],
+        'plan.ver' => ['estudiante' => 'P'],
         'matricula.plazo.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C', 'superadmin' => 'G'],
         'matricula.plazo.prorrogar' => ['jefe_departamento' => 'D'],
         'matricula.prorroga.otorgar' => ['jefe_departamento' => 'D', 'coordinador' => 'C'],

@@ -33,6 +33,7 @@ return [
     'inscripcion' => ['uri' => '/inscripcion', 'permiso' => 'matricula.automatricular', 'titulo' => 'Inscripción de materias', 'modulo' => 'Academica', 'rf' => ['RF29'], 'op' => 495],
     'inscripcion.show' => ['uri' => '/inscripcion/{asignatura}', 'permiso' => 'matricula.automatricular', 'titulo' => 'Materia', 'modulo' => 'Academica', 'rf' => ['RF29'], 'op' => 495, 'migas' => ['inscripcion']],
     'materias' => ['uri' => '/materias', 'permiso' => 'matricula.automatricular', 'titulo' => 'Mis materias', 'modulo' => 'Academica', 'rf' => ['RF18', 'RF29'], 'op' => 495, 'maqueta' => '05 Mis materias'],
+    'mi-plan' => ['uri' => '/mi-plan', 'permiso' => 'plan.ver', 'titulo' => 'Mi plan', 'modulo' => 'Academica', 'rf' => ['RF37']],
     'mis-notas' => ['uri' => '/mis-notas', 'permiso' => 'calificaciones.ver', 'titulo' => 'Mis notas', 'modulo' => 'Calificaciones', 'rf' => ['RF17'], 'op' => 439, 'maqueta' => '11 Mis notas'],
     'mi-asistencia' => ['uri' => '/mi-asistencia', 'permiso' => 'asistencia.marcar', 'titulo' => 'Mi asistencia', 'modulo' => 'Asistencia', 'rf' => ['RF22'], 'op' => 459, 'maqueta' => '13 Mi asistencia'],
     'intentos.show' => ['uri' => '/intentos/{intento}', 'permiso' => 'cuestionarios.resolver', 'titulo' => 'Intento de cuestionario', 'modulo' => 'Evaluaciones', 'rf' => ['RF16'], 'op' => 435, 'maqueta' => '10 Layout Examen · intento', 'layout' => 'exam'],

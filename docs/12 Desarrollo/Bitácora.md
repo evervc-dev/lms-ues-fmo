@@ -18,13 +18,13 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
-### 2026-11-22 · RF04 · La ficha muestra solo los perfiles de los roles actuales
+### 2026-11-22 · RF37 · Mi plan de estudios
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** a una cuenta que fue estudiante y hoy es solo docente, la ficha le seguía mostrando «Estudiante · ISI · Plan 98 · ciclo 9 · carné …»: al quitar un rol, su perfil se conserva como historial y la vista lo mostraba solo por existir. Ahora `UsuarioService::ficha()` y `PerfilService::datos()` arman cada bloque (estudiante, docente, coordinador, jefe y el teléfono de asistencia) solo si la cuenta tiene hoy ese rol. Si se le devuelve el rol, el historial vuelve a verse.
-- **CP cubiertos:** CP-RF04-12 (prueba nueva).
-- **Decisiones:** del usuario el 22/11/2026: solo la información del perfil ligado al rol actual.
-- **Pendiente:** —
+- **Hecho:** nueva pantalla «Mi plan» del estudiante (permiso `plan.ver`, alcance P): el plan por ciclo, como la malla de la oferta académica de la UES, con cada asignatura aprobada (amarillo, nota final), en curso (azul, nota actual y % evaluado), reprobada (rojo, última nota) o pendiente. Resumen con asignaturas y UV aprobadas, CUM y materias en curso. Al tocar una asignatura se marcan sus prerrequisitos (rojo) y las que desbloquea (azul). Selector para ver cualquier plan de su carrera. `PlanEstudianteService`, sin tablas nuevas.
+- **CP cubiertos:** CP-RF37-01 a CP-RF37-05.
+- **Decisiones:** del usuario el 22/11/2026: reprobada en rojo con la última nota; resaltar prerrequisitos al tocar; selector de plan, con el estado por asignatura; solo el estudiante. RF37 y su fila en la Matriz RBAC.
+- **Pendiente:** verlo desde el Perfil académico del personal.
 
 ### 2026-11-21 · RF09, RF17, RF18, RF20, RF27, RF29 · Correcciones de la revisión UX/UI del rol Estudiante
 - **Autor:** IA (Claude Code), a pedido del equipo
