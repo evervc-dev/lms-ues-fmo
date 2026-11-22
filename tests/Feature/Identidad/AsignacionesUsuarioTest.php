@@ -249,7 +249,8 @@ it('CP-RF04-10 exige departamento al Jefe, releva al vigente desde hoy y cierra 
 
 it('CP-RF04-11 exige departamento al Docente y lo ofrece en Asignar docente solo mientras tiene el rol y está activo', function () {
     $e = escenario();
-    $nuevo = usuarioCon('soporte_tecnico');
+    // Administrador y Docente sí se combinan; Soporte Técnico ya no admite otro rol (ADR-081).
+    $nuevo = usuarioCon('administrador');
     $inactivo = usuarioCon('docente');
     DbContext::system(function () use ($inactivo, $e) {
         DB::table('teacher_profiles')->insert(['user_id' => $inactivo->id, 'department_id' => $e['dia'], 'created_at' => now(), 'updated_at' => now()]);
@@ -259,16 +260,16 @@ it('CP-RF04-11 exige departamento al Docente y lo ofrece en Asignar docente solo
     $carga = app(CargaAcademicaService::class);
     actingAs($e['administrador']);
 
-    expect(clavesDeErrorDeAsignacion(fn () => $usuarios->cambiarRoles($e['administrador'], $nuevo->id, ['soporte_tecnico', 'docente'])))->toContain('asignaciones.docente')
+    expect(clavesDeErrorDeAsignacion(fn () => $usuarios->cambiarRoles($e['administrador'], $nuevo->id, ['administrador', 'docente'])))->toContain('asignaciones.docente')
         ->and(clavesDeErrorDeAsignacion(fn () => $usuarios->crear($e['administrador'], ['correo' => 'dn26001@ues.edu.sv', 'nombres' => 'Diana', 'apellidos' => 'Núñez', 'rol' => 'docente'])))->toContain('asignacion')
         ->and(User::query()->where('institutional_email', 'dn26001@ues.edu.sv')->exists())->toBeFalse();
 
-    $usuarios->cambiarRoles($e['administrador'], $nuevo->id, ['soporte_tecnico', 'docente'], ['docente' => ['departamento' => $e['dia']]]);
+    $usuarios->cambiarRoles($e['administrador'], $nuevo->id, ['administrador', 'docente'], ['docente' => ['departamento' => $e['dia']]]);
 
     expect(DB::table('teacher_profiles')->where('user_id', $nuevo->id)->value('department_id'))->toBe($e['dia'])
         ->and($carga->docentesDisponibles($e['periodo'])->pluck('id')->all())->toContain($nuevo->id);
 
-    $usuarios->cambiarRoles($e['administrador'], $nuevo->id, ['soporte_tecnico']);
+    $usuarios->cambiarRoles($e['administrador'], $nuevo->id, ['administrador']);
 
     expect($carga->docentesDisponibles($e['periodo'])->pluck('id')->all())->not->toContain($nuevo->id)
         ->and(DB::table('teacher_profiles')->where('user_id', $nuevo->id)->exists())->toBeTrue()
@@ -288,7 +289,7 @@ it('CP-RF04-11 no quita el rol Docente a quien tiene secciones abiertas en un pe
 it('CP-RF04-12 exige carrera, plan de esa carrera, ciclo de 1 a 12 y carné único al conceder Estudiante', function () {
     $e = escenario();
     $otra = carreraAdicionalDeAsignacion($e);
-    // Una cuenta sin rol (ADR-038): Soporte Técnico y Estudiante ya no coexisten (ADR-053).
+    // Una cuenta sin rol (ADR-038): Estudiante no convive con ningún otro rol (ADR-081).
     $nuevo = DbContext::system(fn () => User::factory()->create());
     $usuarios = app(UsuarioService::class);
     $roles = ['estudiante'];

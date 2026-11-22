@@ -17,8 +17,8 @@
                     @if (count($rolesAsignables) < count($rolesDisponibles))
                         <p class="mb-2 text-xs text-texto-suave">{{ __('Solo puede cambiar los roles que tiene habilitados; los demás se muestran sin edición.') }}</p>
                     @endif
-                    {{-- ADR-053: el alcance de sus secciones y el de sus matrículas no pueden recaer en la misma persona. --}}
-                    <p class="mb-2 text-xs text-texto-suave">{{ __('El rol Estudiante no se combina con el de Docente ni con el de Soporte Técnico.') }}</p>
+                    {{-- ADR-081 (amplía ADR-053): Estudiante y Soporte Técnico son roles exclusivos. --}}
+                    <p class="mb-2 text-xs text-texto-suave">{{ __('Estudiante y Soporte Técnico no se combinan con ningún otro rol. Docente, Coordinador, Jefe de Departamento y Administrador sí se combinan entre sí.') }}</p>
                     <div class="grid gap-2 sm:grid-cols-2">
                         @foreach ($rolesDisponibles as $opcion)
                             <label class="flex items-center gap-2 text-sm" wire:key="rol-{{ $opcion }}">

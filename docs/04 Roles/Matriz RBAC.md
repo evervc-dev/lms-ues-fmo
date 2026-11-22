@@ -10,6 +10,8 @@ Permisos con nombres listos para `spatie/laravel-permission`. Cada celda indica 
 
 **Alcances:** **G** = global · **D** = su departamento · **C** = su carrera (en grupos: los de materias de los planes de su carrera, [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]]) · **S** = las secciones que imparte · **M** = las asignaturas donde está matriculado · **P** = solo lo propio · vacío = sin permiso.
 
+**Roles exclusivos:** una cuenta con **Estudiante** o **Soporte Técnico** no tiene ningún otro rol; Docente, Coordinador, Jefe de Departamento y Administrador se combinan entre sí ([[ADR-081 Estudiante y Soporte Técnico son roles exclusivos]]).
+
 Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinador]] (Coord) · [[Docente]] (Doc) · [[Estudiante]] (Est) · [[Soporte Técnico]] (Sop)
 
 ## Identidad, seguridad y auditoría

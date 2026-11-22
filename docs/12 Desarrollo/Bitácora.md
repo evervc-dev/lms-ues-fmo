@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF03, RF04 · Estudiante y Soporte Técnico son roles exclusivos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** `JerarquiaService::exigirRolesCompatibles()` rechaza cualquier otro rol en una cuenta con Estudiante o Soporte Técnico (crear, cambiar roles, carga masiva); la pantalla de roles lo explica.
+- **CP cubiertos:** CP-RF04-27 nuevo; CP-RF04-22 y CP-RF04-11 ajustados.
+- **Decisiones:** [[ADR-081 Estudiante y Soporte Técnico son roles exclusivos]] (pendiente), amplía ADR-053.
+- **Pendiente:** —
+
 ### 2026-11-21 · RF15, RF16, RF18 · Tarea, cuestionario y regla de avance más claros
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
