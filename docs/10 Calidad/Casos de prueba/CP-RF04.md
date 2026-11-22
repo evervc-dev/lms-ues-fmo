@@ -41,6 +41,7 @@ Casos derivados de los criterios de aceptación de [[RF04]]. Nivel: **feature**.
 | CP-RF04-25 | **Dado** filas de Docente o Coordinador, **cuando** se importan, **entonces** el Docente queda con el departamento de su carrera y el Coordinador con la carrera; sin carrera, la fila se rechaza. | automatizado |
 | CP-RF04-26 | **Dado** una fila que falla al crearse, **entonces** las demás se crean igual, el lote termina con sus conteos y se avisa a quien subió el archivo. | automatizado |
 | CP-RF04-27 | **Dado** una cuenta con el rol Estudiante o Soporte Técnico, **cuando** se le intenta sumar cualquier otro rol (Coordinador, Jefe, Administrador, Docente o el otro exclusivo), **entonces** se rechaza nombrando el choque; Docente, Coordinador, Jefe y Administrador sí se combinan entre sí ([[ADR-081 Estudiante y Soporte Técnico son roles exclusivos]]). | automatizado |
+| CP-RF04-28 | **Dado** el paso de asignaciones de Coordinador o Estudiante, **cuando** se elige un departamento, **entonces** la carrera solo lista las de ese departamento; al cambiarlo se limpian la carrera (y el plan del Estudiante), y abre con el departamento de la carrera asignada o con el único del Jefe. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF04-01 …')`.
 >

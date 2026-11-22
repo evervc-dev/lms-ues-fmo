@@ -452,3 +452,45 @@ it('CP-RF04-14 registra en audit_logs los cambios de perfiles, carreras, coordin
         ->and($acciones('career_coordinators'))->toContain('insert', 'update')
         ->and($acciones('department_heads'))->toContain('insert', 'update');
 })->skip(fn () => DB::connection()->getDriverName() !== 'pgsql', 'Requiere PostgreSQL');
+
+it('CP-RF04-28 lista solo las carreras del departamento elegido y lo precarga desde la carrera asignada', function () {
+    $e = escenario();
+    $otra = carreraAdicionalDeAsignacion($e);
+    actingAs($e['administrador']);
+
+    $pagina = Livewire::test(RolesUsuario::class, ['usuario' => $e['coordinador']->id])
+        ->assertSet('departamentoCoordina', $e['dia']);
+
+    expect($pagina->instance()->carrerasDelDepartamento($e['dia'])->pluck('id')->all())->toBe([$e['isi']])
+        ->and($pagina->instance()->carrerasDelDepartamento($e['dcnm'])->pluck('id')->all())->toBe([$otra['carrera']])
+        ->and($pagina->instance()->carrerasDelDepartamento(null)->all())->toBe([]);
+});
+
+it('CP-RF04-28 limpia la carrera, y en Estudiante también el plan, al cambiar a otro departamento', function () {
+    $e = escenario();
+    $otra = carreraAdicionalDeAsignacion($e);
+    actingAs($e['administrador']);
+
+    Livewire::test(RolesUsuario::class, ['usuario' => $e['coordinador']->id])
+        ->set('departamentoCoordina', $e['dcnm'])
+        ->assertSet('carreraCoordina', null)
+        ->set('carreraCoordina', $otra['carrera'])
+        ->set('departamentoCoordina', $e['dcnm'])
+        ->assertSet('carreraCoordina', $otra['carrera']);
+
+    Livewire::test(RolesUsuario::class, ['usuario' => $e['estudiante']->id])
+        ->assertSet('departamentoEstudiante', $e['dia'])
+        ->assertSet('planEstudiante', $e['plan'])
+        ->set('departamentoEstudiante', $e['dcnm'])
+        ->assertSet('carreraEstudiante', null)
+        ->assertSet('planEstudiante', null);
+});
+
+it('CP-RF04-28 preselecciona el único departamento del Jefe', function () {
+    $e = escenario();
+    actingAs($e['jefe']);
+
+    Livewire::test(RolesUsuario::class, ['usuario' => $e['docente']->id])
+        ->assertOk()
+        ->assertSet('departamentoCoordina', $e['dia']);
+});
