@@ -68,11 +68,12 @@ class SeccionService
             ->get(['section_id', DB::raw("users.first_name || ' ' || users.last_name as nombre")])->pluck('nombre', 'section_id');
         $dias = [1 => 'Lun', 2 => 'Mar', 3 => 'Mié', 4 => 'Jue', 5 => 'Vie', 6 => 'Sáb', 7 => 'Dom'];
         $horarios = DB::table('section_schedules')->leftJoin('classrooms', 'classrooms.id', '=', 'section_schedules.classroom_id')
-            ->whereIn('section_id', $secciones->pluck('id'))->orderBy('weekday')->get()->groupBy('section_id');
+            ->whereIn('section_id', $secciones->pluck('id'))->orderBy('weekday')->orderBy('start_time')->get()->groupBy('section_id');
 
         return $secciones->each(function ($s) use ($docentes, $horarios, $dias) {
             $s->docente = $docentes[$s->id] ?? null;
-            $s->horario = ($horarios[$s->id] ?? collect())->map(fn ($h) => $dias[$h->weekday].' '.substr($h->start_time, 0, 5))->implode(' · ');
+            // Con la hora de fin (QA Jefe y Estudiante 21/11): «Vie 07:00 · Vie 08:50» parecía un rango y eran dos inicios.
+            $s->horario = ($horarios[$s->id] ?? collect())->map(fn ($h) => $dias[$h->weekday].' '.substr($h->start_time, 0, 5).'–'.substr($h->end_time, 0, 5))->implode(' · ');
         });
     }
 

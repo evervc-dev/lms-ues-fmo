@@ -49,19 +49,30 @@
                             <span class="text-amber-700">{{ __('Sin asignar') }}</span>
                         @endforelse
                     </td>
-                    <td>@forelse ($s->horario as $h)<p>{{ $h }}</p>@empty<span class="text-texto-suave">{{ __('Sin horario') }}</span>@endforelse
+                    {{-- QA admin 21/11: la columna era angosta y partía cada dato en 6–8 líneas; ahora un bloque por línea, sin cortes. --}}
+                    <td class="min-w-52">@forelse ($s->horario as $h)<p class="whitespace-nowrap">{{ $h }}</p>@empty<span class="text-texto-suave">{{ __('Sin horario') }}</span>@endforelse
                         @if ($s->choque)<p class="text-xs text-red-700">{{ __('Choca con :s', ['s' => $s->choque]) }}</p>@endif</td>
                     <td class="text-right">{{ $s->inscritos }} / {{ $s->max_capacity }}</td>
                     <td><x-ui.badge :color="$estados[$s->estado][0]">{{ $estados[$s->estado][1] }}</x-ui.badge></td>
-                    <td class="text-right whitespace-nowrap">
-                        @if ($gestiona)
-                            <x-ui.button tamano="sm" variante="fantasma" wire:click="abrir('horario', {{ $s->id }})">{{ __('Horario') }}</x-ui.button>
-                        @endif
-                        @if ($cambiaCupo)
-                            <x-ui.button tamano="sm" variante="fantasma" wire:click="abrirCupo({{ $s->id }})">{{ __('Cupo') }}</x-ui.button>
-                        @endif
-                        @if ($asignaDocentes)
-                            <x-ui.button tamano="sm" variante="fantasma" wire:click="abrir('docente', {{ $s->id }})">{{ __('Asignar docente') }}</x-ui.button>
+                    {{-- Las acciones van en un menú «⋯»: tres botones de texto por fila ensanchaban la tabla (QA admin 21/11). --}}
+                    <td class="text-right">
+                        @if ($gestiona || $cambiaCupo || $asignaDocentes)
+                            <x-ui.dropdown ancho="w-48">
+                                <x-slot:disparador>
+                                    <span class="inline-flex size-8 items-center justify-center rounded-lg text-texto-suave hover:bg-zinc-100 hover:text-texto" title="{{ __('Acciones') }}">
+                                        <x-ui.icon name="ellipsis-horizontal" class="size-5" /><span class="sr-only">{{ __('Acciones de :g', ['g' => $s->code.' · '.$s->grupo]) }}</span>
+                                    </span>
+                                </x-slot:disparador>
+                                @if ($gestiona)
+                                    <x-ui.dropdown.item icono="clock" x-on:click="abierto = false" wire:click="abrir('horario', {{ $s->id }})">{{ __('Horario y aula') }}</x-ui.dropdown.item>
+                                @endif
+                                @if ($cambiaCupo)
+                                    <x-ui.dropdown.item icono="users" x-on:click="abierto = false" wire:click="abrirCupo({{ $s->id }})">{{ __('Cupo') }}</x-ui.dropdown.item>
+                                @endif
+                                @if ($asignaDocentes)
+                                    <x-ui.dropdown.item icono="user-plus" x-on:click="abierto = false" wire:click="abrir('docente', {{ $s->id }})">{{ __('Asignar docente') }}</x-ui.dropdown.item>
+                                @endif
+                            </x-ui.dropdown>
                         @endif
                     </td>
                 </tr>

@@ -67,11 +67,28 @@ class CargaAcademicaService
             ->whereIn('section_id', $ids)->orderBy('weekday')->orderBy('start_time')
             ->get(['section_schedules.id', 'section_id', 'weekday', 'start_time', 'end_time', 'classrooms.code as aula', 'classroom_id', 'period_id'])->groupBy('section_id');
 
-        $resultado = $secciones->map(function ($s) use ($docentes, $bloques, $periodoId) {
+        // Choques de aula de todo el período en una sola consulta: antes era una por bloque y la página tardaba ~2 s (QA admin 21/11).
+        $ocupacion = DB::table('section_schedules')->join('sections', 'sections.id', '=', 'section_schedules.section_id')
+            ->join('subjects', 'subjects.id', '=', 'sections.subject_id')
+            ->where('section_schedules.period_id', $periodoId)->whereNotNull('section_schedules.classroom_id')
+            ->get(['section_schedules.section_id', 'section_schedules.classroom_id', 'section_schedules.weekday', 'section_schedules.start_time', 'section_schedules.end_time',
+                DB::raw("subjects.code || ' · ' || sections.code as etiqueta")])
+            ->groupBy(fn ($b) => $b->classroom_id.'-'.$b->weekday);
+        $choqueDe = function (object $b, int $seccionId) use ($ocupacion): ?string {
+            if ($b->classroom_id === null) {
+                return null;
+            }
+            $otro = ($ocupacion[$b->classroom_id.'-'.$b->weekday] ?? collect())->first(fn ($o) => (int) $o->section_id !== $seccionId
+                && substr($o->start_time, 0, 5) < substr($b->end_time, 0, 5) && substr($o->end_time, 0, 5) > substr($b->start_time, 0, 5));
+
+            return $otro?->etiqueta;
+        };
+
+        $resultado = $secciones->map(function ($s) use ($docentes, $bloques, $choqueDe) {
             $s->docentes = ($docentes[$s->id] ?? collect())->values();
             $s->horario = ($bloques[$s->id] ?? collect())->map(fn ($b) => self::etiquetaBloque($b))->all();
             $s->bloques = ($bloques[$s->id] ?? collect())->map(fn ($b) => (object) ['id' => (int) $b->id, 'etiqueta' => self::etiquetaBloque($b), 'aulaId' => $b->classroom_id ? (int) $b->classroom_id : null])->values();
-            $s->choque = ($bloques[$s->id] ?? collect())->map(fn ($b) => $this->horarios->chocaAula((int) $periodoId, $b->classroom_id ? (int) $b->classroom_id : null, (int) $b->weekday, substr($b->start_time, 0, 5), substr($b->end_time, 0, 5), (int) $s->id))->filter()->first();
+            $s->choque = ($bloques[$s->id] ?? collect())->map(fn ($b) => $choqueDe($b, (int) $s->id))->filter()->first();
             $s->estado = $s->choque ? 'choque' : ($s->docentes->isEmpty() ? 'sin_docente' : ((int) $s->inscritos >= (int) $s->max_capacity ? 'llena' : 'ok'));
 
             return $s;
