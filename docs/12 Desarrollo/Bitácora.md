@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF07 · Desactivar una asignatura desactiva sus dependientes
+- **Autor:** IA (Claude Code), a pedido del equipo de pruebas
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** `CatalogoService::cambiarEstadoAsignatura()` desactiva en la misma transacción la cadena de asignaturas activas que dependen de la elegida por prerrequisito; la confirmación y el aviso las nombran.
+- **CP cubiertos:** CP-RF07-23.
+- **Decisiones:** toda la cadena (no solo las directas); si una dependiente activa es de otro departamento, el Jefe no puede desactivar; al reactivar solo cambia la elegida. Desactivar sigue sin tocar los grupos existentes, así que una materia en curso no se interrumpe.
+- **Pendiente:** —
+
 ### 2026-11-21 · Transversal · Búsquedas sin tildes ni eñe
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

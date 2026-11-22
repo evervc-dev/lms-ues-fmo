@@ -35,7 +35,12 @@
                     <td class="text-right">{{ $a->secciones }}</td>
                     <td class="text-right whitespace-nowrap">
                         <x-ui.button tamano="sm" variante="fantasma" :href="route('catalogo.asignaturas.editar', ['asignatura' => $a->code])">{{ __('Editar') }}</x-ui.button>
-                        <x-ui.button tamano="sm" variante="fantasma" wire:click="alternarEstado({{ $a->id }})">{{ $a->is_active ? __('Desactivar') : __('Reactivar') }}</x-ui.button>
+                        @php($dependientes = $a->is_active ? ($dependientesDe[$a->id] ?? collect())->pluck('code') : collect())
+                        @if ($dependientes->isNotEmpty())
+                            <x-ui.button tamano="sm" variante="fantasma" wire:click="alternarEstado({{ $a->id }})" wire:confirm="{{ __('¿Desactivar :c? También se desactivarán las que dependen de ella: :d.', ['c' => $a->code, 'd' => $dependientes->implode(', ')]) }}">{{ __('Desactivar') }}</x-ui.button>
+                        @else
+                            <x-ui.button tamano="sm" variante="fantasma" wire:click="alternarEstado({{ $a->id }})">{{ $a->is_active ? __('Desactivar') : __('Reactivar') }}</x-ui.button>
+                        @endif
                         <x-ui.button tamano="sm" variante="fantasma" wire:click="eliminar({{ $a->id }})" wire:confirm="{{ __('¿Eliminar :c? Solo se puede si ningún grupo teórico, plan ni asignatura la usa.', ['c' => $a->code]) }}">{{ __('Eliminar') }}</x-ui.button>
                     </td>
                 </tr>

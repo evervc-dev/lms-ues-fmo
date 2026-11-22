@@ -55,8 +55,20 @@ class Catalogo extends Component
     public function alternarEstado(int $id, CatalogoService $catalogo): void
     {
         $activa = ! (bool) (DB::table('subjects')->where('id', $id)->value('is_active') ?? abort(404));
-        $catalogo->cambiarEstadoAsignatura(auth()->user(), $id, $activa);
-        $this->dispatch('aviso', tipo: 'exito', mensaje: $activa ? __('Asignatura reactivada.') : __('Asignatura desactivada: no se ofrecerá al crear grupos teóricos.'));
+        try {
+            $cascada = $catalogo->cambiarEstadoAsignatura(auth()->user(), $id, $activa);
+        } catch (ValidationException $e) {
+            $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
+
+            return;
+        }
+
+        $mensaje = match (true) {
+            $activa => __('Asignatura reactivada. Las que dependen de ella se reactivan aparte.'),
+            $cascada !== [] => __('Asignatura desactivada junto con las que dependen de ella: :codigos. No se ofrecerán al crear grupos teóricos.', ['codigos' => implode(', ', $cascada)]),
+            default => __('Asignatura desactivada: no se ofrecerá al crear grupos teóricos.'),
+        };
+        $this->dispatch('aviso', tipo: 'exito', mensaje: $mensaje);
     }
 
     public function render(CatalogoService $catalogo): View
@@ -69,6 +81,7 @@ class Catalogo extends Component
             'asignaturas' => $asignaturas,
             'prerrequisitosDe' => $catalogo->prerrequisitos($ids),
             'carrerasDe' => $catalogo->carreras(auth()->user(), $ids),
+            'dependientesDe' => $catalogo->dependientesActivas($ids),
             'veDepartamento' => $catalogo->veDepartamento(auth()->user()),
             'gestionaEstructura' => $catalogo->gestionaEstructura(auth()->user()),
             'carreras' => $catalogo->carrerasConPlanes(auth()->user()),

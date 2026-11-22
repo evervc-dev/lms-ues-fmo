@@ -188,13 +188,63 @@ class CatalogoService
 
     /**
      * Desactiva o reactiva una asignatura (RF07). Inactiva, no se ofrece al crear secciones; las que ya tiene siguen igual.
+     *
+     * Al desactivarla se desactivan también, en la misma transacción, las asignaturas activas que dependen de ella por
+     * prerrequisito, directa o indirectamente (CP-RF07-23). Si alguna es de un departamento fuera del alcance del actor
+     * (el Jefe), no se desactiva nada. Al reactivarla solo cambia ella: las dependientes se reactivan a mano.
+     *
+     * @return array<int, string> códigos de las dependientes que se desactivaron en cascada
+     *
+     * @throws ValidationException si una dependiente activa es de otro departamento
      */
-    public function cambiarEstadoAsignatura(User $actor, int $id, bool $activa): void
+    public function cambiarEstadoAsignatura(User $actor, int $id, bool $activa): array
     {
         $this->exigirAsignatura($actor, $id);
+        $dependientes = $activa ? collect() : $this->dependientesActivas([$id])[$id];
 
-        DbContext::run(fn () => DB::table('subjects')->where('id', $id)->update(['is_active' => $activa, 'updated_at' => now()]),
-            $activa ? 'subject.activated' : 'subject.deactivated');
+        if ($dependientes->isNotEmpty() && $this->alcance->exigir($actor, 'asignaturas.gestionar') !== 'G') {
+            $ajenas = $dependientes->reject(fn (object $d) => in_array((int) $d->department_id, $this->alcance->departamentos($actor), true));
+            if ($ajenas->isNotEmpty()) {
+                throw ValidationException::withMessages(['asignatura' => __('No se puede desactivar: :codigos depende de ella y es de otro departamento. Pida a su jefatura que la desactive primero.', ['codigos' => $ajenas->pluck('code')->implode(', ')])]);
+            }
+        }
+
+        DbContext::run(fn () => DB::table('subjects')->whereIn('id', [$id, ...$dependientes->pluck('id')->all()])
+            ->update(['is_active' => $activa, 'updated_at' => now()]), $activa ? 'subject.activated' : 'subject.deactivated');
+
+        return $dependientes->pluck('code')->all();
+    }
+
+    /**
+     * Asignaturas activas que dependen de cada una de las dadas por prerrequisito, directa o indirectamente (la cadena
+     * entera), ordenadas por código. Se recorre el grafo en PHP con una sola lectura de los prerrequisitos.
+     *
+     * @param  array<int, int>  $ids
+     * @return array<int, Collection<int, \stdClass>> id => [{id, code, department_id}]
+     */
+    public function dependientesActivas(array $ids): array
+    {
+        $dependenDe = DB::table('subject_prerequisites')->get(['subject_id', 'prerequisite_id'])
+            ->groupBy(fn (object $p) => (int) $p->prerequisite_id)
+            ->map(fn (Collection $g) => $g->map(fn (object $p) => (int) $p->subject_id)->all());
+        $activas = DB::table('subjects')->where('is_active', true)->get(['id', 'code', 'department_id'])->keyBy(fn (object $a) => (int) $a->id);
+
+        $resultado = [];
+        foreach ($ids as $id) {
+            $vistos = [];
+            $pendientes = $dependenDe[(int) $id] ?? [];
+            while ($pendientes !== []) {
+                $actual = array_pop($pendientes);
+                if ($actual === (int) $id || isset($vistos[$actual])) {
+                    continue;
+                }
+                $vistos[$actual] = true;
+                array_push($pendientes, ...($dependenDe[$actual] ?? []));
+            }
+            $resultado[(int) $id] = collect(array_keys($vistos))->map(fn (int $d) => $activas[$d] ?? null)->filter()->sortBy('code')->values();
+        }
+
+        return $resultado;
     }
 
     /**
