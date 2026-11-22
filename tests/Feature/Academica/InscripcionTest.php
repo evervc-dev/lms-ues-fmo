@@ -265,10 +265,19 @@ it('CP-RF29-11 la pantalla de claves aplica la clave común a todo el ámbito y 
     inscripcionMateria($e, 'BDD115');
     actingAs($e['jefe']);
 
+    // QA Jefe 21/11: primero se confirma escribiendo CAMBIAR en un modal que dice cuántas asignaturas afecta.
     Livewire::test(ClavesMatricula::class)
-        ->call('aplicarATodas')->assertHasErrors(['claveComun' => 'required'])
-        ->set('claveComun', 'con espacio')->call('aplicarATodas')->assertHasErrors(['claveComun'])
-        ->set('claveComun', 'DIA-2026-II')->call('aplicarATodas')->assertHasNoErrors()->assertSet('claveNueva', 'DIA-2026-II');
+        ->call('prepararAplicarATodas')->assertHasErrors(['claveComun' => 'required'])
+        ->set('claveComun', 'con espacio')->call('prepararAplicarATodas')->assertHasErrors(['claveComun'])
+        ->set('claveComun', 'DIA-2026-II')->call('prepararAplicarATodas')->assertHasNoErrors()->assertDispatched('abrir-modal', 'confirmar-clave-comun')
+        ->assertSee('Afecta a 2 asignaturas de su ámbito.')
+        ->set('confirmacion', 'si')->call('aplicarATodas')->assertHasErrors(['confirmacion'])
+        ->assertSet('claveNueva', null);
+    expect(DB::table('enrollment_keys')->where('is_active', true)->count())->toBe(0);
+
+    Livewire::test(ClavesMatricula::class)
+        ->set('claveComun', 'DIA-2026-II')->set('confirmacion', 'cambiar')->call('aplicarATodas')->assertHasNoErrors()
+        ->assertSet('claveNueva', 'DIA-2026-II')->assertSee(['Copiar clave', 'Copiar mensaje para estudiantes']);
 
     expect(DB::table('enrollment_keys')->where('is_active', true)->count())->toBe(2);
 });
