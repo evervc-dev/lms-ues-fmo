@@ -184,6 +184,29 @@ it('CP-RF15-08 da la misma prórroga a varios estudiantes a la vez y reemplaza l
         ->and(DB::table('assessment_extensions')->pluck('reason')->unique()->values()->all())->toBe(['Corte de luz en la facultad']);
 });
 
+it('CP-RF15-08 el asistente de prórrogas valida cada paso y muestra una vista previa antes de guardar', function () {
+    $e = escenario();
+    $tarea = tareaDe($e, computos($e)[0]);
+    actingAs($e['docente']);
+    $hasta = now()->addDays(2)->format('Y-m-d\\TH:i');
+    app(ProrrogaService::class)->conceder($e['docente'], $e['seccion'], $tarea, $e['matricula'], 'submission', $hasta, 'Primera prórroga');
+
+    Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $tarea])->call('abrir')
+        // Paso 1: sin estudiantes no avanza.
+        ->call('siguiente')->assertHasErrors(['matriculas'])->assertSet('paso', 1)
+        ->set('matriculas', [$e['matricula']])->call('siguiente')->assertHasNoErrors()->assertSet('paso', 2)
+        // Paso 2: la fecha debe ser futura y el motivo, de al menos 5 caracteres.
+        ->set('hasta', now()->subDay()->format('Y-m-d\\TH:i'))->set('motivo', 'no')->call('siguiente')
+        ->assertHasErrors(['hasta', 'motivo'])->assertSet('paso', 2)
+        ->set('hasta', $hasta)->set('motivo', 'Constancia médica')->call('siguiente')->assertSet('paso', 3)
+        // Paso 3: vista previa, con el aviso de que se reemplaza la que ya tenía; todavía no se guardó nada.
+        ->assertSeeText(['Constancia médica', 'Reemplaza', 'Confirmar prórroga'])
+        ->call('anterior')->assertSet('paso', 2)->call('siguiente')
+        ->call('conceder')->assertHasNoErrors()->assertSet('paso', 1);
+
+    expect(DB::table('assessment_extensions')->value('reason'))->toBe('Constancia médica');
+});
+
 it('ya no pide la dificultad al crear una pregunta del banco', function () {
     $e = escenario();
     actingAs($e['docente']);
