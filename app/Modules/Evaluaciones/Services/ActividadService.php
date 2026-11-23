@@ -376,8 +376,17 @@ class ActividadService
         }
 
         return DB::table('assessments as a')->leftJoin('assignment_settings as s', 's.assessment_id', '=', 'a.id')
-            ->where('a.section_id', $seccionId)->whereNull('a.grade_item_id')->orderBy('a.id')
+            ->where('a.section_id', $seccionId)->whereNull('a.grade_item_id')->whereNotExists(self::verificacionDeLectura())->orderBy('a.id')
             ->get(['a.id', 'a.ulid', 'a.assessment_type', 'a.title', 'a.rubric_id', 's.late_policy']);
+    }
+
+    /**
+     * Subconsulta: la evaluación es una verificación de lectura (ADR-091). Tampoco tiene ítem de calificación, pero no es
+     * una evaluación copiada por programar: no se ofrece programarla ni darle cómputo.
+     */
+    private static function verificacionDeLectura(): \Closure
+    {
+        return fn ($q) => $q->from('quiz_settings as vl')->whereColumn('vl.assessment_id', 'a.id')->where('vl.is_reading_check', true);
     }
 
     /**
@@ -391,7 +400,7 @@ class ActividadService
     public function programar(User $docente, int $seccionId, string $ulid, array $datos): void
     {
         $evaluacion = DB::table('assessments as a')->leftJoin('assignment_settings as s', 's.assessment_id', '=', 'a.id')
-            ->where('a.section_id', $seccionId)->where('a.ulid', $ulid)->whereNull('a.grade_item_id')
+            ->where('a.section_id', $seccionId)->where('a.ulid', $ulid)->whereNull('a.grade_item_id')->whereNotExists(self::verificacionDeLectura())
             ->first(['a.id', 'a.assessment_type', 'a.title', 's.late_policy']) ?? abort(404);
         abort_unless($this->alcance->puedeEnSeccion($docente, $evaluacion->assessment_type === 'quiz' ? 'cuestionarios.gestionar' : 'tareas.gestionar', $seccionId), 403);
         $this->validarPeso((int) $datos['componente'], $seccionId, (float) $datos['peso']);

@@ -4,6 +4,7 @@ namespace App\Modules\Contenidos\Services;
 
 use App\Models\User;
 use App\Modules\Contenidos\Jobs\RegistrarAccesoRecurso;
+use App\Modules\Evaluaciones\Services\CuestionarioService;
 use App\Modules\Evaluaciones\Services\ReutilizacionService;
 use App\Support\Alcance;
 use App\Support\Busqueda;
@@ -52,7 +53,30 @@ class ContenidoService
     /** Máximo de segundos que se aceptan por envío: el latido más un margen por la demora de la red. */
     public const TOPE_LATIDO = 35;
 
-    public function __construct(private Alcance $alcance, private ReutilizacionService $reutilizacion, private ProgresoService $progreso) {}
+    public function __construct(private Alcance $alcance, private ReutilizacionService $reutilizacion, private ProgresoService $progreso, private CuestionarioService $cuestionarios) {}
+
+    /** Tipos de recurso que pueden ser el material de una lección con cuestionario (RF38). */
+    public const TIPOS_LECCION = ['file', 'page'];
+
+    /**
+     * ¿La página puede saber que el estudiante llegó al final? Sí en una página y en un PDF abierto en el visor; no en
+     * un archivo que solo se descarga (Word, PowerPoint o un PDF en modo descarga): ahí basta el tiempo (ADR-091).
+     */
+    public static function finDetectable(\stdClass $recurso): bool
+    {
+        return $recurso->resource_type === 'page'
+            || ($recurso->resource_type === 'file' && ($recurso->pdf_mode ?? null) === 'viewer'
+                && Str::endsWith(mb_strtolower((string) $recurso->file_path), '.pdf'));
+    }
+
+    /**
+     * Cuestionario que exige completar la lectura de este recurso (RF38), o null si el recurso no es una lección.
+     */
+    public static function cuestionarioDeLeccion(int $recursoId): ?\stdClass
+    {
+        return DB::table('quiz_settings')->join('assessments', 'assessments.id', '=', 'quiz_settings.assessment_id')
+            ->where('quiz_settings.required_resource_id', $recursoId)->first(['assessments.id', 'assessments.ulid', 'assessments.title']);
+    }
 
     /**
      * Regla de validación del archivo: extensión declarada y mime real, más el tamaño máximo.
@@ -173,7 +197,10 @@ class ContenidoService
     }
 
     /**
-     * @param  array{tipo: string, titulo: string, descripcion?: string|null, url?: string|null, texto?: string|null, pdf?: string|null, archivo?: UploadedFile|null, archivos?: array<int, UploadedFile>, rutas?: array<int, string>, completion?: string|null, regla?: array<string, mixed>|null}  $datos
+     * @param  array{tipo: string, titulo: string, descripcion?: string|null, url?: string|null, texto?: string|null, pdf?: string|null, archivo?: UploadedFile|null, archivos?: array<int, UploadedFile>, rutas?: array<int, string>, completion?: string|null, regla?: array<string, mixed>|null, cuestionario?: array<string, mixed>|null}  $datos
+     *
+     * Con `cuestionario`, el recurso es una **lección** (RF38, ADR-091): un archivo o una página con lectura
+     * comprobada y un cuestionario nuevo que solo se intenta después de completarla. Todo se guarda o nada.
      *
      * @throws ValidationException
      */
@@ -181,6 +208,21 @@ class ContenidoService
     {
         $seccionId = (int) (DB::table('units')->where('id', $unidadId)->value('section_id') ?? abort(404));
         $this->exigirEnSeccion($usuario, 'contenidos.gestionar', $seccionId);
+        $leccion = $datos['cuestionario'] ?? null;
+        if ($leccion !== null) {
+            if (! $this->alcance->puedeEnSeccion($usuario, 'cuestionarios.gestionar', $seccionId)) {
+                throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
+            }
+            if (! in_array($datos['tipo'], self::TIPOS_LECCION, true)) {
+                throw ValidationException::withMessages(['tipo' => __('Una lección lleva un archivo o una página.')]);
+            }
+            if (($datos['regla']['type'] ?? null) !== 'read') {
+                throw ValidationException::withMessages(['regla' => __('Una lección se completa con la lectura comprobada.')]);
+            }
+            $datos['completion'] = 'automatic';
+            // El cuestionario de una lección es una verificación de lectura: no suma a la nota (ADR-091).
+            $leccion = ['verificacion' => true] + $leccion;
+        }
 
         // Cómo se completa el recurso (RF18, ADR-067): sin elección, la página se completa al abrirla y el resto, a mano.
         // Se valida antes de subir nada: una regla inválida no debe dejar archivos huérfanos en el disco.
@@ -211,7 +253,7 @@ class ContenidoService
             $this->exigirUrlAdmitida((string) ($datos['url'] ?? ''));
         }
 
-        $recursoId = DbContext::run(function () use ($ulid, $unidadId, $datos, $ruta, $carpeta, $modo, $regla): int {
+        $guardar = fn (): int => DbContext::run(function () use ($ulid, $unidadId, $datos, $ruta, $carpeta, $modo, $regla): int {
             $recursoId = DB::table('resources')->insertGetId([
                 'ulid' => $ulid, 'unit_id' => $unidadId, 'resource_type' => $datos['tipo'], 'title' => $datos['titulo'],
                 'description' => $datos['descripcion'] ?? null, 'file_path' => $ruta, 'url' => $datos['url'] ?? null,
@@ -231,6 +273,23 @@ class ContenidoService
 
             return $recursoId;
         }, 'resource.created');
+
+        try {
+            $recursoId = $leccion === null ? $guardar() : DB::transaction(function () use ($guardar, $usuario, $seccionId, $leccion): int {
+                $recursoId = $guardar();
+                $cuestionario = $this->cuestionarios->crearCuestionario($usuario, $seccionId, $leccion);
+                DbContext::run(fn () => DB::table('quiz_settings')->where('assessment_id', DB::table('assessments')->where('ulid', $cuestionario)->value('id'))
+                    ->update(['required_resource_id' => $recursoId]), 'lesson.created');
+
+                return $recursoId;
+            });
+        } catch (\Throwable $e) {
+            // El cuestionario se rechazó (banco sin preguntas, fechas, peso…): no queda el archivo huérfano en el disco.
+            if ($ruta !== null && $leccion !== null) {
+                Storage::delete($ruta);
+            }
+            throw $e;
+        }
 
         // Quien ya cumple la regla queda al día desde el primer momento (RF18): no se le pide repetir lo hecho.
         if ($regla !== null) {
@@ -378,9 +437,12 @@ class ContenidoService
         }
         $recurso = $this->recurso($usuario, $seccionId, $ulid)['recurso'];
         $matricula = $this->matricula($usuario, $seccionId);
-        if ($matricula !== null) {
-            RegistrarAccesoRecurso::dispatch((int) $recurso->id, $matricula, 'time', now()->format('Y-m-d H:i:s.uP'), min($segundos, self::TOPE_LATIDO));
+        if ($matricula === null) {
+            return;
         }
+        $trabajo = new RegistrarAccesoRecurso((int) $recurso->id, $matricula, 'time', now()->format('Y-m-d H:i:s.uP'), min($segundos, self::TOPE_LATIDO));
+        // En una lección (RF38) el tiempo decide si «Ya lo leí» procede: se suma al momento, sin esperar a la cola.
+        (ProgresoService::regla($recurso)['type'] ?? null) === 'read' ? dispatch_sync($trabajo) : dispatch($trabajo);
     }
 
     /**
@@ -393,11 +455,50 @@ class ContenidoService
     {
         $matricula = $this->matricula($usuario, $seccionId)
             ?? throw new AuthorizationException(__('Solo puede marcar materiales de las asignaturas en las que está matriculado.'));
-        $recurso = $this->recursoDeSeccion($seccionId, $recursoId)->whereNull('deleted_at')->first(['id', 'completion_mode']) ?? abort(404);
+        $recurso = $this->recursoDeSeccion($seccionId, $recursoId)->whereNull('deleted_at')
+            ->first(['id', 'resource_type', 'file_path', 'pdf_mode', 'completion_mode', 'completion_rule']) ?? abort(404);
+        $regla = ProgresoService::regla($recurso);
+        // Lectura comprobada (RF38): «Ya lo leí» solo vale con el tiempo y, si se exige, la llegada al final.
+        if (($regla['type'] ?? null) === 'read') {
+            if (! $this->progreso->lectura($regla, $recursoId, $matricula, self::finDetectable($recurso))['cumple']) {
+                throw ValidationException::withMessages(['recurso' => __('Todavía no completa la lectura: revise el tiempo y llegue al final del material.')]);
+            }
+            $this->progreso->completar($matricula, $recursoId, 'rule');
+
+            return;
+        }
         if ($recurso->completion_mode !== 'manual') {
             throw ValidationException::withMessages(['recurso' => __('Este material se completa solo, al cumplirse su regla.')]);
         }
         $this->progreso->completar($matricula, $recursoId, 'manual');
+    }
+
+    /**
+     * El estudiante llegó al final del material de una lección (RF38): la última página del PDF o el final de la
+     * página. Se registra una sola vez y sin cola, porque «Ya lo leí» lo consulta enseguida.
+     */
+    public function registrarFinal(User $usuario, int $seccionId, string $ulid): void
+    {
+        $recurso = $this->recurso($usuario, $seccionId, $ulid)['recurso'];
+        $matricula = $this->matricula($usuario, $seccionId);
+        if ($matricula === null || ! self::finDetectable($recurso)) {
+            return;
+        }
+        $registros = DB::table('resource_access_logs')->where('resource_id', $recurso->id)->where('enrollment_id', $matricula);
+        if (! $registros->where('event_type', 'end')->exists()) {
+            DB::table('resource_access_logs')->insert(['resource_id' => $recurso->id, 'enrollment_id' => $matricula,
+                'event_type' => 'end', 'duration_seconds' => 0, 'occurred_at' => now()]);
+        }
+    }
+
+    /**
+     * Cuánto lleva leída la lección el estudiante (RF38). Para quien no está matriculado, todo en cero.
+     *
+     * @return array{segundos: int, minimo: int, alFinal: bool, exigeFinal: bool, cumple: bool}
+     */
+    public function lectura(User $usuario, int $seccionId, \stdClass $recurso): array
+    {
+        return $this->progreso->lectura(ProgresoService::regla($recurso), (int) $recurso->id, $this->matricula($usuario, $seccionId), self::finDetectable($recurso));
     }
 
     /**

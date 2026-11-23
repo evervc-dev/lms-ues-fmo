@@ -29,6 +29,24 @@ class Cuestionario extends Component
     public function mount(string $cuestionario): void
     {
         $this->cuestionarioUlid = $cuestionario;
+        // El cuestionario de una lección (RF38) se intenta desde la lección, junto al material: el estudiante que
+        // llega por otro enlace (Actividades, Mis notas, un aviso) va a la lección. El docente sigue viendo esta página.
+        $leccion = self::leccion($this->seccionId(), $cuestionario);
+        if ($leccion !== null && ! auth()->user()->checkPermissionTo('cuestionarios.gestionar')) {
+            $this->redirectRoute('secciones.recurso', ['seccion' => $this->seccion, 'recurso' => $leccion]);
+        }
+    }
+
+    /**
+     * Ulid del recurso de la lección a la que pertenece el cuestionario (RF38), o null.
+     */
+    public static function leccion(int $seccionId, string $cuestionarioUlid): ?string
+    {
+        $ulid = DB::table('assessments')->join('quiz_settings', 'quiz_settings.assessment_id', '=', 'assessments.id')
+            ->join('resources', 'resources.id', '=', 'quiz_settings.required_resource_id')->whereNull('resources.deleted_at')
+            ->where('assessments.section_id', $seccionId)->where('assessments.ulid', $cuestionarioUlid)->value('resources.ulid');
+
+        return $ulid === null ? null : (string) $ulid;
     }
 
     public function comenzar(CuestionarioService $cuestionarios): void
@@ -61,6 +79,7 @@ class Cuestionario extends Component
             ->where('p.question_type', 'essay')->whereNull('r.score')->where('q.status', 'pending_grading')
             ->get(['r.id', 'r.answer_text', 'p.statement']) : collect();
 
-        return $this->paginaDeSeccion('modules.evaluaciones.cuestionario', $datos + ['ensayosPendientes' => $ensayosPendientes]);
+        return $this->paginaDeSeccion('modules.evaluaciones.cuestionario', $datos + ['ensayosPendientes' => $ensayosPendientes,
+            'leccion' => self::leccion($this->seccionId(), $this->cuestionarioUlid)]);
     }
 }

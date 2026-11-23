@@ -17,6 +17,17 @@
                     <x-ui.field :etiqueta="__('Descripción')" para="descripcion" error="descripcion">
                         <x-ui.textarea id="descripcion" wire:model="descripcion" rows="2" />
                     </x-ui.field>
+
+                    @if (in_array($tipo, $tiposLeccion, true))
+                        {{-- Lección con cuestionario (RF38): material y cuestionario en una misma página. --}}
+                        <label class="flex cursor-pointer items-start gap-3 rounded-lg p-3 ring-1 ring-borde hover:bg-zinc-50">
+                            <input type="checkbox" id="leccion" wire:model.live="leccion" class="mt-0.5 size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
+                            <span class="flex flex-col gap-0.5">
+                                <span class="text-sm font-medium text-texto">{{ __('Es una lección con verificación de lectura') }}</span>
+                                <span class="text-xs text-texto-suave">{{ __('El estudiante lee el material y, al completar la lectura, responde un cuestionario corto en la misma página. No suma a la nota.') }}</span>
+                            </span>
+                        </label>
+                    @endif
                 </div>
             </x-ui.card>
         </x-ui.formulario.paso>
@@ -80,7 +91,22 @@
         </x-ui.formulario.paso>
 
         <x-ui.formulario.paso :numero="3">
-            <x-ui.card :titulo="__('Cómo se completa')" :descripcion="__('Determina cuándo el recurso cuenta como completado en el avance del estudiante.')">
+            <x-ui.card :titulo="$leccion ? __('Lectura comprobada') : __('Cómo se completa')" :descripcion="$leccion ? __('El estudiante pulsa «Ya lo leí» cuando cumple las condiciones; solo entonces puede intentar el cuestionario.') : __('Determina cuándo el recurso cuenta como completado en el avance del estudiante.')">
+                @if ($leccion)
+                    <div class="flex flex-col gap-4">
+                        <x-ui.field class="max-w-xs" :etiqueta="__('Minutos mínimos de lectura')" para="lecturaMinutos" error="lecturaMinutos" :ayuda="__('Con la pestaña visible. De 1 a :n.', ['n' => \App\Modules\Contenidos\Services\ProgresoService::MAXIMO_MINUTOS_LECTURA])" requerido>
+                            <x-ui.input id="lecturaMinutos" type="number" min="1" wire:model.live="lecturaMinutos" />
+                        </x-ui.field>
+                        <label class="flex cursor-pointer items-start gap-3">
+                            <input type="checkbox" id="lecturaFinal" wire:model.live="lecturaFinal" class="mt-0.5 size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
+                            <span class="flex flex-col gap-0.5">
+                                <span class="text-sm font-medium text-texto">{{ __('Exigir que llegue al final del material') }}</span>
+                                <span class="text-xs text-texto-suave">{{ __('La última página del PDF (en el visor) o el final de la página. En un archivo que solo se descarga, como Word o PowerPoint, basta el tiempo.') }}</span>
+                            </span>
+                        </label>
+                        @error('regla')<p class="text-sm text-red-700">{{ $message }}</p>@enderror
+                    </div>
+                @else
                 <div class="flex flex-col gap-4">
                     <x-ui.field :etiqueta="__('Forma de completarlo')" para="completion" error="completion"
                         :ayuda="__('A mano, el estudiante pulsa «Ya lo leí». Con una regla, la plataforma lo marca sola al cumplirse.')">
@@ -142,16 +168,76 @@
                         @error('regla')<p class="text-sm text-red-700">{{ $message }}</p>@enderror
                     @endif
                 </div>
+                @endif
             </x-ui.card>
         </x-ui.formulario.paso>
 
-        <x-ui.formulario.paso :numero="4">
+        @if ($leccion)
+            <x-ui.formulario.paso :numero="4">
+                <x-ui.card :titulo="__('Verificación de lectura')" :descripcion="__('Un cuestionario corto para comprobar que leyó el material. Se crea junto con la lección, lleva su mismo título y se edita después desde la lección.')">
+                    <div class="flex flex-col gap-4">
+                        {{-- ADR-091: no suma a la nota, por eso no pide cómputo ni peso. --}}
+                        <p class="flex items-center gap-2 rounded-lg bg-zinc-50 p-3 text-sm text-texto-suave ring-1 ring-borde">
+                            <x-ui.icon name="information-circle" class="size-4 shrink-0" />{{ __('No suma a la nota: el estudiante ve su resultado como retroalimentación. No admite preguntas de ensayo.') }}
+                        </p>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <x-ui.field :etiqueta="__('Abre')" para="cuestionarioAbre" error="cuestionario.abre" requerido>
+                                <x-ui.input id="cuestionarioAbre" type="datetime-local" wire:model="cuestionario.abre" />
+                            </x-ui.field>
+                            <x-ui.field :etiqueta="__('Cierra')" para="cuestionarioCierra" error="cuestionario.cierra" requerido>
+                                <x-ui.input id="cuestionarioCierra" type="datetime-local" wire:model="cuestionario.cierra" />
+                            </x-ui.field>
+                        </div>
+
+                        <div class="grid gap-4 sm:grid-cols-3">
+                            <x-ui.field :etiqueta="__('Banco')" para="cuestionarioBanco" error="cuestionario.banco" requerido>
+                                <x-ui.select id="cuestionarioBanco" wire:model.live="cuestionario.banco">
+                                    <option value="">{{ __('Elija…') }}</option>
+                                    @foreach ($bancos as $b)<option value="{{ $b->id }}">{{ $b->name }} ({{ trans_choice('{1} 1 pregunta|[0,*] :count preguntas', $b->preguntas) }})</option>@endforeach
+                                </x-ui.select>
+                            </x-ui.field>
+                            <x-ui.field :etiqueta="__('Tema (opcional)')" para="cuestionarioTema">
+                                <x-ui.select id="cuestionarioTema" wire:model.live="cuestionario.tema" :disabled="$temas->isEmpty()">
+                                    <option value="">{{ __('Todos los temas') }}</option>
+                                    @foreach ($temas as $t)<option value="{{ $t }}">{{ $t }}</option>@endforeach
+                                </x-ui.select>
+                            </x-ui.field>
+                            <x-ui.field :etiqueta="__('Cantidad al azar')" para="cuestionarioCantidad" error="cuestionario.cantidad"
+                                :ayuda="$cuestionario['banco'] ? trans_choice('{1} :count pregunta disponible (0 = todas).|[0,*] :count preguntas disponibles (0 = todas).', $disponibles) : __('0 = todas las del banco.')">
+                                <x-ui.input id="cuestionarioCantidad" type="number" min="0" wire:model="cuestionario.cantidad" />
+                            </x-ui.field>
+                        </div>
+
+                        <div class="grid gap-4 sm:grid-cols-3">
+                            <x-ui.field :etiqueta="__('Minutos')" para="cuestionarioMinutos" error="cuestionario.minutos" requerido>
+                                <x-ui.input id="cuestionarioMinutos" type="number" min="1" wire:model="cuestionario.minutos" />
+                            </x-ui.field>
+                            <x-ui.field :etiqueta="__('Intentos')" para="cuestionarioIntentos" error="cuestionario.intentos" :ayuda="__('Vale el mejor.')" requerido>
+                                <x-ui.input id="cuestionarioIntentos" type="number" min="1" wire:model="cuestionario.intentos" />
+                            </x-ui.field>
+                            <x-ui.field :etiqueta="__('Navegación')" para="cuestionarioNavegacion" error="cuestionario.navegacion">
+                                <x-ui.select id="cuestionarioNavegacion" wire:model="cuestionario.navegacion">
+                                    <option value="free">{{ __('Libre: puede ir y volver') }}</option>
+                                    <option value="linear">{{ __('Una a una, sin volver') }}</option>
+                                </x-ui.select>
+                            </x-ui.field>
+                        </div>
+                        @error('cantidad')<p class="text-sm text-red-700">{{ $message }}</p>@enderror
+                        @error('banco')<p class="text-sm text-red-700">{{ $message }}</p>@enderror
+                        @error('cierra')<p class="text-sm text-red-700">{{ $message }}</p>@enderror
+                    </div>
+                </x-ui.card>
+            </x-ui.formulario.paso>
+        @endif
+
+        <x-ui.formulario.paso :numero="count($this->pasos())">
             <x-ui.card :titulo="__('Revisar y publicar')" :descripcion="__('Si algo no está bien, vuelva al paso correspondiente desde el indicador de arriba.')">
                 <dl class="flex flex-col gap-4 text-sm">
                     <div>
                         <dt class="text-xs font-semibold uppercase tracking-wide text-texto-suave">{{ __('Recurso') }}</dt>
                         <dd class="mt-1 flex flex-wrap items-center gap-2 text-texto">
                             <x-ui.badge color="marca">{{ __($tipos[$tipo]) }}</x-ui.badge>
+                            @if ($leccion)<x-ui.badge color="verde">{{ __('Lección con cuestionario') }}</x-ui.badge>@endif
                             {{ $tituloRecurso }}
                         </dd>
                     </div>

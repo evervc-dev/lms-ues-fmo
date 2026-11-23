@@ -4,9 +4,11 @@ namespace App\Modules\Contenidos\Livewire;
 
 use App\Modules\Contenidos\Services\ContenidoService;
 use App\Modules\Contenidos\Services\ProgresoService;
+use App\Modules\Evaluaciones\Services\CuestionarioService;
 use App\Support\Navegacion\PaginaDeSeccion;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -14,7 +16,8 @@ use Livewire\Component;
 /**
  * Ver recurso (RF11, RF12): PDF, página, enlace o video integrado. Registra la apertura una vez al entrar y, con un
  * latido desde la página, el tiempo con la pestaña visible (RF13). Muestra al estudiante cómo se completa y deja al
- * docente cambiar la regla (RF18, ADR-067).
+ * docente cambiar la regla (RF18, ADR-067). Si es una **lección** (RF38, ADR-091), debajo del material va su
+ * cuestionario, que se intenta después de completar la lectura.
  */
 #[Layout('layouts::app')]
 class Recurso extends Component
@@ -56,6 +59,12 @@ class Recurso extends Component
 
     public int $reglaMensajes = 2;
 
+    /** Minutos mínimos de la lectura comprobada (RF38). */
+    public int $lecturaMinutos = 5;
+
+    /** Si la lectura comprobada exige llegar al final del material. */
+    public bool $lecturaFinal = true;
+
     /** Contenido de la página en el editor del docente (RF11). Lo sanea el Service al guardarlo. */
     public string $texto = '';
 
@@ -70,8 +79,41 @@ class Recurso extends Component
 
     public function marcarLeido(ContenidoService $contenidos): void
     {
-        $contenidos->marcarLeido(auth()->user(), $this->seccionId(), (int) $this->datos()['recurso']->id);
+        try {
+            $contenidos->marcarLeido(auth()->user(), $this->seccionId(), (int) $this->datos()['recurso']->id);
+        } catch (ValidationException $e) {
+            $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
+
+            return;
+        }
+        $this->datos = [];
         $this->dispatch('aviso', tipo: 'exito', mensaje: __('Recurso marcado como completado.'));
+    }
+
+    /**
+     * El estudiante llegó al final del material de la lección (RF38): la última página del PDF o el final de la página.
+     */
+    public function llegoAlFinal(ContenidoService $contenidos): void
+    {
+        $contenidos->registrarFinal(auth()->user(), $this->seccionId(), $this->recursoUlid);
+        $this->datos = [];
+    }
+
+    /**
+     * «Intentar cuestionario» de la lección, ya confirmado en el modal: abre el intento en el layout de examen (RF16).
+     * Que la lectura esté completa lo comprueba CuestionarioService::iniciar().
+     */
+    public function comenzarCuestionario(CuestionarioService $cuestionarios): void
+    {
+        $leccion = ContenidoService::cuestionarioDeLeccion((int) $this->datos()['recurso']->id) ?? abort(404);
+        try {
+            $intento = $cuestionarios->iniciar(auth()->user(), $this->seccionId(), (string) $leccion->ulid);
+        } catch (ValidationException $e) {
+            $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
+
+            return;
+        }
+        $this->redirectRoute('intentos.show', ['intento' => $intento]);
     }
 
     /**
@@ -87,7 +129,9 @@ class Recurso extends Component
             'reglaMinimo' => 'nullable|numeric|between:0,10',
             'reglaHilo' => 'nullable|integer',
             'reglaMensajes' => 'nullable|integer|between:1,20',
-        ], [], ['completion' => __('forma de completarlo'), 'reglaTipo' => __('regla'), 'reglaMinimo' => __('nota mínima'), 'reglaMensajes' => __('cantidad de mensajes')]);
+            'lecturaMinutos' => 'nullable|integer|between:1,'.ProgresoService::MAXIMO_MINUTOS_LECTURA,
+            'lecturaFinal' => 'boolean',
+        ], [], ['completion' => __('forma de completarlo'), 'reglaTipo' => __('regla'), 'reglaMinimo' => __('nota mínima'), 'reglaMensajes' => __('cantidad de mensajes'), 'lecturaMinutos' => __('minutos de lectura')]);
 
         $contenidos->cambiarRegla(auth()->user(), $this->seccionId(), (int) $this->datos()['recurso']->id, $this->completion, $this->regla());
         $this->datos = [];
@@ -106,6 +150,7 @@ class Recurso extends Component
             'min_score' => ['type' => 'min_score', 'assessment_id' => $this->reglaEvaluacion, 'min' => $this->reglaMinimo],
             'submission' => ['type' => 'submission', 'assessment_id' => $this->reglaEvaluacion],
             'forum_posts' => ['type' => 'forum_posts', 'thread_id' => $this->reglaHilo, 'count' => $this->reglaMensajes],
+            'read' => ['type' => 'read', 'min_seconds' => $this->lecturaMinutos * 60, 'to_end' => $this->lecturaFinal],
             default => null,
         };
     }
@@ -148,6 +193,8 @@ class Recurso extends Component
         $this->reglaMinimo = isset($regla['min']) ? number_format((float) $regla['min'], 1, '.', '') : '6.0';
         $this->reglaHilo = isset($regla['thread_id']) ? (int) $regla['thread_id'] : null;
         $this->reglaMensajes = (int) ($regla['count'] ?? 2);
+        $this->lecturaMinutos = max(1, intdiv((int) ($regla['min_seconds'] ?? 300), 60));
+        $this->lecturaFinal = (bool) ($regla['to_end'] ?? true);
     }
 
     /**
@@ -188,10 +235,11 @@ class Recurso extends Component
         return ContenidoService::embebido($url);
     }
 
-    public function render(ContenidoService $contenidos, ProgresoService $progreso): View
+    public function render(ContenidoService $contenidos, ProgresoService $progreso, CuestionarioService $cuestionarios): View
     {
         $datos = $this->datos();
         $gestiona = $contenidos->puedeGestionar(auth()->user(), $this->seccionId());
+        $leccion = ContenidoService::cuestionarioDeLeccion((int) $datos['recurso']->id);
 
         return $this->paginaDeSeccion('modules.contenidos.recurso', $datos + ($gestiona ? $progreso->opciones($this->seccionId()) : ['cuestionarios' => collect(), 'tareas' => collect(), 'hilos' => collect()]) + [
             'video' => $datos['recurso']->resource_type === 'video' ? ContenidoService::embebido($datos['recurso']->url) : null,
@@ -202,6 +250,9 @@ class Recurso extends Component
             'reglaEnPalabras' => $progreso->describir(ProgresoService::regla($datos['recurso'])),
             'modosPdf' => ContenidoService::MODOS_PDF,
             'arbol' => self::arbol($datos['archivos']),
+            'lectura' => $contenidos->lectura(auth()->user(), $this->seccionId(), $datos['recurso']),
+            'esLectura' => (ProgresoService::regla($datos['recurso'])['type'] ?? null) === 'read',
+            'leccion' => $leccion === null ? null : $cuestionarios->cuestionario(auth()->user(), $this->seccionId(), (string) $leccion->ulid),
         ]);
     }
 }

@@ -25,6 +25,10 @@ class NuevoCuestionario extends Component
     #[Locked]
     public int $intentosCount = 0;
 
+    /** Verificación de lectura de una lección (ADR-091): no lleva cómputo ni peso. */
+    #[Locked]
+    public bool $verificacion = false;
+
     public string $titulo = '';
 
     public string $instrucciones = '';
@@ -65,8 +69,9 @@ class NuevoCuestionario extends Component
             $this->intentosCount = $datos['intentosCount'];
             $this->titulo = $c->title;
             $this->instrucciones = $c->instructions ?? '';
-            $this->componente = (int) $c->component_id;
-            $this->peso = (float) $c->weight_percent;
+            $this->verificacion = (bool) $c->is_reading_check;
+            $this->componente = $c->component_id === null ? null : (int) $c->component_id;
+            $this->peso = (float) ($c->weight_percent ?? 0);
             $this->abre = Carbon::parse($c->opens_at)->timezone('America/El_Salvador')->format('Y-m-d\TH:i');
             $this->cierra = Carbon::parse($c->closes_at)->timezone('America/El_Salvador')->format('Y-m-d\TH:i');
             $this->minutos = (int) $c->time_limit_minutes;
@@ -88,7 +93,8 @@ class NuevoCuestionario extends Component
     public function guardar(CuestionarioService $cuestionarios): void
     {
         $this->validate([
-            'titulo' => 'required|string|max:200', 'componente' => 'required|integer', 'peso' => 'required|numeric|min:1|max:100', 'abre' => 'required|date', 'cierra' => 'required|date',
+            'titulo' => 'required|string|max:200', 'abre' => 'required|date', 'cierra' => 'required|date',
+            ...($this->verificacion ? [] : ['componente' => 'required|integer', 'peso' => 'required|numeric|min:1|max:100']),
             'minutos' => 'required|integer|min:1|max:600', 'intentos' => 'required|integer|min:1|max:10', 'navegacion' => 'required|in:free,linear',
             'banco' => 'required|integer', 'cantidad' => 'required|integer|min:0|max:200',
         ], [], ['titulo' => 'título', 'componente' => 'cómputo', 'banco' => 'banco']);

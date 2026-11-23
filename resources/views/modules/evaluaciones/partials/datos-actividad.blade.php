@@ -23,6 +23,12 @@
             <x-ui.textarea :id="'instrucciones'.$sufijo" wire:model="instrucciones" rows="5" />
         </x-ui.field>
 
+        @if ($verificacion ?? false)
+            {{-- Verificación de lectura de una lección (ADR-091): no suma a la nota, así que no lleva cómputo ni peso. --}}
+            <p class="flex items-center gap-2 rounded-lg bg-zinc-50 p-3 text-sm text-texto-suave">
+                <x-ui.icon name="information-circle" class="size-4 shrink-0" />{{ __('Es la verificación de lectura de una lección: no suma a la nota, así que no lleva cómputo ni peso.') }}
+            </p>
+        @else
         <div class="grid gap-4 sm:grid-cols-2">
             <x-ui.field :etiqueta="__('Cómputo')" :para="'componente'.$sufijo" error="componente" requerido>
                 <x-ui.select :id="'componente'.$sufijo" wire:model="componente" x-on:change="computo = $event.target.value">
@@ -38,6 +44,7 @@
             <x-ui.icon name="information-circle" class="size-4 shrink-0" />
             <span x-text="@js(__('Equivale a ')) + final.toLocaleString('es-SV') + @js(__(' % de la nota final de la materia.'))"></span>
         </p>
+        @endif
 
         <div class="grid gap-4 sm:grid-cols-2">
             <x-ui.field :etiqueta="__('Abre')" :para="'abre'.$sufijo" error="abre" requerido><x-ui.input :id="'abre'.$sufijo" type="datetime-local" wire:model="abre" x-on:input="abre = $event.target.value" /></x-ui.field>

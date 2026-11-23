@@ -14,6 +14,13 @@
                 </x-ui.button>
             </x-slot:acciones>
         @endif
+        @if ($leccion)
+            <p class="mb-4 flex items-center gap-2 rounded-lg bg-marca-50 p-3 text-sm">
+                <x-ui.icon name="book-open" class="size-4 shrink-0 text-marca-600" />
+                <span>{{ __('Es la verificación de lectura de una lección: no suma a la nota, y los estudiantes la intentan desde la lección después de completar la lectura.') }}
+                    <a href="{{ route('secciones.recurso', ['seccion' => $seccion, 'recurso' => $leccion]) }}" class="font-medium text-marca-700 hover:underline" wire:navigate>{{ __('Ver la lección') }}</a></span>
+            </p>
+        @endif
         @if ($cuestionario->instructions)<p class="mb-4 whitespace-pre-line text-sm">{{ $cuestionario->instructions }}</p>@endif
         <dl class="grid gap-3 text-sm sm:grid-cols-4">
             <div><dt class="text-texto-suave">{{ __('Abre') }}</dt><dd>{{ $fecha($cuestionario->opens_at) }}</dd></div>
@@ -32,7 +39,7 @@
                         @else
                             <span class="flex items-center gap-3">
                                 @if ($revisionVisible)<a href="{{ route('intentos.show', $i->ulid) }}" class="text-sm font-medium text-marca-700 hover:underline">{{ __('Ver revisión') }}</a>@endif
-                                @if ($cuestionario->is_published && $i->score !== null)<span class="font-semibold">{{ number_format((float) $i->score, 1) }}</span>@endif
+                                @if (($cuestionario->is_published || $cuestionario->is_reading_check) && $i->score !== null)<span class="font-semibold">{{ number_format((float) $i->score, 1) }}</span>@endif
                             </span>
                         @endif
                     </div>
@@ -47,7 +54,8 @@
         @endif
     </x-ui.card>
 
-    @if ($esEstudiante && $misIntentos->where('status', '!=', 'in_progress')->isNotEmpty())
+    {{-- La verificación de lectura no tiene nota que revisar (ADR-091). --}}
+    @if ($esEstudiante && ! $cuestionario->is_reading_check && $misIntentos->where('status', '!=', 'in_progress')->isNotEmpty())
         <livewire:calificaciones.solicitud-revision :seccion="$seccion" :actividad="$cuestionario->ulid" :key="'revision-'.$cuestionario->ulid" />
     @endif
 

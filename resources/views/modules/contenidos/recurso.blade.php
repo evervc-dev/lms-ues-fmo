@@ -9,11 +9,12 @@
             x-data="{
                 visibles: 0,
                 reloj: null,
-                init() { this.reloj = setInterval(() => { if (document.visibilityState === 'visible' && ++this.visibles >= {{ $latido }}) this.enviar() }, 1000) },
+                init() { this.reloj = setInterval(() => { if (document.visibilityState !== 'visible') return; this.$dispatch('lectura-segundo'); if (++this.visibles >= {{ $latido }}) this.enviar() }, 1000) },
                 destroy() { clearInterval(this.reloj) },
                 enviar() { if (this.visibles > 0) { this.$wire.latido(this.visibles); this.visibles = 0 } },
             }"
             x-on:visibilitychange.document="document.visibilityState === 'hidden' && enviar()"
+            x-on:lectura-enviar.window="enviar()"
             x-on:livewire:navigating.document="enviar()"></div>
     @endif
 
@@ -26,11 +27,35 @@
                     <x-ui.button tamano="sm" wire:click="marcarLeido">{{ __('Ya lo leí') }}</x-ui.button>
                 @endif
             @endif
+            @if ($leccion)
+                <x-ui.badge color="marca">{{ __('Lección') }}</x-ui.badge>
+            @endif
         </x-slot:acciones>
 
         @if ($recurso->description)<p class="mb-4 text-sm text-texto-suave">{{ $recurso->description }}</p>@endif
 
-        @if ($esEstudiante && ! $completado && $reglaEnPalabras)
+        @if ($esEstudiante && ! $completado && $esLectura)
+            {{-- Lectura comprobada (RF38): el tiempo corre en el navegador entre envíos; el servidor decide al pulsar. --}}
+            <div class="mb-4 flex flex-col gap-3 rounded-lg bg-marca-50 p-3 text-sm sm:flex-row sm:items-center"
+                x-data="{ leidos: {{ $lectura['segundos'] }}, minimo: {{ $lectura['minimo'] }}, alFinal: @js($lectura['alFinal']), exigeFinal: @js($lectura['exigeFinal']),
+                    get listo() { return this.leidos >= this.minimo && (this.alFinal || ! this.exigeFinal) },
+                    minutos(s) { return Math.floor(s / 60) } }"
+                x-on:lectura-segundo.window="leidos++"
+                x-on:lectura-final.window="alFinal = true">
+                <div class="flex flex-1 flex-col gap-1">
+                    <span class="flex flex-wrap gap-x-4 gap-y-1 text-texto">
+                        <span><span class="font-medium">{{ __('Lectura') }}:</span> <span x-text="Math.min(minutos(leidos), minutos(minimo))"></span> {{ __('de') }} <span x-text="minutos(minimo)"></span> {{ __('min') }}</span>
+                        <template x-if="exigeFinal">
+                            <span x-text="alFinal ? @js(__('Llegó al final ✓')) : @js(__('Falta llegar al final'))"></span>
+                        </template>
+                    </span>
+                    <div class="h-1.5 overflow-hidden rounded-full bg-zinc-200" role="progressbar" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.min(100, Math.round(100 * leidos / Math.max(1, minimo)))" aria-label="{{ __('Avance de la lectura') }}">
+                        <div class="h-full rounded-full bg-marca-600" :style="`width: ${Math.min(100, Math.round(100 * leidos / Math.max(1, minimo)))}%`"></div>
+                    </div>
+                </div>
+                <x-ui.button tamano="sm" x-bind:disabled="! listo" x-on:click="$dispatch('lectura-enviar'); $wire.marcarLeido()">{{ __('Ya lo leí') }}</x-ui.button>
+            </div>
+        @elseif ($esEstudiante && ! $completado && $reglaEnPalabras)
             {{-- Cómo se completa, en palabras (RF18): el estudiante no tiene que adivinar qué le falta. --}}
             <p class="mb-4 flex items-start gap-2 rounded-lg bg-marca-50 p-3 text-sm text-texto">
                 <x-ui.icon name="check-circle" class="mt-0.5 size-4 shrink-0 text-marca-600" />
@@ -49,6 +74,10 @@
             @case('page')
                 {{-- El HTML se saneó en el servidor al guardarlo (HTMLPurifier, perfil `contenidos`): aquí se muestra con su formato. --}}
                 <div class="contenido-pagina max-w-prose text-sm leading-relaxed text-texto">{!! $recurso->html_content !!}</div>
+                @if ($esEstudiante && $esLectura && $lectura['exigeFinal'] && ! $lectura['alFinal'])
+                    {{-- Final de la página (RF38): al verse este punto, el estudiante llegó al final del texto. --}}
+                    <div aria-hidden="true" class="h-px" x-data x-intersect.once="$dispatch('lectura-final'); $wire.llegoAlFinal()"></div>
+                @endif
 
                 @if ($gestiona)
                     <form wire:submit="editarPagina" class="mt-4 flex flex-col gap-3 border-t border-borde pt-4">
@@ -99,7 +128,15 @@
                     <x-ui.alert tipo="aviso" :titulo="__('El archivo no está disponible')">{{ __('No se encuentra en el servidor. Avise a su docente para que lo vuelva a subir.') }}</x-ui.alert>
                 @elseif ($recurso->file_path)
                     @php($archivoUrl = route('secciones.recurso.archivo', ['seccion' => $resumen['ulid'], 'recurso' => $recurso->ulid]))
-                    @if ($esPdf && $recurso->pdf_mode === 'viewer')
+                    @if ($esPdf && $recurso->pdf_mode === 'viewer' && $esEstudiante && $esLectura && $lectura['exigeFinal'])
+                        {{-- Lección (RF38): visor con PDF.js, que sabe cuándo se ve la última página. --}}
+                        <div wire:ignore x-data="visorPdf(@js($archivoUrl), () => { $dispatch('lectura-final'); $wire.llegoAlFinal() })" class="relative">
+                            <div x-ref="paginas" class="h-[70vh] overflow-y-auto rounded-lg border border-borde bg-zinc-100 p-3"></div>
+                            <p x-show="cargando" class="absolute inset-0 flex items-center justify-center text-sm text-texto-suave">{{ __('Cargando el documento…') }}</p>
+                            <p x-show="error" x-cloak class="mt-2 text-sm text-red-700">{{ __('No se pudo mostrar el documento. Recargue la página o ábralo en una pestaña nueva.') }}</p>
+                        </div>
+                        <x-ui.button class="mt-3" variante="secundario" tamano="sm" :href="$archivoUrl" :navegar="false" icono="arrow-up-tray">{{ __('Abrir en una pestaña nueva') }}</x-ui.button>
+                    @elseif ($esPdf && $recurso->pdf_mode === 'viewer')
                         {{-- Visor incrustado: el archivo se sirve en línea desde el disco privado (RF11). --}}
                         <div class="h-[70vh] overflow-hidden rounded-lg border border-borde bg-zinc-100">
                             <iframe src="{{ $archivoUrl }}" title="{{ $recurso->title }}" class="size-full" loading="lazy"></iframe>
@@ -121,6 +158,77 @@
         @endswitch
     </x-ui.card>
 
+    @if ($leccion)
+        {{-- Cuestionario de la lección (RF38): misma página que el material; se intenta al completar la lectura. --}}
+        @php($quiz = $leccion['cuestionario'])
+        @php($fechaQuiz = fn ($f) => \Illuminate\Support\Carbon::parse($f)->timezone('America/El_Salvador')->format('d/m/Y H:i'))
+        {{-- Verificación de lectura (ADR-091): no suma a la nota; el estudiante ve su resultado como retroalimentación. --}}
+        <x-ui.card :titulo="__('Verificación de lectura')" :descripcion="__('Comprueba que leyó el material. No suma a su nota.')">
+            @if ($leccion['gestiona'])
+                <x-slot:acciones>
+                    <x-ui.button variante="secundario" tamano="sm" :href="route('secciones.cuestionarios.show', ['seccion' => $resumen['ulid'], 'cuestionario' => $quiz->ulid])">{{ __('Intentos y monitor') }}</x-ui.button>
+                </x-slot:acciones>
+            @endif
+            <dl class="grid gap-3 text-sm sm:grid-cols-4">
+                <div><dt class="text-texto-suave">{{ __('Abre') }}</dt><dd>{{ $fechaQuiz($quiz->opens_at) }}</dd></div>
+                <div><dt class="text-texto-suave">{{ __('Cierra') }}</dt><dd class="font-semibold">{{ $fechaQuiz($quiz->closes_at) }}</dd></div>
+                <div><dt class="text-texto-suave">{{ __('Tiempo') }}</dt><dd>{{ __(':n minutos', ['n' => $quiz->time_limit_minutes]) }}</dd></div>
+                <div><dt class="text-texto-suave">{{ __('Preguntas · intentos') }}</dt><dd>{{ $leccion['preguntas'] }} · {{ $quiz->max_attempts }}</dd></div>
+            </dl>
+
+            @if ($leccion['esEstudiante'])
+                @php($enCurso = $leccion['misIntentos']->firstWhere('status', 'in_progress'))
+                <div class="mt-5 flex flex-col gap-3">
+                    @foreach ($leccion['misIntentos'] as $i)
+                        <div class="flex items-center justify-between rounded-lg p-3 text-sm ring-1 ring-borde">
+                            <span>{{ __('Intento :n', ['n' => $i->attempt_number]) }}
+                                @if ($i->status === 'graded' && $i->score !== null)
+                                    · <span class="font-semibold">{{ __('Resultado: :n de 10', ['n' => number_format((float) $i->score, 1)]) }}</span>
+                                @elseif ($i->status !== 'in_progress')
+                                    · <span class="text-texto-suave">{{ __('Enviado') }}</span>
+                                @endif
+                            </span>
+                            @if ($i->status === 'in_progress')
+                                <x-ui.button tamano="sm" :href="route('intentos.show', $i->ulid)" :navegar="false">{{ __('Continuar') }}</x-ui.button>
+                            @elseif ($leccion['revisionVisible'])
+                                <a href="{{ route('intentos.show', $i->ulid) }}" class="text-sm font-medium text-marca-700 hover:underline">{{ __('Ver revisión') }}</a>
+                            @endif
+                        </div>
+                    @endforeach
+
+                    @if (! $enCurso && $leccion['misIntentos']->count() < $quiz->max_attempts)
+                        @if (! $completado)
+                            <p class="flex items-center gap-2 text-sm text-texto-suave"><x-ui.icon name="lock-closed" class="size-4" />{{ __('Primero complete la lectura y pulse «Ya lo leí».') }}</p>
+                            <div><x-ui.button disabled>{{ __('Intentar cuestionario') }}</x-ui.button></div>
+                        @elseif ($leccion['estado'] === 'abierta')
+                            <div><x-ui.button x-on:click="$dispatch('abrir-modal', 'intentar-leccion')">{{ __('Intentar cuestionario') }}</x-ui.button></div>
+                        @elseif ($leccion['estado'] === 'proxima')
+                            <p class="text-sm text-texto-suave">{{ __('El cuestionario aún no abre.') }}</p>
+                        @else
+                            <p class="text-sm text-texto-suave">{{ __('El cuestionario ya cerró.') }}</p>
+                        @endif
+                    @endif
+                </div>
+
+                <x-ui.modal nombre="intentar-leccion" :titulo="__('¿Está seguro de intentar el cuestionario?')" ancho="sm">
+                    <div class="flex flex-col gap-3 text-sm">
+                        <p class="text-texto">{{ __('Se abrirá en modo examen y el intento contará aunque lo deje a medias.') }}</p>
+                        <ul class="flex flex-col gap-1 text-texto">
+                            <li>{{ __('Tiempo: :n minutos. Empieza a correr al comenzar y no se detiene si sale de la página.', ['n' => $quiz->time_limit_minutes]) }}</li>
+                            <li>{{ __('Intentos: :usados de :max usados.', ['usados' => $leccion['misIntentos']->count(), 'max' => $quiz->max_attempts]) }}</li>
+                            <li>{{ $quiz->navigation === 'linear' ? __('Una a una: no podrá volver a preguntas anteriores.') : __('Puede moverse entre las preguntas.') }}</li>
+                        </ul>
+                        <p class="text-texto-suave">{{ __('Sus respuestas se guardan solas mientras responde.') }}</p>
+                    </div>
+                    <x-slot:pie>
+                        <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'intentar-leccion')">{{ __('Todavía no') }}</x-ui.button>
+                        <x-ui.button wire:click="comenzarCuestionario" wire:loading.attr="disabled">{{ __('Sí, empezar ahora') }}</x-ui.button>
+                    </x-slot:pie>
+                </x-ui.modal>
+            @endif
+        </x-ui.card>
+    @endif
+
     @if ($gestiona)
         <x-ui.card :titulo="__('Cómo se completa')" :descripcion="__('Lo que ya está completado no se desmarca al cambiar la regla.')">
             <form wire:submit="cambiarRegla" class="flex flex-col gap-4">
@@ -135,6 +243,7 @@
                             'min_score' => __('Al sacar la nota mínima en un cuestionario.'),
                             'submission' => __('Al entregar una tarea.'),
                             'forum_posts' => __('Al escribir mensajes en un hilo del foro.'),
+                            'read' => __('Con tiempo mínimo y, si se exige, llegando al final; luego «Ya lo leí».'),
                             default => '',
                         }])->all() as $valor => [$nombreOpcion, $detalleOpcion])
                             <label wire:key="opcion-{{ $valor }}" @class(['flex cursor-pointer flex-col gap-0.5 rounded-lg p-3 ring-1 transition', 'bg-marca-50 ring-2 ring-marca-600' => $opcionActual === $valor, 'ring-borde hover:bg-zinc-50' => $opcionActual !== $valor])>
@@ -170,6 +279,16 @@
                                 @foreach ($tareas as $t)<option value="{{ $t->id }}">{{ $t->title }}</option>@endforeach
                             </x-ui.select>
                         </x-ui.field>
+                    @elseif ($reglaTipo === 'read')
+                        <div class="flex max-w-xl flex-col gap-3">
+                            <x-ui.field class="max-w-xs" :etiqueta="__('Minutos mínimos de lectura')" para="lecturaMinutos" error="lecturaMinutos" :ayuda="__('Con la pestaña visible.')" requerido>
+                                <x-ui.input id="lecturaMinutos" type="number" min="1" wire:model="lecturaMinutos" />
+                            </x-ui.field>
+                            <label class="flex cursor-pointer items-center gap-3 text-sm">
+                                <input type="checkbox" wire:model="lecturaFinal" class="size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
+                                {{ __('Exigir que llegue al final del material (PDF en el visor o página)') }}
+                            </label>
+                        </div>
                     @elseif ($reglaTipo === 'forum_posts')
                         <div class="grid max-w-xl gap-4 sm:grid-cols-2">
                             <x-ui.field :etiqueta="__('Hilo del foro')" para="reglaHilo" error="reglaHilo" requerido>
