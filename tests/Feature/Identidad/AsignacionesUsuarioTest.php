@@ -545,3 +545,17 @@ it('CP-RF04-08 al desmarcar todos los roles avisa que la cuenta necesita al meno
         ->assertSee(__('El usuario debe tener al menos un rol.'))
         ->assertSet('paso', 1);
 });
+
+it('CP-RF04-12 al no dejar quitar el rol Estudiante nombra las materias que tiene inscritas', function () {
+    $e = escenario();
+    $materia = DB::table('enrollments')->join('sections', 'sections.id', '=', 'enrollments.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
+        ->where('enrollments.student_id', $e['estudiante']->id)->where('enrollments.status', 'active')->selectRaw("subjects.code || '-' || sections.code as nombre")->value('nombre');
+
+    try {
+        app(UsuarioService::class)->cambiarRoles($e['administrador'], $e['estudiante']->id, ['docente']);
+        $this->fail('Debía rechazar el cambio de rol.');
+    } catch (ValidationException $error) {
+        expect($error->errors()['roles'][0])->toContain($materia)->toContain('Retírela en Matrícula');
+    }
+    expect($e['estudiante']->fresh()->getRoleNames()->all())->toBe(['estudiante']);
+});
