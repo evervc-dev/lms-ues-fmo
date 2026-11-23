@@ -3,6 +3,7 @@
 namespace App\Modules\Asistencia\Livewire;
 
 use App\Modules\Asistencia\Services\AsistenciaService;
+use App\Modules\Asistencia\Services\CalendarConexionService;
 use App\Modules\Asistencia\Services\ReporteMeetService;
 use App\Support\Alcance;
 use Illuminate\Contracts\View\View;
@@ -159,7 +160,7 @@ class ClasesVirtuales extends Component
         $this->dispatch('aviso', tipo: 'exito', mensaje: __('Grabación guardada.'));
     }
 
-    public function render(ReporteMeetService $reportes, Alcance $alcance): View
+    public function render(ReporteMeetService $reportes, Alcance $alcance, CalendarConexionService $conexion): View
     {
         $usuario = auth()->user();
         $gestiona = $alcance->puedeEnSeccion($usuario, 'videoconferencias.gestionar', $this->seccionId);
@@ -176,6 +177,9 @@ class ClasesVirtuales extends Component
             'estados' => ReporteMeetService::ESTADOS,
             'estadosAsistencia' => AsistenciaService::ESTADOS,
             'umbral' => ReporteMeetService::UMBRAL,
+            // El enlace de Meet sale del evento de Calendar: sin Calendar conectado no se programa (ADR-090).
+            'calendarActivo' => $conexion->habilitada(),
+            'calendarConectado' => $gestiona && $conexion->conectado($usuario),
         ]);
     }
 

@@ -57,7 +57,7 @@ class ReporteMeetService
     private const MESES = ['ene' => 1, 'jan' => 1, 'feb' => 2, 'mar' => 3, 'abr' => 4, 'apr' => 4, 'may' => 5, 'jun' => 6, 'jul' => 7,
         'ago' => 8, 'aug' => 8, 'sep' => 9, 'set' => 9, 'oct' => 10, 'nov' => 11, 'dic' => 12, 'dec' => 12];
 
-    public function __construct(private Alcance $alcance) {}
+    public function __construct(private Alcance $alcance, private CalendarConexionService $conexion) {}
 
     /**
      * Clases virtuales de la sección. Antes de devolverlas, guarda el estado que les toca por la hora.
@@ -87,10 +87,16 @@ class ReporteMeetService
 
     /**
      * Programa una clase virtual. `$inicio` llega en hora local con el formato 'Y-m-d H:i'.
+     *
+     * Con la integración de Google Calendar activa, el docente debe tener su Calendar conectado: el enlace de Meet y la
+     * invitación a los matriculados salen del evento (la pantalla ya no pide el enlace a mano, ADR-090).
      */
     public function programar(User $docente, int $seccionId, string $tema, string $inicio, int $duracion, ?string $meetUrl): int
     {
         $this->exigirEnSeccion($docente, 'videoconferencias.gestionar', $seccionId);
+        if ($this->conexion->habilitada() && ! $this->conexion->conectado($docente)) {
+            throw ValidationException::withMessages(['calendar' => __('Conecte su Google Calendar para programar la clase: con él se crea el enlace de Meet y se invita a los estudiantes.')]);
+        }
         [$comienzo, $meetUrl] = $this->datosDeClase($seccionId, $inicio, $duracion, $meetUrl);
 
         $id = (int) DbContext::run(fn () => DB::table('video_sessions')->insertGetId([

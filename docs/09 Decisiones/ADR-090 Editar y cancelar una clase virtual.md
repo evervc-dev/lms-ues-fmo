@@ -25,12 +25,13 @@ fuentes: ["Reporte del rol Docente del 22/11/2026 (staging): «al programar una 
 
 | Estado | Se puede cambiar |
 |---|---|
-| Programada | Tema, fecha y hora, duración y enlace de Meet, con las reglas de programar |
-| En curso | Tema, enlace de Meet y duración, solo para alargarla |
+| Programada | Tema, fecha y hora y duración, con las reglas de programar |
+| En curso | Tema y duración, solo para alargarla |
 | Finalizada, o con reporte o sesión de asistencia | Solo el tema |
 
 - **Cancelar** solo una clase programada sin reporte: se borra con auditoría (`video_session.cancelled`). Si tenía evento en Google Calendar, se borra en la cola `google` (`CancelarEventoDeClase`) y Google avisa a los invitados.
 - Si la clase tiene evento y cambió el tema, el inicio o la duración, se actualiza en la cola `google` (`ActualizarEventoDeClase`, `events.patch` con `sendUpdates=all`). El enlace de Meet del evento no cambia.
+- **El enlace de Meet no se escribe a mano** (el campo «Enlace de Meet (opcional)» confundía; pedido del usuario del 22/11/2026): lo crea el evento de Google Calendar. Con la integración activa, programar exige que el docente tenga su Calendar conectado; si no, el modal lo lleva a conectarlo y el Service rechaza la clase. Si la integración no está activa en el servidor, la clase se programa sin enlace y se avisa.
 - Se aplica en `ReporteMeetService::editar()` y `cancelar()`; permiso `videoconferencias.gestionar` con alcance S.
 
 ## Consecuencias

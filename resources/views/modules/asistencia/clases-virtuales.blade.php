@@ -35,12 +35,8 @@
                                 @if ($c->meet_url && $enCurso)<a href="{{ $c->meet_url }}" target="_blank" rel="noopener" class="text-marca-700 underline">{{ __('Unirse a Meet') }}</a>@endif
                                 @if ($c->recording_url)<a href="{{ $c->recording_url }}" target="_blank" rel="noopener" @class(['text-marca-700 underline', 'ml-2' => $c->meet_url && $enCurso])>{{ __('Ver grabación') }}</a>@endif
                                 @if (! ($c->meet_url && $enCurso) && ! $c->recording_url)
-                                    @if (! $c->meet_url && $enCurso && $gestiona)
-                                        {{-- Sin enlace todavía (Calendar no conectado o aún en cola): se agrega desde el editor. --}}
-                                        <button type="button" wire:click="editar({{ $c->id }})" class="text-marca-700 underline">{{ __('Agregar enlace') }}</button>
-                                    @else
-                                        <span class="text-texto-suave">{{ $c->meet_url ? __('Clase finalizada') : '—' }}</span>
-                                    @endif
+                                    {{-- Sin enlace: Calendar todavía lo está creando en la cola, o la clase es de antes de conectarlo. --}}
+                                    <span class="text-texto-suave">{{ $c->meet_url ? __('Clase finalizada') : ($enCurso && $calendarActivo ? __('Enlace en preparación') : '—') }}</span>
                                 @endif
                             </div>
                             {{-- El enlace a la vista, para copiarlo y compartirlo mientras la clase sigue abierta. --}}
@@ -163,8 +159,19 @@
 
     @if ($gestiona)
         <x-ui.modal nombre="programar-clase" :titulo="$editada ? __('Editar clase virtual') : __('Programar clase virtual')" :subtitulo="__('La asistencia se toma después con el reporte de Meet (ADR-003).')">
+            {{-- El enlace de Meet ya no se escribe a mano (confundía): lo crea Google Calendar al programar (ADR-090). --}}
+            @if (! $editada && $calendarActivo && ! $calendarConectado)
+                <x-ui.alert tipo="aviso" class="mb-4" :titulo="__('Conecte su Google Calendar')">
+                    {{ __('Para programar una clase virtual necesita su Google Calendar conectado: con él se crea el enlace de Meet y se invita a los estudiantes.') }}
+                    <div class="mt-3"><x-ui.button tamano="sm" icono="calendar-days" :href="route('perfil.google-calendar')">{{ __('Conectar Google Calendar') }}</x-ui.button></div>
+                </x-ui.alert>
+            @elseif (! $editada && ! $calendarActivo)
+                <x-ui.alert tipo="aviso" class="mb-4">{{ __('La integración con Google Calendar no está activa: la clase se programará sin enlace de Meet. Avise a la administración del sistema.') }}</x-ui.alert>
+            @elseif (! $editada)
+                <p class="mb-4 text-sm text-texto-suave">{{ __('Al programarla se crea el evento en su Google Calendar con el enlace de Meet y se invita a los estudiantes matriculados.') }}</p>
+            @endif
             @if ($modo === 'in_progress')
-                <x-ui.alert tipo="info" class="mb-4">{{ __('La clase ya empezó: puede cambiar el tema y el enlace, y alargar la duración.') }}</x-ui.alert>
+                <x-ui.alert tipo="info" class="mb-4">{{ __('La clase ya empezó: puede cambiar el tema y alargar la duración.') }}</x-ui.alert>
             @elseif ($modo === 'finished')
                 <x-ui.alert tipo="info" class="mb-4">{{ __('La clase ya terminó: solo puede cambiar el tema. La fecha y la duración son la base del reporte de Meet.') }}</x-ui.alert>
             @endif
@@ -188,14 +195,11 @@
                     </div>
                 </x-ui.field>
                 <p class="-mt-2 text-xs text-texto-suave" x-show="fin" x-text="@js(__('Termina a las ')) + fin"></p>
-                <x-ui.field :etiqueta="__('Enlace de Meet (opcional)')" para="virtual-meet" error="meetUrl"
-                    :ayuda="__('Si lo deja vacío y tiene conectado Google Calendar, el enlace se crea solo al programar. Ej.: https://meet.google.com/abc-defg-hij')">
-                    <x-ui.input id="virtual-meet" type="url" wire:model="meetUrl" placeholder="https://meet.google.com/…" :disabled="$modo === 'finished'" />
-                </x-ui.field>
+                @error('calendar')<x-ui.alert tipo="error">{{ $message }}</x-ui.alert>@enderror
             </form>
             <x-slot:pie>
                 <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'programar-clase')">{{ __('Cancelar') }}</x-ui.button>
-                <x-ui.button type="submit" form="form-programar-clase">{{ $editada ? __('Guardar cambios') : __('Programar') }}</x-ui.button>
+                <x-ui.button type="submit" form="form-programar-clase" :disabled="! $editada && $calendarActivo && ! $calendarConectado">{{ $editada ? __('Guardar cambios') : __('Programar') }}</x-ui.button>
             </x-slot:pie>
         </x-ui.modal>
 

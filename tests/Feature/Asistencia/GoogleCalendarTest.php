@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Modules\Asistencia\Jobs\CancelarEventoDeClase;
+use App\Modules\Asistencia\Livewire\ClasesVirtuales;
 use App\Modules\Asistencia\Services\AsistenciaService;
 use App\Modules\Asistencia\Services\CalendarConexionService;
 use App\Modules\Asistencia\Services\CalendarFalso;
@@ -14,6 +15,8 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\ValidationException;
+use Livewire\Livewire;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\artisan;
@@ -88,15 +91,30 @@ it('CP-RF21-01 solo invita correos @ues.edu.sv aunque la lista traiga otros', fu
     Http::assertSent(fn (Request $r) => str_contains($r->url(), '/events') && $r['attendees'] === [['email' => 'ab12345@ues.edu.sv']]);
 });
 
-it('CP-RF21-01 si el docente no conectó su cuenta, la clase se programa sin evento y sin llamar a Google', function () {
+it('CP-RF21-01 si el docente no conectó su Google Calendar, no puede programar la clase ni se llama a Google (ADR-090)', function () {
     $e = escenario();
     Http::fake();
     actingAs($e['docente']);
 
-    $id = app(ReporteMeetService::class)->programar($e['docente'], $e['seccion'], 'Recursividad', '2026-10-30 07:00', 90, null);
+    expect(fn () => app(ReporteMeetService::class)->programar($e['docente'], $e['seccion'], 'Recursividad', '2026-10-30 07:00', 90, null))
+        ->toThrow(ValidationException::class);
 
     Http::assertNothingSent();
-    expect(DB::table('video_sessions')->find($id)->google_event_id)->toBeNull();
+    expect(DB::table('video_sessions')->count())->toBe(0);
+    Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])
+        ->assertSee(__('Conecte su Google Calendar'))->assertSee(route('perfil.google-calendar'), false)
+        ->assertDontSee(__('Enlace de Meet (opcional)'));
+});
+
+it('CP-RF21-01 con Google Calendar conectado, el modal no pide el enlace de Meet y avisa que se crea solo (ADR-090)', function () {
+    $e = escenario();
+    conectarCalendar($e['docente']);
+    actingAs($e['docente']);
+
+    Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])
+        ->assertDontSee(__('Conecte su Google Calendar'))
+        ->assertDontSee(__('Enlace de Meet (opcional)'))
+        ->assertSee(__('Al programarla se crea el evento en su Google Calendar con el enlace de Meet y se invita a los estudiantes matriculados.'));
 });
 
 it('CP-RF21-01 si Google revocó el permiso, borra el token para pedirlo de nuevo y no crea el evento', function () {
@@ -236,6 +254,7 @@ it('CP-RF21-01 un cambio de modalidad no borra el evento de la clase virtual', f
     $e = escenario();
     $calendario = new CalendarFalso;
     app()->instance(CalendarGateway::class, $calendario);
+    conectarCalendar($e['docente']);
     actingAs($e['docente']);
     app(ReporteMeetService::class)->programar($e['docente'], $e['seccion'], 'Recursividad', '2026-10-30 07:00', 90, null);
 
