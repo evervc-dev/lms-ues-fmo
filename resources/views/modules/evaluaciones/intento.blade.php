@@ -64,10 +64,12 @@
         @endunless
     </div>
 
-    <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_17rem]">
-        <div class="flex min-w-0 flex-col gap-5">
+    {{-- La tarjeta de la pregunta y el panel de avance miden lo mismo: la fila se estira a la más alta de las dos y los
+         botones de navegación quedan al pie de la tarjeta (QA 22/11). --}}
+    <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <section class="flex min-w-0 flex-col gap-5 rounded-xl bg-white p-5 ring-1 ring-borde" aria-label="{{ __('Pregunta') }}">
             @if ($pregunta)
-                <section class="rounded-xl bg-white p-5 ring-1 ring-borde" wire:key="pregunta-{{ $pregunta->respuesta_id }}">
+                <div class="max-w-3xl" wire:key="pregunta-{{ $pregunta->respuesta_id }}">
                     <p class="text-base font-medium text-texto">{{ $pregunta->statement }}</p>
                     <div class="mt-4 flex flex-col gap-2">
                         @if (in_array($pregunta->question_type, ['multiple_choice', 'true_false'], true))
@@ -114,9 +116,9 @@
                             <x-ui.alert class="mt-3" tipo="info" :titulo="__('Justificación')">{{ $pregunta->justification }}</x-ui.alert>
                         @endif
                     @endif
-                </section>
+                </div>
             @endif
-            <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-borde pt-4">
                 @if (! $lineal)<x-ui.button variante="secundario" wire:click="ir({{ $actual - 1 }})" :disabled="$actual === 0">{{ __('Anterior') }}</x-ui.button>@else<span></span>@endif
                 @if ($actual < $preguntas->count() - 1)
                     <div class="flex items-center gap-3">
@@ -135,17 +137,33 @@
                     </x-ui.button>
                 @endif
             </div>
-        </div>
+        </section>
         {{-- Avance y selector de preguntas a la derecha de la pregunta (arriba en el teléfono), con el modo de navegación
              explicado: en «una a una» no se vuelve atrás (QA Estudiante 22/11). --}}
-        <aside class="order-first flex flex-col gap-3 rounded-xl bg-white p-4 ring-1 ring-borde lg:order-none lg:sticky lg:top-0" aria-label="{{ __('Avance del intento') }}">
+        <aside class="order-first flex flex-col gap-3 rounded-xl bg-white p-4 ring-1 ring-borde lg:order-none" aria-label="{{ __('Avance del intento') }}">
             @php
                 $respondidas = $preguntas->count() - $sinResponder;
             @endphp
-            <div>
-                <p class="text-sm font-semibold text-texto">{{ __(':r de :t respondidas', ['r' => $respondidas, 't' => $preguntas->count()]) }}</p>
-                <x-ui.progress class="mt-2" :valor="$preguntas->count() ? 100 * $respondidas / $preguntas->count() : 0" :mostrar="false" :etiqueta="__('Preguntas respondidas')" />
-            </div>
+            @if ($revision)
+                {{-- Retroalimentación del intento (QA 22/11): cuántas acertó, cuántas falló y cuántas fueron parciales. --}}
+                @php
+                    $conteo = $preguntas->countBy(fn ($p) => $p->score === null ? 'pendiente' : ((float) $p->score >= 1 ? 'bien' : ((float) $p->score > 0 ? 'parcial' : 'mal')));
+                @endphp
+                <div>
+                    <p class="text-sm font-semibold text-texto">{{ __('Resultado del intento') }}</p>
+                    <dl class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                        <div class="rounded-lg bg-emerald-50 p-2 ring-1 ring-emerald-200"><dt class="text-emerald-800">{{ __('Correctas') }}</dt><dd class="text-lg font-semibold text-emerald-900">{{ $conteo['bien'] ?? 0 }}</dd></div>
+                        <div class="rounded-lg bg-red-50 p-2 ring-1 ring-red-200"><dt class="text-red-800">{{ __('Incorrectas') }}</dt><dd class="text-lg font-semibold text-red-900">{{ $conteo['mal'] ?? 0 }}</dd></div>
+                        <div class="rounded-lg bg-amber-50 p-2 ring-1 ring-amber-200"><dt class="text-amber-800">{{ __('Parciales') }}</dt><dd class="text-lg font-semibold text-amber-900">{{ $conteo['parcial'] ?? 0 }}</dd></div>
+                        <div class="rounded-lg bg-zinc-50 p-2 ring-1 ring-zinc-200"><dt class="text-zinc-700">{{ __('Por calificar') }}</dt><dd class="text-lg font-semibold text-zinc-900">{{ $conteo['pendiente'] ?? 0 }}</dd></div>
+                    </dl>
+                </div>
+            @else
+                <div>
+                    <p class="text-sm font-semibold text-texto">{{ __(':r de :t respondidas', ['r' => $respondidas, 't' => $preguntas->count()]) }}</p>
+                    <x-ui.progress class="mt-2" :valor="$preguntas->count() ? 100 * $respondidas / $preguntas->count() : 0" :mostrar="false" :etiqueta="__('Preguntas respondidas')" />
+                </div>
+            @endif
             <nav class="grid grid-cols-6 gap-1 sm:grid-cols-8 lg:grid-cols-5" aria-label="{{ __('Preguntas') }}">
                 @foreach ($preguntas as $i => $p)
                     @php

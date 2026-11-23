@@ -521,3 +521,24 @@ it('muestra el monitor cuando no hay intentos en curso y quedan estudiantes sin 
         ->assertOk()
         ->assertSeeText(['Sin empezar: 1', 'En curso: 0', 'Enviados: 1']);
 });
+
+it('CP-RF16-13 la revisión del intento muestra cuántas preguntas acertó, falló y fueron parciales', function () {
+    $e = escenario();
+    $x = examenEnCurso($e);
+    [$primera, $segunda] = $x['respuestas'];
+    $opcion = fn (int $respuesta, bool $correcta) => (int) DB::table('question_options')
+        ->where('question_id', DB::table('attempt_answers')->where('id', $respuesta)->value('question_id'))->where('is_correct', $correcta)->value('id');
+    $cuestionarios = app(CuestionarioService::class);
+    $cuestionarios->guardarRespuesta($e['estudiante'], $x['intento'], $primera, $opcion($primera, true), null);
+    $cuestionarios->guardarRespuesta($e['estudiante'], $x['intento'], $segunda, $opcion($segunda, false), null);
+    $cuestionarios->terminar($e['estudiante'], $x['intento']);
+
+    Livewire::test(Intento::class, ['intento' => $x['intento']])->assertDontSee('Resultado del intento');
+
+    actingAs($e['docente']);
+    $cuestionarios->publicarRevisionAnticipada($e['docente'], $e['seccion'], $x['ulid']);
+
+    actingAs($e['estudiante']);
+    Livewire::test(Intento::class, ['intento' => $x['intento']])
+        ->assertSeeInOrder(['Resultado del intento', 'Correctas', '1', 'Incorrectas', '1', 'Parciales', '0', 'Por calificar', '0']);
+});
