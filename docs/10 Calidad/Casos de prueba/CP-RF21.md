@@ -4,7 +4,7 @@ rf: "[[RF21]]"
 nombre: Asistencia virtual y gestión de videoconferencias
 prioridad: Media
 nivel: browser + feature
-casos: 9
+casos: 11
 estado: automatizado
 ---
 
@@ -23,5 +23,7 @@ Casos derivados de los criterios de aceptación de [[RF21]]. Nivel: **browser + 
 | CP-RF21-07 | **Dado** un reporte que ya se subió para esa sesión, **cuando** se sube otro, **entonces** reemplaza al anterior y el cambio queda en la auditoría. | automatizado |
 | CP-RF21-08 | **Dado** un reporte cuya fecha no coincide con la sesión, **entonces** se rechaza con un aviso. La fecha sale del contenido o del nombre del archivo, con un día de tolerancia; si no hay ninguna, se avisa en la vista previa y no se bloquea ([[ADR-070 Fecha del informe de Meet desde el nombre del archivo]]). | automatizado |
 | CP-RF21-09 | **Dado** una clase, **cuando** el docente intenta abrir a mano una sesión virtual, **entonces** se rechaza: la asistencia virtual se registra con el reporte de Meet. | automatizado |
+| CP-RF21-10 | **Dado** una clase virtual, **cuando** el docente la edita, **entonces** puede cambiar todo mientras está programada; en curso, el tema, el enlace y alargar la duración; finalizada o con reporte, solo el tema. Si tiene evento en Google Calendar, se actualiza en la cola «google» ([[ADR-090 Editar y cancelar una clase virtual]]). | automatizado |
+| CP-RF21-11 | **Dado** una clase programada sin reporte, **cuando** el docente la cancela, **entonces** se borra y su evento de Google Calendar se borra con aviso a los invitados; una clase en curso o finalizada no se cancela ([[ADR-090 Editar y cancelar una clase virtual]]). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF21-01 …')`.

@@ -1,16 +1,21 @@
-{{-- Vista de sección › Asistencia › Clases virtuales (RF21, ADR-003). --}}
+{{-- Vista de sección › Asistencia › Clases virtuales (RF21, ADR-003). Editar y cancelar, ADR-090. --}}
 @php
     $fecha = fn ($f) => \Illuminate\Support\Carbon::parse($f)->timezone(config('app.timezone'))->format('d/m/Y H:i');
     $colorEstado = ['scheduled' => 'azul', 'in_progress' => 'verde', 'finished' => 'gris'];
+    // Con reporte de Meet o sesión de asistencia la clase cuenta como finalizada: solo se le cambia el tema.
+    $estadoEdicion = fn ($c) => ($c->reporte_id || $c->borrador_id || $c->sesion_ulid) ? 'finished' : $c->status;
+    $editada = $editandoId !== null ? $clases->firstWhere('id', $editandoId) : null;
+    $modo = $editada ? $estadoEdicion($editada) : 'scheduled';
 @endphp
 <div class="flex flex-col gap-5">
     <x-ui.card :titulo="__('Clases virtuales')" :descripcion="$gestiona ? __('Al terminar la clase, suba el reporte de asistencia de Meet: queda Presente quien estuvo al menos el :u % de la duración programada.', ['u' => $umbral]) : null">
         @if ($gestiona)
             <x-slot:acciones>
-                <x-ui.button icono="calendar-days" x-on:click="$dispatch('abrir-modal', 'programar-clase')">{{ __('Programar clase') }}</x-ui.button>
+                <x-ui.button icono="calendar-days" wire:click="nueva">{{ __('Programar clase') }}</x-ui.button>
             </x-slot:acciones>
         @endif
 
+        @error('clase')<x-ui.alert tipo="error" class="mb-4">{{ $message }}</x-ui.alert>@enderror
         <x-ui.table :vacio="__('Aún no hay clases virtuales.')">
             <x-slot:cabecera>
                 <th>{{ __('Tema') }}</th><th>{{ __('Fecha y hora') }}</th><th>{{ __('Duración') }}</th><th>{{ __('Estado') }}</th><th>{{ __('Enlaces') }}</th>
@@ -29,7 +34,14 @@
                             <div>
                                 @if ($c->meet_url && $enCurso)<a href="{{ $c->meet_url }}" target="_blank" rel="noopener" class="text-marca-700 underline">{{ __('Unirse a Meet') }}</a>@endif
                                 @if ($c->recording_url)<a href="{{ $c->recording_url }}" target="_blank" rel="noopener" @class(['text-marca-700 underline', 'ml-2' => $c->meet_url && $enCurso])>{{ __('Ver grabación') }}</a>@endif
-                                @if (! ($c->meet_url && $enCurso) && ! $c->recording_url)<span class="text-texto-suave">{{ $c->meet_url ? __('Clase finalizada') : '—' }}</span>@endif
+                                @if (! ($c->meet_url && $enCurso) && ! $c->recording_url)
+                                    @if (! $c->meet_url && $enCurso && $gestiona)
+                                        {{-- Sin enlace todavía (Calendar no conectado o aún en cola): se agrega desde el editor. --}}
+                                        <button type="button" wire:click="editar({{ $c->id }})" class="text-marca-700 underline">{{ __('Agregar enlace') }}</button>
+                                    @else
+                                        <span class="text-texto-suave">{{ $c->meet_url ? __('Clase finalizada') : '—' }}</span>
+                                    @endif
+                                @endif
                             </div>
                             {{-- El enlace a la vista, para copiarlo y compartirlo mientras la clase sigue abierta. --}}
                             @if ($c->meet_url && $enCurso)
@@ -52,6 +64,9 @@
                     @if ($gestiona)
                         <td class="min-w-60">
                             <div class="flex flex-wrap items-center justify-end gap-1">
+                                @if ($c->status === 'in_progress' && ! $c->sesion_ulid)
+                                    <span class="text-xs text-texto-suave">{{ __('Suba el reporte al terminar (:h)', ['h' => \Illuminate\Support\Carbon::parse($c->starts_at)->timezone(config('app.timezone'))->addMinutes($c->duration_minutes)->format('H:i')]) }}</span>
+                                @endif
                                 @if ($c->sesion_ulid)
                                     <x-ui.badge color="verde">{{ __(':n presentes', ['n' => $c->presentes]) }}</x-ui.badge>
                                     <x-ui.button tamano="sm" variante="fantasma" :href="route('secciones.asistencia.sesion', ['seccion' => $seccion, 'sesion' => $c->sesion_ulid])">{{ __('Ver sesión') }}</x-ui.button>
@@ -63,6 +78,11 @@
                                     <x-ui.button tamano="sm" :variante="$c->sesion_ulid ? 'fantasma' : 'primario'" icono="arrow-up-tray"
                                         wire:click="$set('claseId', {{ $c->id }})" x-on:click="$dispatch('abrir-modal', 'subir-reporte')">{{ $c->reporte_id ? __('Reemplazar reporte') : __('Subir reporte') }}</x-ui.button>
                                     <x-ui.button tamano="sm" variante="fantasma" x-on:click="$dispatch('abrir-modal', 'grabacion-{{ $c->id }}')">{{ __('Grabación') }}</x-ui.button>
+                                @endif
+                                <x-ui.button tamano="sm" variante="fantasma" icono="pencil-square" wire:click="editar({{ $c->id }})">{{ __('Editar') }}</x-ui.button>
+                                @if ($estadoEdicion($c) === 'scheduled')
+                                    <x-ui.button tamano="sm" variante="peligro" wire:click="cancelar({{ $c->id }})"
+                                        wire:confirm="{{ __('¿Cancelar la clase «:t»? Se quita de la lista y, si tenía evento en Google Calendar, se avisa a los invitados.', ['t' => $c->topic]) }}">{{ __('Cancelar clase') }}</x-ui.button>
                                 @endif
                             </div>
                         </td>
@@ -142,35 +162,40 @@
     @endif
 
     @if ($gestiona)
-        <x-ui.modal nombre="programar-clase" :titulo="__('Programar clase virtual')" :subtitulo="__('La asistencia se toma después con el reporte de Meet (ADR-003).')">
+        <x-ui.modal nombre="programar-clase" :titulo="$editada ? __('Editar clase virtual') : __('Programar clase virtual')" :subtitulo="__('La asistencia se toma después con el reporte de Meet (ADR-003).')">
+            @if ($modo === 'in_progress')
+                <x-ui.alert tipo="info" class="mb-4">{{ __('La clase ya empezó: puede cambiar el tema y el enlace, y alargar la duración.') }}</x-ui.alert>
+            @elseif ($modo === 'finished')
+                <x-ui.alert tipo="info" class="mb-4">{{ __('La clase ya terminó: solo puede cambiar el tema. La fecha y la duración son la base del reporte de Meet.') }}</x-ui.alert>
+            @endif
             {{-- La hora de fin se calcula mientras se escribe; la duración tiene atajos para los bloques habituales. --}}
             <form wire:submit="programar" id="form-programar-clase" class="flex flex-col gap-4"
-                x-data="{ ini: $wire.inicio, dur: $wire.duracion, get fin() {
-                    if (! this.ini || ! Number(this.dur)) return null;
-                    const f = new Date(String(this.ini).replace(' ', 'T'));
+                x-data="{ get fin() {
+                    if (! $wire.inicio || ! Number($wire.duracion)) return null;
+                    const f = new Date(String($wire.inicio).replace(' ', 'T'));
                     if (isNaN(f)) return null;
-                    f.setMinutes(f.getMinutes() + Number(this.dur));
+                    f.setMinutes(f.getMinutes() + Number($wire.duracion));
                     return f.toLocaleTimeString('es-SV', { hour: '2-digit', minute: '2-digit', hour12: false });
                 } }">
                 <x-ui.field :etiqueta="__('Tema')" para="virtual-tema" error="tema" requerido><x-ui.input id="virtual-tema" wire:model="tema" maxlength="200" :placeholder="__('Repaso para el parcial')" /></x-ui.field>
-                <x-ui.field :etiqueta="__('Fecha y hora de inicio')" para="virtual-inicio" error="inicio" requerido><x-ui.input id="virtual-inicio" type="datetime-local" wire:model="inicio" x-on:input="ini = $event.target.value" /></x-ui.field>
+                <x-ui.field :etiqueta="__('Fecha y hora de inicio')" para="virtual-inicio" error="inicio" requerido><x-ui.input id="virtual-inicio" type="datetime-local" wire:model.live="inicio" :disabled="$modo !== 'scheduled'" /></x-ui.field>
                 <x-ui.field :etiqueta="__('Duración (15 a 300 min)')" para="virtual-duracion" error="duracion" requerido>
                     <div class="flex flex-wrap items-center gap-2">
-                        <x-ui.input id="virtual-duracion" type="number" min="15" max="300" wire:model="duracion" x-on:input="dur = $event.target.value" class="w-28" />
-                        @foreach ([50, 100, 120] as $minutos)
-                            <button type="button" wire:click="$set('duracion', {{ $minutos }})" x-on:click="dur = {{ $minutos }}" @class(['h-9 rounded-lg px-3 text-sm ring-1 transition', 'bg-marca-600 text-white ring-marca-600' => (int) $duracion === $minutos, 'bg-white text-texto ring-borde hover:bg-zinc-100' => (int) $duracion !== $minutos])>{{ $minutos }} min</button>
+                        <x-ui.input id="virtual-duracion" type="number" :min="$modo === 'in_progress' ? $editada->duration_minutes : 15" max="300" wire:model.live="duracion" class="w-28" :disabled="$modo === 'finished'" />
+                        @foreach ($modo === 'finished' ? [] : [50, 100, 120] as $minutos)
+                            <button type="button" wire:click="$set('duracion', {{ $minutos }})" @disabled($modo === 'in_progress' && $minutos < $editada->duration_minutes) @class(['h-9 rounded-lg px-3 text-sm ring-1 transition', 'bg-marca-600 text-white ring-marca-600' => (int) $duracion === $minutos, 'bg-white text-texto ring-borde hover:bg-zinc-100 disabled:opacity-40' => (int) $duracion !== $minutos])>{{ $minutos }} min</button>
                         @endforeach
                     </div>
                 </x-ui.field>
                 <p class="-mt-2 text-xs text-texto-suave" x-show="fin" x-text="@js(__('Termina a las ')) + fin"></p>
                 <x-ui.field :etiqueta="__('Enlace de Meet (opcional)')" para="virtual-meet" error="meetUrl"
                     :ayuda="__('Si lo deja vacío y tiene conectado Google Calendar, el enlace se crea solo al programar. Ej.: https://meet.google.com/abc-defg-hij')">
-                    <x-ui.input id="virtual-meet" type="url" wire:model="meetUrl" placeholder="https://meet.google.com/…" />
+                    <x-ui.input id="virtual-meet" type="url" wire:model="meetUrl" placeholder="https://meet.google.com/…" :disabled="$modo === 'finished'" />
                 </x-ui.field>
             </form>
             <x-slot:pie>
                 <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'programar-clase')">{{ __('Cancelar') }}</x-ui.button>
-                <x-ui.button type="submit" form="form-programar-clase">{{ __('Programar') }}</x-ui.button>
+                <x-ui.button type="submit" form="form-programar-clase">{{ $editada ? __('Guardar cambios') : __('Programar') }}</x-ui.button>
             </x-slot:pie>
         </x-ui.modal>
 

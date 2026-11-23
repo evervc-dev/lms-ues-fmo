@@ -22,6 +22,15 @@ interface CalendarGateway
     public function crearClase(User $docente, string $titulo, Carbon $inicio, int $minutos, array $invitados): ?array;
 
     /**
+     * Cambia el tema, el inicio o la duración del evento de una clase virtual ya creada (la clase editada) y avisa a
+     * los invitados. El enlace de Meet no cambia.
+     *
+     * @return bool|null true si se actualizó (o el evento ya no existe), false si no está en el calendario de ese
+     *                   docente, o null si la integración no está disponible para él.
+     */
+    public function actualizarClase(User $docente, string $eventoId, string $titulo, Carbon $inicio, int $minutos): ?bool;
+
+    /**
      * Crea o actualiza un evento general en el calendario del organizador (RF06-04, el calendario de evaluaciones
      * del período), sin Meet y con la lista de invitados oculta. Sin `$fin`, es un evento de todo el día.
      *

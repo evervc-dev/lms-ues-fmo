@@ -264,3 +264,24 @@ it('CP-RF21-01 el evento de la clase cancelada se busca en el calendario de cada
     expect(Http::recorded(fn (Request $r) => $r->method() === 'DELETE'))->toHaveCount(2);
     expect(DB::table('video_sessions')->where('id', $clase)->value('google_event_id'))->toBeNull();
 });
+
+it('CP-RF21-10 CP-RF21-11 al editar la clase se actualiza su evento y al cancelarla se borra, con aviso a los invitados', function () {
+    $e = escenario();
+    conectarCalendar($e['docente']);
+    fakeGoogle();
+    actingAs($e['docente']);
+    $servicio = app(ReporteMeetService::class);
+    $clase = $servicio->programar($e['docente'], $e['seccion'], 'Recursividad', '2026-10-30 07:00', 90, null);
+
+    $servicio->editar($e['docente'], $e['seccion'], $clase, 'Árboles', '2026-10-30 09:00', 60, null);
+    $servicio->cancelar($e['docente'], $e['seccion'], $clase);
+
+    $cambios = Http::recorded(fn (Request $r) => $r->method() === 'PATCH');
+    expect($cambios)->toHaveCount(1)
+        ->and($cambios->first()[0]->url())->toContain('/events/evt123')->toContain('sendUpdates=all')
+        ->and($cambios->first()[0]['summary'])->toBe('Árboles')
+        ->and($cambios->first()[0]['start']['dateTime'])->toStartWith('2026-10-30T09:00')
+        ->and($cambios->first()[0]['end']['dateTime'])->toStartWith('2026-10-30T10:00');
+    expect(Http::recorded(fn (Request $r) => $r->method() === 'DELETE')->first()[0]->url())->toContain('/events/evt123')
+        ->and(DB::table('video_sessions')->where('id', $clase)->exists())->toBeFalse();
+});

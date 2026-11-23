@@ -16,6 +16,11 @@ class CalendarDesactivado implements CalendarGateway
         return null;
     }
 
+    public function actualizarClase(User $docente, string $eventoId, string $titulo, Carbon $inicio, int $minutos): ?bool
+    {
+        return null;
+    }
+
     public function sincronizarEvento(User $organizador, ?string $eventoId, string $titulo, Carbon $inicio, ?Carbon $fin, array $invitados): ?string
     {
         return null;

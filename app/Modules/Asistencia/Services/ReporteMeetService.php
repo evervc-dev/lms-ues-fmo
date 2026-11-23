@@ -3,6 +3,8 @@
 namespace App\Modules\Asistencia\Services;
 
 use App\Models\User;
+use App\Modules\Asistencia\Jobs\ActualizarEventoDeClase;
+use App\Modules\Asistencia\Jobs\CancelarEventoDeClase;
 use App\Modules\Asistencia\Jobs\CrearEventoDeClase;
 use App\Modules\Asistencia\Jobs\EvaluarAlertasAsistencia;
 use App\Support\Alcance;
@@ -89,20 +91,7 @@ class ReporteMeetService
     public function programar(User $docente, int $seccionId, string $tema, string $inicio, int $duracion, ?string $meetUrl): int
     {
         $this->exigirEnSeccion($docente, 'videoconferencias.gestionar', $seccionId);
-        if ($duracion < self::DURACION_MIN || $duracion > self::DURACION_MAX) {
-            throw ValidationException::withMessages(['duracion' => __('La clase dura entre :min y :max minutos.', ['min' => self::DURACION_MIN, 'max' => self::DURACION_MAX])]);
-        }
-        $comienzo = $this->fechaHora($inicio) ?? throw ValidationException::withMessages(['inicio' => __('Indique la fecha y la hora de la clase.')]);
-        $periodo = DB::table('sections')->join('academic_periods as p', 'p.id', '=', 'sections.period_id')->where('sections.id', $seccionId)->first(['p.start_date', 'p.end_date']) ?? abort(404);
-        $dia = $comienzo->toDateString();
-        if ($dia < Carbon::parse($periodo->start_date)->toDateString() || $dia > Carbon::parse($periodo->end_date)->toDateString()) {
-            throw ValidationException::withMessages(['inicio' => __('La fecha de la clase debe estar dentro del período (del :ini al :fin).', [
-                'ini' => Carbon::parse($periodo->start_date)->format('d/m/Y'), 'fin' => Carbon::parse($periodo->end_date)->format('d/m/Y')])]);
-        }
-        $meetUrl = blank($meetUrl) ? null : trim((string) $meetUrl);
-        if ($meetUrl !== null && ! preg_match('#^https://meet\.google\.com/\S+$#i', $meetUrl)) {
-            throw ValidationException::withMessages(['meetUrl' => __('El enlace debe ser de Google Meet (https://meet.google.com/…).')]);
-        }
+        [$comienzo, $meetUrl] = $this->datosDeClase($seccionId, $inicio, $duracion, $meetUrl);
 
         $id = (int) DbContext::run(fn () => DB::table('video_sessions')->insertGetId([
             'section_id' => $seccionId, 'topic' => trim($tema), 'starts_at' => $comienzo, 'duration_minutes' => $duracion,
@@ -112,6 +101,71 @@ class ReporteMeetService
         CrearEventoDeClase::dispatch($id, $docente->id)->afterCommit();
 
         return $id;
+    }
+
+    /**
+     * Edita una clase virtual (CP-RF21-10, ADR-090). Lo que se puede cambiar depende de su estado:
+     * - Programada: tema, inicio, duración y enlace de Meet, con las mismas reglas que al programarla.
+     * - En curso: tema, enlace de Meet y duración, solo para alargarla; el inicio ya pasó.
+     * - Finalizada, o con reporte o sesión de asistencia: solo el tema. El inicio y la duración son la base del 70 %
+     *   del reporte de Meet (ADR-003); los demás valores que lleguen se ignoran.
+     * Si la clase tiene evento en Google Calendar y cambió el tema, el inicio o la duración, se actualiza en la cola «google».
+     */
+    public function editar(User $docente, int $seccionId, int $claseId, string $tema, string $inicio, int $duracion, ?string $meetUrl): void
+    {
+        $this->exigirEnSeccion($docente, 'videoconferencias.gestionar', $seccionId);
+        $clase = $this->clase($seccionId, $claseId);
+        $tema = trim($tema);
+        if ($tema === '') {
+            throw ValidationException::withMessages(['tema' => __('Escriba el tema de la clase.')]);
+        }
+
+        $inicioActual = $this->local((string) $clase->starts_at)->startOfMinute();
+        $duracionActual = (int) $clase->duration_minutes;
+        $estado = $this->estadoEditable($clase);
+
+        if ($estado === 'scheduled') {
+            [$comienzo, $enlace] = $this->datosDeClase($seccionId, $inicio, $duracion, $meetUrl);
+            $minutos = $duracion;
+        } elseif ($estado === 'in_progress') {
+            if ($duracion < $duracionActual) {
+                throw ValidationException::withMessages(['duracion' => __('La clase ya empezó: solo puede alargarla (ahora dura :n min).', ['n' => $duracionActual])]);
+            }
+            if ($duracion > self::DURACION_MAX) {
+                throw ValidationException::withMessages(['duracion' => __('La clase dura entre :min y :max minutos.', ['min' => self::DURACION_MIN, 'max' => self::DURACION_MAX])]);
+            }
+            [$comienzo, $minutos, $enlace] = [$inicioActual, $duracion, $this->enlaceMeet($meetUrl)];
+        } else {
+            [$comienzo, $minutos, $enlace] = [$inicioActual, $duracionActual, $clase->meet_url];
+        }
+
+        $cambiaEvento = $tema !== (string) $clase->topic || ! $comienzo->equalTo($inicioActual) || $minutos !== $duracionActual;
+        DbContext::run(fn () => DB::table('video_sessions')->where('id', $claseId)->update([
+            'topic' => $tema, 'starts_at' => $comienzo, 'duration_minutes' => $minutos, 'meet_url' => $enlace,
+            'status' => $estado === 'finished' ? $clase->status : $this->estadoPorHora($comienzo, $minutos), 'updated_at' => now(),
+        ]), 'video_session.updated');
+
+        if ($cambiaEvento && $clase->google_event_id !== null) {
+            ActualizarEventoDeClase::dispatch($claseId)->afterCommit();
+        }
+    }
+
+    /**
+     * Cancela una clase virtual que aún no empieza y no tiene reporte (CP-RF21-11, ADR-090): se borra, y su evento de
+     * Google Calendar se borra en la cola «google», con aviso a los invitados.
+     */
+    public function cancelar(User $docente, int $seccionId, int $claseId): void
+    {
+        $this->exigirEnSeccion($docente, 'videoconferencias.gestionar', $seccionId);
+        $clase = $this->clase($seccionId, $claseId);
+        if ($this->estadoEditable($clase) !== 'scheduled') {
+            throw ValidationException::withMessages(['clase' => __('Solo se cancela una clase que aún no empieza. Si ya empezó o terminó, puede cambiarle el tema.')]);
+        }
+
+        DbContext::run(fn () => DB::table('video_sessions')->where('id', $claseId)->delete(), 'video_session.cancelled');
+        if ($clase->google_event_id !== null) {
+            CancelarEventoDeClase::dispatch($claseId, $seccionId, (string) $clase->google_event_id)->afterCommit();
+        }
     }
 
     /**
@@ -517,6 +571,49 @@ class ReporteMeetService
                 DB::table('video_sessions')->whereIn('id', $ids->keys())->update(['status' => $estado, 'updated_at' => now()]);
             }
         }, 'video_session.status');
+    }
+
+    /**
+     * Valida el inicio, la duración y el enlace de una clase al programarla o al editarla antes de que empiece.
+     *
+     * @return array{0: Carbon, 1: string|null} El inicio y el enlace de Meet normalizado.
+     */
+    private function datosDeClase(int $seccionId, string $inicio, int $duracion, ?string $meetUrl): array
+    {
+        if ($duracion < self::DURACION_MIN || $duracion > self::DURACION_MAX) {
+            throw ValidationException::withMessages(['duracion' => __('La clase dura entre :min y :max minutos.', ['min' => self::DURACION_MIN, 'max' => self::DURACION_MAX])]);
+        }
+        $comienzo = $this->fechaHora($inicio) ?? throw ValidationException::withMessages(['inicio' => __('Indique la fecha y la hora de la clase.')]);
+        $periodo = DB::table('sections')->join('academic_periods as p', 'p.id', '=', 'sections.period_id')->where('sections.id', $seccionId)->first(['p.start_date', 'p.end_date']) ?? abort(404);
+        $dia = $comienzo->toDateString();
+        if ($dia < Carbon::parse($periodo->start_date)->toDateString() || $dia > Carbon::parse($periodo->end_date)->toDateString()) {
+            throw ValidationException::withMessages(['inicio' => __('La fecha de la clase debe estar dentro del período (del :ini al :fin).', [
+                'ini' => Carbon::parse($periodo->start_date)->format('d/m/Y'), 'fin' => Carbon::parse($periodo->end_date)->format('d/m/Y')])]);
+        }
+
+        return [$comienzo, $this->enlaceMeet($meetUrl)];
+    }
+
+    private function enlaceMeet(?string $meetUrl): ?string
+    {
+        $meetUrl = blank($meetUrl) ? null : trim((string) $meetUrl);
+        if ($meetUrl !== null && ! preg_match('#^https://meet\.google\.com/\S+$#i', $meetUrl)) {
+            throw ValidationException::withMessages(['meetUrl' => __('El enlace debe ser de Google Meet (https://meet.google.com/…).')]);
+        }
+
+        return $meetUrl;
+    }
+
+    /**
+     * El estado que manda al editar o cancelar: por la hora, salvo que la clase ya tenga reporte de Meet o sesión de
+     * asistencia, que la dejan como finalizada.
+     */
+    private function estadoEditable(object $clase): string
+    {
+        $conAsistencia = DB::table('meet_reports')->where('video_session_id', $clase->id)->exists()
+            || DB::table('attendance_sessions')->where('video_session_id', $clase->id)->exists();
+
+        return $conAsistencia ? 'finished' : $this->estadoPorHora($this->local((string) $clase->starts_at), (int) $clase->duration_minutes);
     }
 
     private function estadoPorHora(Carbon $inicio, int $duracion): string
