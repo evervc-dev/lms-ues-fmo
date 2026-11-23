@@ -91,8 +91,8 @@ return [
     | La sesión se abre sin más dentro del horario de la sección, con este
     | margen antes del inicio y después del fin; fuera de él, el docente debe
     | dar un motivo, que queda en la auditoría. ASIS_BYPASS_WEEKEND=true quita
-    | la restricción para probar en fin de semana o fuera de horario; en
-    | producción se ignora.
+    | la restricción para probar en fin de semana o fuera de horario, y deja
+    | programar bloques de horario en domingo (RF08); en producción se ignora.
     |
     */
 

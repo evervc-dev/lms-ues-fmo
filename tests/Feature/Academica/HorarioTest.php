@@ -181,3 +181,21 @@ it('CP-RF08-03 la carga académica marca el choque de aula entre dos grupos sin 
         ->and($secciones['MAT115']->choque)->toBe('PRN115 · 01')
         ->and($secciones['PRN115']->horario)->toBe(['Lun 07:00–08:40 · A-101']);
 })->skip(fn () => DB::connection()->getDriverName() === 'pgsql', 'En PostgreSQL el EXCLUDE no deja guardar el choque.');
+
+it('CP-RF08-03 rechaza un bloque en domingo salvo con ASIS_BYPASS_WEEKEND fuera de producción', function () {
+    Notification::fake();
+    $e = escenario();
+    actingAs($e['coordinador']);
+    $domingo = fn () => Livewire::test(CargaAcademica::class)->call('abrir', 'horario', $e['seccion'])
+        ->set('dia', 7)->set('inicio', '09:00')->set('fin', '10:40')->set('aulaId', $e['aula'])->call('agregarHorario');
+
+    config(['lms.asistencia.bypass_horario' => false]);
+    $domingo()->assertHasErrors(['dia' => 'between']);
+
+    config(['lms.asistencia.bypass_horario' => true]);
+    $domingo()->assertHasNoErrors();
+    expect(DB::table('section_schedules')->where('section_id', $e['seccion'])->where('weekday', 7)->exists())->toBeTrue();
+
+    app()->detectEnvironment(fn () => 'production');
+    $domingo()->assertHasErrors(['dia' => 'between']);
+});

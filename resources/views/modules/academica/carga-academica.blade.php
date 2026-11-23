@@ -1,7 +1,8 @@
 {{-- Carga académica (RF08, maquetas 23 y 24). --}}
 @php
     $estados = ['ok' => ['verde', __('Completa')], 'llena' => ['azul', __('Llena')], 'sin_docente' => ['ambar', __('Sin docente')], 'choque' => ['rojo', __('Choque de aula')]];
-    $dias = [1 => __('Lunes'), 2 => __('Martes'), 3 => __('Miércoles'), 4 => __('Jueves'), 5 => __('Viernes'), 6 => __('Sábado')];
+    $dias = [1 => __('Lunes'), 2 => __('Martes'), 3 => __('Miércoles'), 4 => __('Jueves'), 5 => __('Viernes'), 6 => __('Sábado'), 7 => __('Domingo')];
+    $dias = array_slice($dias, 0, \App\Modules\Academica\Livewire\CargaAcademica::ultimoDia(), true);
 @endphp
 <div class="flex flex-col gap-5 lg:h-full">
     <x-ui.encabezado :titulo="__('Carga académica · Período :p', ['p' => $periodo ?? '—'])" :subtitulo="__('Grupos teóricos, horarios, aulas y docentes. El sistema rechaza los choques de aula y de docente.')">
