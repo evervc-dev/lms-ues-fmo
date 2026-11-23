@@ -537,6 +537,13 @@ class CatalogoService
         if ($alCrear && $porPlan === []) {
             throw ValidationException::withMessages(['planes' => __('Elija al menos una carrera y su plan de estudios.')]);
         }
+        // Una asignatura está en un solo plan de cada carrera (ADR-089): la del Plan 98 no sale en el Plan 25. Se puede
+        // compartir entre carreras distintas (ADR-080), pero no entre dos planes de la misma.
+        $repetida = DB::table('study_plans as p')->join('careers as c', 'c.id', '=', 'p.career_id')->whereIn('p.id', array_keys($porPlan))
+            ->select('c.name')->groupBy('c.id', 'c.name')->havingRaw('count(*) > 1')->value('c.name');
+        if ($repetida !== null) {
+            throw ValidationException::withMessages(['planes' => __('Una asignatura solo puede estar en un plan de cada carrera: elija un solo plan de :carrera.', ['carrera' => $repetida])]);
+        }
 
         $permitidos = DB::table('study_plans')->whereIn('career_id', $this->carrerasConPlanes($actor)->pluck('id'))->pluck('id')->map(fn ($p) => (int) $p)->all();
         if (array_diff(array_keys($porPlan), $permitidos) !== []) {

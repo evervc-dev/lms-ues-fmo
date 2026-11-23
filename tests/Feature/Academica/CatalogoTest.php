@@ -452,3 +452,22 @@ it('CP-RF07-04 categoriza y filtra el catálogo por departamento con pestañas y
         ->assertSet('departamento', '')
         ->assertViewHas('asignaturas', fn ($pagina) => $pagina->total() === 2);
 });
+
+it('CP-RF07-27 rechaza poner una asignatura en dos planes de la misma carrera, pero la deja en planes de carreras distintas (ADR-089)', function () {
+    $e = escenario();
+    [$plan98, $lma] = DbContext::system(function () use ($e) {
+        $plan98 = DB::table('study_plans')->insertGetId(['career_id' => $e['isi'], 'name' => 'Plan 98', 'created_at' => now(), 'updated_at' => now()]);
+        $carrera = DB::table('careers')->insertGetId(['department_id' => $e['dcnm'], 'code' => 'LMA', 'name' => 'Licenciatura en Matemática', 'created_at' => now(), 'updated_at' => now()]);
+        $lma = DB::table('study_plans')->insertGetId(['career_id' => $carrera, 'name' => 'Plan 07', 'created_at' => now(), 'updated_at' => now()]);
+
+        return [$plan98, $lma];
+    });
+    actingAs($e['administrador']);
+    $datos = ['codigo' => 'ALG115', 'nombre' => 'Álgebra', 'creditos' => 4, 'departamento' => $e['dcnm']];
+
+    expect(fn () => app(CatalogoService::class)->guardarAsignatura($e['administrador'], null, $datos + ['planes' => [['plan' => $e['plan'], 'ciclo' => 1], ['plan' => $plan98, 'ciclo' => 1]]]))
+        ->toThrow(ValidationException::class, 'Una asignatura solo puede estar en un plan de cada carrera');
+
+    $id = app(CatalogoService::class)->guardarAsignatura($e['administrador'], null, $datos + ['planes' => [['plan' => $e['plan'], 'ciclo' => 1], ['plan' => $lma, 'ciclo' => 2]]]);
+    expect(DB::table('career_subjects')->where('subject_id', $id)->count())->toBe(2);
+});

@@ -45,19 +45,27 @@ class InstitutionSeeder extends Seeder
     ];
 
     /**
-     * Materias que están en un solo plan de ISI; el resto está en los dos. Son datos de prueba, no la malla oficial: sirven
-     * para que el estudiante del Plan 25 no vea las del 98 y al revés (Inscripción y Matrícula filtran por su plan).
+     * Cada asignatura está en un solo plan de ISI: ninguna materia del Plan 98 sale en el Plan 25 ni al revés (pedido del
+     * usuario, 22/11/2026; ADR-089). Son datos de prueba, no la malla oficial.
      *
-     * DemoAcademicSeeder inscribe a cada estudiante en todas las materias de su ciclo (ciclos 1 y 3: Plan 25; 5, 7 y 9:
-     * Plan 98) y, en el período anterior, en las del ciclo previo (2; 4, 6 y 8). Por eso las solo del 25 van en los
-     * ciclos 1 a 3 o 10, y las solo del 98, del 4 al 10: ninguna exclusiva cae donde se inscriben estudiantes del otro plan.
-     *
-     * @var array<string, string> código => plan
+     * Las de SUBJECTS quedan en el plan que tiene estudiantes en su ciclo, porque DemoAcademicSeeder y EquipoSeeder
+     * crean grupos y matrículas por ciclo: ciclos 1 a 3 en el Plan 25 y 4 a 10 en el Plan 98. Para que cada plan tenga
+     * su malla completa de 10 ciclos, el otro plan recibe una equivalente con código propio: el último dígito pasa de 5
+     * a 8 en el Plan 98 (MAT115 → MAT118) y a 2 en el Plan 25 (BAD115 → BAD112). Esas equivalentes no tienen grupos.
      */
-    public const SOLO_PLAN = [
-        'ISI115' => 'Plan 25', 'EST115' => 'Plan 25', 'OPT215' => 'Plan 25',
-        'HDP115' => 'Plan 98', 'TSI115' => 'Plan 98', 'ACC115' => 'Plan 98', 'SGI115' => 'Plan 98',
-    ];
+    public const ULTIMO_CICLO_PLAN_25 = 3;
+
+    /** Plan al que pertenece una asignatura de SUBJECTS según su ciclo. */
+    public static function planDe(string $codigo): string
+    {
+        return self::SUBJECTS[$codigo][1] <= self::ULTIMO_CICLO_PLAN_25 ? 'Plan 25' : 'Plan 98';
+    }
+
+    /** Código de la asignatura de SUBJECTS en el plan indicado: la propia, o su equivalente si es del otro plan. */
+    public static function codigoEnPlan(string $codigo, string $plan): string
+    {
+        return self::planDe($codigo) === $plan ? $codigo : substr($codigo, 0, -1).($plan === 'Plan 98' ? '8' : '2');
+    }
 
     public function run(): void
     {
@@ -88,16 +96,24 @@ class InstitutionSeeder extends Seeder
             }
         }
 
-        foreach (self::SUBJECTS as $code => [$name, $cycle, $department]) {
-            DB::table('subjects')->insert([
-                'code' => $code,
-                'name' => $name,
-                // Sin el ciclo: una asignatura está en ciclos distintos según el plan, y el detalle de inscripción decía
-                // «Ciclo 2 del plan» junto a «Asignatura del ciclo 1» (revisión UX del rol Estudiante).
-                'description' => 'Asignatura de Ingeniería de Sistemas Informáticos.',
-                'credits' => in_array($code, ['TDG115', 'SEM115'], true) ? 5 : 4,
-                'department_id' => $dept[$department],
-            ] + $this->stamps());
+        // Cada asignatura en su plan: las de SUBJECTS y sus equivalentes del otro plan (ver codigoEnPlan()).
+        $porPlan = [];
+        foreach (['Plan 98', 'Plan 25'] as $plan) {
+            foreach (self::SUBJECTS as $code => [$name, $cycle, $department]) {
+                $porPlan[$plan][self::codigoEnPlan($code, $plan)] = [$name, $cycle, $department];
+            }
+        }
+        foreach ($porPlan as $plan => $asignaturas) {
+            foreach ($asignaturas as $code => [$name, $cycle, $department]) {
+                DB::table('subjects')->insert([
+                    'code' => $code,
+                    'name' => $name,
+                    // Sin el ciclo: el detalle de inscripción decía «Ciclo 2 del plan» junto a «Asignatura del ciclo 1».
+                    'description' => "Asignatura del {$plan} de Ingeniería de Sistemas Informáticos.",
+                    'credits' => in_array(substr($code, 0, 3), ['TDG', 'SEM'], true) ? 5 : 4,
+                    'department_id' => $dept[$department],
+                ] + $this->stamps());
+            }
         }
 
         $subjects = DB::table('subjects')->pluck('id', 'code');
@@ -105,22 +121,26 @@ class InstitutionSeeder extends Seeder
             ->where('careers.code', 'ISI')->pluck('study_plans.id', 'study_plans.name');
 
         $rows = [];
-        foreach ($isiPlans as $planName => $planId) {
-            foreach (self::SUBJECTS as $code => [, $cycle]) {
-                if (isset(self::SOLO_PLAN[$code]) && self::SOLO_PLAN[$code] !== $planName) {
-                    continue;
-                }
-                $rows[] = ['study_plan_id' => $planId, 'subject_id' => $subjects[$code], 'cycle' => $cycle];
+        foreach ($porPlan as $plan => $asignaturas) {
+            foreach ($asignaturas as $code => [, $cycle]) {
+                $rows[] = ['study_plan_id' => $isiPlans[$plan], 'subject_id' => $subjects[$code], 'cycle' => $cycle];
             }
         }
         $this->insertRows('career_subjects', $rows);
 
-        // Prerrequisitos: cada materia "II/III/IV" requiere la anterior (se registran, no se validan: ADR-030).
+        // Prerrequisitos: cada materia "II/III/IV" requiere la anterior (se registran, no se validan: ADR-030). En cada
+        // plan se enlazan sus propias versiones, así ningún prerrequisito cruza de un plan a otro.
         $prerequisites = ['MAT215' => 'MAT115', 'MAT315' => 'MAT215', 'MAT415' => 'MAT315', 'PRN215' => 'PRN115', 'PRN315' => 'PRN215',
             'ESD115' => 'PRN215', 'BAD215' => 'BAD115', 'DSI215' => 'DSI115', 'FIR215' => 'FIR115', 'IDI215' => 'IDI115', 'TDG115' => 'PYE115'];
-        $this->insertRows('subject_prerequisites', collect($prerequisites)->map(fn ($pre, $code) => [
-            'subject_id' => $subjects[$code], 'prerequisite_id' => $subjects[$pre],
-        ])->values()->all());
+        $pares = [];
+        foreach (['Plan 98', 'Plan 25'] as $plan) {
+            foreach ($prerequisites as $code => $pre) {
+                $pares[self::codigoEnPlan($code, $plan).'>'.self::codigoEnPlan($pre, $plan)] = [
+                    'subject_id' => $subjects[self::codigoEnPlan($code, $plan)], 'prerequisite_id' => $subjects[self::codigoEnPlan($pre, $plan)],
+                ];
+            }
+        }
+        $this->insertRows('subject_prerequisites', array_values($pares));
 
         $classrooms = [];
         foreach (['A-101', 'A-102', 'A-103', 'A-104', 'A-105', 'B-201', 'B-202', 'B-203', 'B-204', 'B-205', 'LAB-1', 'LAB-2', 'LAB-3', 'AUD-1'] as $code) {

@@ -18,13 +18,13 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
-### 2026-11-22 · RF21 · Editar y cancelar una clase virtual
+### 2026-11-22 · RF07 · Una asignatura va en un solo plan de cada carrera
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** una clase virtual programada no se podía corregir ni cancelar (reporte del rol Docente en staging). Ahora cada clase tiene «Editar», que abre el mismo modal de programar con sus datos: programada cambia todo; en curso, tema, enlace y alargar la duración; finalizada o con reporte, solo el tema. «Cancelar clase» borra una clase programada sin reporte. El evento de Google Calendar se actualiza (`ActualizarEventoDeClase`, `CalendarGateway::actualizarClase`) o se borra en la cola `google`. Se quita el campo «Enlace de Meet (opcional)», que confundía: el enlace lo crea Google Calendar, y con la integración activa programar exige tener el Calendar conectado (el modal lleva a conectarlo). La tabla indica la hora a la que subir el reporte de la clase en curso. Se agrega al set el ícono `pencil-square`, que salía como «?» en este y otros 4 botones.
-- **CP cubiertos:** CP-RF21-10, CP-RF21-11.
-- **Decisiones:** [[ADR-090 Editar y cancelar una clase virtual]] (pendiente).
-- **Pendiente:** aceptar la ADR-090.
+- **Hecho:** las materias se mezclaban entre el Plan 25 y el Plan 98 de ISI. El seeder siembra cada plan con sus propias asignaturas (ciclos 1-3 en el Plan 25, el resto en el Plan 98, con su equivalente en el otro plan) y prerrequisitos solo dentro del plan. `CatalogoService` rechaza poner una asignatura en dos planes de la misma carrera, y el formulario desactiva la carrera ya elegida. La demo deja a `estudiante.dev` solo en materias de su plan y abre la sesión QR en BAD115-02.
+- **CP cubiertos:** CP-RF07-27.
+- **Decisiones:** [[ADR-089 Una asignatura va en un solo plan de cada carrera]] (pendiente).
+- **Pendiente:** aceptar la ADR-089; en bases ya sembradas, separar los planes con el script de tinker.
 
 ### 2026-11-22 · RF15 · Prórrogas a varios estudiantes, con buscador por nombre o carné
 - **Autor:** IA (Claude Code), a pedido del equipo
