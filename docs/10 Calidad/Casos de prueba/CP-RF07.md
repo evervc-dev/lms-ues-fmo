@@ -4,7 +4,7 @@ rf: "[[RF07]]"
 nombre: Gestión de asignaturas
 prioridad: Alta
 nivel: feature
-casos: 21
+casos: 24
 estado: automatizado
 ---
 
@@ -15,7 +15,7 @@ Casos derivados de los criterios de aceptación de [[RF07]]. Nivel: **feature**.
 | ID | Caso (Dado / Cuando / Entonces) | Estado |
 |---|---|---|
 | CP-RF07-01 | **Dado** un código que ya existe, **cuando** se crea una asignatura, **entonces** se rechaza. | automatizado |
-| CP-RF07-02 | **Dado** una asignatura con secciones en algún período, **cuando** se intenta eliminar, **entonces** se impide; solo se puede desactivar. | automatizado |
+| CP-RF07-02 | **Dado** una asignatura con secciones en algún período, **cuando** se intenta eliminar, **entonces** se impide; solo se puede archivar, y no mientras tenga grupos en un período que no está cerrado ([[ADR-092 Archivar períodos, departamentos, carreras y asignaturas]]). | automatizado |
 | CP-RF07-03 | **Dado** un prerrequisito, **entonces** no puede crear un ciclo (A requiere B y B requiere A). | automatizado |
 | CP-RF07-04 | **Dado** el catálogo, **cuando** se filtra por carrera (solo las de su alcance: todas para el Administrador, las de su departamento para el Jefe), créditos o nombre, **entonces** devuelve los resultados en menos de 3 s ([[RNF03]]). | automatizado |
 | CP-RF07-05 | **Dado** el catálogo, **cuando** se busca «administracion» sin tilde, **entonces** encuentra «Administración de Centros de Cómputo», en SQLite y en PostgreSQL. | automatizado |
@@ -41,5 +41,8 @@ Casos derivados de los criterios de aceptación de [[RF07]]. Nivel: **feature**.
 | CP-RF07-25 | **Dado** una asignatura en un plan de estudios, **cuando** se eligen sus prerrequisitos, **entonces** solo se ofrecen las materias de ese plan, y guardar uno de otro pensum se rechaza nombrándolo. | automatizado |
 | CP-RF07-26 | **Dado** el Administrador (o el Jefe con una materia de su departamento) en el detalle de una carrera, **cuando** pulsa una materia, **entonces** abre su ficha en el Catálogo, que muestra los grupos del período con su docente, horario e inscritos. Quien no gestiona el catálogo no ve el enlace. | automatizado |
 | CP-RF07-27 | **Dado** una asignatura, **cuando** se intenta ponerla en dos planes de la misma carrera, **entonces** se rechaza; en planes de carreras distintas sí se permite ([[ADR-089 Una asignatura va en un solo plan de cada carrera]]). | automatizado |
+| CP-RF07-28 | **Dado** un departamento, **cuando** el Administrador lo archiva, **entonces** se rechaza si tiene carreras sin archivar, asignaturas activas o jefatura vigente; archivado, sale de las listas y los selectores y no admite carreras ni asignaturas nuevas ([[ADR-092 Archivar períodos, departamentos, carreras y asignaturas]]). | automatizado |
+| CP-RF07-29 | **Dado** una carrera, **cuando** el Administrador la archiva, **entonces** se rechaza si tiene estudiantes activos o coordinación vigente; archivada, sale de las listas y los selectores, no admite planes ni asignaturas y no se desarchiva con su departamento archivado ([[ADR-092 Archivar períodos, departamentos, carreras y asignaturas]]). | automatizado |
+| CP-RF07-30 | **Dado** un Jefe, Coordinador, Docente o Estudiante, **cuando** intenta archivar un período, un departamento o una carrera, **entonces** recibe 403 ([[ADR-092 Archivar períodos, departamentos, carreras y asignaturas]]). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF07-01 …')`.

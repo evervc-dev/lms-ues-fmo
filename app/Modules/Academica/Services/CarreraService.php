@@ -34,14 +34,16 @@ class CarreraService
      *
      * @throws AuthorizationException
      */
-    public function departamentos(User $actor): Collection
+    public function departamentos(User $actor, bool $archivados = false): Collection
     {
         if ($this->alcance->exigir($actor, self::PERMISO) !== 'G') {
             throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
         }
         $periodoId = PeriodoService::activoId();
 
-        $departamentos = DB::table('departments as d')->select('d.id', 'd.code', 'd.name')
+        // ADR-092: los archivados se ven aparte.
+        $departamentos = DB::table('departments as d')->select('d.id', 'd.code', 'd.name', 'd.archived_at')
+            ->when($archivados, fn ($q) => $q->whereNotNull('d.archived_at'), fn ($q) => $q->whereNull('d.archived_at'))
             ->selectSub(DB::table('careers')->whereColumn('careers.department_id', 'd.id')->selectRaw('count(*)'), 'carreras')
             ->selectSub(DB::table('subjects')->whereColumn('subjects.department_id', 'd.id')->where('subjects.is_active', true)->selectRaw('count(*)'), 'materias')
             ->selectSub(DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
@@ -81,7 +83,7 @@ class CarreraService
      *
      * @return Collection<int, object>
      */
-    public function listar(User $actor, ?int $departamentoId = null): Collection
+    public function listar(User $actor, ?int $departamentoId = null, bool $archivadas = false): Collection
     {
         $vision = $this->alcance->exigir($actor, self::PERMISO);
         $periodoId = PeriodoService::activoId();
@@ -89,7 +91,9 @@ class CarreraService
 
         $carreras = $this->enAlcance(
             DB::table('careers as c')->join('departments as d', 'd.id', '=', 'c.department_id')
-                ->select('c.id', 'c.code', 'c.name', 'd.name as departamento', 'd.code as departamentoCodigo')
+                ->select('c.id', 'c.code', 'c.name', 'c.archived_at', 'd.name as departamento', 'd.code as departamentoCodigo')
+                // ADR-092: las archivadas se ven aparte, y solo con alcance global.
+                ->when($archivadas && $vision === 'G', fn ($q) => $q->whereNotNull('c.archived_at'), fn ($q) => $q->whereNull('c.archived_at'))
                 ->when($departamentoId !== null, fn ($q) => $q->where('c.department_id', $departamentoId))
                 ->orderBy('d.code')->orderBy('c.code'),
             $actor,

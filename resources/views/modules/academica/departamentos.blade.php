@@ -10,7 +10,17 @@
         @endif
     </x-ui.encabezado>
 
-    @if ($departamentos->isEmpty())
+    {{-- Activos y archivados (ADR-092): lo archivado no aparece en los selectores ni admite cambios. --}}
+    <div class="flex gap-1 rounded-lg bg-white p-1 text-sm ring-1 ring-borde sm:self-start" role="tablist">
+        @foreach ([false => __('Activos'), true => __('Archivados')] as $valor => $etiqueta)
+            <button type="button" role="tab" wire:click="$set('archivados', {{ $valor ? 'true' : 'false' }})" aria-selected="{{ $archivados === (bool) $valor ? 'true' : 'false' }}"
+                @class(['rounded-md px-3 py-1.5 font-medium', 'bg-marca-600 text-white' => $archivados === (bool) $valor, 'text-texto-suave hover:bg-zinc-100' => $archivados !== (bool) $valor])>{{ $etiqueta }}</button>
+        @endforeach
+    </div>
+
+    @if ($departamentos->isEmpty() && $archivados)
+        <x-ui.card><x-ui.empty-state icono="building-library" :titulo="__('No hay departamentos archivados')">{{ __('Al archivar un departamento deja de aparecer en las listas y los selectores; aquí se puede desarchivar.') }}</x-ui.empty-state></x-ui.card>
+    @elseif ($departamentos->isEmpty())
         <x-ui.card>
             <x-ui.empty-state icono="building-library" :titulo="__('No hay departamentos')">
                 {{ $gestiona ? __('Todavía no hay departamentos registrados. Cree el primero con «Nuevo departamento».') : __('Todavía no hay departamentos registrados.') }}
@@ -47,10 +57,16 @@
                         <td class="text-right">{{ $departamento->grupos }}</td>
                         @if ($gestiona)
                             <td class="whitespace-nowrap text-right">
+                                @if ($archivados)
+                                    <x-ui.button tamano="sm" variante="secundario" wire:click="archivarDepartamento({{ $departamento->id }}, false)">{{ __('Desarchivar') }}</x-ui.button>
+                                @else
                                 <x-ui.button tamano="sm" variante="fantasma" icono="pencil-square" wire:click="editarDepartamento({{ $departamento->id }})">{{ __('Editar') }}</x-ui.button>
+                                <x-ui.button tamano="sm" variante="fantasma" wire:click="archivarDepartamento({{ $departamento->id }}, true)"
+                                    wire:confirm="{{ __('¿Archivar :c? Dejará de aparecer en las listas y los selectores. Debe estar sin carreras activas, asignaturas activas ni jefatura vigente.', ['c' => $departamento->code]) }}">{{ __('Archivar') }}</x-ui.button>
                                 {{-- Solo se ofrece eliminar el que nada usa; el Service igual lo verifica (CP-RF07-10). --}}
                                 @if ($departamento->carreras === 0 && $departamento->materias === 0 && ! $departamento->jefe)
                                     <x-ui.button tamano="sm" variante="fantasma" wire:click="eliminarDepartamento({{ $departamento->id }})" wire:confirm="{{ __('¿Eliminar :c? Solo se puede si no tiene carreras, asignaturas, docentes, jefaturas ni historial.', ['c' => $departamento->code]) }}">{{ __('Eliminar') }}</x-ui.button>
+                                @endif
                                 @endif
                             </td>
                         @endif

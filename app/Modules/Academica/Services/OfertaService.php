@@ -94,7 +94,7 @@ class OfertaService
 
         return DB::table('career_subjects as cs')
             ->join('study_plans as sp', 'sp.id', '=', 'cs.study_plan_id')
-            ->join('careers as c', 'c.id', '=', 'sp.career_id')
+            ->join('careers as c', 'c.id', '=', 'sp.career_id')->whereNull('c.archived_at')
             ->whereIn('cs.subject_id', $ids)
             ->orderBy('c.code')->orderBy('cs.cycle')
             ->get(['cs.subject_id', 'cs.cycle', 'c.code as carrera_codigo', 'c.name as carrera', 'sp.name as plan'])

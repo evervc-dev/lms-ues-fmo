@@ -14,7 +14,19 @@
         </div>
     </x-ui.encabezado>
 
-    @if ($carreras->isEmpty())
+    @if ($gestiona)
+        {{-- Activas y archivadas (ADR-092): lo archivado no aparece en los selectores ni admite cambios. --}}
+        <div class="flex gap-1 rounded-lg bg-white p-1 text-sm ring-1 ring-borde sm:self-start" role="tablist">
+            @foreach ([0 => __('Activas'), 1 => __('Archivadas')] as $valor => $etiqueta)
+                <button type="button" role="tab" wire:click="$set('archivadas', {{ $valor ? 'true' : 'false' }})" aria-selected="{{ $archivadas === (bool) $valor ? 'true' : 'false' }}"
+                    @class(['rounded-md px-3 py-1.5 font-medium', 'bg-marca-600 text-white' => $archivadas === (bool) $valor, 'text-texto-suave hover:bg-zinc-100' => $archivadas !== (bool) $valor])>{{ $etiqueta }}</button>
+            @endforeach
+        </div>
+    @endif
+
+    @if ($carreras->isEmpty() && $archivadas)
+        <x-ui.card><x-ui.empty-state icono="academic-cap" :titulo="__('No hay carreras archivadas')">{{ __('Al archivar una carrera deja de aparecer en las listas y los selectores; aquí se puede desarchivar.') }}</x-ui.empty-state></x-ui.card>
+    @elseif ($carreras->isEmpty())
         <x-ui.card>
             <x-ui.empty-state icono="academic-cap" :titulo="__('No hay carreras')">
                 {{ $departamentoElegido ? __('Este departamento todavía no tiene carreras.') : __('No tiene carreras asignadas en su departamento ni en su coordinación.') }}
@@ -31,6 +43,7 @@
                     <th class="text-right">{{ __('Materias') }}</th>
                     <th class="text-right">{{ __('Grupos') }}</th>
                     <th class="text-right">{{ __('Docentes') }}</th>
+                    @if ($gestiona)<th class="text-right"><span class="sr-only">{{ __('Acciones') }}</span></th>@endif
                 </x-slot:cabecera>
                 @foreach ($carreras as $carrera)
                     {{-- Sin grupos este período se atenúa y se rotula: ICI con 0 en todo parecía un error de datos (QA Jefe 21/11). --}}
@@ -41,7 +54,7 @@
                             </a>
                             <p class="text-xs text-texto-suave">
                                 {{ $carrera->planes === [] ? __('Sin plan de estudios') : implode(' · ', $carrera->planes) }}
-                                @if ($gestiona)
+                                @if ($gestiona && ! $archivadas)
                                     · <button type="button" wire:click="nuevoPlan({{ $carrera->id }})" class="font-medium text-marca-700 hover:underline">{{ __('Agregar plan') }}</button>
                                 @endif
                             </p>
@@ -62,6 +75,16 @@
                         <td class="text-right">{{ $carrera->materias }}</td>
                         <td class="text-right">{{ $carrera->grupos }}</td>
                         <td class="text-right">{{ $carrera->docentes }}</td>
+                        @if ($gestiona)
+                            <td class="whitespace-nowrap text-right">
+                                @if ($archivadas)
+                                    <x-ui.button tamano="sm" variante="secundario" wire:click="archivarCarrera({{ $carrera->id }}, false)">{{ __('Desarchivar') }}</x-ui.button>
+                                @else
+                                    <x-ui.button tamano="sm" variante="fantasma" wire:click="archivarCarrera({{ $carrera->id }}, true)"
+                                        wire:confirm="{{ __('¿Archivar :c? Dejará de aparecer en las listas y los selectores. Debe estar sin estudiantes activos ni coordinación vigente.', ['c' => $carrera->code]) }}">{{ __('Archivar') }}</x-ui.button>
+                                @endif
+                            </td>
+                        @endif
                     </tr>
                 @endforeach
             </x-ui.table>

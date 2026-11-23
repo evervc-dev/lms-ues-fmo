@@ -51,7 +51,7 @@ class ImportacionService
         $alcance = $this->alcance->exigir($actor, 'usuarios.importar');
         $columnas = $this->columnas($actor);
 
-        $carrera = DB::table('careers')
+        $carrera = DB::table('careers')->whereNull('careers.archived_at')
             ->when($alcance === 'C', fn ($q) => $q->whereIn('careers.id', $this->alcance->carreras($actor)))
             ->join('study_plans', 'study_plans.career_id', '=', 'careers.id')
             ->orderBy('careers.code')->orderByDesc('study_plans.name')
@@ -95,7 +95,7 @@ class ImportacionService
         $alcance = $this->alcance->exigir($actor, 'usuarios.importar');
         $controlTotal = $this->jerarquia->controlTotal($actor);
         $filas = $this->leer($ruta, $extension);
-        $carreras = DB::table('careers')->when($alcance === 'C', fn ($q) => $q->whereIn('id', $this->alcance->carreras($actor)))->pluck('id', 'code')->mapWithKeys(fn ($id, $c) => [mb_strtoupper($c) => (int) $id]);
+        $carreras = DB::table('careers')->whereNull('archived_at')->when($alcance === 'C', fn ($q) => $q->whereIn('id', $this->alcance->carreras($actor)))->pluck('id', 'code')->mapWithKeys(fn ($id, $c) => [mb_strtoupper($c) => (int) $id]);
         $existentes = DB::table('users')->pluck('institutional_email')->map(fn ($c) => mb_strtolower($c))->flip();
         $carnesExistentes = DB::table('student_profiles')->pluck('student_code')->map(fn ($c) => mb_strtolower($c))->flip();
         $vistos = [];

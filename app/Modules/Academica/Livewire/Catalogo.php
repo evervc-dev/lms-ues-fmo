@@ -35,6 +35,10 @@ class Catalogo extends Component
     #[Url(as: 'creditos', except: '')]
     public string $filtroCreditos = '';
 
+    /** Ver las asignaturas archivadas (ADR-092) en vez de las activas. */
+    #[Url(as: 'archivadas', except: false)]
+    public bool $archivadas = false;
+
     public function updating(string $propiedad): void
     {
         if (in_array($propiedad, ['buscar', 'departamento', 'carrera', 'filtroCreditos'], true)) {
@@ -85,9 +89,9 @@ class Catalogo extends Component
         }
 
         $mensaje = match (true) {
-            $activa => __('Asignatura reactivada. Las que dependen de ella se reactivan aparte.'),
-            $cascada !== [] => __('Asignatura desactivada junto con las que dependen de ella: :codigos. No se ofrecerán al crear grupos teóricos.', ['codigos' => implode(', ', $cascada)]),
-            default => __('Asignatura desactivada: no se ofrecerá al crear grupos teóricos.'),
+            $activa => __('Asignatura desarchivada. Las que dependen de ella se desarchivan aparte.'),
+            $cascada !== [] => __('Asignatura archivada junto con las que dependen de ella: :codigos. No se ofrecerán al crear grupos teóricos.', ['codigos' => implode(', ', $cascada)]),
+            default => __('Asignatura archivada: no se ofrecerá al crear grupos teóricos.'),
         };
         $this->dispatch('aviso', tipo: 'exito', mensaje: $mensaje);
     }
@@ -100,7 +104,7 @@ class Catalogo extends Component
             'departamento' => $this->departamento,
             'carrera' => $this->carrera,
             'creditos' => $this->filtroCreditos,
-        ]);
+            'archivadas' => $this->archivadas, ]);
 
         $ids = $asignaturas->pluck('id')->all();
 

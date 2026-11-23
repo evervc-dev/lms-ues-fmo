@@ -4,7 +4,7 @@ rf: "[[RF06]]"
 nombre: Gestión de períodos académicos
 prioridad: Alta
 nivel: feature
-casos: 11
+casos: 12
 estado: automatizado
 ---
 
@@ -27,5 +27,6 @@ Casos derivados de los criterios de aceptación de [[RF06]]. Nivel: **feature**.
 | CP-RF06-11 | **Dado** un período «Listo» sin grupos, **cuando** se activa, **entonces** se rechaza. | automatizado |
 | CP-RF06-12 | **Dado** el catálogo, **cuando** lo abre el Jefe, **entonces** ve la columna «Carreras» con las carreras de su departamento donde se lleva cada asignatura, sin la columna «Depto.»; el Administrador ve el departamento y todas las carreras; una asignatura sin plan muestra «—». | automatizado |
 | CP-RF06-13 | **Dado** el calendario de evaluaciones, **entonces** se ve por mes (de lunes a domingo) con cada fecha en su día, la navegación no sale de los meses del período y pulsar un día propone esa fecha al agregar. | automatizado |
+| CP-RF06-14 | **Dado** un período cerrado, **cuando** el Administrador lo archiva, **entonces** sale de la lista principal y de los selectores de informes, aparece en «Archivados» y se puede desarchivar; un período que no está cerrado no se archiva ([[ADR-092 Archivar períodos, departamentos, carreras y asignaturas]]). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF06-01 …')`.

@@ -6,7 +6,15 @@
         </x-slot:acciones>
     </x-ui.encabezado>
 
-    <x-ui.table ajustar :vacio="__('Aún no hay períodos.')">
+    {{-- En curso e históricos, y archivados aparte (ADR-092): solo se archiva un período cerrado. --}}
+    <div class="flex gap-1 rounded-lg bg-white p-1 text-sm ring-1 ring-borde sm:self-start" role="tablist">
+        @foreach ([0 => __('Períodos'), 1 => __('Archivados')] as $valor => $etiqueta)
+            <button type="button" role="tab" wire:click="$set('archivados', {{ $valor ? 'true' : 'false' }})" aria-selected="{{ $archivados === (bool) $valor ? 'true' : 'false' }}"
+                @class(['rounded-md px-3 py-1.5 font-medium', 'bg-marca-600 text-white' => $archivados === (bool) $valor, 'text-texto-suave hover:bg-zinc-100' => $archivados !== (bool) $valor])>{{ $etiqueta }}</button>
+        @endforeach
+    </div>
+
+    <x-ui.table ajustar :vacio="$archivados ? __('No hay períodos archivados.') : __('Aún no hay períodos.')">
         <x-slot:cabecera><th>{{ __('Período') }}</th><th>{{ __('Fechas') }}</th><th>{{ __('Estado') }}</th><th>{{ __('Etapa') }}</th><th class="text-right">{{ __('Grupos') }}</th><th class="text-right">{{ __('Matrículas') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
         @foreach ($periodos as $p)
             <tr wire:key="periodo-{{ $p->id }}">
@@ -23,7 +31,15 @@
                     <td class="text-right">{{ number_format($p->matriculas) }}</td>
                 @endif
                 {{-- P-01 (QA 27/10): la acción visible; antes solo el nombre llevaba al detalle. --}}
-                <td class="text-right"><x-ui.button tamano="sm" variante="secundario" :href="route('periodos.show', $p->id)">{{ $p->status === 'closed' ? __('Ver') : __('Gestionar') }}</x-ui.button></td>
+                <td class="whitespace-nowrap text-right">
+                    <x-ui.button tamano="sm" variante="secundario" :href="route('periodos.show', $p->id)">{{ $p->status === 'closed' ? __('Ver') : __('Gestionar') }}</x-ui.button>
+                    @if ($archivados)
+                        <x-ui.button tamano="sm" variante="fantasma" wire:click="archivar({{ $p->id }}, false)">{{ __('Desarchivar') }}</x-ui.button>
+                    @elseif ($p->status === 'closed')
+                        <x-ui.button tamano="sm" variante="fantasma" wire:click="archivar({{ $p->id }}, true)"
+                            wire:confirm="{{ __('¿Archivar el período :n? Saldrá de esta lista y de los informes; su historial se conserva.', ['n' => $p->name]) }}">{{ __('Archivar') }}</x-ui.button>
+                    @endif
+                </td>
             </tr>
         @endforeach
     </x-ui.table>

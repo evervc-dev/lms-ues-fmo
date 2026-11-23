@@ -83,11 +83,11 @@ class CalendarioPeriodoService
         $opciones = $alcance === 'G' ? [['valor' => 'global', 'etiqueta' => __('Todo el período')]] : [];
 
         if (in_array($alcance, ['G', 'D'], true)) {
-            foreach (DB::table('departments')->whereIn('id', $this->alcance->departamentos($usuario))->orderBy('name')->get(['id', 'name']) as $d) {
+            foreach (DB::table('departments')->whereNull('archived_at')->whereIn('id', $this->alcance->departamentos($usuario))->orderBy('name')->get(['id', 'name']) as $d) {
                 $opciones[] = ['valor' => 'departamento:'.$d->id, 'etiqueta' => __('Departamento: :n', ['n' => $d->name])];
             }
         }
-        foreach (DB::table('careers')->whereIn('id', $this->alcance->carreras($usuario))->orderBy('name')->get(['id', 'name']) as $c) {
+        foreach (DB::table('careers')->whereNull('archived_at')->whereIn('id', $this->alcance->carreras($usuario))->orderBy('name')->get(['id', 'name']) as $c) {
             $opciones[] = ['valor' => 'carrera:'.$c->id, 'etiqueta' => __('Carrera: :n', ['n' => $c->name])];
         }
 

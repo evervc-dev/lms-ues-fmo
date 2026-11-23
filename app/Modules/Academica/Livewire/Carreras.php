@@ -8,6 +8,7 @@ use App\Support\Alcance;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -25,6 +26,10 @@ class Carreras extends Component
     /** Departamento por el que filtra el Administrador; para los demás roles se ignora. */
     #[Url(as: 'departamento', except: null)]
     public ?int $departamento = null;
+
+    /** Ver las carreras archivadas (ADR-092); solo el Administrador. */
+    #[Url(as: 'archivadas', except: false)]
+    public bool $archivadas = false;
 
     public ?int $carreraDepartamento = null;
 
@@ -80,6 +85,19 @@ class Carreras extends Component
         $this->dispatch('aviso', tipo: 'exito', mensaje: __('Plan de estudios agregado.'));
     }
 
+    /**
+     * Archiva o desarchiva la carrera (ADR-092); si algo lo impide, el Service explica qué.
+     */
+    public function archivarCarrera(int $carrera, bool $archivar, CatalogoService $catalogo): void
+    {
+        try {
+            $catalogo->archivarCarrera(auth()->user(), $carrera, $archivar);
+            $this->dispatch('aviso', tipo: 'exito', mensaje: $archivar ? __('Carrera archivada.') : __('Carrera desarchivada.'));
+        } catch (ValidationException $e) {
+            $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
+        }
+    }
+
     public function render(CarreraService $carreras, Alcance $alcance): View
     {
         $departamento = $carreras->departamentoFiltrable(auth()->user(), $this->departamento);
@@ -87,10 +105,10 @@ class Carreras extends Component
         $gestiona = $alcance->de(auth()->user(), 'asignaturas.gestionar') === 'G';
 
         return $this->pagina('modules.academica.carreras', [
-            'carreras' => $carreras->listar(auth()->user(), $departamento === null ? null : (int) $departamento->id),
+            'carreras' => $carreras->listar(auth()->user(), $departamento === null ? null : (int) $departamento->id, $this->archivadas && $gestiona),
             'departamentoElegido' => $departamento,
             'gestiona' => $gestiona,
-            'departamentos' => $gestiona ? DB::table('departments')->orderBy('code')->get(['id', 'code', 'name']) : collect(),
+            'departamentos' => $gestiona ? DB::table('departments')->whereNull('archived_at')->orderBy('code')->get(['id', 'code', 'name']) : collect(),
             'carreraDelPlan' => $this->planCarrera === null ? null : DB::table('careers')->where('id', $this->planCarrera)->value('code'),
         ], intermedias: $departamento === null ? [] : [['etiqueta' => __('Departamentos'), 'url' => route('departamentos')]],
             miga: $departamento === null ? null : __('Carreras de :d', ['d' => $departamento->code]));

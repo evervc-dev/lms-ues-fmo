@@ -8,6 +8,7 @@ use App\Modules\Academica\Services\CatalogoService;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
@@ -21,10 +22,14 @@ class Departamentos extends Component
     use GestionaDepartamentos;
     use PaginaLivewire;
 
+    /** Ver los archivados (ADR-092) en vez de los activos. */
+    #[Url(as: 'archivados', except: false)]
+    public bool $archivados = false;
+
     public function render(CarreraService $carreras, CatalogoService $catalogo): View
     {
         return $this->pagina('modules.academica.departamentos', [
-            'departamentos' => $carreras->departamentos(auth()->user()),
+            'departamentos' => $carreras->departamentos(auth()->user(), $this->archivados),
             'gestiona' => $catalogo->gestionaEstructura(auth()->user()),
         ]);
     }

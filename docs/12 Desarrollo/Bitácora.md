@@ -18,13 +18,13 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
-### 2026-11-22 · RF38 · Lección con verificación de lectura (no suma a la nota)
-- **Autor:** IA (Claude Code), a pedido del equipo, sobre el trabajo de la lección que estaba en curso en otra sesión
+### 2026-11-22 · RF06, RF07 · Archivar períodos, departamentos, carreras y asignaturas
+- **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** la lección (RF38): un material (archivo o página) con su cuestionario en la misma página. El estudiante debe cumplir el tiempo mínimo de lectura y, si se exige, llegar al final (PDF.js); luego pulsa «Ya lo leí» y se habilita el cuestionario en modo examen. El cuestionario de la lección es una **verificación de lectura que no suma a la nota**: no pide cómputo ni peso, no crea ítem de calificación (`quiz_settings.is_reading_check`), no admite ensayos y el estudiante ve su resultado como retroalimentación.
-- **CP cubiertos:** CP-RF38-01 a CP-RF38-08.
-- **Decisiones:** [[ADR-091 Lección con cuestionario y lectura comprobada]] (pendiente; se numeró ADR-089 en la rama de la lección y se renumeró porque ese número ya estaba usado).
-- **Pendiente:** aceptar la ADR-091.
+- **Hecho:** períodos cerrados, departamentos y carreras se archivan (`archived_at`); las asignaturas usan su `is_active`, que en pantalla pasa de «Desactivar» a «Archivar». Lo archivado sale de las listas y los selectores y los Services rechazan usarlo; Períodos, Departamentos, Carreras y Catálogo tienen la vista «Archivados» con «Desarchivar». Archivar algo en uso se rechaza nombrando qué lo impide. Solo el Administrador, salvo las asignaturas, que también archiva el Jefe de su departamento.
+- **CP cubiertos:** CP-RF06-14, CP-RF07-02 (cambia), CP-RF07-28 a CP-RF07-30.
+- **Decisiones:** [[ADR-092 Archivar períodos, departamentos, carreras y asignaturas]] (pendiente).
+- **Pendiente:** aceptar la ADR-092.
 
 ### 2026-11-22 · RF21 · Editar y cancelar una clase virtual
 - **Autor:** IA (Claude Code), a pedido del equipo

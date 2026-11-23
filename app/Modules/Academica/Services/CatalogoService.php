@@ -28,7 +28,9 @@ class CatalogoService
      * Filtra por nombre o código, por carrera (las asignaturas de alguno de sus planes de estudio), departamento y por créditos.
      * Con alcance D solo salen las del departamento del Jefe, aunque se pida otra carrera.
      *
-     * @param  array{buscar?: string, departamento?: int|string|null, carrera?: int|string|null, creditos?: int|string|null}  $filtros
+     * Las archivadas (`is_active` falso, ADR-092) salen solo con `archivadas`.
+     *
+     * @param  array{buscar?: string, departamento?: int|string|null, carrera?: int|string|null, creditos?: int|string|null, archivadas?: bool}  $filtros
      */
     public function asignaturas(User $actor, array $filtros): LengthAwarePaginator
     {
@@ -48,6 +50,7 @@ class CatalogoService
             ->when($filtros['carrera'] ?? null, fn ($q, $c) => $q->whereIn('subjects.id', DB::table('career_subjects')
                 ->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')->where('study_plans.career_id', (int) $c)->select('career_subjects.subject_id')))
             ->when($filtros['creditos'] ?? null, fn ($q, $c) => $q->where('subjects.credits', (int) $c))
+            ->where('subjects.is_active', ! ($filtros['archivadas'] ?? false))
             ->orderBy('departments.code')
             ->orderBy('subjects.code')
             ->paginate(25);
@@ -123,6 +126,9 @@ class CatalogoService
     public function guardarAsignatura(User $actor, ?int $id, array $datos): int
     {
         $this->exigirAsignatura($actor, $id, (int) $datos['departamento']);
+        if (DB::table('departments')->where('id', (int) $datos['departamento'])->whereNotNull('archived_at')->exists()) {
+            throw ValidationException::withMessages(['departamento' => __('El departamento está archivado: elija otro o desarchívelo primero.')]);
+        }
         $codigo = mb_strtoupper(trim($datos['codigo']));
 
         if (DB::table('subjects')->whereRaw('upper(code) = ?', [$codigo])->when($id, fn ($q) => $q->where('id', '!=', $id))->exists()) {
@@ -201,7 +207,7 @@ class CatalogoService
             __('bancos de preguntas') => DB::table('question_banks')->where('subject_id', $id)->exists(),
         ]));
         if ($usos !== []) {
-            throw ValidationException::withMessages(['asignatura' => __('No se puede eliminar: tiene :usos. Desactívela para que no se programe en nuevos períodos.', ['usos' => implode(', ', $usos)])]);
+            throw ValidationException::withMessages(['asignatura' => __('No se puede eliminar: tiene :usos. Archívela para que no se programe en nuevos períodos.', ['usos' => implode(', ', $usos)])]);
         }
 
         DbContext::run(function () use ($id): void {
@@ -224,6 +230,11 @@ class CatalogoService
     public function cambiarEstadoAsignatura(User $actor, int $id, bool $activa): array
     {
         $this->exigirAsignatura($actor, $id);
+        // ADR-092: no se archiva una asignatura con grupos en un período que no está cerrado.
+        if (! $activa && DB::table('sections')->join('academic_periods as p', 'p.id', '=', 'sections.period_id')
+            ->where('sections.subject_id', $id)->where('p.status', '!=', 'closed')->exists()) {
+            throw ValidationException::withMessages(['asignatura' => __('No se puede archivar: tiene grupos teóricos en un período que no está cerrado.')]);
+        }
         $dependientes = $activa ? collect() : $this->dependientesActivas([$id])[$id];
 
         if ($dependientes->isNotEmpty() && $this->alcance->exigir($actor, 'asignaturas.gestionar') !== 'G') {
@@ -407,7 +418,7 @@ class CatalogoService
     public function crearCarrera(User $actor, int $departamentoId, string $codigo, string $nombre, string $plan): int
     {
         $this->exigirGlobal($actor);
-        DB::table('departments')->where('id', $departamentoId)->exists()
+        DB::table('departments')->where('id', $departamentoId)->whereNull('archived_at')->exists()
             || throw ValidationException::withMessages(['carreraDepartamento' => __('Elija un departamento válido.')]);
         $codigo = mb_strtoupper(trim($codigo));
         if (DB::table('careers')->whereRaw('upper(code) = ?', [$codigo])->exists()) {
@@ -433,13 +444,68 @@ class CatalogoService
     public function agregarPlan(User $actor, int $carreraId, string $plan): void
     {
         $this->exigirGlobal($actor);
-        DB::table('careers')->where('id', $carreraId)->exists() || abort(404);
+        $carrera = DB::table('careers')->where('id', $carreraId)->first(['archived_at']) ?? abort(404);
+        if ($carrera->archived_at !== null) {
+            throw ValidationException::withMessages(['planNombre' => __('La carrera está archivada: desarchívela antes de agregarle un plan.')]);
+        }
         $plan = trim($plan);
         if (DB::table('study_plans')->where('career_id', $carreraId)->whereRaw('lower(name) = ?', [mb_strtolower($plan)])->exists()) {
             throw ValidationException::withMessages(['planNombre' => __('La carrera ya tiene un plan con ese nombre.')]);
         }
 
         DbContext::run(fn () => DB::table('study_plans')->insert(['career_id' => $carreraId, 'name' => $plan, 'created_at' => now(), 'updated_at' => now()]), 'study_plan.created');
+    }
+
+    /**
+     * Archiva o desarchiva un departamento (ADR-092). Solo el Administrador. No se archiva mientras tenga carreras sin
+     * archivar, asignaturas activas o una jefatura vigente: primero se archiva o se cierra lo que contiene.
+     *
+     * @throws ValidationException
+     */
+    public function archivarDepartamento(User $actor, int $id, bool $archivar): void
+    {
+        $this->exigirGlobal($actor);
+        DB::table('departments')->where('id', $id)->exists() || abort(404);
+        if ($archivar) {
+            $usos = array_keys(array_filter([
+                __('carreras sin archivar') => DB::table('careers')->where('department_id', $id)->whereNull('archived_at')->exists(),
+                __('asignaturas activas') => DB::table('subjects')->where('department_id', $id)->where('is_active', true)->exists(),
+                __('una jefatura vigente') => DB::table('department_heads')->where('department_id', $id)->whereNull('valid_to')->exists(),
+            ]));
+            if ($usos !== []) {
+                throw ValidationException::withMessages(['departamento' => __('No se puede archivar el departamento: tiene :usos.', ['usos' => implode(', ', $usos)])]);
+            }
+        }
+
+        DbContext::run(fn () => DB::table('departments')->where('id', $id)->update(['archived_at' => $archivar ? now() : null, 'updated_at' => now()]),
+            $archivar ? 'department.archived' : 'department.unarchived');
+    }
+
+    /**
+     * Archiva o desarchiva una carrera (ADR-092). Solo el Administrador. No se archiva con estudiantes activos ni con
+     * coordinación vigente; no se desarchiva mientras su departamento siga archivado.
+     *
+     * @throws ValidationException
+     */
+    public function archivarCarrera(User $actor, int $id, bool $archivar): void
+    {
+        $this->exigirGlobal($actor);
+        $carrera = DB::table('careers as c')->join('departments as d', 'd.id', '=', 'c.department_id')->where('c.id', $id)
+            ->first(['c.id', 'd.archived_at as departamentoArchivado']) ?? abort(404);
+        if ($archivar) {
+            $usos = array_keys(array_filter([
+                __('estudiantes activos') => DB::table('student_careers')->where('career_id', $id)->where('status', 'active')->exists(),
+                __('una coordinación vigente') => DB::table('career_coordinators')->where('career_id', $id)->whereNull('valid_to')->exists(),
+            ]));
+            if ($usos !== []) {
+                throw ValidationException::withMessages(['carrera' => __('No se puede archivar la carrera: tiene :usos.', ['usos' => implode(', ', $usos)])]);
+            }
+        } elseif ($carrera->departamentoArchivado !== null) {
+            throw ValidationException::withMessages(['carrera' => __('Su departamento está archivado: desarchívelo primero.')]);
+        }
+
+        DbContext::run(fn () => DB::table('careers')->where('id', $id)->update(['archived_at' => $archivar ? now() : null, 'updated_at' => now()]),
+            $archivar ? 'career.archived' : 'career.unarchived');
     }
 
     /**
@@ -486,7 +552,7 @@ class CatalogoService
     public function carrerasConPlanes(User $actor): Collection
     {
         $alcance = $this->alcance->exigir($actor, 'asignaturas.gestionar');
-        $carreras = DB::table('careers')->when($alcance !== 'G', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
+        $carreras = DB::table('careers')->whereNull('archived_at')->when($alcance !== 'G', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
             ->orderBy('code')->get(['id', 'code', 'name', 'department_id']);
         $planes = DB::table('study_plans')->whereIn('career_id', $carreras->pluck('id'))->orderBy('name')->get(['id', 'career_id', 'name'])->groupBy('career_id');
 
@@ -537,6 +603,12 @@ class CatalogoService
         if ($alCrear && $porPlan === []) {
             throw ValidationException::withMessages(['planes' => __('Elija al menos una carrera y su plan de estudios.')]);
         }
+        // Lo archivado no admite cambios (ADR-092): no se agregan asignaturas a planes de carreras archivadas.
+        $archivada = DB::table('study_plans as p')->join('careers as c', 'c.id', '=', 'p.career_id')->whereIn('p.id', array_keys($porPlan))
+            ->whereNotNull('c.archived_at')->value('c.name');
+        if ($archivada !== null) {
+            throw ValidationException::withMessages(['planes' => __('La carrera :carrera está archivada: no admite asignaturas nuevas.', ['carrera' => $archivada])]);
+        }
         // Una asignatura está en un solo plan de cada carrera (ADR-089): la del Plan 98 no sale en el Plan 25. Se puede
         // compartir entre carreras distintas (ADR-080), pero no entre dos planes de la misma.
         $repetida = DB::table('study_plans as p')->join('careers as c', 'c.id', '=', 'p.career_id')->whereIn('p.id', array_keys($porPlan))
@@ -586,7 +658,7 @@ class CatalogoService
     {
         $alcance = $this->alcance->exigir($actor, 'asignaturas.gestionar');
 
-        return DB::table('departments')->when($alcance !== 'G', fn ($q) => $q->whereIn('id', $this->alcance->departamentos($actor)))
+        return DB::table('departments')->whereNull('archived_at')->when($alcance !== 'G', fn ($q) => $q->whereIn('id', $this->alcance->departamentos($actor)))
             ->orderBy('code')->get(['id', 'code', 'name']);
     }
 

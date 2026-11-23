@@ -43,6 +43,7 @@ Las restricciones y la auditoría viven en PostgreSQL; las operaciones de varios
 | `2026_11_18_000300_add_career_id_to_sections` | `sections.career_id` (nullable): la carrera que solicitó el grupo teórico; desde [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]] es solo un dato, el grupo lo comparten las carreras que llevan la materia. FK solo en PostgreSQL ([[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]]) |
 | `2026_11_21_170000_add_exit_mark_to_attendance` | `attendance_sessions.exit_opened_at` y `attendance_records.exit_recorded_at` (nullable): la marca de salida en clase presencial ([[ADR-079 Marca de entrada y salida en clase presencial]]) |
 | `2026_11_17_230458_drop_question_difficulty` | Se van `questions.difficulty` y `quiz_question_rules.difficulty`; el índice de `questions` pasa a (bank_id, topic) y el CHECK de `quantity` admite 0 = todas ([[ADR-071 Las preguntas del banco no llevan dificultad]]) |
+| `2026_11_22_211938_add_archived_at_to_periods_departments_careers` | `academic_periods.archived_at`, `departments.archived_at` y `careers.archived_at` (nullable): archivar sin borrar; en PostgreSQL, CHECK de que solo se archiva un período cerrado ([[ADR-092 Archivar períodos, departamentos, carreras y asignaturas]]) |
 
 > [!note] Ajustes al implementar
 > - **`notifications`** es **compatible con el canal `database` de Laravel**: `uuid` como id, `notifiable` polimórfico, `data` y `read_at`. Se le agregan `event_code` y `dedup_key`, con un único parcial (`notifiable_type`, `notifiable_id`, `dedup_key`). `notification_deliveries.notification_id` es uuid.
@@ -192,12 +193,14 @@ erDiagram
     bigint id PK
     varchar code UK
     varchar name
+    timestamptz archived_at "ADR-092: archivado"
   }
   careers {
     bigint id PK
     bigint department_id FK
     varchar code UK
     varchar name
+    timestamptz archived_at "ADR-092: archivada"
   }
   study_plans {
     bigint id PK
@@ -235,6 +238,7 @@ erDiagram
     varchar status "planned, active, closed"
     varchar preparation_stage "planning, schedule_definition, teacher_assignment, ready"
     smallint group_change_weeks "default 3"
+    timestamptz archived_at "ADR-092: solo si closed"
   }
   period_calendar_events {
     bigint id PK
@@ -424,7 +428,7 @@ erDiagram
     bigint id PK
     bigint resource_id FK
     bigint enrollment_id FK
-    varchar event_type "open, download, end (RF38)"
+    varchar event_type "open, download"
     int duration_seconds "visible tab time"
     timestamptz occurred_at "monthly partitions"
   }
@@ -477,8 +481,6 @@ erDiagram
     smallint autosave_seconds "30"
     varchar navigation "free, linear"
     boolean review_published
-    bigint required_resource_id FK "RF38: lectura exigida (ADR-091)"
-    boolean is_reading_check "RF38: verificación de lectura, sin ítem de calificación (ADR-091)"
   }
   teams {
     bigint id PK
