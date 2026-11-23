@@ -1,7 +1,7 @@
 {{-- Crear o editar tarea (RF15, maqueta 19). --}}
 <div class="flex flex-col gap-5">
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
-    <form wire:submit="guardar" class="flex flex-col gap-5 [&_input]:scroll-mb-24 [&_select]:scroll-mb-24 [&_textarea]:scroll-mb-24">
+    <form wire:submit="guardar" class="flex flex-col gap-5">
         @if ($entregasCount > 0)
             <x-ui.alert tipo="aviso" :titulo="__('Tarea con entregas registradas')">
                 {{ trans_choice('{1} Ya hay 1 entrega de estudiante registrada.|[2,*] Ya hay :count entregas de estudiantes registradas.', $entregasCount) }}
