@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Academica\Livewire\Carreras;
+use App\Modules\Academica\Livewire\Departamentos;
 use App\Modules\Academica\Services\CarreraService;
 use App\Support\DbContext;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -66,4 +67,33 @@ it('CP-RF07-22 el Jefe y el Coordinador no entran a Departamentos y el filtro no
     Livewire::withQueryParams(['departamento' => $e['dcnm']])->test(Carreras::class)
         ->assertSee('Ingeniería de Sistemas Informáticos')
         ->assertDontSee('Licenciatura en Matemática');
+});
+
+it('CP-RF07-22 el Administrador crea, edita y elimina departamentos desde Departamentos', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+
+    $pantalla = Livewire::test(Departamentos::class)
+        ->assertSee(__('Nuevo departamento'))
+        ->call('nuevoDepartamento')
+        ->set('departamentoCodigo', 'dce')
+        ->set('departamentoNombre', 'Departamento de Ciencias Económicas')
+        ->call('guardarDepartamento')
+        ->assertHasNoErrors()
+        ->assertSee('Departamento de Ciencias Económicas');
+    $id = (int) DB::table('departments')->where('code', 'DCE')->value('id');
+    expect($id)->toBeGreaterThan(0);
+
+    $pantalla->call('editarDepartamento', $id)
+        ->assertSet('departamentoCodigo', 'DCE')
+        ->set('departamentoNombre', 'Departamento de Economía')
+        ->call('guardarDepartamento')
+        ->assertHasNoErrors();
+    expect(DB::table('departments')->where('id', $id)->value('name'))->toBe('Departamento de Economía');
+
+    $pantalla->call('nuevoDepartamento')->set('departamentoCodigo', 'DIA')->set('departamentoNombre', 'Otro')
+        ->call('guardarDepartamento')->assertHasErrors('departamentoCodigo');
+
+    $pantalla->call('eliminarDepartamento', $id);
+    expect(DB::table('departments')->where('id', $id)->exists())->toBeFalse();
 });

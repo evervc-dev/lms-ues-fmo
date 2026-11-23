@@ -18,13 +18,13 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
-### 2026-11-22 · RF21 · Editar y cancelar una clase virtual
+### 2026-11-22 · RF07 · Crear departamentos desde Departamentos
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
-- **Hecho:** una clase virtual programada no se podía corregir ni cancelar (reporte del rol Docente en staging). Ahora cada clase tiene «Editar», que abre el mismo modal de programar con sus datos: programada cambia todo; en curso, tema, enlace y alargar la duración; finalizada o con reporte, solo el tema. «Cancelar clase» borra una clase programada sin reporte. El evento de Google Calendar se actualiza (`ActualizarEventoDeClase`, `CalendarGateway::actualizarClase`) o se borra en la cola `google`. La tabla sugiere «Agregar enlace» a la clase sin Meet y la hora a la que subir el reporte de la que está en curso. Se agrega al set el ícono `pencil-square`, que salía como «?» en este y otros 4 botones.
-- **CP cubiertos:** CP-RF21-10, CP-RF21-11.
-- **Decisiones:** [[ADR-090 Editar y cancelar una clase virtual]] (pendiente).
-- **Pendiente:** aceptar la ADR-090.
+- **Hecho:** el Administrador no encontraba cómo crear un departamento: solo se podía en Catálogo › Estructura. Ahora la pantalla Departamentos tiene «Nuevo departamento» y, en cada fila, «Editar» (y «Eliminar» cuando no tiene carreras, materias ni jefe). La lógica sigue en `CatalogoService` (asignaturas.gestionar G); las acciones pasan al trait `GestionaDepartamentos` y el modal a un parcial, compartidos con Estructura.
+- **CP cubiertos:** CP-RF07-22 (ampliado).
+- **Decisiones:** —
+- **Pendiente:** —
 
 ### 2026-11-22 · RF15 · Prórrogas a varios estudiantes, con buscador por nombre o carné
 - **Autor:** IA (Claude Code), a pedido del equipo
