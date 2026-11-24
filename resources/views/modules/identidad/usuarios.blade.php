@@ -100,18 +100,21 @@
 
         <x-ui.table ajustar class="hidden md:block" :vacio="__('No hay usuarios con esos filtros.')">
             <x-slot:cabecera>
-                <th>{{ __('Usuario') }}</th><th>{{ __('Roles') }}</th><th>{{ __('Estado') }}</th><th>{{ __('Último acceso') }}</th><th class="text-right">{{ __('Acciones') }}</th>
+                <th>{{ __('Usuario') }}</th><th>{{ __('Roles') }}</th><th>{{ __('Estado') }}</th><th class="hidden xl:table-cell">{{ __('Último acceso') }}</th><th class="text-right">{{ __('Acciones') }}</th>
             </x-slot:cabecera>
             @foreach ($this->usuarios as $usuario)
                 <tr wire:key="usuario-{{ $usuario->id }}">
                     <td>
                         {{-- QA sesión 4: un nombre sin espacios (p. ej. 80 «m» seguidas) estiraba la columna y dejaba
                              «Desactivar» fuera de la vista; ahora el nombre se parte y la columna tiene tope. --}}
-                        <div class="flex max-w-xs items-center gap-3">
+                        {{-- Con overflow-wrap:anywhere la tabla encogía la columna hasta una sílaba por línea («Admini /
+                             strador», QA Administrador 23/11). Ahora tiene un ancho mínimo, el nombre solo se parte si una
+                             palabra no cabe y el correo se recorta con su texto completo al pasar el puntero. --}}
+                        <div class="flex w-64 max-w-xs items-center gap-3 xl:w-72">
                             <x-ui.avatar :iniciales="$usuario->iniciales()" :foto="$usuario->avatar_url" tamano="sm" />
-                            <div class="min-w-0 [overflow-wrap:anywhere]">
-                                <a href="{{ route('usuarios.show', $usuario->id) }}" wire:navigate class="font-medium text-texto hover:text-marca-700 hover:underline">{{ $usuario->fullName() }}</a>
-                                <p class="text-xs text-texto-suave">{{ $usuario->institutional_email }}</p>
+                            <div class="min-w-0 flex-1">
+                                <a href="{{ route('usuarios.show', $usuario->id) }}" wire:navigate class="block break-words font-medium text-texto hover:text-marca-700 hover:underline">{{ $usuario->fullName() }}</a>
+                                <p class="truncate text-xs text-texto-suave" title="{{ $usuario->institutional_email }}">{{ $usuario->institutional_email }}</p>
                             </div>
                         </div>
                     </td>
@@ -125,7 +128,7 @@
                     <td>
                         <x-ui.badge :color="$usuario->is_active ? 'verde' : 'gris'">{{ $usuario->is_active ? __('Activo') : __('Inactivo') }}</x-ui.badge>
                     </td>
-                    <td class="text-texto-suave">{{ $usuario->last_login_at?->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? __('Nunca') }}</td>
+                    <td class="hidden whitespace-nowrap text-texto-suave xl:table-cell">{{ $usuario->last_login_at?->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? __('Nunca') }}</td>
                     <td class="text-right whitespace-nowrap">
                         @if (in_array($usuario->id, $rolesEditables, true))
                             <x-ui.button tamano="sm" variante="fantasma" :href="route('usuarios.roles', ['usuario' => $usuario->id])">{{ __('Roles') }}</x-ui.button>

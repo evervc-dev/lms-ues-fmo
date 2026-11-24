@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-23 · RF22, RF04 · La clase abierta no cuenta en el porcentaje; tabla de Usuarios legible
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** con marca de salida (ADR-079), el estudiante que marcaba solo la entrada veía 100 % mientras la clase seguía abierta. Ahora el porcentaje solo cuenta sesiones cerradas; en su historial la clase abierta dice «Clase en curso» y, con la salida abierta, «Entrada registrada: 1 de 2». En /usuarios, la columna del usuario tenía un ancho mínimo de una sílaba y partía los nombres; ahora tiene ancho fijo, el correo se recorta y «Último acceso» se muestra desde pantallas anchas.
+- **CP cubiertos:** CP-RF22-07.
+- **Decisiones:** una sesión abierta no entra al porcentaje hasta cerrarse.
+- **Pendiente:** —
+
 ### 2026-11-22 · RF06, RF07 · Archivar períodos, departamentos, carreras y asignaturas
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
@@ -25,6 +33,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **CP cubiertos:** CP-RF06-14, CP-RF07-02 (cambia), CP-RF07-28 a CP-RF07-30.
 - **Decisiones:** [[ADR-092 Archivar períodos, departamentos, carreras y asignaturas]] (pendiente).
 - **Pendiente:** aceptar la ADR-092.
+
+### 2026-11-22 · RF38 · Lección con verificación de lectura (no suma a la nota)
+- **Autor:** IA (Claude Code), a pedido del equipo, sobre el trabajo de la lección que estaba en curso en otra sesión
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** la lección (RF38): un material (archivo o página) con su cuestionario en la misma página. El estudiante debe cumplir el tiempo mínimo de lectura y, si se exige, llegar al final (PDF.js); luego pulsa «Ya lo leí» y se habilita el cuestionario en modo examen. El cuestionario de la lección es una **verificación de lectura que no suma a la nota**: no pide cómputo ni peso, no crea ítem de calificación (`quiz_settings.is_reading_check`), no admite ensayos y el estudiante ve su resultado como retroalimentación.
+- **CP cubiertos:** CP-RF38-01 a CP-RF38-08.
+- **Decisiones:** [[ADR-091 Lección con cuestionario y lectura comprobada]] (pendiente; se numeró ADR-089 en la rama de la lección y se renumeró porque ese número ya estaba usado).
+- **Pendiente:** aceptar la ADR-091.
 
 ### 2026-11-22 · RF21 · Editar y cancelar una clase virtual
 - **Autor:** IA (Claude Code), a pedido del equipo

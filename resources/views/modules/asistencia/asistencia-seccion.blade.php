@@ -18,7 +18,21 @@
                     <tr wire:key="reg-{{ $r->id }}">
                         <td>{{ \Illuminate\Support\Carbon::parse($r->session_date)->format('d/m/Y') }}</td>
                         <td>{{ $r->modality === 'virtual' ? __('Virtual') : __('Presencial') }}</td>
-                        <td><x-ui.badge :color="$colores[$r->status]">{{ __($estados[$r->status]) }}</x-ui.badge></td>
+                        <td>
+                            @if ($r->sesion === 'open')
+                                {{-- Clase abierta: no cuenta hasta cerrarse. Con marca de salida se ve cuántas marcas lleva (ADR-079). --}}
+                                <x-ui.badge color="azul">{{ __('Clase en curso') }}</x-ui.badge>
+                                <p class="mt-1 text-xs text-texto-suave">
+                                    @if ($r->exit_opened_at)
+                                        {{ $r->exit_recorded_at ? __('Entrada y salida: 2 de 2') : __('Entrada registrada: 1 de 2. Marque la salida.') }}
+                                    @else
+                                        {{ __('Entrada registrada. Cuenta al cerrar la clase.') }}
+                                    @endif
+                                </p>
+                            @else
+                                <x-ui.badge :color="$colores[$r->status]">{{ __($estados[$r->status]) }}</x-ui.badge>
+                            @endif
+                        </td>
                         <td>{{ __($metodos[$r->method] ?? $r->method) }}</td>
                         <td class="text-right">
                             @if ($r->status === 'absent' && ! $r->justificacion)<x-ui.button tamano="sm" variante="fantasma" wire:click="pedirJustificacion({{ $r->id }})">{{ __('Justificar') }}</x-ui.button>

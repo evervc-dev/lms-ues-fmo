@@ -14,7 +14,7 @@
                     </div>
                     <x-ui.progress :valor="$m->porcentaje ?? 0" :mostrar="false" :tono="['bien' => 'exito', 'aviso' => 'aviso', 'riesgo' => 'aviso', 'critico' => 'error', 'sin_datos' => 'marca'][$m->nivel]" />
                     <div class="flex items-center justify-between text-xs text-texto-suave">
-                        <span>{{ trans_choice('{1} 1 clase|[0,*] :count clases', $m->clases) }} · {{ trans_choice('{1} 1 falta|[0,*] :count faltas', $m->faltas) }}</span>
+                        <span>{{ trans_choice('{1} 1 clase|[0,*] :count clases', $m->clases) }} · {{ trans_choice('{1} 1 falta|[0,*] :count faltas', $m->faltas) }}@if ($m->en_curso) · {{ __('clase de hoy en curso') }}@endif</span>
                         <x-ui.badge :color="$niveles[$m->nivel][1]">{{ $niveles[$m->nivel][2] }}</x-ui.badge>
                     </div>
                 </a>

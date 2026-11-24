@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Modules\Asistencia\Jobs\PurgarTokensQr;
+use App\Modules\Asistencia\Livewire\AsistenciaSeccion;
 use App\Modules\Asistencia\Livewire\DiagnosticoAsistencia;
 use App\Modules\Asistencia\Livewire\EscanearQr;
 use App\Modules\Asistencia\Livewire\ProyectarQr;
@@ -990,4 +991,22 @@ it('CP-RF20-19 la pantalla de la sesión ofrece abrir la salida y la proyección
 
     expect(DB::table('attendance_sessions')->where('ulid', $e['sesion'])->value('qr_validity_minutes'))->toBe(8);
     Livewire::test(ProyectarQr::class, ['seccion' => $e['ulid'], 'sesion' => $e['sesion']])->assertSee('Marca de salida')->assertSee('Salidas');
+});
+
+it('CP-RF22-07 con la clase abierta la marca de entrada no da porcentaje; con salida pendiente se ve 1 de 2 y al cerrar sin salida queda tarde', function () {
+    $e = escenarioQr();
+    escanear($e, qrProyectado($e));
+    $asistencia = app(AsistenciaService::class);
+
+    $materia = $asistencia->miAsistencia($e['estudiante'])->firstWhere('seccion_id', $e['seccion']);
+    expect($materia->porcentaje)->toBeNull()->and((int) $materia->en_curso)->toBe(1)
+        ->and($asistencia->historial($e['estudiante'], $e['seccion'])['porcentaje'])->toBeNull();
+
+    $this->travel(90)->minutes();
+    abrirSalida($e);
+    actingAs($e['estudiante']);
+    Livewire::test(AsistenciaSeccion::class, ['seccion' => $e['ulid']])->assertSee('Entrada registrada: 1 de 2. Marque la salida.');
+
+    cerrarSesionQr($e);
+    expect((float) $asistencia->miAsistencia($e['estudiante'])->firstWhere('seccion_id', $e['seccion'])->porcentaje)->toBe(50.0);
 });

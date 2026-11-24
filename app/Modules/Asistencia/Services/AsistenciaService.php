@@ -86,13 +86,16 @@ class AsistenciaService
     }
 
     /**
-     * Condición SQL: el registro cuenta para el porcentaje porque su sesión no cae en un día cancelado (RF32), sea
+     * Condición SQL: el registro cuenta para el porcentaje porque su sesión ya se cerró y no cae en un día cancelado (RF32), sea
      * por una cancelación aprobada de la sección, de una carrera del grupo o de toda la facultad. Las carreras del grupo
      * son todas las que llevan su materia en el plan: la cancelación de una carrera alcanza al grupo entero (ADR-080).
+     * Una sesión abierta no cuenta todavía: con marca de salida (ADR-079) la entrada sola dejaba el 100 % antes de
+     * cerrar la clase, cuando al final podía quedar Tarde (QA Estudiante 23/11).
      */
     public static function cuentaSql(string $tabla = 'r'): string
     {
-        return 'not exists (select 1 from attendance_sessions cs join class_cancellations cc on cc.date = cs.session_date'
+        return "exists (select 1 from attendance_sessions so where so.id = {$tabla}.session_id and so.status = 'closed') and "
+            .'not exists (select 1 from attendance_sessions cs join class_cancellations cc on cc.date = cs.session_date'
             ." where cs.id = {$tabla}.session_id and cc.status = 'approved' and cc.kind = 'cancellation'"
             ." and (cc.scope = 'faculty' or (cc.scope = 'section' and cc.section_id = {$tabla}.section_id)"
             ." or (cc.scope = 'career' and cc.career_id in (select sp.career_id from sections sx join career_subjects csx on csx.subject_id = sx.subject_id"
@@ -128,7 +131,8 @@ class AsistenciaService
         $registros = DB::table('attendance_records as r')->join('attendance_sessions as s', 's.id', '=', 'r.session_id')
             ->leftJoin('attendance_justifications as j', 'j.record_id', '=', 'r.id')
             ->where('r.enrollment_id', $matricula)->orderByDesc('s.session_date')
-            ->get(['r.id', 'r.status', 'r.method', 'r.recorded_at', 's.session_date', 's.modality', 'j.status as justificacion', DB::raw(self::cuentaSql().' as cuenta')]);
+            ->get(['r.id', 'r.status', 'r.method', 'r.recorded_at', 'r.exit_recorded_at', 's.session_date', 's.modality', 's.status as sesion', 's.exit_opened_at',
+                'j.status as justificacion', DB::raw(self::cuentaSql().' as cuenta')]);
 
         return [
             'registros' => $registros,
@@ -156,7 +160,9 @@ class AsistenciaService
             ->get(['e.id', 'sections.id as seccion_id', 'sections.ulid', 'sections.code as grupo', 'subjects.code', 'subjects.name',
                 DB::raw('(select '.self::porcentajeSql().' from attendance_records r where r.enrollment_id = e.id) as porcentaje'),
                 DB::raw('(select count(*) from attendance_records r where r.enrollment_id = e.id and '.self::cuentaSql().') as clases'),
-                DB::raw("(select count(*) from attendance_records r where r.enrollment_id = e.id and r.status = 'absent' and ".self::cuentaSql().') as faltas')])
+                DB::raw("(select count(*) from attendance_records r where r.enrollment_id = e.id and r.status = 'absent' and ".self::cuentaSql().') as faltas'),
+                // La clase de hoy, mientras sigue abierta: aún no entra al porcentaje.
+                DB::raw("(select count(*) from attendance_records r join attendance_sessions s on s.id = r.session_id where r.enrollment_id = e.id and s.status = 'open') as en_curso")])
             ->each(fn ($m) => $m->nivel = $m->porcentaje === null ? 'sin_datos' : match (true) {
                 // Los umbrales son los de system_settings (RF22), no valores fijos.
                 $m->porcentaje < $umbrales['attendance_75'] => 'critico',
