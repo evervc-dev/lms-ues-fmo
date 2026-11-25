@@ -17,7 +17,7 @@
         </ul>
     </x-ui.card>
 
-    @unless ($hilo->is_closed)
+    @if ($participa && ! $hilo->is_closed)
         <x-ui.card :titulo="$respondiendoA ? __('Responder al mensaje') : __('Responder al hilo')">
             <form wire:submit="responder" class="flex flex-col gap-3">
                 <x-ui.textarea wire:model="mensaje" rows="3" :aria-label="__('Mensaje')" />
@@ -28,5 +28,5 @@
                 </div>
             </form>
         </x-ui.card>
-    @endunless
+    @endif
 </div>

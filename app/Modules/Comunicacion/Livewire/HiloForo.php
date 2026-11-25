@@ -50,6 +50,9 @@ class HiloForo extends Component
     {
         $datos = $foro->hilo(auth()->user(), $this->seccionId(), $this->hiloId);
 
-        return $this->paginaDeSeccion('modules.comunicacion.hilo', $datos + ['modera' => $foro->puedeModerar(auth()->user(), $this->seccionId())]);
+        return $this->paginaDeSeccion('modules.comunicacion.hilo', $datos + [
+            'modera' => $foro->puedeModerar(auth()->user(), $this->seccionId()),
+            'participa' => $foro->puedeParticipar(auth()->user(), $this->seccionId()),
+        ]);
     }
 }

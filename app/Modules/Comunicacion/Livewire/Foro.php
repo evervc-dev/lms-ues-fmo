@@ -29,6 +29,9 @@ class Foro extends Component
 
     public function render(ForoService $foro): View
     {
-        return $this->paginaDeSeccion('modules.comunicacion.foro', ['hilos' => $foro->hilos(auth()->user(), $this->seccionId())]);
+        return $this->paginaDeSeccion('modules.comunicacion.foro', [
+            'hilos' => $foro->hilos(auth()->user(), $this->seccionId()),
+            'participa' => $foro->puedeParticipar(auth()->user(), $this->seccionId()),
+        ]);
     }
 }

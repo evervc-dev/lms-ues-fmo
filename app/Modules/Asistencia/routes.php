@@ -22,7 +22,7 @@ Route::middleware('auth')->group(function (): void {
     Route::livewire('/asistencia/escanear', EscanearQr::class)->middleware('permission:asistencia.marcar')->name('asistencia.escanear');
     Route::livewire('/mi-asistencia', MiAsistencia::class)->middleware('permission:asistencia.marcar')->name('mi-asistencia');
     Route::livewire('/secciones/{seccion}/asistencia', AsistenciaSeccion::class)->middleware('permission:asistencia.ver')->name('secciones.asistencia');
-    Route::livewire('/secciones/{seccion}/asistencia/{sesion}', SesionAsistencia::class)->middleware('permission:asistencia.sesion.abrir')->name('secciones.asistencia.sesion');
+    Route::livewire('/secciones/{seccion}/asistencia/{sesion}', SesionAsistencia::class)->middleware('permission:asistencia.sesion.ver|asistencia.sesion.abrir')->name('secciones.asistencia.sesion');
     Route::livewire('/secciones/{seccion}/asistencia/{sesion}/proyectar', ProyectarQr::class)->middleware('permission:asistencia.sesion.abrir')->name('secciones.asistencia.proyectar');
     Route::livewire('/clases-canceladas', ClasesCanceladas::class)->middleware('permission:clases.cancelar')->name('clases-canceladas');
     Route::livewire('/areas-asistencia', AreasAsistencia::class)->middleware('permission:areas-asistencia.gestionar')->name('areas-asistencia');

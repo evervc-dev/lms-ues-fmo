@@ -25,6 +25,12 @@ class ForoService
         return $this->alcance->puedeEnSeccion($usuario, 'foros.participar', $seccionId);
     }
 
+    public function puedeVer(User $usuario, int $seccionId): bool
+    {
+        return $this->alcance->puedeEnSeccion($usuario, 'foros.ver', $seccionId)
+            || $this->puedeParticipar($usuario, $seccionId);
+    }
+
     public function puedeModerar(User $usuario, int $seccionId): bool
     {
         return $this->alcance->puedeEnSeccion($usuario, 'foros.moderar', $seccionId);
@@ -35,7 +41,7 @@ class ForoService
      */
     public function hilos(User $usuario, int $seccionId): Collection
     {
-        $this->exigir($this->puedeParticipar($usuario, $seccionId));
+        $this->exigir($this->puedeVer($usuario, $seccionId));
 
         return DB::table('forum_threads as t')->join('users as u', 'u.id', '=', 't.author_id')->where('t.section_id', $seccionId)
             ->select('t.*', DB::raw("u.first_name || ' ' || u.last_name as autor"),
@@ -68,7 +74,7 @@ class ForoService
      */
     public function hilo(User $usuario, int $seccionId, int $hiloId): array
     {
-        $this->exigir($this->puedeParticipar($usuario, $seccionId));
+        $this->exigir($this->puedeVer($usuario, $seccionId));
         $hilo = DB::table('forum_threads')->where('id', $hiloId)->where('section_id', $seccionId)->first() ?? abort(404);
         $modera = $this->puedeModerar($usuario, $seccionId);
 
@@ -83,6 +89,8 @@ class ForoService
 
     public function responder(User $usuario, int $seccionId, int $hiloId, string $mensaje, ?int $padre = null): void
     {
+        // RF39: con solo foros.ver se lee el hilo, pero no se responde.
+        $this->exigir($this->puedeParticipar($usuario, $seccionId));
         $hilo = $this->hilo($usuario, $seccionId, $hiloId)['hilo'];
         if ($hilo->is_closed) {
             throw ValidationException::withMessages(['mensaje' => __('El hilo está cerrado.')]);
