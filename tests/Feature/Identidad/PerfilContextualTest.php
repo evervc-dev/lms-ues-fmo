@@ -225,13 +225,14 @@ it('CP-RF36-08 completa la ficha de Usuarios con las carreras y ciclos del docen
         ->assertSeeText(['Año de ingreso', '2026 (2026-II)', 'Materias inscritas este período', 'PRN115 · 01']);
 });
 
-it('CP-RF36-07 la miga del grupo lleva al Jefe a una pestaña que puede abrir, no a Contenidos', function () {
+it('CP-RF36-07 la miga del grupo lleva al Jefe a una pestaña que puede abrir (Contenidos en lectura desde RF39)', function () {
     $e = escenario();
     actingAs($e['jefe']);
 
     $respuesta = $this->get(route('secciones.participantes', ['seccion' => $e['ulid']]))->assertOk();
 
-    $respuesta->assertDontSee('href="'.route('secciones.contenidos', ['seccion' => $e['ulid']]).'"', false)
+    $respuesta->assertSee('href="'.route('secciones.contenidos', ['seccion' => $e['ulid']]).'"', false)
         ->assertSee('href="'.route('secciones.estudiantes', ['seccion' => $e['ulid']]).'"', false);
+    $this->get(route('secciones.contenidos', ['seccion' => $e['ulid']]))->assertOk();
     $this->get(route('secciones.estudiantes', ['seccion' => $e['ulid']]))->assertOk();
 });
