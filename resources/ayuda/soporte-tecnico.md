@@ -44,7 +44,7 @@ Un estudiante solo puede marcar asistencia desde **un** teléfono registrado. Cu
 ## 4. Crear y corregir cuentas de estudiantes
 
 1. Abra **Usuarios**. Puede filtrar por rol, estado y **Teléfono de asistencia**. Con **Estudiantes sin teléfono** sabe quiénes todavía no pueden marcar con QR, con su correo para escribirles.
-2. Con **Nuevo usuario** crea cuentas de **estudiante**. Solo puede crear docentes si el Administrador le dio ese permiso; nunca administradores, jefes ni coordinadores.
+2. Con **Nuevo usuario** crea cuentas de **estudiante**. Solo puede crear docentes si el Administrador le dio ese permiso; nunca administradores, jefes ni coordinadores. Una cuenta de estudiante no puede tener ningún otro rol.
 3. Entre a una cuenta para ver y corregir sus datos con **Editar datos**. El correo institucional no se puede cambiar.
 4. **Desactivar una cuenta es solo del Administrador.** Si hay que quitarle el acceso a alguien, escríbale.
 

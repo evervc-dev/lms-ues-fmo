@@ -49,6 +49,7 @@ Abra la materia en **Mis materias**, vaya a **Actividades** y abra la tarea. Rev
 | Inscribir una materia | **Inscripción de materias** |
 | Ver mis materias y sus contenidos | **Mis materias** |
 | Ver mis notas | **Mis notas** |
+| Ver cuánto me falta de la carrera | **Mi plan** |
 | Ver mi asistencia | **Mi asistencia** |
 | Elegir qué avisos me llegan por correo | **Mi perfil → Notificaciones** |
 | Ver un aviso | La **campana** de arriba: al pulsar un aviso queda leído y lo lleva a la pantalla del evento |
