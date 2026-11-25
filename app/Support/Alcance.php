@@ -153,6 +153,24 @@ class Alcance
     }
 
     /**
+     * Carreras de un grupo: la suya (`sections.career_id`, ADR-074) o, si es anterior y no la tiene, las que llevan su
+     * materia en el plan. Es la regla inversa de seccionesDeCarreras().
+     *
+     * @return array<int, int>
+     */
+    public static function carrerasDeSeccion(int $seccionId): array
+    {
+        $propia = DB::table('sections')->where('id', $seccionId)->value('career_id');
+        if ($propia !== null) {
+            return [(int) $propia];
+        }
+
+        return DB::table('sections')->join('career_subjects as cs', 'cs.subject_id', '=', 'sections.subject_id')
+            ->join('study_plans as sp', 'sp.id', '=', 'cs.study_plan_id')->where('sections.id', $seccionId)
+            ->pluck('sp.career_id')->map(fn ($id) => (int) $id)->unique()->values()->all();
+    }
+
+    /**
      * Asignaturas que están en algún plan de estudios de las carreras dadas.
      *
      * @param  array<int, int>  $carreras

@@ -95,6 +95,9 @@ class ImportacionAsistenciaService
     public function importar(User $docente, int $seccionId, string $ulid, UploadedFile $archivo): int
     {
         $previa = $this->previsualizar($docente, $seccionId, $ulid, $archivo);
+        if (! AsistenciaService::periodoActivo($seccionId)) {
+            throw ValidationException::withMessages(['archivo' => __('El período académico de este grupo no está activo: su asistencia ya no se puede modificar.')]);
+        }
         $cambios = array_values(array_filter($previa['aplicables'], fn (array $f) => $f['anterior'] !== $f['estado']));
         if ($previa['aplicables'] === []) {
             throw ValidationException::withMessages(['archivo' => __('Ninguna fila del archivo se puede importar.')]);

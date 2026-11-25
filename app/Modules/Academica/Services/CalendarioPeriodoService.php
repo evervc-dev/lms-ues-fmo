@@ -193,9 +193,8 @@ class CalendarioPeriodoService
         if ($departamentoId !== null) {
             $secciones->join('subjects', 'subjects.id', '=', 'sections.subject_id')->where('subjects.department_id', $departamentoId);
         } elseif ($carreraId !== null) {
-            $secciones->whereIn('sections.subject_id', DB::table('career_subjects')
-                ->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
-                ->where('study_plans.career_id', $carreraId)->select('career_subjects.subject_id'));
+            // Los grupos de la carrera (ADR-074), no los de otra carrera que comparten la materia.
+            $secciones->whereIn('sections.id', app(Alcance::class)->seccionesDeCarreras([$carreraId]));
         }
         $secciones->select('sections.id');
 

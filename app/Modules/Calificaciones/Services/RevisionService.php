@@ -432,7 +432,16 @@ class RevisionService
             return;
         }
         $nota = DB::table('grades')->join('assessments', 'assessments.grade_item_id', '=', 'grades.grade_item_id')
-            ->where('assessments.id', $solicitud->assessment_id)->where('grades.enrollment_id', $solicitud->enrollment_id)->first(['grades.id']);
+            ->where('assessments.id', $solicitud->assessment_id)->where('grades.enrollment_id', $solicitud->enrollment_id)->first(['grades.id', 'grades.grade_item_id', 'grades.score']);
+        // En una entrega grupal la rúbrica es del equipo: la nota nueva va a todos los integrantes que tenían la misma
+        // nota que el solicitante (D5). A quien le ajustaron la nota a mano (`ajustarIntegrante`) no se le toca.
+        $notas = [$nota->id];
+        if ($entrega?->team_id) {
+            $notas = DB::table('grades')->where('grade_item_id', $nota->grade_item_id)
+                ->whereIn('enrollment_id', DB::table('team_members')->where('team_id', $entrega->team_id)->select('enrollment_id'))
+                ->where(fn ($q) => $q->where('id', $nota->id)->orWhere('score', $nota->score))
+                ->pluck('id')->all();
+        }
 
         if ($solicitud->assessment_type === 'quiz' && $solicitud->quiz_attempt_id) {
             $this->cuestionarios->recalcularIntento((int) $solicitud->quiz_attempt_id);
@@ -440,10 +449,10 @@ class RevisionService
         $penalizacion = (float) ($entrega->late_penalty_applied ?? 0);
         if ($solicitud->assessment_type === 'assignment' && $entrega && $solicitud->rubric_id && $general === null) {
             $base = (float) DB::table('submission_rubric_scores')->where('submission_id', $entrega->id)->sum('points');
-            DB::table('grades')->where('id', $nota->id)->update(['score' => round($base * (1 - $penalizacion / 100), 2), 'score_before_penalty' => $base, 'updated_at' => now()]);
+            DB::table('grades')->whereIn('id', $notas)->update(['score' => round($base * (1 - $penalizacion / 100), 2), 'score_before_penalty' => $base, 'updated_at' => now()]);
         }
         if ($general !== null) {
-            DB::table('grades')->where('id', $nota->id)->update(['score' => round($general, 2), 'score_before_penalty' => $general, 'updated_at' => now()]);
+            DB::table('grades')->whereIn('id', $notas)->update(['score' => round($general, 2), 'score_before_penalty' => $general, 'updated_at' => now()]);
         }
     }
 

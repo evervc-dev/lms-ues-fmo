@@ -24,6 +24,11 @@ class NotasSeccion extends Component
 
     public ?int $notaId = null;
 
+    /** Nota que faltaba (RF17): actividad y matrícula a las que el Coordinador le pone nota tras el cierre. */
+    public ?int $itemFaltante = null;
+
+    public ?int $matriculaFaltante = null;
+
     public ?float $nuevaNota = null;
 
     public string $motivo = '';
@@ -63,7 +68,18 @@ class NotasSeccion extends Component
     public function abrirCorreccion(int $nota): void
     {
         $this->notaId = $nota;
-        $this->reset('nuevaNota', 'motivo');
+        $this->reset('nuevaNota', 'motivo', 'itemFaltante', 'matriculaFaltante');
+        $this->dispatch('abrir-modal', 'corregir-nota');
+    }
+
+    /**
+     * Corregir una nota que faltaba y contó 0 al cerrar (RF17).
+     */
+    public function abrirCorreccionFaltante(int $item, int $matricula): void
+    {
+        $this->reset('notaId', 'nuevaNota', 'motivo');
+        $this->itemFaltante = $item;
+        $this->matriculaFaltante = $matricula;
         $this->dispatch('abrir-modal', 'corregir-nota');
     }
 
@@ -71,7 +87,11 @@ class NotasSeccion extends Component
     {
         $this->validate(['nuevaNota' => 'required|numeric|min:0|max:10', 'motivo' => 'required|string|min:5|max:300'], [], ['nuevaNota' => 'nota', 'motivo' => 'motivo']);
         try {
-            $calificaciones->corregir(auth()->user(), (int) $this->notaId, (float) $this->nuevaNota, $this->motivo);
+            if ($this->notaId === null && $this->itemFaltante !== null) {
+                $calificaciones->corregirFaltante(auth()->user(), $this->itemFaltante, (int) $this->matriculaFaltante, (float) $this->nuevaNota, $this->motivo);
+            } else {
+                $calificaciones->corregir(auth()->user(), (int) $this->notaId, (float) $this->nuevaNota, $this->motivo);
+            }
         } catch (ValidationException $e) {
             foreach ($e->errors() as $campo => $mensajes) {
                 $this->addError($campo === 'motivo' ? 'motivo' : 'nuevaNota', $mensajes[0]);

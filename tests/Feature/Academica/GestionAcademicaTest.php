@@ -220,7 +220,7 @@ describe('matrícula (RF09, RF29)', function () {
         $e = escenario();
         $destino = grupoDos($e);
         DbContext::system(fn () => DB::table('section_change_requests')->insert(['enrollment_id' => $e['matricula'], 'target_section_id' => $destino, 'justification' => 'Trabajo por la mañana', 'status' => 'pending', 'created_at' => now(), 'updated_at' => now()]));
-        actingAs($e['coordinador']);
+        actingAs($e['jefe']); // el cambio de grupo lo resuelve el Jefe (ADR-078)
 
         Livewire::test(SolicitudesCambio::class)->assertSee('Trabajo por la mañana')->call('aprobar', DB::table('section_change_requests')->value('id'));
 

@@ -24,6 +24,9 @@ class AsistenciaSeccion extends Component
 
     public string $modalidad = 'in_person';
 
+    /** Motivo para abrir fuera del horario del grupo teórico (ADR-075). */
+    public string $motivoFueraHorario = '';
+
     public ?int $registroId = null;
 
     public string $motivoJustificacion = '';
@@ -33,8 +36,9 @@ class AsistenciaSeccion extends Component
 
     public function abrir(AsistenciaService $asistencia): void
     {
-        $this->validate(['minutos' => 'required|integer|between:5,15', 'modalidad' => 'required|in:in_person,virtual'], [], ['minutos' => 'vigencia']);
-        $ulid = $asistencia->abrir(auth()->user(), $this->seccionId(), $this->minutos, $this->modalidad);
+        $this->validate(['minutos' => 'required|integer|between:5,15', 'modalidad' => 'required|in:in_person,virtual', 'motivoFueraHorario' => 'nullable|string|min:5|max:300'],
+            [], ['minutos' => 'vigencia', 'motivoFueraHorario' => 'motivo']);
+        $ulid = $asistencia->abrir(auth()->user(), $this->seccionId(), $this->minutos, $this->modalidad, $this->motivoFueraHorario ?: null);
         $this->redirectRoute('secciones.asistencia.sesion', ['seccion' => $this->seccion, 'sesion' => $ulid], navigate: true);
     }
 
@@ -74,12 +78,16 @@ class AsistenciaSeccion extends Component
             $this->modalidad = $modalidadHoy;
         }
 
+        $abre = $alcance->puedeEnSeccion($usuario, 'asistencia.sesion.abrir', $seccion);
+
         return $this->paginaDeSeccion('modules.asistencia.asistencia-seccion', [
             'seccionId' => $seccion,
             'esEstudiante' => $esEstudiante,
             'historial' => $esEstudiante ? $asistencia->historial($usuario, $seccion) : null,
             'sesiones' => $esEstudiante ? collect() : $asistencia->sesiones($usuario, $seccion),
-            'abre' => $alcance->puedeEnSeccion($usuario, 'asistencia.sesion.abrir', $seccion),
+            'abre' => $abre,
+            'fueraDeHorario' => $abre && ! $asistencia->dentroDelHorario($seccion),
+            'periodoActivo' => AsistenciaService::periodoActivo($seccion),
             'corrige' => $corrige,
             'justificaciones' => $corrige ? $asistencia->justificacionesPendientes($usuario, $seccion) : collect(),
             'modalidadHoy' => $modalidadHoy,

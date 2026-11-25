@@ -128,7 +128,9 @@
         @if ($rol === 'coordinador')
             <x-ui.card class="mt-4" :titulo="__('Pendientes de decisión')">
                 <div class="grid gap-3 sm:grid-cols-3">
-                    <x-ui.button variante="secundario" :href="route('matricula.solicitudes')">{{ __('Cambios de grupo: :n', ['n' => $b['pendientes']['cambios']]) }}</x-ui.button>
+                    @if (auth()->user()->checkPermissionTo('matricula.cambio.resolver'))
+                        <x-ui.button variante="secundario" :href="route('matricula.solicitudes')">{{ __('Cambios de grupo: :n', ['n' => $b['pendientes']['cambios']]) }}</x-ui.button>
+                    @endif
                     <x-ui.button variante="secundario" :href="route('actas')">{{ __('Actas por validar: :n', ['n' => $b['pendientes']['actas']]) }}</x-ui.button>
                     <x-ui.button variante="secundario" :href="route('clases-canceladas')">{{ __('Cancelaciones y cambios de modalidad: :n', ['n' => $b['pendientes']['cancelaciones']]) }}</x-ui.button>
                 </div>

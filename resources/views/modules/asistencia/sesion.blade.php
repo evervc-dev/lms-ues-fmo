@@ -7,6 +7,8 @@
 <div class="flex flex-col gap-5" @if ($abierta) wire:poll.10s @endif>
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
 
+    @error('periodo')<x-ui.alert tipo="error">{{ $message }}</x-ui.alert>@enderror
+
     <x-ui.encabezado :titulo="__('Sesión del :f', ['f' => \Illuminate\Support\Carbon::parse($sesion->session_date)->format('d/m/Y')])"
         :subtitulo="($sesion->modality === 'virtual' ? __('Virtual') : __('Presencial')).' · '.__('vigencia :n min', ['n' => $sesion->qr_validity_minutes])">
         <x-slot:acciones>
@@ -125,7 +127,7 @@
         <form wire:submit="solicitarCancelacion" id="form-cancelar" class="flex flex-col gap-4">
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-ui.field :etiqueta="__('Fecha de la clase')" para="fechaCancelacion" error="fechaCancelacion"><x-ui.input id="fechaCancelacion" type="date" wire:model="fechaCancelacion" /></x-ui.field>
-                <x-ui.field :etiqueta="__('Tipo')" para="tipoCancelacion"><x-ui.select id="tipoCancelacion" wire:model="tipoCancelacion"><option value="cancellation">{{ __('Cancelar la clase') }}</option><option value="modality_change">{{ __('Pasar a virtual') }}</option></x-ui.select></x-ui.field>
+                <x-ui.field :etiqueta="__('Tipo')" para="tipoCancelacion"><x-ui.select id="tipoCancelacion" wire:model="tipoCancelacion"><option value="cancellation">{{ __('Cancelar la clase') }}</option><option value="virtual">{{ __('Pasar a virtual') }}</option><option value="in_person">{{ __('Pasar a presencial') }}</option></x-ui.select></x-ui.field>
             </div>
             <x-ui.field :etiqueta="__('Motivo')" para="motivoCancelacion" error="motivoCancelacion" requerido><x-ui.textarea id="motivoCancelacion" wire:model="motivoCancelacion" /></x-ui.field>
             <p class="text-xs text-texto-suave">{{ __('Es para una clase de hoy en adelante, no solo la de esta sesión: elija la fecha (se propone mañana). La aprueba el Coordinador: al aprobarla se avisa al grupo teórico y esa clase no cuenta para la asistencia.') }}</p>

@@ -261,6 +261,9 @@ class ReporteMeetService
     public function confirmar(User $docente, int $seccionId, int $reporteId): string
     {
         $this->exigirEnSeccion($docente, 'videoconferencias.gestionar', $seccionId);
+        if (! AsistenciaService::periodoActivo($seccionId)) {
+            throw ValidationException::withMessages(['reporte' => __('El período académico de este grupo no está activo: su asistencia ya no se puede modificar.')]);
+        }
         $reporte = $this->reporte($seccionId, $reporteId);
         if ($reporte->confirmed_at !== null) {
             throw ValidationException::withMessages(['reporte' => __('Este reporte ya se confirmó.')]);

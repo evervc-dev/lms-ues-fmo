@@ -178,6 +178,7 @@ class ActividadService
 
     public function cancelarEntrega(User $estudiante, int $seccionId, string $ulid): void
     {
+        $this->alcance->exigir($estudiante, 'tareas.entregar');
         $datos = $this->tarea($estudiante, $seccionId, $ulid);
         if ($datos['estado'] !== 'abierta' || ! $datos['entrega']) {
             throw ValidationException::withMessages(['archivo' => __('Solo puede cancelar mientras la tarea está abierta.')]);
@@ -185,6 +186,14 @@ class ActividadService
         DbContext::run(function () use ($datos, $estudiante) {
             DB::table('submissions')->where('id', $datos['entrega']->id)->update(['status' => 'cancelled', 'updated_at' => now()]);
             DB::table('submission_events')->insert(['submission_id' => $datos['entrega']->id, 'event_type' => 'cancelled', 'actor_id' => $estudiante->id, 'occurred_at' => now()]);
+            // La nota de la entrega cancelada se vacía (las notas no se borran): la próxima entrega vuelve a la
+            // bandeja del docente en vez de quedar con la nota anterior pegada.
+            $entrega = $datos['entrega'];
+            $matriculas = $entrega->team_id
+                ? DB::table('team_members')->where('team_id', $entrega->team_id)->pluck('enrollment_id')
+                : collect([$entrega->enrollment_id]);
+            DB::table('grades')->where('grade_item_id', $datos['tarea']->item_id)->whereIn('enrollment_id', $matriculas)
+                ->update(['score' => null, 'score_before_penalty' => null, 'status' => 'draft', 'published_at' => null, 'updated_at' => now()]);
         }, 'submission.cancelled');
     }
 
@@ -430,7 +439,8 @@ class ActividadService
             foreach ($matriculas as $matricula) {
                 DB::table('grades')->updateOrInsert(['grade_item_id' => $tarea->item_id, 'enrollment_id' => $matricula], [
                     'section_id' => $entrega->section_id, 'score' => $final, 'score_before_penalty' => $nota, 'comment' => $comentario, 'graded_by' => $docente->id,
-                    'status' => $tarea->is_published ? 'published' : 'draft', 'published_at' => $tarea->is_published ? now() : null, 'updated_at' => now(), 'created_at' => now()]);
+                    'status' => $tarea->is_published ? 'published' : 'draft', 'published_at' => CalificacionService::publicadaDesde((int) $tarea->item_id, (int) $matricula, (bool) $tarea->is_published),
+                    'updated_at' => now(), 'created_at' => now()]);
             }
         }, 'submission.graded');
 
@@ -464,7 +474,8 @@ class ActividadService
 
         DbContext::run(fn () => DB::table('grades')->updateOrInsert(['grade_item_id' => $tarea->item_id, 'enrollment_id' => $matriculaId], [
             'section_id' => $entrega->section_id, 'score' => $final, 'score_before_penalty' => $nota, 'comment' => trim($motivo), 'graded_by' => $docente->id,
-            'status' => $tarea->is_published ? 'published' : 'draft', 'published_at' => $tarea->is_published ? now() : null, 'updated_at' => now(), 'created_at' => now()]),
+            'status' => $tarea->is_published ? 'published' : 'draft', 'published_at' => CalificacionService::publicadaDesde((int) $tarea->item_id, $matriculaId, (bool) $tarea->is_published),
+            'updated_at' => now(), 'created_at' => now()]),
             'grade.member_adjusted', trim($motivo));
 
         if ($tarea->is_published) {
@@ -485,7 +496,7 @@ class ActividadService
         $entregas = DB::table('submissions as s')->join('assessments as a', 'a.id', '=', 's.assessment_id')->join('sections', 'sections.id', '=', 's.section_id')
             ->join('subjects', 'subjects.id', '=', 'sections.subject_id')
             // Sin nota: ni de quien entregó ni, en una entrega grupal, de ningún integrante del equipo (RF15).
-            ->whereNotExists(fn ($q) => $q->from('grades as g')->whereColumn('g.grade_item_id', 'a.grade_item_id')
+            ->whereNotExists(fn ($q) => $q->from('grades as g')->whereColumn('g.grade_item_id', 'a.grade_item_id')->whereNotNull('g.score')
                 ->where(fn ($w) => $w->whereColumn('g.enrollment_id', 's.enrollment_id')
                     ->orWhereIn('g.enrollment_id', fn ($t) => $t->select('tm.enrollment_id')->from('team_members as tm')->whereColumn('tm.team_id', 's.team_id'))))
             ->where('s.status', 'submitted')

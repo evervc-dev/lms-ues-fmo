@@ -38,7 +38,7 @@ Route::middleware('auth')->group(function (): void {
     Route::livewire('/carga-academica', CargaAcademica::class)->middleware('permission:secciones.gestionar|secciones.asignar-docente|secciones.cupo')->name('carga-academica');
     Route::livewire('/matricula', Matricula::class)->middleware('permission:matricula.gestionar')->name('matricula');
     Route::livewire('/matricula/claves', ClavesMatricula::class)->middleware('permission:matricula.claves.gestionar')->name('matricula.claves');
-    Route::livewire('/matricula/solicitudes', SolicitudesCambio::class)->middleware('permission:matricula.gestionar')->name('matricula.solicitudes');
+    Route::livewire('/matricula/solicitudes', SolicitudesCambio::class)->middleware('permission:matricula.cambio.resolver')->name('matricula.solicitudes');
     // RF29 (ADR-051): fecha límite por departamento (Administrador G, Jefe D, Coordinador C) y prórrogas (Jefe D, Coordinador C).
     Route::livewire('/matricula/plazos', PlazosMatricula::class)->middleware('permission:matricula.plazo.gestionar|matricula.prorroga.otorgar')->name('matricula.plazos');
     Route::livewire('/materias', MisMaterias::class)->middleware('permission:matricula.automatricular')->name('materias');

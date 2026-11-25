@@ -14,7 +14,7 @@
 
 <div {{ $attributes->class(['flex h-full flex-col gap-1 rounded-xl bg-white p-4 ring-1 ring-borde']) }}>
     <div class="flex items-start justify-between gap-3">
-        <p class="min-h-8 text-xs font-semibold uppercase leading-4 tracking-wide text-texto-suave">{{ $etiqueta }}</p>
+        <p class="min-h-8 min-w-0 hyphens-auto text-xs font-semibold uppercase leading-4 tracking-wide text-texto-suave">{{ $etiqueta }}</p>
         @if ($icono)
             <span class="shrink-0 rounded-lg bg-marca-50 p-2 text-marca-600"><x-ui.icon :name="$icono" /></span>
         @endif

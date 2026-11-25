@@ -4,7 +4,7 @@ rf: "[[RF20]]"
 nombre: Generación y validación de código QR para asistencia
 prioridad: Alta
 nivel: browser + feature
-casos: 13
+casos: 14
 estado: pasa
 ---
 
@@ -27,6 +27,7 @@ Casos derivados de los criterios de aceptación de [[RF20]]. Nivel: **browser + 
 | CP-RF20-11 | **Dado** Soporte Técnico, **cuando** abre el diagnóstico de asistencia, **entonces** ve en solo lectura los intentos y su motivo exacto (sin notas ni contenidos) ([[ADR-032 Ajustes por el documento de roles]]). | pasa |
 | CP-RF20-12 | **Dado** un estudiante sin teléfono, **entonces** el docente lo registra con código temporal ([[RF28]]) o de forma manual ([[RF19]]). | pasa |
 | CP-RF20-13 | **Dado** Soporte en el diagnóstico, **cuando** busca por nombre, fija un rango de fechas o un motivo y exporta, **entonces** la búsqueda por nombre solo trae a quien empieza alguna palabra con lo escrito, el rango y el motivo se respetan y el CSV sale sin coordenadas. | pasa |
+| CP-RF20-14 | **Dado** que el estudiante marcó en una materia, **cuando** otra de sus materias tiene sesión abierta, **entonces** el lector sigue disponible. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF20-01 …')`.
 >

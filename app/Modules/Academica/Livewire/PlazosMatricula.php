@@ -128,7 +128,7 @@ class PlazosMatricula extends Component
             'pestanas' => array_values(array_filter([
                 ['etiqueta' => __('Estudiantes'), 'url' => route('matricula'), 'activa' => false],
                 $usuario->checkPermissionTo('matricula.claves.gestionar') ? ['etiqueta' => __('Claves por asignatura'), 'url' => route('matricula.claves'), 'activa' => false] : null,
-                ['etiqueta' => __('Solicitudes de cambio de grupo'), 'url' => route('matricula.solicitudes'), 'activa' => false],
+                auth()->user()->checkPermissionTo('matricula.cambio.resolver') ? ['etiqueta' => __('Solicitudes de cambio de grupo'), 'url' => route('matricula.solicitudes'), 'activa' => false] : null,
                 ['etiqueta' => __('Plazos'), 'url' => route('matricula.plazos'), 'activa' => true],
             ])),
         ]);

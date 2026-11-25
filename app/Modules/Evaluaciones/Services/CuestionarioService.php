@@ -315,9 +315,17 @@ class CuestionarioService
      */
     public function guardarRespuesta(User $estudiante, string $ulid, int $respuestaId, ?int $opcion, ?string $texto): void
     {
+        $this->alcance->exigir($estudiante, 'cuestionarios.resolver');
         $respuesta = DB::table('attempt_answers as r')->join('quiz_attempts as q', 'q.id', '=', 'r.attempt_id')->join('enrollments as e', 'e.id', '=', 'q.enrollment_id')
-            ->where('r.id', $respuestaId)->where('q.ulid', $ulid)->first(['r.question_id', 'q.id as intento', 'q.status', 'q.deadline_at', 'e.student_id']) ?? abort(404);
+            ->leftJoin('quiz_settings as s', 's.assessment_id', '=', 'q.assessment_id')
+            ->where('r.id', $respuestaId)->where('q.ulid', $ulid)->first(['r.question_id', 'r.position', 'q.id as intento', 'q.status', 'q.deadline_at', 'e.student_id', 's.navigation']) ?? abort(404);
         abort_unless((int) $respuesta->student_id === $estudiante->id, 403);
+        // Una a una (RF16): el servidor rechaza una respuesta anterior a la última que ya se guardó. Antes solo lo
+        // impedía el componente, y manipulando la petición se reescribía una pregunta ya pasada.
+        if ($respuesta->navigation === 'linear') {
+            $ultima = DB::table('attempt_answers')->where('attempt_id', $respuesta->intento)->whereNotNull('saved_at')->max('position');
+            abort_if($ultima !== null && (int) $respuesta->position < (int) $ultima, 403);
+        }
         if ($opcion !== null && ! DB::table('question_options')->where('id', $opcion)->where('question_id', $respuesta->question_id)->exists()) {
             abort(422);
         }
@@ -340,6 +348,7 @@ class CuestionarioService
      */
     public function terminar(User $estudiante, string $ulid): void
     {
+        $this->alcance->exigir($estudiante, 'cuestionarios.resolver');
         $datos = $this->intento($estudiante, $ulid);
         if ($datos['intento']->status === 'in_progress') {
             $this->corregir((int) $datos['intento']->id);
@@ -524,8 +533,13 @@ class CuestionarioService
     public function calificarEnsayo(User $docente, int $respuestaId, float $puntos): void
     {
         $respuesta = DB::table('attempt_answers as r')->join('quiz_attempts as q', 'q.id', '=', 'r.attempt_id')->join('assessments as a', 'a.id', '=', 'q.assessment_id')
-            ->where('r.id', $respuestaId)->first(['r.id', 'q.id as intento', 'a.section_id']) ?? abort(404);
+            ->join('questions as p', 'p.id', '=', 'r.question_id')
+            ->where('r.id', $respuestaId)->first(['r.id', 'q.id as intento', 'q.status', 'a.section_id', 'p.question_type']) ?? abort(404);
         abort_unless($this->alcance->puedeEnSeccion($docente, 'calificaciones.gestionar', (int) $respuesta->section_id), 403);
+        // Solo se califican a mano los ensayos de un intento ya enviado: las demás preguntas se corrigen solas.
+        if ($respuesta->question_type !== 'essay' || $respuesta->status === 'in_progress') {
+            throw ValidationException::withMessages(['puntos' => __('Solo se califican los ensayos de un intento ya enviado.')]);
+        }
         $this->calificaciones->exigirActaAbierta((int) $respuesta->section_id);
         if ($puntos < 0 || $puntos > 1) {
             throw ValidationException::withMessages(['puntos' => __('Califique el ensayo entre 0 y 1 (proporción del valor de la pregunta).')]);
@@ -586,7 +600,7 @@ class CuestionarioService
         $mejor = (float) DB::table('quiz_attempts')->where('assessment_id', $intento->assessment_id)->where('enrollment_id', $intento->enrollment_id)->max('score');
         DB::table('grades')->updateOrInsert(['grade_item_id' => $item->id, 'enrollment_id' => $intento->enrollment_id], [
             'section_id' => $item->section_id, 'score' => $mejor, 'score_before_penalty' => $mejor, 'status' => $item->is_published ? 'published' : 'draft',
-            'published_at' => $item->is_published ? now() : null, 'updated_at' => now(), 'created_at' => now()]);
+            'published_at' => CalificacionService::publicadaDesde((int) $item->id, (int) $intento->enrollment_id, (bool) $item->is_published), 'updated_at' => now(), 'created_at' => now()]);
 
         // Siempre corre dentro de un DbContext::run(): el job se despacha al confirmar la transacción (y con él se toma
         // el candado único), y solo si la nota quedó publicada, para reevaluar el riesgo académico de la sección (RF17).

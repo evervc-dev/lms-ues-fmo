@@ -7,6 +7,7 @@ use App\Modules\Academica\Events\PeriodoReabierto;
 use App\Modules\Calificaciones\Services\CalificacionService;
 use App\Support\Alcance;
 use App\Support\DbContext;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +39,33 @@ class PeriodoService
      * 27/07 pero es ciclo II); si ese mes es igual o posterior a `ciclo_ii_mes_inicio` (8 por defecto) es el ciclo II.
      * Sin período (por defecto, el activo) devuelve 1.
      */
+    /**
+     * Períodos que se pueden preparar o trabajar: el que está en curso y los planificados (Ciclo de vida del período:
+     * el siguiente se prepara mientras otro está activo). El activo va primero.
+     *
+     * @return Collection<int, \stdClass>
+     */
+    public static function preparables(): Collection
+    {
+        return DB::table('academic_periods')->whereIn('status', ['active', 'planned'])
+            ->orderByRaw("case status when 'active' then 0 else 1 end")->orderBy('start_date')->get(['id', 'name', 'status'])
+            ->each(function (object $p): void {
+                $p->id = (int) $p->id;
+            });
+    }
+
+    /**
+     * El período pedido si es preparable; si no, el que está en curso o, sin él, el primero planificado.
+     */
+    public static function preparableOActivo(?int $periodoId): ?int
+    {
+        $preparables = self::preparables();
+
+        $elegido = $preparables->firstWhere('id', $periodoId) ?? $preparables->first();
+
+        return $elegido === null ? null : (int) $elegido->id;
+    }
+
     public static function ciclo(?int $periodoId = null): int
     {
         $periodoId ??= self::activoId();
@@ -183,6 +211,7 @@ class PeriodoService
         if ($periodo->status !== 'planned' || $siguiente === null) {
             throw ValidationException::withMessages(['etapa' => __('El período ya completó su preparación.')]);
         }
+        $this->exigirEtapaCumplida($periodoId, (string) $periodo->preparation_stage);
         DbContext::run(fn () => DB::table('academic_periods')->where('id', $periodoId)->update(['preparation_stage' => $siguiente, 'updated_at' => now()]), 'period.stage_changed');
 
         return $siguiente;
@@ -196,10 +225,47 @@ class PeriodoService
         if ($periodo->status !== 'planned' || $periodo->preparation_stage !== 'ready') {
             throw ValidationException::withMessages(['estado' => __('Solo se activa un período planificado que terminó su preparación.')]);
         }
-        if (DB::table('academic_periods')->where('status', 'active')->exists()) {
+        // La preparación pudo cambiar después de llegar a «Listo» (un grupo nuevo sin docente): se vuelve a comprobar.
+        $this->exigirEtapaCumplida($periodoId, 'teacher_assignment');
+
+        // Dos activaciones a la vez: el índice parcial de un solo período activo rechaza la segunda; se traduce.
+        try {
+            DbContext::run(function () use ($periodoId): void {
+                if (DB::table('academic_periods')->where('status', 'active')->lockForUpdate()->exists()) {
+                    throw ValidationException::withMessages(['estado' => __('Ya hay un período en curso: solo puede haber uno activo.')]);
+                }
+                DB::table('academic_periods')->where('id', $periodoId)->update(['status' => 'active', 'updated_at' => now()]);
+            }, 'period.activated');
+        } catch (QueryException) {
             throw ValidationException::withMessages(['estado' => __('Ya hay un período en curso: solo puede haber uno activo.')]);
         }
-        DbContext::run(fn () => DB::table('academic_periods')->where('id', $periodoId)->update(['status' => 'active', 'updated_at' => now()]), 'period.activated');
+    }
+
+    /**
+     * Condiciones para dejar una etapa de la preparación (Ciclo de vida del período académico):
+     * planificación → hay grupos teóricos (la oferta); horarios → cada grupo tiene horario con aula;
+     * asignación docente → cada grupo tiene docente. Antes se avanzaba y se activaba un período sin grupos.
+     *
+     * @throws ValidationException
+     */
+    private function exigirEtapaCumplida(int $periodoId, string $etapa): void
+    {
+        $grupos = DB::table('sections')->where('period_id', $periodoId);
+        if (! (clone $grupos)->exists()) {
+            throw ValidationException::withMessages(['etapa' => __('El período aún no tiene grupos teóricos: defina la oferta en la carga académica.')]);
+        }
+        if (in_array($etapa, ['schedule_definition', 'teacher_assignment'], true)) {
+            $sinHorario = (clone $grupos)->whereNotExists(fn ($q) => $q->from('section_schedules as h')->whereColumn('h.section_id', 'sections.id')->whereNotNull('h.classroom_id'))->count();
+            if ($sinHorario > 0) {
+                throw ValidationException::withMessages(['etapa' => trans_choice('{1} Falta 1 grupo teórico sin horario con aula.|[2,*] Faltan :count grupos teóricos sin horario con aula.', $sinHorario)]);
+            }
+        }
+        if ($etapa === 'teacher_assignment') {
+            $sinDocente = (clone $grupos)->whereNotExists(fn ($q) => $q->from('teaching_assignments as t')->whereColumn('t.section_id', 'sections.id')->whereNull('t.ended_at'))->count();
+            if ($sinDocente > 0) {
+                throw ValidationException::withMessages(['etapa' => trans_choice('{1} Falta 1 grupo teórico sin docente.|[2,*] Faltan :count grupos teóricos sin docente.', $sinDocente)]);
+            }
+        }
     }
 
     /**
@@ -226,6 +292,15 @@ class PeriodoService
                 ->orderBy('d.code')->pluck('d.name');
             if ($pendientes->isNotEmpty()) {
                 throw ValidationException::withMessages(['cierre' => __('Faltan departamentos por autorizar: :lista.', ['lista' => $pendientes->implode(', ')])]);
+            }
+            // Además de las autorizaciones, cada acta del período debe estar validada (RF34): una autorización no
+            // garantiza que después no se haya devuelto un acta.
+            $sinValidar = DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
+                ->leftJoin('grade_sheets as g', 'g.section_id', '=', 'sections.id')
+                ->where('sections.period_id', $periodoId)->where(fn ($q) => $q->whereNull('g.status')->orWhere('g.status', '!=', 'validated'))
+                ->orderBy('subjects.code')->get(['subjects.code', 'sections.code as grupo'])->map(fn ($s) => $s->code.'-'.$s->grupo);
+            if ($sinValidar->isNotEmpty()) {
+                throw ValidationException::withMessages(['cierre' => __('Hay actas sin validar: :lista.', ['lista' => $sinValidar->implode(', ')])]);
             }
 
             $congelados = $this->calificaciones->congelarResultados($periodoId);

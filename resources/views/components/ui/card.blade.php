@@ -25,7 +25,8 @@
                 @endif
             </div>
             @isset($acciones)
-                <div class="flex shrink-0 items-center gap-2">{{ $acciones }}</div>
+                {{-- Las acciones envuelven: con varios botones, en el teléfono empujaban la página a lo ancho. --}}
+                <div class="flex max-w-full flex-wrap items-center gap-2">{{ $acciones }}</div>
             @endisset
         </header>
     @endif

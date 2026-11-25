@@ -74,6 +74,19 @@ function actaNota(array $e, int $actividad, ?int $matricula = null, float $nota 
 }
 
 /**
+ * Publica las actividades y las notas de la sección del escenario: el acta solo se publica sin notas en borrador (RF34).
+ *
+ * @param  array<string, mixed>  $e
+ */
+function actaPublicarNotas(array $e): void
+{
+    DbContext::system(function () use ($e): void {
+        DB::table('grade_items')->where('section_id', $e['seccion'])->update(['is_published' => true]);
+        DB::table('grades')->where('section_id', $e['seccion'])->update(['status' => 'published', 'published_at' => now()]);
+    });
+}
+
+/**
  * Deja el acta de una sección en el estado indicado (null la deja sin fila, como una sección sin acta).
  *
  * @param  array<string, mixed>  $e
@@ -314,6 +327,7 @@ it('CP-RF34-01 el docente publica el acta con todas las notas y pasa a published
     foreach (actaActividades($e) as $actividad) {
         actaNota($e, $actividad, nota: 8);
     }
+    actaPublicarNotas($e);
     actingAs($e['docente']);
 
     Livewire::test(Acta::class, ['seccion' => $e['ulid']])->call('publicar')->assertDispatched('aviso', tipo: 'exito');
@@ -743,6 +757,7 @@ it('CP-RF34-04 el docente ve las observaciones, corrige y vuelve a publicar: pas
     $e = escenario();
     [$actividad] = actaActividades($e, 1);
     actaNota($e, $actividad, nota: 5);
+    actaPublicarNotas($e);
     actaFijar($e, 'published');
     actingAs($e['coordinador']);
     app(CalificacionService::class)->devolverActa($e['coordinador'], $e['seccion'], 'Falta la nota del cómputo 2.');
@@ -903,6 +918,7 @@ it('CP-RF34-09 el Coordinador devuelve un acta validada, el docente corrige y el
     $e = escenario();
     [$actividad] = actaActividades($e, 1);
     actaNota($e, $actividad, nota: 5);
+    actaPublicarNotas($e);
     actaFijar($e, 'validated');
     $servicio = app(CalificacionService::class);
 

@@ -113,8 +113,7 @@ class SeccionService
             ->where('e.section_id', $seccionId)->where('e.status', 'active')
             ->orderBy('u.last_name')->orderBy('u.first_name')->get(['u.id', 'u.first_name', 'u.last_name', 'u.avatar_url']);
         $coordinadores = DB::table('career_coordinators as cc')->join('users as u', 'u.id', '=', 'cc.user_id')->join('careers as c', 'c.id', '=', 'cc.career_id')
-            ->whereNull('cc.valid_to')->whereIn('cc.career_id', DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
-            ->where('career_subjects.subject_id', DB::table('sections')->where('id', $seccionId)->select('subject_id'))->select('study_plans.career_id'))
+            ->whereNull('cc.valid_to')->whereIn('cc.career_id', Alcance::carrerasDeSeccion($seccionId))
             ->orderBy('c.code')->get(['u.id', 'u.first_name', 'u.last_name', 'u.avatar_url', 'c.code as carrera']);
 
         $visibles = $this->perfiles->visibles($usuario, [...$docentes->pluck('id'), ...$estudiantes->pluck('id'), ...$coordinadores->pluck('id')]);

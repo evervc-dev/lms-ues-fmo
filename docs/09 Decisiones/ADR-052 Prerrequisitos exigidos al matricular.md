@@ -1,11 +1,13 @@
 ---
 tipo: adr
 id: ADR-052
-estado: pendiente
+estado: rechazada
 fecha: 2026-10-27
 afecta: ["[[RF09]]", "[[RF29]]", "[[RF07]]", "[[ADR-030 Matrícula ampliada]]", "[[ADR-032 Ajustes por el documento de roles]]", "[[ADR-037 Jerarquía de creación y asignación de roles]]"]
 fuentes: ["Informe de QA del rol Administrador (27/10/2026), hallazgo H-09", "Decisión del usuario (27/10/2026)"]
 ---
+
+> [!warning] Rechazada el 21/11/2026 por [[ADR-078 El Jefe resuelve el cambio de grupo y no se validan prerrequisitos]]: los prerrequisitos no se validan al matricular.
 
 # ADR-052 · Prerrequisitos exigidos al matricular
 

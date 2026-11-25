@@ -4,7 +4,7 @@ rf: "[[RF35]]"
 nombre: Solicitud de revisión de una calificación
 prioridad: Media
 nivel: feature
-casos: 8
+casos: 10
 estado: pasa
 ---
 
@@ -22,5 +22,7 @@ Casos derivados de los criterios de aceptación de [[RF35]]. Nivel: **feature**.
 | CP-RF35-06 | **Dado** el Coordinador, otro docente, otro estudiante o un rol sin permiso, **entonces** el Coordinador solo consulta y los demás reciben 403. | pasa |
 | CP-RF35-07 | **Dado** la base de datos, **entonces** solo hay una solicitud por actividad y matrícula (UNIQUE); el estudiante no la retira. | pasa |
 | CP-RF35-08 | **Dado** el plazo vencido, **cuando** el docente da una prórroga del plazo de revisión a ese estudiante, **entonces** puede pedir revisión hasta esa fecha y recibe el aviso. | pasa |
+| CP-RF35-09 | **Dado** una nota publicada, **cuando** el docente la recalifica, **entonces** el plazo de revisión se sigue contando desde la primera publicación. | automatizado |
+| CP-RF35-10 | **Dado** una tarea grupal, **cuando** el docente acepta la revisión de un integrante, **entonces** la nota cambia para todo el equipo, salvo para quien tenía un ajuste individual ([[ADR-077 La revisión de una tarea grupal vale para todo el equipo]]). | automatizado |
 
 > **18/10/2026:** automatizados en `tests/Feature/Calificaciones/RevisionTest.php`; pasan en SQLite.

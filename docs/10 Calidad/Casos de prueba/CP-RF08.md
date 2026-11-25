@@ -4,7 +4,7 @@ rf: "[[RF08]]"
 nombre: Gestión de grupos o secciones
 prioridad: Alta
 nivel: feature
-casos: 12
+casos: 13
 estado: automatizado
 ---
 
@@ -26,5 +26,6 @@ Casos derivados de los criterios de aceptación de [[RF08]]. Nivel: **feature**.
 | CP-RF08-10 | **Dado** el Administrador, **cuando** crea un grupo teórico, **entonces** elige departamento, carrera de ese departamento y una materia del plan de esa carrera; una materia fuera del plan se rechaza. | automatizado |
 | CP-RF08-11 | **Dado** un Coordinador, **cuando** abre Carga académica o intenta crear un grupo teórico, **entonces** no ve «Nuevo grupo teórico» y recibe 403; sí programa el horario de los grupos de su carrera ([[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]]). | automatizado |
 | CP-RF08-12 | **Dado** una materia en planes de dos carreras con un grupo para cada una, **cuando** el Coordinador de una lista los grupos, **entonces** solo ve el de su carrera (y los anteriores sin carrera de materias de su plan). | automatizado |
+| CP-RF08-13 | **Dado** un período en curso y otro en preparación, **cuando** el Jefe elige el de preparación en la carga académica, **entonces** crea allí sus grupos; en un período cerrado no se crean. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF08-01 …')`.

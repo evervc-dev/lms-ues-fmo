@@ -96,6 +96,11 @@ function cierreAutorizar(array $e, int ...$departamentos): void
                 'authorized_at' => now(), 'created_at' => now(), 'updated_at' => now(),
             ]);
         }
+        // Autorizar exige todas las actas validadas, y cerrar() lo vuelve a comprobar (RF34).
+        foreach (DB::table('sections')->where('period_id', $e['periodo'])->pluck('id') as $seccion) {
+            DB::table('grade_sheets')->updateOrInsert(['section_id' => $seccion], ['status' => 'validated', 'validated_by' => $e['coordinador']->id,
+                'validated_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+        }
     });
 }
 

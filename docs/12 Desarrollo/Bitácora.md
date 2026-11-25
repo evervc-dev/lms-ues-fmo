@@ -18,6 +18,54 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF06–RF08 · Preparación del período siguiente (revisión de flujos)
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** cada etapa de la preparación exige su condición (grupos; horario con aula; docente) y activar la vuelve a comprobar, con candado; la carga académica y las claves eligen el período (en curso o en preparación); no se crean grupos en un período cerrado.
+- **CP cubiertos:** CP-RF06-10, CP-RF06-11, CP-RF08-13, CP-RF09-19.
+- **Decisiones:** los plazos de matrícula siguen sobre el período en curso: dependen de su inicio y tienen un valor por defecto.
+- **Pendiente:** —
+
+### 2026-11-21 · RF09 · Correcciones de matrícula de la revisión de flujos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** no se validan prerrequisitos; el cambio de grupo lo resuelve solo el Jefe (`matricula.cambio.resolver`); una solicitud vieja no revive una matrícula retirada y retirar rechaza las pendientes; solo se matricula en grupos del período en curso; no se inscribe a una cuenta desactivada; aviso de acta, calendario y participantes con la carrera del grupo (`Alcance::carrerasDeSeccion`).
+- **CP cubiertos:** CP-RF09-03, CP-RF09-15 a CP-RF09-18, CP-RF34-13.
+- **Decisiones:** [[ADR-078 El Jefe resuelve el cambio de grupo y no se validan prerrequisitos]] (pendiente), que rechaza ADR-052. Se mantiene que el Docente no retira estudiantes (hay una prueba deliberada), aunque el flujo de matrícula del vault dice lo contrario.
+- **Pendiente:** corregir el flujo de matrícula del vault (PR de vault).
+
+### 2026-11-21 · RF15–RF35 · Correcciones de cuestionarios, tareas y revisión de la revisión de flujos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** la navegación una a una se valida en el servidor y la pregunta actual queda bloqueada en el componente; solo se califican a mano ensayos de intentos enviados; guardar y terminar exigen `cuestionarios.resolver` y cancelar exige `tareas.entregar`; cancelar una entrega vacía su nota; la revisión grupal vale para todo el equipo; respaldo local sin conexión en el intento.
+- **CP cubiertos:** CP-RF15-09, CP-RF16-08, CP-RF16-09, CP-RF35-10.
+- **Decisiones:** [[ADR-077 La revisión de una tarea grupal vale para todo el equipo]] (pendiente). Cancelar una entrega sigue devolviendo el intento: si contara, quien tiene un solo intento no podría corregir un archivo equivocado.
+- **Pendiente:** —
+
+### 2026-11-21 · RF17–RF35 · Correcciones de cierre y notas de la revisión de flujos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** devolver un acta anula la autorización de su departamento y `cerrar()` exige todas las actas validadas; el acta no se publica con notas en borrador ni ensayos por calificar; al congelar solo entran notas publicadas; el redondeo sale de `system_settings`; el Coordinador corrige tras el cierre una nota que faltaba; recalificar no reinicia el plazo de revisión.
+- **CP cubiertos:** CP-RF17-14, CP-RF17-15, CP-RF17-16, CP-RF34-11, CP-RF34-12, CP-RF35-09.
+- **Decisiones:** devolver un acta anula la autorización del departamento (en vez de bloquearse), porque ADR-059 conserva las autorizaciones al reabrir. Se mantiene que el acta publicada no frena la nota automática de un cuestionario (CP-RF34-01), aunque la revisión lo marcó como baja.
+- **Pendiente:** —
+
+### 2026-11-21 · RF19–RF32 · Correcciones de asistencia de la revisión de flujos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** las justificadas salen del porcentaje (ADR-030); no se escribe asistencia con el período no activo y el cierre automático no se traba; una sesión por grupo y día; la sesión manual es siempre presencial; el código temporal valida la matrícula; las cancelaciones por carrera usan `sections.career_id`; alertas al marcar por QR o código y umbrales de `system_settings`; cambio de modalidad en los dos sentidos; auditoría de justificaciones; el lector QR no se oculta por otra materia.
+- **CP cubiertos:** CP-RF19-08, CP-RF19-09, CP-RF20-14, CP-RF21-09, CP-RF22-05, CP-RF28-05, CP-RF32-04, CP-RF32-05.
+- **Decisiones:** [[ADR-076 Una sesión de asistencia por grupo y día]] (pendiente).
+- **Pendiente:** marca de entrada y salida en clases presenciales (ADR propia).
+
+### 2026-11-21 · RF19 · La asistencia se abre en el horario del grupo o con motivo
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** fuera del horario del grupo (±15 min) abrir la asistencia exige un motivo, que queda en la auditoría; trigger de auditoría en `attendance_sessions`; variable `ASIS_BYPASS_WEEKEND` para probar fuera de horario.
+- **CP cubiertos:** CP-RF19-05, CP-RF19-06, CP-RF19-07 (este solo en PostgreSQL, sin correr todavía).
+- **Decisiones:** [[ADR-075 La asistencia se abre en el horario del grupo o con motivo]] (pendiente).
+- **Pendiente:** correr CP-RF19-07 en PostgreSQL 17.
+
 ### 2026-11-18 · RF08 · El Jefe crea grupos teóricos; «sección» pasa a «grupo teórico»
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** sin OP# · commit directo a `test`

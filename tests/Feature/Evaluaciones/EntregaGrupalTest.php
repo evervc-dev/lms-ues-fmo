@@ -1,5 +1,7 @@
 <?php
 
+use App\Modules\Calificaciones\Services\CalificacionService;
+use App\Modules\Calificaciones\Services\RevisionService;
 use App\Modules\Evaluaciones\Livewire\Entregas;
 use App\Modules\Evaluaciones\Livewire\NuevaTarea;
 use App\Modules\Evaluaciones\Livewire\Tarea;
@@ -158,3 +160,50 @@ it('CP-RF15-05 solo el docente de la sección arma equipos, y solo en tareas gru
     expect(fn () => $equipos->crear($e['docente'], $e['seccion'], $e['tareaId'], 'Alfa', [$e['matricula']]))
         ->toThrow(ValidationException::class, 'no es grupal');
 });
+
+it('CP-RF15-09 cancelar la entrega vacía su nota: la nueva entrega vuelve a la bandeja del docente', function () {
+    $e = escenarioGrupal();
+    equipoAlfa($e);
+    actingAs($e['estudiante']);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $e['tarea']])
+        ->set('archivo', UploadedFile::fake()->create('proyecto.pdf', 100))->call('entregar')->assertHasNoErrors();
+    actingAs($e['docente']);
+    app(ActividadService::class)->calificarEntrega($e['docente'], $e['seccion'], (int) DB::table('submissions')->value('id'), 8.5, [], null);
+
+    actingAs($e['estudiante']);
+    app(ActividadService::class)->cancelarEntrega($e['estudiante'], $e['seccion'], $e['tarea']);
+
+    expect(DB::table('grades')->whereNotNull('score')->count())->toBe(0)
+        ->and(DB::table('grades')->pluck('status')->unique()->all())->toBe(['draft']);
+});
+
+/** Equipo con la entrega calificada con 8.5 y publicada; devuelve el id de la actividad de notas. */
+function entregaGrupalPublicada(array $e): int
+{
+    equipoAlfa($e);
+    actingAs($e['estudiante']);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $e['tarea']])
+        ->set('archivo', UploadedFile::fake()->create('proyecto.pdf', 100))->call('entregar')->assertHasNoErrors();
+    $item = (int) DB::table('assessments')->where('id', $e['tareaId'])->value('grade_item_id');
+    actingAs($e['docente']);
+    app(ActividadService::class)->calificarEntrega($e['docente'], $e['seccion'], (int) DB::table('submissions')->value('id'), 8.5, [], null);
+    app(CalificacionService::class)->publicar($e['docente'], $item);
+
+    return $item;
+}
+
+it('CP-RF35-10 la revisión de una tarea grupal cambia la nota de todo el equipo, salvo a quien se le ajustó a mano', function (bool $ajustado) {
+    $e = escenarioGrupal();
+    $item = entregaGrupalPublicada($e);
+    if ($ajustado) {
+        app(ActividadService::class)->ajustarIntegrante($e['docente'], $e['seccion'], (int) DB::table('submissions')->value('id'), $e['matriculaCompanero'], 5.0, 'No participó en la defensa.');
+    }
+    actingAs($e['estudiante']);
+    $ulid = app(RevisionService::class)->solicitar($e['estudiante'], $e['seccion'], $e['tarea'], 'El proyecto cumple todo lo pedido.', ['general' => 'Revisen la nota.']);
+
+    actingAs($e['docente']);
+    app(RevisionService::class)->resolver($e['docente'], $e['seccion'], $ulid, [(int) DB::table('grade_review_items')->value('id') => ['cambiar' => true, 'valor' => 9.5, 'respuesta' => 'De acuerdo.']], null);
+
+    $notaDe = fn (int $matricula) => (float) DB::table('grades')->where('grade_item_id', $item)->where('enrollment_id', $matricula)->value('score');
+    expect($notaDe($e['matricula']))->toBe(9.5)->and($notaDe($e['matriculaCompanero']))->toBe($ajustado ? 5.0 : 9.5);
+})->with(['sin ajuste' => false, 'con ajuste individual' => true]);

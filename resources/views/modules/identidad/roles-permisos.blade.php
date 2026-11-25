@@ -2,7 +2,7 @@
 <div class="flex flex-col gap-5 lg:h-full">
     <x-ui.encabezado :titulo="__('Roles y permisos')" :subtitulo="__('Marque o desmarque un permiso para concederlo o quitarlo. Cada cambio queda en la auditoría. Los permisos no se crean desde aquí.')" />
 
-    <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+    <div class="grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
         @foreach ($roles as $nombre => $rol)
             <x-ui.stat :etiqueta="__('roles.'.$nombre)" :valor="$rol['usuarios']" :detalle="trans_choice('{1} 1 permiso|[0,*] :count permisos', count($rol['permisos']))" />
         @endforeach

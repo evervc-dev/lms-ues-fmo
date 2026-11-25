@@ -20,6 +20,8 @@ class Intento extends Component
     #[Locked]
     public string $intentoUlid = '';
 
+    /** Pregunta actual. Bloqueada: solo `ir()` la cambia; antes el navegador podía volver a una pregunta ya pasada (RF16). */
+    #[Locked]
     public int $actual = 0;
 
     /** Segundos que quedan según el servidor; el contador del navegador se ajusta a este valor. */

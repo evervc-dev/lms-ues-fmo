@@ -3,6 +3,8 @@
 <div class="flex flex-col gap-5">
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
 
+    @error('periodo')<x-ui.alert tipo="error">{{ $message }}</x-ui.alert>@enderror
+
     @if ($esEstudiante)
         <div class="grid gap-3 sm:grid-cols-4">
             <x-ui.stat :etiqueta="__('Asistencia')" :valor="$historial['porcentaje'] !== null ? $historial['porcentaje'].' %' : '—'" icono="clipboard-document-check"
@@ -44,11 +46,29 @@
             <x-ui.alert tipo="info" :titulo="__('Hoy la clase es virtual')">
                 {{ __('Hay un cambio de modalidad aprobado para hoy. La asistencia no se toma con QR: programe la clase virtual y suba el reporte de Meet en «Clases virtuales».') }}
             </x-ui.alert>
+        @elseif ($abre && ! $periodoActivo)
+            <x-ui.alert tipo="info" :titulo="__('Período no activo')">
+                {{ __('El período académico de este grupo no está activo: no se abren sesiones de asistencia.') }}
+            </x-ui.alert>
         @elseif ($abre)
             <x-ui.card :titulo="__('Abrir asistencia')" :descripcion="$modalidadHoy === 'in_person' ? __('Hoy la clase es presencial por un cambio de modalidad aprobado: la asistencia se toma con QR.') : null">
+                {{-- ADR-075: fuera del horario del grupo (con 15 min de margen) se abre igual, con un motivo que queda en la auditoría. --}}
+                @if ($fueraDeHorario)
+                    <x-ui.alert tipo="aviso" :titulo="__('Fuera del horario de clase')" class="mb-4">
+                        {{ __('Ahora no corresponde una clase de este grupo teórico. Si adelanta o repone la clase, indique el motivo: quedará registrado.') }}
+                    </x-ui.alert>
+                @endif
                 <form wire:submit="abrir" class="flex flex-wrap items-end gap-3">
+                    @if ($fueraDeHorario)
+                        <x-ui.field :etiqueta="__('Motivo')" para="motivoFueraHorario" error="motivoFueraHorario" requerido class="w-full sm:w-80">
+                            <x-ui.input id="motivoFueraHorario" wire:model="motivoFueraHorario" list="motivos-fuera-horario" maxlength="300" :placeholder="__('Clase adelantada, reposición…')" />
+                            <datalist id="motivos-fuera-horario">
+                                <option value="{{ __('Clase adelantada') }}"></option>
+                                <option value="{{ __('Reposición de clase') }}"></option>
+                            </datalist>
+                        </x-ui.field>
+                    @endif
                     <x-ui.field :etiqueta="__('Vigencia (5 a 15 min)')" para="minutos" error="minutos"><x-ui.input id="minutos" type="number" min="5" max="15" wire:model="minutos" class="w-28" /></x-ui.field>
-                    <x-ui.field :etiqueta="__('Modalidad')" para="modalidad" error="modalidad"><x-ui.select id="modalidad" wire:model="modalidad" :disabled="$modalidadHoy !== null"><option value="in_person">{{ __('Presencial') }}</option><option value="virtual">{{ __('Virtual') }}</option></x-ui.select></x-ui.field>
                     <x-ui.button type="submit" icono="qr-code">{{ __('Abrir asistencia') }}</x-ui.button>
                 </form>
             </x-ui.card>

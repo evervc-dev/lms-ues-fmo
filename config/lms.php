@@ -49,4 +49,22 @@ return [
         'radio' => (int) env('LMS_AREA_RADIO', 450),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Horario de la asistencia (RF19, ADR-075)
+    |--------------------------------------------------------------------------
+    |
+    | La sesión se abre sin más dentro del horario de la sección, con este
+    | margen antes del inicio y después del fin; fuera de él, el docente debe
+    | dar un motivo, que queda en la auditoría. ASIS_BYPASS_WEEKEND=true quita
+    | la restricción para probar en fin de semana o fuera de horario; en
+    | producción se ignora.
+    |
+    */
+
+    'asistencia' => [
+        'margen_horario_minutos' => (int) env('ASIS_MARGEN_HORARIO', 15),
+        'bypass_horario' => (bool) env('ASIS_BYPASS_WEEKEND', false),
+    ],
+
 ];

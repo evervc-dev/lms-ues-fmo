@@ -4,7 +4,7 @@ rf: "[[RF09]]"
 nombre: Gestión de matrícula en grupos
 prioridad: Media-Alta
 nivel: feature
-casos: 14
+casos: 19
 estado: automatizado
 ---
 
@@ -16,7 +16,7 @@ Casos derivados de los criterios de aceptación de [[RF09]]. Nivel: **feature**.
 |---|---|---|
 | CP-RF09-01 | **Dado** un grupo lleno, **cuando** se intenta matricular, **entonces** se rechaza. | automatizado |
 | CP-RF09-02 | **Dado** una sección cuyo horario se solapa con otra matrícula activa del estudiante, **cuando** se intenta matricular, **entonces** se rechaza con «La sección choca en horario con otra matrícula». | automatizado |
-| CP-RF09-03 | ~~**Dado** un estudiante sin un prerrequisito aprobado, **cuando** se matricula, **entonces** se permite (no se validan).~~ Sustituido por CP-RF09-13 ([[ADR-052 Prerrequisitos exigidos al matricular]]). | sustituido |
+| CP-RF09-03 | **Dado** un estudiante sin un prerrequisito aprobado, **cuando** se matricula, **entonces** se permite (no se validan). ([[ADR-078 El Jefe resuelve el cambio de grupo y no se validan prerrequisitos]]). | automatizado |
 | CP-RF09-04 | **Dado** el docente o el jefe, **cuando** inscribe, **entonces** solo puede hacerlo en su ámbito: sus secciones o su departamento. | automatizado |
 | CP-RF09-05 | ~~**Dado** Soporte Técnico, **cuando** intenta inscribir, **entonces** se rechaza: no tiene privilegios académicos.~~ Sustituido por CP-RF09-11 ([[ADR-037 Jerarquía de creación y asignación de roles]]: Soporte inscribe en cualquier sección, y la [[Matriz RBAC]] le da `matricula.gestionar` con alcance G). | sustituido |
 | CP-RF09-06 | **Dado** un estudiante ya matriculado en la misma materia y período, **entonces** se rechaza. | automatizado |
@@ -26,7 +26,12 @@ Casos derivados de los criterios de aceptación de [[RF09]]. Nivel: **feature**.
 | CP-RF09-10 | **Dado** una matrícula o un cambio, **entonces** el estudiante recibe una notificación ([[RF23]]). | automatizado |
 | CP-RF09-11 | **Dado** Soporte, **cuando** inscribe a un estudiante en cualquier sección, **entonces** la matrícula se crea con su `enrolled_by` ([[ADR-037 Jerarquía de creación y asignación de roles]]). | pasa |
 | CP-RF09-12 | **Dado** una matrícula activa en la lista, **cuando** el Coordinador la retira con su motivo, **entonces** la fila pasa a «Retirada» en la misma pantalla, sin recargar. | pasa |
-| CP-RF09-13 | **Dado** una asignatura con prerrequisitos, **cuando** se matricula a un estudiante que no los tiene aprobados, **entonces** se rechaza nombrando los que faltan, por cualquiera de las vías de matrícula y sin excepción por rol ([[ADR-052 Prerrequisitos exigidos al matricular]]). | automatizado |
+| CP-RF09-13 | ~~**Dado** una asignatura con prerrequisitos, **cuando** se matricula a un estudiante que no los tiene aprobados, **entonces** se rechaza nombrando los que faltan, por cualquiera de las vías de matrícula y sin excepción por rol ([[ADR-052 Prerrequisitos exigidos al matricular]]).~~ Sustituido por CP-RF09-03 (ADR-078). | sustituido |
 | CP-RF09-14 | **Dado** un estudiante de una carrera, **cuando** se le matricula, **entonces** solo se ofrecen y se aceptan las asignaturas del plan de su carrera; una de otra carrera se rechaza aunque se fuerce la petición. | automatizado |
+| CP-RF09-15 | **Dado** una solicitud de cambio pendiente, **cuando** se retira al estudiante, **entonces** la solicitud se rechaza, y aprobar una solicitud de una matrícula que ya no está activa se rechaza. | automatizado |
+| CP-RF09-16 | **Dado** una solicitud de cambio de grupo, **entonces** solo la resuelve el Jefe del departamento; el Coordinador, el Docente y Soporte reciben 403 (ADR-078). | automatizado |
+| CP-RF09-17 | **Dado** un grupo de un período en preparación o cerrado, **cuando** se intenta matricular, **entonces** se rechaza. | automatizado |
+| CP-RF09-18 | **Dado** un estudiante con la cuenta desactivada, **cuando** el personal intenta inscribirlo, **entonces** se rechaza. | automatizado |
+| CP-RF09-19 | **Dado** un período en preparación, **cuando** el Coordinador pone una clave eligiendo ese período, **entonces** la clave queda para ese período y no para el que está en curso. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF09-01 …')`.

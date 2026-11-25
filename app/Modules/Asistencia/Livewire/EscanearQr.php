@@ -99,6 +99,18 @@ class EscanearQr extends Component
      */
     private function yaRegistrada(): ?object
     {
+        // Si alguna sesión vigente de otra de sus materias espera su marca, se muestra el lector: antes, marcar en A
+        // ocultaba el lector de B hasta que venciera la sesión de A.
+        $pendiente = DB::table('attendance_sessions as a')
+            ->join('enrollments as e', fn ($j) => $j->on('e.section_id', '=', 'a.section_id')->where('e.status', 'active'))
+            ->where('e.student_id', auth()->id())
+            ->tap(fn ($q) => AsistenciaService::soloVigentes($q, 'a'))
+            ->whereNotExists(fn ($q) => $q->from('attendance_records as r')->whereColumn('r.session_id', 'a.id')->whereColumn('r.enrollment_id', 'e.id'))
+            ->exists();
+        if ($pendiente) {
+            return null;
+        }
+
         /** @var object{code: string, name: string, hora: string}|null $fila */
         $fila = DB::table('attendance_records as r')
             ->join('attendance_sessions as a', 'a.id', '=', 'r.session_id')

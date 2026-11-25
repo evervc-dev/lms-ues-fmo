@@ -4,7 +4,7 @@ rf: "[[RF06]]"
 nombre: Gestión de períodos académicos
 prioridad: Alta
 nivel: feature
-casos: 9
+casos: 11
 estado: automatizado
 ---
 
@@ -23,5 +23,7 @@ Casos derivados de los criterios de aceptación de [[RF06]]. Nivel: **feature**.
 | CP-RF06-07 | **Dado** un período, **cuando** se crea otro cuyas fechas se cruzan con las suyas en cualquier estado, **entonces** se rechaza nombrando el período con el que choca. | automatizado |
 | CP-RF06-08 | **Dado** un período planificado, **cuando** el Administrador abre la lista, **entonces** ve una acción de edición visible, sin tener que descubrir que el nombre es un enlace. | automatizado |
 | CP-RF06-09 | **Dado** el calendario de evaluaciones, **cuando** lo abre el Jefe o el Coordinador, **entonces** gestiona y sincroniza las fechas de su departamento o de su carrera, ve las globales sin poder modificarlas y no toca las de otro ámbito ([[ADR-068 Calendario de evaluaciones por ámbito]]). | automatizado |
+| CP-RF06-10 | **Dado** un período en preparación, **cuando** se avanza de etapa, **entonces** exige grupos (planificación), horario con aula en cada grupo (horarios) y docente en cada grupo (asignación docente). | automatizado |
+| CP-RF06-11 | **Dado** un período «Listo» sin grupos, **cuando** se activa, **entonces** se rechaza. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF06-01 …')`.
