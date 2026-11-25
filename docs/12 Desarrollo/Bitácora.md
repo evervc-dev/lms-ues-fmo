@@ -18,14 +18,6 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
-### 2026-11-19 · RF07 · Departamentos archivables y panel académico del Administrador
-- **Autor:** IA (Claude Code), a pedido del usuario
-- **OpenProject:** OP#397 · **PR:** → test
-- **Hecho:** Archivar y Reactivar departamentos en Catálogo › Estructura, junto al alta, la edición y el borrado de `CatalogoService`; un departamento archivado sale de las listas de trabajo (inscripción, oferta, creación de grupos teóricos, asignaciones, plazos, panel y cierre). Panel académico de solo navegación (departamento → carrera → materia → grupos teóricos) con alcance G, y la Vista de sección en solo lectura para el Administrador.
-- **CP cubiertos:** CP-RF07-21 a CP-RF07-26; CP-RF07-10 ahora ofrece archivar.
-- **Decisiones:** [[ADR-075 El Administrador ve las secciones en solo lectura]] y [[ADR-076 Departamentos archivables]] (pendientes). ADR-076 reemplaza lo dicho el 18/11 («los departamentos no se desactivan»). El CRUD queda en Estructura y no en el panel (decisión del usuario).
-- **Pendiente:** correr en PostgreSQL CP-RF07-21 (auditoría del archivo).
-
 ### 2026-11-18 · RF08 · El Jefe crea grupos teóricos; «sección» pasa a «grupo teórico»
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** sin OP# · commit directo a `test`
@@ -76,7 +68,6 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Decisiones:** ninguna ADR nueva.
 - **Pendiente:** del informe quedan fuera, por decisión del usuario, el `token_expired` del QR y el nombre que
   no se refresca desde Google.
-
 ### 2026-11-18 · RF17, RF20, RF21 · Nota acumulada, asistencia ya marcada y enlace de Meet
 - **Autor:** IA (Claude Code), a pedido del usuario
 - **OpenProject:** OP# pendiente · **PR:** → test

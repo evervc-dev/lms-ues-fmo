@@ -10,7 +10,7 @@ rf: ["[[RF11]]", "[[RF13]]", "[[RF15]]", "[[RF16]]", "[[RF17]]", "[[RF18]]", "[[
 
 Es la vista de **un curso** (una sección de una asignatura en un período). Es **una sola vista para todos los roles**: cada pestaña y cada acción aparece según el permiso y el alcance del usuario ([[ADR-034 Navegación y layouts]]). Ruta: `/secciones/{seccion}` (ulid), dentro del [[Layout base#Layout Aplicación|Layout Aplicación]].
 
-Se llega desde: **Mis materias** (Estudiante), **Mis secciones** (Docente), **Supervisión de aulas** (Coordinador) y **Secciones del departamento** (Jefe) y el **Panel académico** (Administrador: departamento → carrera → materia → sección). El Administrador ve las pestañas en **solo lectura** ([[ADR-075 El Administrador ve las secciones en solo lectura]]); gestiona las secciones desde **Carga académica** y **Matrícula**.
+Se llega desde: **Mis materias** (Estudiante), **Mis secciones** (Docente), **Supervisión de aulas** (Coordinador) y **Secciones del departamento** (Jefe). El Administrador no entra al contenido ni a las notas ([[ADR-032 Ajustes por el documento de roles]]): gestiona las secciones desde **Carga académica** y **Matrícula**.
 
 ## Cabecera de la sección
 ```

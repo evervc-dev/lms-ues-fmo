@@ -3,7 +3,6 @@
 namespace App\Modules\Identidad\Services;
 
 use App\Models\User;
-use App\Modules\Academica\Services\DepartamentoService;
 use App\Support\Alcance;
 use App\Support\DbContext;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -231,13 +230,9 @@ class AsignacionService
         $permitidos = $actor === null ? null : $this->jerarquia->departamentosPermitidos($actor);
 
         return [
-            // ADR-076: un departamento archivado ya no recibe jefes ni docentes, y sus carreras y planes se ocultan
-            // con él (ni coordinadores ni estudiantes nuevos).
-            'departamentos' => DB::table('departments')->where('is_active', true)->when($permitidos !== null, fn ($q) => $q->whereIn('id', $permitidos))->orderBy('name')->get(['id', 'code', 'name']),
-            'carreras' => DB::table('careers')->whereIn('department_id', DepartamentoService::activos())
-                ->when($permitidos !== null, fn ($q) => $q->whereIn('department_id', $permitidos))->orderBy('name')->get(['id', 'code', 'name', 'department_id']),
-            'planes' => DB::table('study_plans')->whereIn('career_id', DB::table('careers')->whereIn('department_id', DepartamentoService::activos())->select('id'))
-                ->orderBy('name')->get(['id', 'career_id', 'name']),
+            'departamentos' => DB::table('departments')->when($permitidos !== null, fn ($q) => $q->whereIn('id', $permitidos))->orderBy('name')->get(['id', 'code', 'name']),
+            'carreras' => DB::table('careers')->when($permitidos !== null, fn ($q) => $q->whereIn('department_id', $permitidos))->orderBy('name')->get(['id', 'code', 'name', 'department_id']),
+            'planes' => DB::table('study_plans')->orderBy('name')->get(['id', 'career_id', 'name']),
         ];
     }
 
@@ -294,11 +289,8 @@ class AsignacionService
      */
     private function escribirCoordinacion(int $actorId, int $usuarioId, int $carreraId): void
     {
-        $activa = $this->carreraActiva($carreraId);
-        // ADR-076: la carrera de un departamento archivado no recibe un coordinador nuevo; el vigente puede seguir.
-        $esElVigente = DB::table('career_coordinators')->where('career_id', $carreraId)->whereNull('valid_to')->where('user_id', $usuarioId)->exists();
-        if (! $activa && ! $esElVigente) {
-            throw ValidationException::withMessages(['carrera' => __('La carrera elegida es de un departamento archivado.')]);
+        if (! DB::table('careers')->where('id', $carreraId)->exists()) {
+            throw ValidationException::withMessages(['carrera' => __('La carrera elegida no existe.')]);
         }
 
         $this->relevar($actorId, 'career_coordinators', 'career_id', $usuarioId, $carreraId);
@@ -306,14 +298,8 @@ class AsignacionService
 
     private function escribirJefatura(int $actorId, int $usuarioId, int $departamentoId): void
     {
-        $activo = DB::table('departments')->where('id', $departamentoId)->value('is_active');
-        if ($activo === null) {
+        if (! DB::table('departments')->where('id', $departamentoId)->exists()) {
             throw ValidationException::withMessages(['departamento' => __('El departamento elegido no existe.')]);
-        }
-        // ADR-076: un departamento archivado no recibe un jefe nuevo; el vigente puede seguir.
-        $esElVigente = DB::table('department_heads')->where('department_id', $departamentoId)->whereNull('valid_to')->where('user_id', $usuarioId)->exists();
-        if (! (bool) $activo && ! $esElVigente) {
-            throw ValidationException::withMessages(['departamento' => __('El departamento elegido está archivado.')]);
         }
 
         $this->relevar($actorId, 'department_heads', 'department_id', $usuarioId, $departamentoId);
@@ -375,16 +361,11 @@ class AsignacionService
 
     private function escribirDocente(int $usuarioId, int $departamentoId): void
     {
-        $activo = DB::table('departments')->where('id', $departamentoId)->value('is_active');
-        if ($activo === null) {
+        if (! DB::table('departments')->where('id', $departamentoId)->exists()) {
             throw ValidationException::withMessages(['departamento' => __('El departamento elegido no existe.')]);
         }
 
         $actual = DB::table('teacher_profiles')->where('user_id', $usuarioId)->value('department_id');
-        // ADR-076: nadie entra a un departamento archivado; quien ya era docente de él lo conserva como historial.
-        if (! (bool) $activo && ($actual === null || (int) $actual !== $departamentoId)) {
-            throw ValidationException::withMessages(['departamento' => __('El departamento elegido está archivado.')]);
-        }
         if ($actual === null) {
             DB::table('teacher_profiles')->insert(['user_id' => $usuarioId, 'department_id' => $departamentoId, 'created_at' => now(), 'updated_at' => now()]);
         } elseif ((int) $actual !== $departamentoId) {
@@ -403,7 +384,9 @@ class AsignacionService
         $planId = $this->entero($datos, 'plan', __('Elija el plan de estudios.'));
         $ciclo = $this->entero($datos, 'ciclo', __('Indique el ciclo del estudiante.'));
 
-        $carreraActiva = $this->carreraActiva($carreraId);
+        if (! DB::table('careers')->where('id', $carreraId)->exists()) {
+            throw ValidationException::withMessages(['carrera' => __('La carrera elegida no existe.')]);
+        }
         if (! DB::table('study_plans')->where('id', $planId)->where('career_id', $carreraId)->exists()) {
             throw ValidationException::withMessages(['plan' => __('El plan de estudios no pertenece a la carrera elegida.')]);
         }
@@ -411,14 +394,10 @@ class AsignacionService
             throw ValidationException::withMessages(['ciclo' => __('El ciclo debe estar entre 1 y :maximo.', ['maximo' => self::CICLO_MAXIMO])]);
         }
 
+        $this->fijarCarne($usuarioId, $datos['carne'] ?? null);
+
         $activa = DB::table('student_careers')->where('student_id', $usuarioId)->where('status', 'active')
             ->first(['id', 'career_id', 'study_plan_id', 'current_cycle']);
-        // ADR-076: nadie entra a una carrera de un departamento archivado; quien ya la cursa la conserva.
-        if (! $carreraActiva && ($activa === null || (int) $activa->career_id !== $carreraId)) {
-            throw ValidationException::withMessages(['carrera' => __('La carrera elegida es de un departamento archivado.')]);
-        }
-
-        $this->fijarCarne($usuarioId, $datos['carne'] ?? null);
 
         if ($activa !== null && (int) $activa->career_id === $carreraId) {
             if ((int) $activa->study_plan_id !== $planId || (int) $activa->current_cycle !== $ciclo) {
@@ -438,22 +417,6 @@ class AsignacionService
             'student_id' => $usuarioId, 'career_id' => $carreraId, 'study_plan_id' => $planId, 'current_cycle' => $ciclo,
             'admission_period_id' => null, 'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
         ]);
-    }
-
-    /**
-     * ¿La carrera es de un departamento activo (ADR-076)? Si no existe, error de validación.
-     *
-     * @throws ValidationException
-     */
-    private function carreraActiva(int $carreraId): bool
-    {
-        $activo = DB::table('careers')->join('departments', 'departments.id', '=', 'careers.department_id')
-            ->where('careers.id', $carreraId)->value('departments.is_active');
-        if ($activo === null) {
-            throw ValidationException::withMessages(['carrera' => __('La carrera elegida no existe.')]);
-        }
-
-        return (bool) $activo;
     }
 
     /**

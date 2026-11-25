@@ -13,7 +13,6 @@ use App\Modules\Academica\Livewire\InscripcionDetalle;
 use App\Modules\Academica\Livewire\Matricula;
 use App\Modules\Academica\Livewire\MisMaterias;
 use App\Modules\Academica\Livewire\Oferta;
-use App\Modules\Academica\Livewire\PanelAcademico;
 use App\Modules\Academica\Livewire\ParticipantesSeccion;
 use App\Modules\Academica\Livewire\PeriodoDetalle;
 use App\Modules\Academica\Livewire\Periodos;
@@ -31,10 +30,6 @@ Route::middleware('auth')->group(function (): void {
     Route::livewire('/calendario-evaluaciones/{periodo?}', CalendarioEvaluaciones::class)->middleware('permission:periodos.calendario.gestionar')->whereNumber('periodo')->name('periodos.calendario');
     Route::livewire('/catalogo', Catalogo::class)->middleware('permission:asignaturas.gestionar')->name('catalogo');
     Route::livewire('/catalogo/estructura', Estructura::class)->middleware('permission:asignaturas.gestionar')->name('catalogo.estructura');
-    // Panel académico del Administrador (RF07, ADR-075, ADR-076): departamentos → carreras → materias → secciones.
-    Route::livewire('/catalogo/departamentos', PanelAcademico::class)->middleware('permission:asignaturas.gestionar')->name('catalogo.departamentos');
-    Route::livewire('/catalogo/departamentos/{departamento}', PanelAcademico::class)->middleware('permission:asignaturas.gestionar')->whereNumber('departamento')->name('catalogo.departamentos.show');
-    Route::livewire('/catalogo/departamentos/{departamento}/carreras/{carrera}', PanelAcademico::class)->middleware('permission:asignaturas.gestionar')->whereNumber(['departamento', 'carrera'])->name('catalogo.departamentos.carrera');
     // Jefe (D) y Coordinador (C): las carreras de su ámbito, con sus docentes, materias, grupos y horarios.
     Route::livewire('/carreras', Carreras::class)->middleware('permission:carreras.ver')->name('carreras');
     Route::livewire('/carreras/{carrera}', CarreraDetalle::class)->middleware('permission:carreras.ver')->whereNumber('carrera')->name('carreras.show');

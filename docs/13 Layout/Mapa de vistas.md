@@ -107,9 +107,6 @@ Referencia para desarrollo: cada vista con su **ruta**, **layout**, **componente
 | Período | `/periodos/{periodo}` | App | `academica.periodo` | `periodos.gestionar` | Adm (G) | [[RF06]], [[RF34]] |
 | Catálogo · Asignaturas | `/catalogo/asignaturas` | App | `academica.asignaturas` | `asignaturas.gestionar` | Adm (G) | [[RF07]] |
 | Catálogo · Departamentos, carreras, planes y aulas | `/catalogo/...` | App | `academica.catalogo` | `asignaturas.gestionar` | Adm (G) | [[RF07]] |
-| Panel académico · Departamentos | `/catalogo/departamentos` | App | `catalogo.departamentos` | `asignaturas.gestionar` | Adm (G) | [[RF07]], [[ADR-075 El Administrador ve las secciones en solo lectura]] |
-| Panel académico · Carreras del departamento | `/catalogo/departamentos/{departamento}` | App | `catalogo.departamentos.show` | `asignaturas.gestionar` | Adm (G) | [[RF07]] |
-| Panel académico · Materias y grupos teóricos de la carrera | `/catalogo/departamentos/{departamento}/carreras/{carrera}` | App | `catalogo.departamentos.carrera` | `asignaturas.gestionar` | Adm (G) | [[RF07]], [[ADR-075 El Administrador ve las secciones en solo lectura]] |
 | Áreas de asistencia | `/areas-asistencia` | App | `asistencia.areas` | `areas-asistencia.gestionar` | Adm (G) | [[RF26]] |
 | Integraciones | `/integraciones` | App | `identidad.integraciones` | `integraciones.gestionar` | Adm (G) | [[RNF09]] |
 | Colas | `/horizon` | Horizon | (panel de Horizon) | Gate `viewHorizon` (`horizon.ver`) | Adm (G) | [[ADR-026 Autorización sin Policies]] |

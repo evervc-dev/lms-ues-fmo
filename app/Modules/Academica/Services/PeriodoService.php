@@ -112,12 +112,8 @@ class PeriodoService
         $this->alcance->exigir($actor, 'periodos.gestionar');
         $periodo = DB::table('academic_periods')->where('id', $periodoId)->first() ?? abort(404);
 
-        // ADR-076: un departamento archivado sale de la lista salvo que tenga secciones o cierre en este período,
-        // para no tocar el historial de los períodos cerrados.
         $cierres = DB::table('departments as d')
             ->leftJoin('department_closures as c', fn ($j) => $j->on('c.department_id', '=', 'd.id')->where('c.period_id', $periodoId))
-            ->where(fn ($q) => $q->where('d.is_active', true)->orWhereNotNull('c.id')
-                ->orWhereIn('d.id', DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')->where('sections.period_id', $periodoId)->select('subjects.department_id')))
             ->leftJoin('users as u', 'u.id', '=', 'c.authorized_by')
             ->orderBy('d.code')
             ->get(['d.id', 'd.code', 'd.name', 'c.authorized_at', DB::raw("u.first_name || ' ' || u.last_name as autorizo")]);

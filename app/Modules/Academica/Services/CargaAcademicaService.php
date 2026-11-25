@@ -244,7 +244,7 @@ class CargaAcademicaService
 
     /**
      * Departamentos en que el actor crea grupos teóricos: todos (G), los que dirige (D) o los de las carreras que
-     * coordina (C). Sin los archivados (ADR-076).
+     * coordina (C).
      *
      * @return Collection<int, \stdClass>
      */
@@ -252,14 +252,13 @@ class CargaAcademicaService
     {
         $global = $this->alcance->exigir($actor, 'secciones.crear') === 'G';
 
-        return DB::table('departments')->where('is_active', true)
+        return DB::table('departments')
             ->when(! $global, fn ($q) => $q->whereIn('id', $this->carrerasParaGrupos($actor)->pluck('department_id')->unique()->all()))
             ->orderBy('code')->get(['id', 'code', 'name']);
     }
 
     /**
      * Carreras para elegir al crear un grupo teórico: todas (G), las de su departamento (D) o las que coordina (C).
-     * Sin las de un departamento archivado (ADR-076).
      *
      * @return Collection<int, \stdClass>
      */
@@ -267,7 +266,7 @@ class CargaAcademicaService
     {
         $alcance = $this->alcance->exigir($actor, 'secciones.crear');
 
-        return DB::table('careers')->whereIn('department_id', DepartamentoService::activos())
+        return DB::table('careers')
             ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
             ->when($alcance === 'C', fn ($q) => $q->whereIn('id', $this->alcance->carreras($actor)))
             ->when(! in_array($alcance, ['G', 'D', 'C'], true), fn ($q) => $q->whereRaw('1 = 0'))
@@ -289,7 +288,7 @@ class CargaAcademicaService
 
     /**
      * Asignaturas que el actor puede programar: todas (G), las de su departamento (D, el Jefe, ADR-073)
-     * o las de los planes de su carrera (C). Ni inactivas ni de un departamento archivado (ADR-076).
+     * o las de los planes de su carrera (C).
      *
      * @return Collection<int, object>
      */
@@ -297,7 +296,7 @@ class CargaAcademicaService
     {
         $alcance = $this->alcance->exigir($actor, $permiso);
 
-        return DB::table('subjects')->where('is_active', true)->whereIn('department_id', DepartamentoService::activos())
+        return DB::table('subjects')->where('is_active', true)
             ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
             ->when($alcance === 'C', fn ($q) => $q->whereIn('id', DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
                 ->whereIn('study_plans.career_id', $this->alcance->carreras($actor))->select('career_subjects.subject_id')))

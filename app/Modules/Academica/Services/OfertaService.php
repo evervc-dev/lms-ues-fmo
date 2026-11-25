@@ -32,13 +32,10 @@ class OfertaService
         $activo = PeriodoService::activoId();
         $cerrado = DB::table('academic_periods')->where('status', 'closed')->orderByDesc('end_date')->first(['id', 'name']);
 
-        // ADR-076: sin las carreras de un departamento archivado. Se filtra aquí y no en Alcance::carrerasVisibles(),
-        // porque los reportes históricos sí deben poder filtrar por ellas.
-        $activas = DB::table('careers')->whereIn('department_id', DepartamentoService::activos())->pluck('id')->map(fn ($id) => (int) $id)->all();
-        $carreras = $this->alcance->carrerasVisibles($actor, 'oferta.estadisticas.ver')->filter(fn (\stdClass $c) => in_array((int) $c->id, $activas, true))->values();
+        $carreras = $this->alcance->carrerasVisibles($actor, 'oferta.estadisticas.ver');
         $carrera = $carreras->contains(fn (\stdClass $c) => (int) $c->id === $carrera) ? $carrera : null;
 
-        $asignaturas = DB::table('subjects')->where('is_active', true)->whereIn('department_id', DepartamentoService::activos())
+        $asignaturas = DB::table('subjects')->where('is_active', true)
             ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
             ->when($alcance === 'C', fn ($q) => $q->whereIn('id', DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
                 ->whereIn('study_plans.career_id', $this->alcance->carreras($actor))->select('career_subjects.subject_id')))

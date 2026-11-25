@@ -86,7 +86,6 @@ return [
                 ['clave' => 'periodos', 'etiqueta' => 'Períodos', 'ruta' => 'periodos', 'permiso' => 'periodos.gestionar', 'icono' => 'calendar-days'],
                 ['clave' => 'calendario-evaluaciones', 'etiqueta' => 'Calendario de evaluaciones', 'ruta' => 'periodos.calendario', 'permiso' => 'periodos.calendario.gestionar', 'icono' => 'calendar-days'],
                 ['clave' => 'catalogo', 'etiqueta' => 'Catálogo', 'ruta' => 'catalogo', 'permiso' => 'asignaturas.gestionar', 'icono' => 'squares-2x2'],
-                ['clave' => 'panel-academico', 'etiqueta' => 'Panel académico', 'ruta' => 'catalogo.departamentos', 'permiso' => 'asignaturas.gestionar', 'icono' => 'building-library'],
                 ['clave' => 'carga-academica', 'etiqueta' => 'Carga académica', 'ruta' => 'carga-academica', 'permiso' => 'secciones.gestionar', 'icono' => 'building-office'],
                 ['clave' => 'matricula', 'etiqueta' => 'Matrícula', 'ruta' => 'matricula', 'permiso' => 'matricula.gestionar', 'icono' => 'user-plus'],
                 ['clave' => 'areas-asistencia', 'etiqueta' => 'Áreas de asistencia', 'ruta' => 'areas-asistencia', 'permiso' => 'areas-asistencia.gestionar', 'icono' => 'map-pin'],

@@ -83,13 +83,11 @@ class CalendarioPeriodoService
         $opciones = $alcance === 'G' ? [['valor' => 'global', 'etiqueta' => __('Todo el período')]] : [];
 
         if (in_array($alcance, ['G', 'D'], true)) {
-            // ADR-076: un departamento archivado ya no recibe fechas nuevas; las que tenía siguen en eventos().
-            foreach (DB::table('departments')->where('is_active', true)->whereIn('id', $this->alcance->departamentos($usuario))->orderBy('name')->get(['id', 'name']) as $d) {
+            foreach (DB::table('departments')->whereIn('id', $this->alcance->departamentos($usuario))->orderBy('name')->get(['id', 'name']) as $d) {
                 $opciones[] = ['valor' => 'departamento:'.$d->id, 'etiqueta' => __('Departamento: :n', ['n' => $d->name])];
             }
         }
-        // ADR-076: las carreras de un departamento archivado se ocultan con él.
-        foreach (DB::table('careers')->whereIn('id', $this->alcance->carreras($usuario))->whereIn('department_id', DepartamentoService::activos())->orderBy('name')->get(['id', 'name']) as $c) {
+        foreach (DB::table('careers')->whereIn('id', $this->alcance->carreras($usuario))->orderBy('name')->get(['id', 'name']) as $c) {
             $opciones[] = ['valor' => 'carrera:'.$c->id, 'etiqueta' => __('Carrera: :n', ['n' => $c->name])];
         }
 

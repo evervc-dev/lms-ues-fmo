@@ -3,7 +3,6 @@
 namespace App\Modules\Reportes\Services;
 
 use App\Models\User;
-use App\Modules\Academica\Services\DepartamentoService;
 use App\Modules\Academica\Services\PeriodoService;
 use App\Modules\Asistencia\Services\AsistenciaService;
 use App\Support\Alcance;
@@ -288,11 +287,7 @@ class PanelService
 
         return $this->gestion($secciones) + [
             'periodo' => $periodo,
-            // ADR-076: los dos sobre departamentos activos, para que nunca salga «3 de 2».
-            'cierres' => [
-                'autorizados' => DB::table('department_closures')->where('period_id', $periodo?->id)->whereIn('department_id', DepartamentoService::activos())->count(),
-                'departamentos' => DB::table('departments')->where('is_active', true)->count(),
-            ],
+            'cierres' => ['autorizados' => DB::table('department_closures')->where('period_id', $periodo?->id)->count(), 'departamentos' => DB::table('departments')->count()],
             'usuarios' => ['activos' => DB::table('users')->where('is_active', true)->count(), 'accesosHoy' => DB::table('login_history')->where('occurred_at', '>=', now()->startOfDay())->where('result', 'success')->count()],
             'colas' => DB::table('failed_jobs')->count(),
         ];
