@@ -98,7 +98,7 @@ return [
     'personas.show' => ['uri' => '/personas/{usuario}', 'permiso' => 'perfiles.ver', 'titulo' => 'Perfil', 'modulo' => 'Identidad', 'rf' => ['RF36'], 'op' => null, 'donde' => ['usuario' => '[0-9]+']],
     'roles' => ['uri' => '/roles', 'permiso' => 'roles.gestionar', 'titulo' => 'Roles y permisos', 'modulo' => 'Identidad', 'rf' => ['RF03'], 'op' => 383],
     'periodos' => ['uri' => '/periodos', 'permiso' => 'periodos.gestionar', 'titulo' => 'Períodos', 'modulo' => 'Academica', 'rf' => ['RF06'], 'op' => 395],
-    'periodos.calendario' => ['uri' => '/calendario-evaluaciones/{periodo?}', 'permiso' => 'periodos.calendario.gestionar', 'titulo' => 'Calendario de evaluaciones', 'modulo' => 'Academica', 'rf' => ['RF06'], 'op' => 393],
+    'periodos.calendario' => ['uri' => '/calendario-evaluaciones/{periodo?}', 'permiso' => 'periodos.calendario.gestionar|periodos.calendario.ver', 'titulo' => 'Calendario de evaluaciones', 'modulo' => 'Academica', 'rf' => ['RF06'], 'op' => 393],
     'periodos.show' => ['uri' => '/periodos/{periodo}', 'permiso' => 'periodos.gestionar', 'titulo' => 'Período', 'modulo' => 'Academica', 'rf' => ['RF06', 'RF34'], 'op' => 395, 'migas' => ['periodos']],
     'catalogo' => ['uri' => '/catalogo', 'permiso' => 'asignaturas.gestionar', 'titulo' => 'Catálogo de asignaturas', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => 399],
     'catalogo.asignaturas.crear' => ['uri' => '/catalogo/asignaturas/nueva', 'permiso' => 'asignaturas.gestionar', 'titulo' => 'Nueva asignatura', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => 399, 'migas' => ['catalogo']],

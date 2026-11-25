@@ -428,7 +428,7 @@ erDiagram
     bigint id PK
     bigint resource_id FK
     bigint enrollment_id FK
-    varchar event_type "open, download"
+    varchar event_type "open, download, end (RF38)"
     int duration_seconds "visible tab time"
     timestamptz occurred_at "monthly partitions"
   }
@@ -481,6 +481,8 @@ erDiagram
     smallint autosave_seconds "30"
     varchar navigation "free, linear"
     boolean review_published
+    bigint required_resource_id FK "RF38: lectura exigida (ADR-091)"
+    boolean is_reading_check "RF38: verificación de lectura, sin ítem de calificación (ADR-091)"
   }
   teams {
     bigint id PK

@@ -6,7 +6,7 @@
 
 <div {{ $attributes->class(['flex flex-wrap items-end justify-between gap-3']) }}>
     <div class="min-w-0">
-        <h1 class="text-2xl font-semibold tracking-tight text-texto">{{ $titulo }}</h1>
+        <h1 class="flex items-center gap-2 text-2xl font-semibold tracking-tight text-texto">{{ $titulo }}@isset($info){{ $info }}@endisset</h1>
         @if ($subtitulo)
             <p class="mt-1 text-sm text-texto-suave">{{ $subtitulo }}</p>
         @endif

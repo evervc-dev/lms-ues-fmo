@@ -21,6 +21,7 @@ return [
         'dispositivos.gestionar' => ['soporte_tecnico' => 'G'],
         'periodos.gestionar' => ['administrador' => 'G', 'superadmin' => 'G'],
         'periodos.calendario.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C', 'superadmin' => 'G'],
+        'periodos.calendario.ver' => ['docente' => 'S', 'estudiante' => 'M'],
         'asignaturas.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'superadmin' => 'G'],
         'carreras.ver' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C', 'superadmin' => 'G'],
         'secciones.crear' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'superadmin' => 'G'],

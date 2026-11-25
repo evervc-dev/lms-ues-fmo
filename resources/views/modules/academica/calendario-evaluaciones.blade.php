@@ -1,5 +1,6 @@
-{{-- Calendario de evaluaciones por ámbito (RF06, CP-RF06-04, ADR-068). --}}
-@php($abierto = $periodo->status !== 'closed')
+{{-- Calendario de evaluaciones por ámbito (RF06, CP-RF06-04, ADR-068). El Docente y el Estudiante lo consultan sin
+     poder cambiarlo (ADR-094): sin «gestionar» no hay agregar, eliminar, sincronizar ni la columna de Google Calendar. --}}
+@php($abierto = $periodo->status !== 'closed' && $puedeGestionar)
 <div class="flex flex-col gap-5">
     <x-ui.encabezado :titulo="__('Calendario de evaluaciones')"
         :subtitulo="$periodo->name.' · '.\Illuminate\Support\Carbon::parse($periodo->start_date)->format('d/m/Y').' – '.\Illuminate\Support\Carbon::parse($periodo->end_date)->format('d/m/Y')">
@@ -82,8 +83,8 @@
         @endif
     </x-ui.card>
 
-    <x-ui.card :titulo="__('Lista de fechas y sincronización')"
-        :descripcion="__('El evento queda en el calendario de quien lo sincroniza e invita solo a los docentes y estudiantes de ese ámbito. Las fechas de todo el período las fija el Administrador; usted gestiona las suyas.')">
+    <x-ui.card :titulo="$puedeGestionar ? __('Lista de fechas y sincronización') : __('Lista de fechas')"
+        :descripcion="$puedeGestionar ? __('El evento queda en el calendario de quien lo sincroniza e invita solo a los docentes y estudiantes de ese ámbito. Las fechas de todo el período las fija el Administrador; usted gestiona las suyas.') : __('Las fechas de evaluación que le aplican: las de todo el período y las del departamento y la carrera de sus materias.')">
         @if ($abierto && $calendarHabilitado && ! $calendarConectado)
             <x-ui.alert tipo="info" class="mb-4">
                 {{ __('Para sincronizar, conecte primero su Google Calendar.') }}
@@ -93,7 +94,7 @@
 
         <x-ui.table :vacio="__('Aún no hay fechas en el calendario de evaluaciones.')">
             <x-slot:cabecera>
-                <th>{{ __('Evento') }}</th><th>{{ __('Ámbito') }}</th><th>{{ __('Fecha') }}</th><th>{{ __('Google Calendar') }}</th>
+                <th>{{ __('Evento') }}</th><th>{{ __('Ámbito') }}</th><th>{{ __('Fecha') }}</th>@if ($puedeGestionar)<th>{{ __('Google Calendar') }}</th>@endif
                 @if ($abierto)<th class="text-right">{{ __('Acciones') }}</th>@endif
             </x-slot:cabecera>
             @foreach ($fechas as $f)
@@ -104,6 +105,7 @@
                         {{ \Illuminate\Support\Carbon::parse($f->starts_at)->timezone(config('app.timezone'))->format($f->ends_at ? 'd/m/Y H:i' : 'd/m/Y') }}
                         @if ($f->ends_at) – {{ \Illuminate\Support\Carbon::parse($f->ends_at)->timezone(config('app.timezone'))->format('d/m/Y H:i') }} @else <span class="text-texto-suave">· {{ __('todo el día') }}</span> @endif
                     </td>
+                    @if ($puedeGestionar)
                     <td>
                         {{-- Sin la integración habilitada no hay nada sincronizado, aunque quede un registro anterior (QA 03/11, H-07). --}}
                         @if (! $calendarHabilitado)
@@ -119,6 +121,7 @@
                         @endswitch
                         @endif
                     </td>
+                    @endif
                     @if ($abierto)
                         <td class="text-right">
                             @if ($f->editable)
@@ -134,6 +137,7 @@
         </x-ui.table>
     </x-ui.card>
 
+    @if ($abierto)
     <x-ui.modal nombre="agregar-fecha" :titulo="__('Agregar fecha al calendario de evaluaciones')">
         {{-- «Todo el día» deja el fin vacío, que es como el Service guarda un evento de día completo. --}}
         <form wire:submit="agregarFecha" id="form-agregar-fecha" class="flex flex-col gap-4" x-data="{ todoElDia: ! $wire.finFecha, soloFecha: '' }" x-effect="soloFecha = ($wire.inicioFecha || '').slice(0, 10)">
@@ -167,4 +171,5 @@
             <x-ui.button type="submit" form="form-agregar-fecha">{{ __('Agregar') }}</x-ui.button>
         </x-slot:pie>
     </x-ui.modal>
+    @endif
 </div>

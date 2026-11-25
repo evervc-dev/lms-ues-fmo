@@ -30,7 +30,7 @@ Route::middleware('auth')->group(function (): void {
     Route::livewire('/periodos/{periodo}', PeriodoDetalle::class)->middleware('permission:periodos.gestionar')->whereNumber('periodo')->name('periodos.show');
     // RF06 (ADR-068): el Administrador, el Jefe y el Coordinador fijan las fechas de su ámbito. Sin período en la
     // ruta se usa el vigente, porque el Jefe y el Coordinador no entran a la lista de períodos.
-    Route::livewire('/calendario-evaluaciones/{periodo?}', CalendarioEvaluaciones::class)->middleware('permission:periodos.calendario.gestionar')->whereNumber('periodo')->name('periodos.calendario');
+    Route::livewire('/calendario-evaluaciones/{periodo?}', CalendarioEvaluaciones::class)->middleware('permission:periodos.calendario.gestionar|periodos.calendario.ver')->whereNumber('periodo')->name('periodos.calendario');
     Route::livewire('/catalogo', Catalogo::class)->middleware('permission:asignaturas.gestionar')->name('catalogo');
     // RF07: el formulario de la asignatura va en página (sus planes crecen con los datos); se edita por código.
     Route::livewire('/catalogo/asignaturas/nueva', AsignaturaFormulario::class)->middleware('permission:asignaturas.gestionar')->name('catalogo.asignaturas.crear');

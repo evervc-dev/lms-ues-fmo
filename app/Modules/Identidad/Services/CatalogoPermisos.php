@@ -25,6 +25,7 @@ final class CatalogoPermisos
         'dispositivos.gestionar' => ['Gestionar teléfonos', 'Aprobar o rechazar cambios de teléfono de los estudiantes.'],
         'periodos.gestionar' => ['Gestionar períodos', 'Crear, preparar, abrir y cerrar períodos académicos.'],
         'periodos.calendario.gestionar' => ['Gestionar el calendario de evaluaciones', 'Agregar fechas del período y sincronizarlas con Google Calendar.'],
+        'periodos.calendario.ver' => ['Ver el calendario de evaluaciones', 'Consultar las fechas de evaluación que le aplican, sin cambiarlas.'],
         'asignaturas.gestionar' => ['Gestionar el catálogo', 'Crear, editar, desactivar y eliminar asignaturas.'],
         'carreras.ver' => ['Ver carreras', 'Consultar carreras con su coordinador, materias y grupos.'],
         'secciones.crear' => ['Crear grupos teóricos', 'Abrir grupos teóricos en un período.'],
