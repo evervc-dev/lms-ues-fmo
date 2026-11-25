@@ -138,7 +138,7 @@ it('CP-RF25-05 no programa dos veces el mismo reporte con la misma frecuencia', 
         $reportes->programar($e['coordinador'], 'asistencia', 'weekly');
         $this->fail('Se esperaba el rechazo del envío repetido.');
     } catch (ValidationException $error) {
-        expect($error->errors()['tipo'][0])->toBe('Ya tiene programado «Asistencia por sección» con esa frecuencia. Cancele el envío de la lista si quiere cambiarlo.');
+        expect($error->errors()['tipo'][0])->toBe('Ya tiene programado «Asistencia por grupo teórico» con esa frecuencia. Cancele el envío de la lista si quiere cambiarlo.');
     }
 
     expect(DB::table('scheduled_reports')->count())->toBe(1);

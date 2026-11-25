@@ -201,7 +201,7 @@ it('CP-RF17-01 bloquea los pesos cuando la sección tiene notas publicadas', fun
 
     $errores = pesosErrores(fn () => app(ComputoService::class)->guardarPesos($e['docente'], $e['seccion'], [$s['computos'][0] => 40, $s['computos'][1] => 60], []));
 
-    expect($errores['computos'][0])->toBe('La sección ya tiene notas publicadas: no se pueden cambiar los pesos.')
+    expect($errores['computos'][0])->toBe('El grupo teórico ya tiene notas publicadas: no se pueden cambiar los pesos.')
         ->and(pesosDe('grading_components', $s['computos']))->toEqual([50.0, 50.0]);
 });
 
@@ -265,9 +265,9 @@ it('CP-RF17-01 no publica el acta de una sección cuyos cómputos no suman 100 %
 it('CP-RF17-01 la sección nueva nace con los cómputos de la plantilla del período', function () {
     $e = escenario();
     pesosPlantilla($e);
-    actingAs($e['coordinador']);
+    actingAs($e['jefe']); // Crear grupos es del Administrador y del Jefe (ADR-074).
 
-    $seccion = app(CargaAcademicaService::class)->crearSeccion($e['coordinador'], $e['periodo'], $e['prn'], '02', 40);
+    $seccion = app(CargaAcademicaService::class)->crearSeccion($e['jefe'], $e['periodo'], $e['prn'], '02', 40);
 
     $computos = DB::table('grading_components')->where('section_id', $seccion)->orderBy('number')->get();
     expect($computos->pluck('name')->all())->toBe(['Cómputo 1', 'Cómputo 2', 'Cómputo 3'])

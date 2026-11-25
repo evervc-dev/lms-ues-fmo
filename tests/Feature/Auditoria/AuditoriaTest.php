@@ -243,3 +243,16 @@ it('CP-RF05-02 la auditoría en palabras muestra una columna JSON como su JSON e
         ->toContain('Estado: Activa → ')
         ->toContain('settings: {"modo":"qr"} → {"modo":"meet","radio":50}');
 });
+
+it('pagina la auditoría con «Anterior» y «Siguiente» en español, sin mostrar las claves de traducción', function () {
+    $e = escenario();
+    if (DB::connection()->getDriverName() === 'pgsql') {
+        $this->markTestSkipped('En PostgreSQL los eventos los escriben los triggers.');
+    }
+    foreach (range(1, 26) as $n) {
+        eventoDeAuditoria($e['dia'], "grade.corrected.{$n}");
+    }
+
+    actingAs($e['administrador'])->get(route('auditoria'))->assertOk()
+        ->assertSeeText(['Anterior', 'Siguiente'])->assertDontSee('pagination.');
+});

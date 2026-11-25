@@ -109,7 +109,7 @@
                                 </x-ui.field>
                             </div>
                             @if ($cuestionarios->isEmpty())
-                                <p class="text-sm text-texto-suave">{{ __('Esta sección aún no tiene cuestionarios: cree uno antes de usar esta regla.') }}</p>
+                                <p class="text-sm text-texto-suave">{{ __('Este grupo teórico aún no tiene cuestionarios: cree uno antes de usar esta regla.') }}</p>
                             @endif
                         @elseif ($reglaTipo === 'submission')
                             <x-ui.field :etiqueta="__('Tarea')" para="reglaEvaluacion" error="reglaEvaluacion" :ayuda="__('En una tarea grupal cuenta la entrega del equipo.')" requerido>
@@ -119,7 +119,7 @@
                                 </x-ui.select>
                             </x-ui.field>
                             @if ($tareas->isEmpty())
-                                <p class="text-sm text-texto-suave">{{ __('Esta sección aún no tiene tareas: cree una antes de usar esta regla.') }}</p>
+                                <p class="text-sm text-texto-suave">{{ __('Este grupo teórico aún no tiene tareas: cree una antes de usar esta regla.') }}</p>
                             @endif
                         @elseif ($reglaTipo === 'forum_posts')
                             <div class="grid gap-4 sm:grid-cols-2">
@@ -134,7 +134,7 @@
                                 </x-ui.field>
                             </div>
                             @if ($hilos->isEmpty())
-                                <p class="text-sm text-texto-suave">{{ __('Esta sección aún no tiene hilos en el foro: abra uno antes de usar esta regla.') }}</p>
+                                <p class="text-sm text-texto-suave">{{ __('Este grupo teórico aún no tiene hilos en el foro: abra uno antes de usar esta regla.') }}</p>
                             @endif
                         @endif
 

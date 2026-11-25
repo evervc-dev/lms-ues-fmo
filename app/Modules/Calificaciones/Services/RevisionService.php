@@ -188,7 +188,7 @@ class RevisionService
             throw ValidationException::withMessages(['solicitud' => __('Esta solicitud ya fue resuelta.')]);
         }
         if ($this->actaPublicada($seccionId)) {
-            throw ValidationException::withMessages(['solicitud' => __('El acta de la sección ya se publicó: la nota solo la corrige el Coordinador.')]);
+            throw ValidationException::withMessages(['solicitud' => __('El acta del grupo teórico ya se publicó: la nota solo la corrige el Coordinador.')]);
         }
 
         $cambios = $this->validarDecisiones($detalle['items'], $decisiones);
@@ -285,7 +285,7 @@ class RevisionService
             return __('El período está cerrado.');
         }
         if ($this->actaPublicada((int) $actividad->section_id)) {
-            return __('El acta de la sección ya se publicó.');
+            return __('El acta del grupo teórico ya se publicó.');
         }
         // Un cuestionario se revisa cuando su corrección ya es visible: el cierre más la demora (ADR-040).
         if ($actividad->assessment_type === 'quiz' && ! CuestionarioService::revisionVisible($actividad)) {

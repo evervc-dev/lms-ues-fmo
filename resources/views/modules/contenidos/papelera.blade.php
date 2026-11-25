@@ -14,7 +14,7 @@
                     <td>{{ $eliminado->format('d/m/Y') }}</td>
                     <td class="text-right">{{ trans_choice('{1} 1 día|[0,*] :count días', max(0, $dias - (int) $eliminado->diffInDays(now()))) }}</td>
                     <td class="text-right">
-                        <x-ui.button tamano="sm" variante="fantasma" wire:click="{{ $r->tipo === 'unidad' ? 'restaurarUnidad' : 'restaurar' }}({{ $r->id }})" wire:confirm="{{ __('¿Restaurar «:t»? Volverá a verse en la sección.', ['t' => $r->title]) }}">{{ __('Restaurar') }}</x-ui.button>
+                        <x-ui.button tamano="sm" variante="fantasma" wire:click="{{ $r->tipo === 'unidad' ? 'restaurarUnidad' : 'restaurar' }}({{ $r->id }})" wire:confirm="{{ __('¿Restaurar «:t»? Volverá a verse en el grupo teórico.', ['t' => $r->title]) }}">{{ __('Restaurar') }}</x-ui.button>
                     </td>
                 </tr>
             @endforeach

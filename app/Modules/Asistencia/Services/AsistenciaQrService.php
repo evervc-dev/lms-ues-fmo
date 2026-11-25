@@ -34,7 +34,7 @@ class AsistenciaQrService
         'session_closed' => 'La sesión de asistencia está cerrada',
         'token_expired' => 'Código vencido; escanee el QR actual',
         'scan_limit' => 'Ya usó sus :n intentos en esta sesión. Pida un código temporal a su docente.',
-        'not_enrolled' => 'No está matriculado en esta sección.',
+        'not_enrolled' => 'No está matriculado en este grupo teórico.',
         'already_recorded' => 'Ya registró su asistencia en esta sesión.',
         'out_of_range' => 'Fuera del área de asistencia',
         'invalid_device' => 'Este teléfono no es su dispositivo registrado. Regístrelo en Mi perfil o solicite el cambio a Soporte.',

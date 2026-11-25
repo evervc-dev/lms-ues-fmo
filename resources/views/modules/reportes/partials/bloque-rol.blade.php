@@ -81,7 +81,7 @@
     @case('docente')
         <div class="grid gap-3 sm:grid-cols-3">
             <x-ui.stat :etiqueta="__('Pendientes de calificar')" :valor="$b['porCalificar']" icono="inbox-stack" :tono="$b['porCalificar'] ? 'aviso' : 'exito'" />
-            <x-ui.stat :etiqueta="__('Matrícula y carga académica')" :valor="$b['matricula']" icono="users" :detalle="trans_choice('{1} en 1 sección|[0,*] en :count secciones', $b['secciones'])" />
+            <x-ui.stat :etiqueta="__('Matrícula y carga académica')" :valor="$b['matricula']" icono="users" :detalle="trans_choice('{1} en 1 grupo teórico|[0,*] en :count grupos teóricos', $b['secciones'])" />
             <x-ui.stat :etiqueta="__('Estudiantes en alerta')" :valor="$b['enAlerta']" icono="exclamation-triangle" :tono="$b['enAlerta'] ? 'error' : 'exito'" />
         </div>
         <div class="mt-4 grid gap-4 lg:grid-cols-2">
@@ -116,14 +116,14 @@
              aclaraban si eran de los docentes o de los estudiantes (revisión del rol Jefe de departamento). --}}
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <x-ui.stat :etiqueta="__('Matrículas activas de estudiantes')" :valor="number_format($b['matricula'])" icono="users"
-                :detalle="trans_choice('{1} 1 sección|[0,*] :count secciones', $b['secciones']).' · '.__('una por estudiante y materia')" />
+                :detalle="trans_choice('{1} 1 grupo teórico|[0,*] :count grupos teóricos', $b['secciones']).' · '.__('una por estudiante y materia')" />
             <x-ui.stat :etiqueta="__('Asistencia de estudiantes')" :valor="$b['asistencia'] !== null ? $b['asistencia'].' %' : '—'" icono="clipboard-document-check"
                 :tono="$b['asistencia'] !== null && $b['asistencia'] < 85 ? 'aviso' : 'exito'"
-                :detalle="__('Marcas de los matriculados en estas secciones; no incluye la de los docentes')" />
+                :detalle="__('Marcas de los matriculados en estos grupos teóricos; no incluye la de los docentes')" />
             <x-ui.stat :etiqueta="__('Matrículas de estudiantes en riesgo')" :valor="$b['riesgo']" icono="exclamation-triangle" :tono="$b['riesgo'] ? 'error' : 'exito'"
                 :detalle="__('Asistencia bajo el 75 % o riesgo de reprobar por notas')" />
-            <x-ui.stat :etiqueta="__('Secciones sin docente asignado')" :valor="$b['sinDocente']" icono="user-plus" :tono="$b['sinDocente'] ? 'aviso' : 'exito'"
-                :detalle="trans_choice('{0} Todas tienen docente|{1} 1 sección por asignar|[2,*] :count secciones por asignar', $b['sinDocente'])" />
+            <x-ui.stat :etiqueta="__('Grupos teóricos sin docente asignado')" :valor="$b['sinDocente']" icono="user-plus" :tono="$b['sinDocente'] ? 'aviso' : 'exito'"
+                :detalle="trans_choice('{0} Todos tienen docente|{1} 1 grupo teórico por asignar|[2,*] :count grupos teóricos por asignar', $b['sinDocente'])" />
         </div>
         @if ($rol === 'coordinador')
             <x-ui.card class="mt-4" :titulo="__('Pendientes de decisión')">
@@ -135,7 +135,7 @@
             </x-ui.card>
         @elseif ($rol === 'jefe_departamento')
             <div class="mt-4 grid gap-4 lg:grid-cols-2">
-                <x-ui.card :titulo="__('Estado del cierre')" :descripcion="__('Actas de las secciones de su departamento en el período en curso.')">
+                <x-ui.card :titulo="__('Estado del cierre')" :descripcion="__('Actas de los grupos teóricos de su departamento en el período en curso.')">
                     <p class="mb-2 text-sm">{{ __(':v de :t actas validadas por los coordinadores', ['v' => $b['actas']['validadas'], 't' => $b['actas']['total']]) }}</p>
                     <x-ui.progress :valor="$b['actas']['total'] ? 100 * $b['actas']['validadas'] / $b['actas']['total'] : 0" />
                     <x-ui.button class="mt-3" tamano="sm" variante="secundario" :href="route('cierre')">{{ __('Ir al cierre') }}</x-ui.button>

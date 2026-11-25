@@ -20,7 +20,7 @@ class Importar extends Component
 
     public function importar(ContenidoService $contenidos): void
     {
-        $this->validate(['origen' => 'required|integer'], [], ['origen' => 'sección de origen']);
+        $this->validate(['origen' => 'required|integer'], [], ['origen' => 'grupo teórico de origen']);
         $copiado = $contenidos->importar(auth()->user(), (int) $this->origen, $this->seccionId());
         $mensaje = trans_choice('{0} No había recursos para copiar.|{1} Se copió 1 recurso.|[2,*] Se copiaron :count recursos.', $copiado['recursos']);
         if ($copiado['evaluaciones'] > 0) {

@@ -4,7 +4,7 @@
 
     <div class="grid gap-5 lg:grid-cols-2">
         @foreach ([
-            ['titulo' => __('Docentes'), 'personas' => $docentes, 'vacio' => __('La sección no tiene docentes asignados.')],
+            ['titulo' => __('Docentes'), 'personas' => $docentes, 'vacio' => __('El grupo teórico no tiene docentes asignados.')],
             ['titulo' => __('Coordinación de la carrera'), 'personas' => $coordinadores, 'vacio' => __('Ninguna carrera con esta asignatura tiene coordinador asignado.')],
             ['titulo' => __('Estudiantes (:n)', ['n' => $estudiantes->count()]), 'personas' => $estudiantes, 'vacio' => __('Aún no hay estudiantes inscritos.')],
         ] as $grupo)

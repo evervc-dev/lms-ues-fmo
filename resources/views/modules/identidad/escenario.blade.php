@@ -165,7 +165,7 @@
         <section class="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-5">
             <p class="text-sm text-zinc-600">{{ __('Limpiar borra solo lo que sembró este escenario; el resto del entorno queda igual.') }}</p>
             <x-ui.button variante="peligro" tamano="sm" wire:click="limpiar"
-                wire:confirm="{{ __('¿Limpiar el escenario :codigo? Se borran sus materias, secciones, matrículas y actividades.', ['codigo' => $escenario->code]) }}">
+                wire:confirm="{{ __('¿Limpiar el escenario :codigo? Se borran sus materias, grupos teóricos, matrículas y actividades.', ['codigo' => $escenario->code]) }}">
                 {{ __('Limpiar este escenario') }}
             </x-ui.button>
         </section>

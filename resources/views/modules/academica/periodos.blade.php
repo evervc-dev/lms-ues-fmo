@@ -7,7 +7,7 @@
     </x-ui.encabezado>
 
     <x-ui.table ajustar :vacio="__('Aún no hay períodos.')">
-        <x-slot:cabecera><th>{{ __('Período') }}</th><th>{{ __('Fechas') }}</th><th>{{ __('Estado') }}</th><th>{{ __('Etapa') }}</th><th class="text-right">{{ __('Secciones') }}</th><th class="text-right">{{ __('Matrículas') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
+        <x-slot:cabecera><th>{{ __('Período') }}</th><th>{{ __('Fechas') }}</th><th>{{ __('Estado') }}</th><th>{{ __('Etapa') }}</th><th class="text-right">{{ __('Grupos') }}</th><th class="text-right">{{ __('Matrículas') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
         @foreach ($periodos as $p)
             <tr wire:key="periodo-{{ $p->id }}">
                 <td><a href="{{ route('periodos.show', $p->id) }}" wire:navigate class="font-semibold text-texto hover:text-marca-700 hover:underline">{{ $p->name }}</a></td>

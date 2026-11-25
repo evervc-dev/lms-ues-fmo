@@ -9,7 +9,7 @@
     <x-ui.card ajustar>
         <x-ui.search class="mb-4" wire:model.live.debounce.300ms="buscar" :placeholder="__('Buscar por estudiante, correo o asignatura…')" />
         <x-ui.table ajustar :vacio="__('No hay matrículas con esos filtros.')">
-            <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Sección') }}</th><th>{{ __('Vía') }}</th><th>{{ __('Estado') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
+            <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Grupo') }}</th><th>{{ __('Vía') }}</th><th>{{ __('Estado') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
             @foreach ($matriculas as $m)
                 <tr wire:key="mat-{{ $m->id }}">
                     <td>
@@ -43,7 +43,7 @@
                     @endforeach
                 </div>
             @endif
-            <x-ui.field :etiqueta="__('Sección')" para="seccionId" error="seccion" :ayuda="__('Al elegir al estudiante, solo quedan las asignaturas del plan de su carrera.')" requerido>
+            <x-ui.field :etiqueta="__('Grupo teórico')" para="seccionId" error="seccion" :ayuda="__('Al elegir al estudiante, solo quedan las asignaturas del plan de su carrera.')" requerido>
                 <x-ui.select id="seccionId" wire:model="seccionId"><option value="">{{ __('Elija…') }}</option>@foreach ($secciones as $s)<option value="{{ $s->id }}">{{ $s->code }} · {{ $s->grupo }} — {{ $s->name }}</option>@endforeach</x-ui.select>
             </x-ui.field>
         </form>

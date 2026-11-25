@@ -9,7 +9,7 @@
                 {{ __('Cree la primera unidad con sus materiales para seguir el avance.') }}
             </x-ui.empty-state>
         @else
-            <x-ui.table :vacio="__('Aún no hay estudiantes matriculados en la sección.')">
+            <x-ui.table :vacio="__('Aún no hay estudiantes matriculados en el grupo teórico.')">
                 <x-slot:cabecera>
                     <th scope="col">{{ __('Estudiante') }}</th>
                     @foreach ($unidades as $u)

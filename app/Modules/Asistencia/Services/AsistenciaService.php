@@ -162,7 +162,7 @@ class AsistenciaService
             $this->cerrar($docente, $seccionId, $vencida->ulid);
         }
         if (DB::table('attendance_sessions')->where('section_id', $seccionId)->where('status', 'open')->exists()) {
-            throw ValidationException::withMessages(['minutos' => __('Ya hay una sesión de asistencia abierta en esta sección.')]);
+            throw ValidationException::withMessages(['minutos' => __('Ya hay una sesión de asistencia abierta en este grupo teórico.')]);
         }
         $hoy = now()->toDateString();
         // RF32: un cambio de modalidad aprobado para hoy fija el método. Virtual se registra con el reporte de Meet

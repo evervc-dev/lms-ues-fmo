@@ -21,5 +21,5 @@
         </x-ui.select>
     </x-ui.field>
 
-    <x-ui.alert tipo="aviso">{{ __('Al elegir un rol se reemplazan los roles de la cuenta por ese, solo en este entorno de pruebas. No se crean asignaciones: con Docente, Coordinador o Jefe de Departamento la cuenta puede quedar sin secciones, carrera ni departamento. Podrá devolverle sus roles con «Restaurar» en el menú de usuario.') }}</x-ui.alert>
+    <x-ui.alert tipo="aviso">{{ __('Al elegir un rol se reemplazan los roles de la cuenta por ese, solo en este entorno de pruebas. No se crean asignaciones: con Docente, Coordinador o Jefe de Departamento la cuenta puede quedar sin grupos teóricos, carrera ni departamento. Podrá devolverle sus roles con «Restaurar» en el menú de usuario.') }}</x-ui.alert>
 </div>

@@ -65,7 +65,7 @@
             @endforeach
 
             @unless ($resuelve || $s->status !== 'pending')
-                <x-ui.alert tipo="info">{{ __('Solo el docente de la sección resuelve, y antes de publicar el acta.') }}</x-ui.alert>
+                <x-ui.alert tipo="info">{{ __('Solo el docente del grupo teórico resuelve, y antes de publicar el acta.') }}</x-ui.alert>
             @endunless
         </x-ui.formulario.paso>
 

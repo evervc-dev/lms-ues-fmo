@@ -184,7 +184,7 @@ class MatriculaService
         RateLimiter::clear($limite);
 
         if (! DB::table('sections')->where('id', $seccionId)->where('period_id', $periodo)->where('subject_id', $asignaturaId)->where('status', 'open')->exists()) {
-            throw ValidationException::withMessages(['seccion' => __('Elija una de las secciones de la materia.')]);
+            throw ValidationException::withMessages(['seccion' => __('Elija uno de los grupos teóricos de la materia.')]);
         }
 
         return $this->matricular($estudiante->id, $seccionId, 'key', $estudiante->id);
@@ -764,11 +764,11 @@ class MatriculaService
     {
         $seccion = DB::table('sections')->where('id', $seccionId)->first();
         if ($seccion->status !== 'open') {
-            throw ValidationException::withMessages(['seccion' => __('La sección no está abierta.')]);
+            throw ValidationException::withMessages(['seccion' => __('El grupo teórico no está abierto.')]);
         }
         $inscritos = DB::table('enrollments')->where('section_id', $seccionId)->where('status', 'active')->count();
         if ($inscritos >= (int) $seccion->max_capacity) {
-            throw ValidationException::withMessages(['seccion' => __('La sección está llena.')]);
+            throw ValidationException::withMessages(['seccion' => __('El grupo teórico está lleno.')]);
         }
         if ($choque = $this->horarios->chocaEstudiante($estudianteId, $seccionId, $ignorarSeccion)) {
             throw ValidationException::withMessages(['seccion' => __('Choca con el horario de :seccion.', ['seccion' => $choque])]);

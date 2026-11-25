@@ -5,7 +5,7 @@
     </x-ui.encabezado>
     <x-ui.card ajustar>
         <x-ui.table ajustar :vacio="__('No hay actas en este estado.')">
-            <x-slot:cabecera><th>{{ __('Sección') }}</th><th>{{ __('Docente') }}</th><th>{{ __('Publicada') }}</th><th class="text-right">{{ __('Aprobados') }}</th><th class="text-right">{{ __('Promedio') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
+            <x-slot:cabecera><th>{{ __('Grupo') }}</th><th>{{ __('Docente') }}</th><th>{{ __('Publicada') }}</th><th class="text-right">{{ __('Aprobados') }}</th><th class="text-right">{{ __('Promedio') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
             @foreach ($actas as $a)
                 <tr wire:key="acta-{{ $a->section_id }}">
                     <td><a href="{{ route('secciones.notas', ['seccion' => $a->ulid]) }}" wire:navigate class="font-semibold hover:text-marca-700">{{ $a->code }} · {{ $a->grupo }}</a><p class="text-xs text-texto-suave">{{ $a->name }}</p></td>

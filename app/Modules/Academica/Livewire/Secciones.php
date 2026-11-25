@@ -34,7 +34,7 @@ class Secciones extends Component
 
     public function render(SeccionService $secciones): View
     {
-        $titulos = ['propias' => __('Mis secciones'), 'carrera' => __('Supervisión de aulas'), 'departamento' => __('Secciones del departamento')];
+        $titulos = ['propias' => __('Mis grupos teóricos'), 'carrera' => __('Supervisión de aulas'), 'departamento' => __('Grupos teóricos del departamento')];
         $ambitos = $secciones->ambitos(auth()->user());
 
         return $this->pagina('modules.academica.secciones', [

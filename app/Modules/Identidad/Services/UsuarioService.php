@@ -315,7 +315,7 @@ class UsuarioService
                 ->get(['subjects.code', 'sections.code as grupo'])->map(fn ($s) => $s->code.' · '.$s->grupo);
 
             if ($secciones->isNotEmpty()) {
-                throw ValidationException::withMessages(['roles' => __('Tiene secciones asignadas en el período (:secciones). Reasígnelas en Carga académica antes de quitar el rol Docente.', ['secciones' => $secciones->implode(', ')])]);
+                throw ValidationException::withMessages(['roles' => __('Tiene grupos teóricos asignados en el período (:secciones). Reasígnelos en Carga académica antes de quitar el rol Docente.', ['secciones' => $secciones->implode(', ')])]);
             }
         }
 

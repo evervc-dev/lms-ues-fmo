@@ -136,7 +136,7 @@ class ReporteMeetService
     {
         $this->exigirEnSeccion($docente, 'videoconferencias.gestionar', $seccionId);
         $clase = DB::table('video_sessions')->where('id', $claseId)->where('section_id', $seccionId)->first()
-            ?? throw ValidationException::withMessages(['archivo' => __('La clase no es de esta sección.')]);
+            ?? throw ValidationException::withMessages(['archivo' => __('La clase no es de este grupo teórico.')]);
         $this->actualizarEstados(collect([$clase]));
         if ($this->estadoPorHora(Carbon::parse($clase->starts_at), (int) $clase->duration_minutes) !== 'finished') {
             throw ValidationException::withMessages(['archivo' => __('Solo se sube el reporte de una clase que ya terminó.')]);
