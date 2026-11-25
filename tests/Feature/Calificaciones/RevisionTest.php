@@ -228,7 +228,7 @@ it('CP-RF35-02 refuses a request without explanation, before publishing, out of 
     $this->travelBack();
 
     DbContext::system(fn () => DB::table('grade_sheets')->insert(['section_id' => $e['seccion'], 'status' => 'published', 'created_at' => now(), 'updated_at' => now()]));
-    expect($mensaje($pedir))->toBe('El acta de la sección ya se publicó.');
+    expect($mensaje($pedir))->toBe('El acta del grupo teórico ya se publicó.');
     DbContext::system(fn () => DB::table('grade_sheets')->delete());
 
     $pedir();

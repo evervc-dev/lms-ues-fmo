@@ -1,6 +1,6 @@
 {{-- Claves por asignatura (RF29, ADR-050, maqueta 36). --}}
 <div class="flex flex-col gap-5 lg:h-full">
-    <x-ui.encabezado :titulo="__('Matrícula')" :subtitulo="__('Con la clave, el estudiante elige una sección con cupo y sin choque de horario. La clave se muestra una sola vez.')" />
+    <x-ui.encabezado :titulo="__('Matrícula')" :subtitulo="__('Con la clave, el estudiante elige un grupo teórico con cupo y sin choque de horario. La clave se muestra una sola vez.')" />
     <x-ui.tabs :pestanas="$pestanas" />
 
     <x-ui.card :titulo="__('Aplicar a todas')" :descripcion="__('Pone la misma clave en todas las asignaturas de su ámbito, con el vencimiento que indique abajo. Las claves actuales dejan de funcionar.')">
@@ -24,7 +24,7 @@
             @endif
         </div>
         <x-ui.table ajustar :vacio="__('Ninguna asignatura de su ámbito coincide con esa búsqueda.')">
-            <x-slot:cabecera><th>{{ __('Asignatura') }}</th><th class="text-right">{{ __('Secciones') }}</th><th>{{ __('Clave') }}</th><th class="text-right">{{ __('Inscritos con clave') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
+            <x-slot:cabecera><th>{{ __('Asignatura') }}</th><th class="text-right">{{ __('Grupos') }}</th><th>{{ __('Clave') }}</th><th class="text-right">{{ __('Inscritos con clave') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
             @foreach ($claves as $c)
                 <tr wire:key="clave-{{ $c->id }}">
                     <td><span class="font-semibold">{{ $c->code }}</span> · {{ $c->name }}</td>

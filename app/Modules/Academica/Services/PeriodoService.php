@@ -87,7 +87,7 @@ class PeriodoService
         $fecha = fn (?string $f) => $f === null ? null : Carbon::parse($f)->timezone('America/El_Salvador')->format('d/m/Y H:i');
 
         return [
-            'columnas' => [__('Código'), __('Departamento'), __('Secciones'), __('Matrículas'), __('Cierre autorizado'), __('Autorizó')],
+            'columnas' => [__('Código'), __('Departamento'), __('Grupos'), __('Matrículas'), __('Cierre autorizado'), __('Autorizó')],
             'filas' => $detalle['cierres']->map(fn (object $c) => [
                 $c->code,
                 $c->name,
@@ -97,7 +97,7 @@ class PeriodoService
                 $c->autorizo,
             ])->values()->all(),
             'titulo' => __('Período :nombre', ['nombre' => $periodo->name]),
-            'subtitulo' => __(':inicio – :fin · :estado · :s secciones · :m matrículas', [
+            'subtitulo' => __(':inicio – :fin · :estado · :s grupos teóricos · :m matrículas', [
                 'inicio' => Carbon::parse($periodo->start_date)->format('d/m/Y'),
                 'fin' => Carbon::parse($periodo->end_date)->format('d/m/Y'),
                 'estado' => __(self::ESTADOS[$periodo->status] ?? $periodo->status),
@@ -112,8 +112,12 @@ class PeriodoService
         $this->alcance->exigir($actor, 'periodos.gestionar');
         $periodo = DB::table('academic_periods')->where('id', $periodoId)->first() ?? abort(404);
 
+        // ADR-076: un departamento archivado sale de la lista salvo que tenga secciones o cierre en este período,
+        // para no tocar el historial de los períodos cerrados.
         $cierres = DB::table('departments as d')
             ->leftJoin('department_closures as c', fn ($j) => $j->on('c.department_id', '=', 'd.id')->where('c.period_id', $periodoId))
+            ->where(fn ($q) => $q->where('d.is_active', true)->orWhereNotNull('c.id')
+                ->orWhereIn('d.id', DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')->where('sections.period_id', $periodoId)->select('subjects.department_id')))
             ->leftJoin('users as u', 'u.id', '=', 'c.authorized_by')
             ->orderBy('d.code')
             ->get(['d.id', 'd.code', 'd.name', 'c.authorized_at', DB::raw("u.first_name || ' ' || u.last_name as autorizo")]);

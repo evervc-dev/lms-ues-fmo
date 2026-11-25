@@ -3,7 +3,7 @@
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
     <x-ui.card :titulo="__('Importar de un período anterior')" :descripcion="__('Se copian las unidades con sus recursos, al final del contenido actual, y las tareas y cuestionarios sin fechas ni cómputo, para que los programe en Actividades. No se copian entregas, notas ni asistencia.')">
         @if ($origenes->isEmpty())
-            <x-ui.empty-state icono="arrow-up-tray" :titulo="__('No hay contenido para importar')">{{ __('No encontramos secciones de períodos anteriores de esta asignatura, ni secciones suyas, con unidades o evaluaciones.') }}</x-ui.empty-state>
+            <x-ui.empty-state icono="arrow-up-tray" :titulo="__('No hay contenido para importar')">{{ __('No encontramos grupos teóricos de períodos anteriores de esta asignatura, ni grupos suyos, con unidades o evaluaciones.') }}</x-ui.empty-state>
         @else
             <form wire:submit="importar" class="flex flex-col gap-3">
                 @foreach ($origenes as $o)

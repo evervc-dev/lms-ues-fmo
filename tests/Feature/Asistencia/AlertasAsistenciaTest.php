@@ -181,7 +181,7 @@ it('CP-RF22-05 con todo en orden no abre ninguna alerta', function () {
     expect(alertasAbiertas($e))->toBe([]);
 });
 
-it('cuenta estudiantes, no alertas: una fila por matrícula con su alerta más grave en Mis secciones, Estudiantes y el reporte de riesgo', function () {
+it('cuenta estudiantes, no alertas: una fila por matrícula con su alerta más grave en Mis grupos teóricos, Estudiantes y el reporte de riesgo', function () {
     $e = escenario();
     alertasComputo($e);
     alertasClases($e, ['present', 'present', 'absent']);

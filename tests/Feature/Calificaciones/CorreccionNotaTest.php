@@ -107,7 +107,7 @@ it('CP-RF17-07 con el período abierto el Coordinador no corrige: la nota la cam
 
     $errores = correccionErrores(fn () => app(CalificacionService::class)->corregir($e['coordinador'], $nota, 8, 'Revisión de examen.'));
 
-    expect($errores['nota'][0])->toBe('El período está abierto: la nota la cambia el docente de la sección.')
+    expect($errores['nota'][0])->toBe('El período está abierto: la nota la cambia el docente del grupo teórico.')
         ->and(correccionPuntaje($nota))->toEqual(5.0);
 });
 

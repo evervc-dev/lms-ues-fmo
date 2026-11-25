@@ -24,7 +24,7 @@ class CargaAcademicaService
     private const DIAS = [1 => 'Lun', 2 => 'Mar', 3 => 'Mié', 4 => 'Jue', 5 => 'Vie', 6 => 'Sáb', 7 => 'Dom'];
 
     /** Permisos que dan acceso a la carga académica (ADR-037). */
-    public const PERMISOS = ['secciones.gestionar', 'secciones.asignar-docente', 'secciones.cupo'];
+    public const PERMISOS = ['secciones.crear', 'secciones.gestionar', 'secciones.asignar-docente', 'secciones.cupo'];
 
     /** Cupo máximo de una sección. */
     public const CUPO_MAXIMO = 200;
@@ -93,18 +93,33 @@ class CargaAcademicaService
             ->orderBy('users.last_name')->get();
     }
 
-    public function crearSeccion(User $actor, int $periodoId, int $asignaturaId, string $grupo, int $cupoMaximo, int $cupoMinimo = 10): int
+    /**
+     * Crea un grupo teórico (RF08). Si se indica la carrera, debe estar en el alcance del actor y la asignatura debe
+     * estar en alguno de sus planes de estudio: así se crea desde la pantalla (carrera → materia).
+     *
+     * @throws AuthorizationException|ValidationException
+     */
+    public function crearSeccion(User $actor, int $periodoId, int $asignaturaId, string $grupo, int $cupoMaximo, int $cupoMinimo = 10, ?int $carreraId = null): int
     {
-        $this->alcance->exigir($actor, 'secciones.gestionar');
-        $this->exigirAsignaturaEnAlcance($actor, $asignaturaId);
+        // Crear es del Administrador y del Jefe (secciones.crear, ADR-074); el Coordinador ya no crea grupos.
+        $this->alcance->exigir($actor, 'secciones.crear');
+        $this->exigirAsignaturaEnAlcance($actor, $asignaturaId, 'secciones.crear');
+        if ($carreraId !== null) {
+            if (! $this->carrerasParaGrupos($actor)->contains('id', $carreraId)) {
+                throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
+            }
+            if (! $this->asignaturasDeCarrera($actor, $carreraId)->contains('id', $asignaturaId)) {
+                throw ValidationException::withMessages(['asignaturaId' => __('La asignatura no está en el plan de estudios de esa carrera.')]);
+            }
+        }
         if (DB::table('sections')->where('period_id', $periodoId)->where('subject_id', $asignaturaId)->where('code', $grupo)->exists()) {
             throw ValidationException::withMessages(['grupo' => __('Ya existe ese grupo para la asignatura en el período.')]);
         }
 
         // La sección nace con los cómputos de la plantilla del período (RF17), en la misma transacción.
-        return DbContext::run(function () use ($periodoId, $asignaturaId, $grupo, $cupoMinimo, $cupoMaximo) {
+        return DbContext::run(function () use ($periodoId, $asignaturaId, $grupo, $cupoMinimo, $cupoMaximo, $carreraId) {
             $id = DB::table('sections')->insertGetId([
-                'ulid' => (string) str()->ulid(), 'period_id' => $periodoId, 'subject_id' => $asignaturaId, 'code' => $grupo,
+                'ulid' => (string) str()->ulid(), 'period_id' => $periodoId, 'subject_id' => $asignaturaId, 'career_id' => $carreraId, 'code' => $grupo,
                 'min_capacity' => $cupoMinimo, 'max_capacity' => $cupoMaximo, 'status' => 'open', 'created_at' => now(), 'updated_at' => now(),
             ]);
             $this->computos->copiarPlantilla((int) $id);
@@ -129,7 +144,7 @@ class CargaAcademicaService
             $otras = DB::table('teaching_assignments')->join('sections', 'sections.id', '=', 'teaching_assignments.section_id')
                 ->where('teacher_id', $docente)->whereNull('ended_at')->where('sections.period_id', $periodo)->where('sections.id', '!=', $seccionId)->pluck('sections.id')->all();
             if ($this->horarios->seCruzan($nuevo, $this->horarios->bloques($otras))) {
-                throw ValidationException::withMessages(['dia' => __('Ese horario choca con otra sección del docente asignado.')]);
+                throw ValidationException::withMessages(['dia' => __('Ese horario choca con otro grupo teórico del docente asignado.')]);
             }
         }
 
@@ -198,7 +213,7 @@ class CargaAcademicaService
             throw ValidationException::withMessages(['docente' => __('La persona no es un docente activo.')]);
         }
         if (DB::table('teaching_assignments')->where('section_id', $seccionId)->where('teacher_id', $docenteId)->whereNull('ended_at')->exists()) {
-            throw ValidationException::withMessages(['docente' => __('Ese docente ya está asignado a la sección.')]);
+            throw ValidationException::withMessages(['docente' => __('Ese docente ya está asignado al grupo teórico.')]);
         }
         if ($choque = $this->horarios->chocaDocente($docenteId, $seccionId)) {
             throw ValidationException::withMessages(['docente' => __('El docente tiene un choque de horario con :seccion.', ['seccion' => $choque])]);
@@ -206,7 +221,7 @@ class CargaAcademicaService
         $tope = $this->tope('max_teachers_per_section', self::MAX_DOCENTES_POR_SECCION);
         $asignados = DB::table('teaching_assignments')->where('section_id', $seccionId)->whereNull('ended_at')->count();
         if ($asignados >= $tope) {
-            throw ValidationException::withMessages(['docente' => __('La sección ya tiene :actual docentes y el máximo es :tope.', ['actual' => $asignados, 'tope' => $tope])]);
+            throw ValidationException::withMessages(['docente' => __('El grupo teórico ya tiene :actual docentes y el máximo es :tope.', ['actual' => $asignados, 'tope' => $tope])]);
         }
 
         DbContext::run(function () use ($seccionId, $docenteId, $responsable) {
@@ -228,15 +243,62 @@ class CargaAcademicaService
     }
 
     /**
-     * Asignaturas que el actor puede programar (su carrera, o todas).
+     * Departamentos en que el actor crea grupos teóricos: todos (G), los que dirige (D) o los de las carreras que
+     * coordina (C). Sin los archivados (ADR-076).
+     *
+     * @return Collection<int, \stdClass>
+     */
+    public function departamentosParaGrupos(User $actor): Collection
+    {
+        $global = $this->alcance->exigir($actor, 'secciones.crear') === 'G';
+
+        return DB::table('departments')->where('is_active', true)
+            ->when(! $global, fn ($q) => $q->whereIn('id', $this->carrerasParaGrupos($actor)->pluck('department_id')->unique()->all()))
+            ->orderBy('code')->get(['id', 'code', 'name']);
+    }
+
+    /**
+     * Carreras para elegir al crear un grupo teórico: todas (G), las de su departamento (D) o las que coordina (C).
+     * Sin las de un departamento archivado (ADR-076).
+     *
+     * @return Collection<int, \stdClass>
+     */
+    public function carrerasParaGrupos(User $actor): Collection
+    {
+        $alcance = $this->alcance->exigir($actor, 'secciones.crear');
+
+        return DB::table('careers')->whereIn('department_id', DepartamentoService::activos())
+            ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
+            ->when($alcance === 'C', fn ($q) => $q->whereIn('id', $this->alcance->carreras($actor)))
+            ->when(! in_array($alcance, ['G', 'D', 'C'], true), fn ($q) => $q->whereRaw('1 = 0'))
+            ->orderBy('code')->get(['id', 'code', 'name', 'department_id']);
+    }
+
+    /**
+     * Asignaturas de los planes de la carrera que el actor puede programar (con D, solo las de su departamento).
      *
      * @return Collection<int, object>
      */
-    public function asignaturas(User $actor): Collection
+    public function asignaturasDeCarrera(User $actor, int $carreraId): Collection
     {
-        $alcance = $this->alcance->exigir($actor, 'secciones.gestionar');
+        $delPlan = DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
+            ->where('study_plans.career_id', $carreraId)->pluck('career_subjects.subject_id')->map(fn ($id) => (int) $id)->all();
 
-        return DB::table('subjects')->where('is_active', true)
+        return $this->asignaturas($actor, 'secciones.crear')->filter(fn ($a) => in_array((int) $a->id, $delPlan, true))->values();
+    }
+
+    /**
+     * Asignaturas que el actor puede programar: todas (G), las de su departamento (D, el Jefe, ADR-073)
+     * o las de los planes de su carrera (C). Ni inactivas ni de un departamento archivado (ADR-076).
+     *
+     * @return Collection<int, object>
+     */
+    public function asignaturas(User $actor, string $permiso = 'secciones.gestionar'): Collection
+    {
+        $alcance = $this->alcance->exigir($actor, $permiso);
+
+        return DB::table('subjects')->where('is_active', true)->whereIn('department_id', DepartamentoService::activos())
+            ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
             ->when($alcance === 'C', fn ($q) => $q->whereIn('id', DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
                 ->whereIn('study_plans.career_id', $this->alcance->carreras($actor))->select('career_subjects.subject_id')))
             ->orderBy('code')->get(['id', 'code', 'name']);
@@ -273,7 +335,7 @@ class CargaAcademicaService
                 throw ValidationException::withMessages(['cupo' => __('Hay :n estudiantes inscritos: el cupo no puede ser menor.', ['n' => $inscritos])]);
             }
             if ($cupoMaximo < (int) $seccion->min_capacity) {
-                throw ValidationException::withMessages(['cupo' => __('El cupo no puede ser menor que el mínimo de la sección (:min).', ['min' => $seccion->min_capacity])]);
+                throw ValidationException::withMessages(['cupo' => __('El cupo no puede ser menor que el mínimo del grupo teórico (:min).', ['min' => $seccion->min_capacity])]);
             }
 
             DB::table('sections')->where('id', $seccionId)->update(['max_capacity' => $cupoMaximo, 'updated_at' => now()]);
@@ -303,9 +365,9 @@ class CargaAcademicaService
     /**
      * @throws AuthorizationException
      */
-    private function exigirAsignaturaEnAlcance(User $actor, int $asignaturaId): void
+    private function exigirAsignaturaEnAlcance(User $actor, int $asignaturaId, string $permiso = 'secciones.gestionar'): void
     {
-        if (! $this->asignaturas($actor)->contains('id', $asignaturaId)) {
+        if (! $this->asignaturas($actor, $permiso)->contains('id', $asignaturaId)) {
             throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
         }
     }
@@ -325,7 +387,7 @@ class CargaAcademicaService
         $tope = $this->tope('max_weekly_hours_per_section', self::MAX_HORAS_SEMANALES_POR_SECCION);
 
         if ($actual + $minutos($inicio, $fin) > $tope * 60) {
-            throw ValidationException::withMessages(['fin' => __('La sección ya suma :actual h semanales y con este bloque pasaría el máximo de :tope h.', [
+            throw ValidationException::withMessages(['fin' => __('El grupo teórico ya suma :actual h semanales y con este bloque pasaría el máximo de :tope h.', [
                 'actual' => rtrim(rtrim(number_format($actual / 60, 1, '.', ''), '0'), '.'), 'tope' => $tope,
             ])]);
         }

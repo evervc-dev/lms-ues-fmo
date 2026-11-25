@@ -25,7 +25,7 @@
     </x-ui.encabezado>
 
     <div class="grid gap-3 sm:grid-cols-3">
-        <x-ui.stat :etiqueta="__('Secciones')" :valor="$secciones" icono="building-office" />
+        <x-ui.stat :etiqueta="__('Grupos teóricos')" :valor="$secciones" icono="building-office" />
         <x-ui.stat :etiqueta="__('Matrículas activas')" :valor="number_format($matriculas)" icono="users" />
         <x-ui.stat :etiqueta="__('Cierres autorizados')" :valor="$cierres->where('secciones', '>', 0)->whereNotNull('authorized_at')->count().' / '.$cierres->where('secciones', '>', 0)->count()" icono="lock-closed" :tono="$todosAutorizados ? 'exito' : 'aviso'" />
     </div>
@@ -60,7 +60,7 @@
                     <li class="flex items-center justify-between gap-3 py-2.5">
                         <span><span class="font-medium">{{ $c->code }}</span> · {{ $c->name }}</span>
                         @if ($c->secciones === 0)
-                            <x-ui.badge color="gris">{{ __('Sin secciones') }}</x-ui.badge>
+                            <x-ui.badge color="gris">{{ __('Sin grupos teóricos') }}</x-ui.badge>
                         @elseif ($c->authorized_at)
                             <x-ui.badge color="verde">{{ __('Autorizado por :quien', ['quien' => $c->autorizo]) }}</x-ui.badge>
                         @else

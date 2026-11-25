@@ -69,7 +69,7 @@
                         <div><dt class="text-texto-suave">{{ __('Carreras donde imparte') }}</dt><dd>{{ implode(', ', $perfil['docente']['carreras']) }}</dd></div>
                     @endif
                     <div>
-                        <dt class="text-texto-suave">{{ __('Secciones del período') }}</dt>
+                        <dt class="text-texto-suave">{{ __('Grupos teóricos del período') }}</dt>
                         <dd class="mt-1 flex flex-col gap-1">
                             @foreach ($perfil['docente']['materias'] ?? [] as $m)
                                 <p>{{ $m->code }} · {{ $m->grupo }} — {{ $m->name }}{{ $m->is_responsible ? '' : ' ('.__('co-docente').')' }}@if ($m->ciclos)<span class="text-texto-suave"> ({{ implode(', ', $m->ciclos) }})</span>@endif</p>

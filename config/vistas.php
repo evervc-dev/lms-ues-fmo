@@ -12,7 +12,8 @@
 |
 | Campos: uri, permiso (uno o varios con «|»; null = solo sesión iniciada),
 | titulo, modulo, rf, op (tarea Front), maqueta (docs/13 Layout/Maquetas),
-| layout (app|exam|projection) y seccion (true = pestaña de la Vista de sección).
+| layout (app|exam|projection), seccion (true = pestaña de la Vista de sección) y alcance
+| (el alcance mínimo del permiso que exige el Service: p. ej. «G» deja fuera al Jefe con alcance D).
 |
 */
 
@@ -37,7 +38,7 @@ return [
     'intentos.show' => ['uri' => '/intentos/{intento}', 'permiso' => 'cuestionarios.resolver', 'titulo' => 'Intento de cuestionario', 'modulo' => 'Evaluaciones', 'rf' => ['RF16'], 'op' => 435, 'maqueta' => '10 Layout Examen · intento', 'layout' => 'exam'],
 
     // Secciones y Vista de sección (una página por pestaña)
-    'secciones' => ['uri' => '/secciones', 'permiso' => 'contenidos.gestionar|contenidos.analitica.ver|cierre.autorizar', 'titulo' => 'Secciones', 'modulo' => 'Academica', 'rf' => ['RF08'], 'op' => 403],
+    'secciones' => ['uri' => '/secciones', 'permiso' => 'contenidos.gestionar|contenidos.analitica.ver|cierre.autorizar', 'titulo' => 'Grupos teóricos', 'modulo' => 'Academica', 'rf' => ['RF08'], 'op' => 403],
     'secciones.contenidos' => ['uri' => '/secciones/{seccion}', 'permiso' => 'contenidos.ver', 'titulo' => 'Contenidos', 'modulo' => 'Contenidos', 'rf' => ['RF11'], 'op' => 415, 'maqueta' => '06 Vista de sección · Contenidos', 'seccion' => true],
     'secciones.recurso' => ['uri' => '/secciones/{seccion}/recursos/{recurso}', 'permiso' => 'contenidos.ver', 'titulo' => 'Recurso', 'modulo' => 'Contenidos', 'rf' => ['RF11', 'RF12'], 'op' => 419, 'seccion' => true, 'pestana' => 'secciones.contenidos'],
     'secciones.recursos.crear' => ['uri' => '/secciones/{seccion}/unidades/{unidad}/recursos/crear', 'permiso' => 'contenidos.gestionar', 'titulo' => 'Agregar recurso', 'modulo' => 'Contenidos', 'rf' => ['RF11', 'RF12'], 'op' => 419, 'seccion' => true, 'pestana' => 'secciones.contenidos', 'donde' => ['unidad' => '[0-9]+']],
@@ -98,7 +99,10 @@ return [
     'periodos.calendario' => ['uri' => '/calendario-evaluaciones/{periodo?}', 'permiso' => 'periodos.calendario.gestionar', 'titulo' => 'Calendario de evaluaciones', 'modulo' => 'Academica', 'rf' => ['RF06'], 'op' => 393],
     'periodos.show' => ['uri' => '/periodos/{periodo}', 'permiso' => 'periodos.gestionar', 'titulo' => 'Período', 'modulo' => 'Academica', 'rf' => ['RF06', 'RF34'], 'op' => 395, 'migas' => ['periodos']],
     'catalogo' => ['uri' => '/catalogo', 'permiso' => 'asignaturas.gestionar', 'titulo' => 'Catálogo de asignaturas', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => 399],
-    'catalogo.estructura' => ['uri' => '/catalogo/estructura', 'permiso' => 'asignaturas.gestionar', 'titulo' => 'Departamentos, carreras, planes y aulas', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => 399, 'migas' => ['catalogo']],
+    'catalogo.estructura' => ['uri' => '/catalogo/estructura', 'permiso' => 'asignaturas.gestionar', 'alcance' => 'G', 'titulo' => 'Departamentos, carreras, planes y aulas', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => 399, 'migas' => ['catalogo']],
+    'catalogo.departamentos' => ['uri' => '/catalogo/departamentos', 'permiso' => 'asignaturas.gestionar', 'alcance' => 'G', 'titulo' => 'Panel académico', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => 399, 'migas' => ['catalogo']],
+    'catalogo.departamentos.show' => ['uri' => '/catalogo/departamentos/{departamento}', 'permiso' => 'asignaturas.gestionar', 'alcance' => 'G', 'titulo' => 'Departamento', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => 399, 'migas' => ['catalogo', 'catalogo.departamentos'], 'donde' => ['departamento' => '[0-9]+']],
+    'catalogo.departamentos.carrera' => ['uri' => '/catalogo/departamentos/{departamento}/carreras/{carrera}', 'permiso' => 'asignaturas.gestionar', 'alcance' => 'G', 'titulo' => 'Carrera', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => 399, 'migas' => ['catalogo', 'catalogo.departamentos'], 'donde' => ['departamento' => '[0-9]+', 'carrera' => '[0-9]+']],
     'areas-asistencia' => ['uri' => '/areas-asistencia', 'permiso' => 'areas-asistencia.gestionar', 'titulo' => 'Áreas de asistencia', 'modulo' => 'Asistencia', 'rf' => ['RF26'], 'op' => 483, 'maqueta' => '34 Áreas de asistencia'],
     'integraciones' => ['uri' => '/integraciones', 'permiso' => 'integraciones.gestionar', 'titulo' => 'Integraciones', 'modulo' => 'Identidad', 'rf' => ['RNF09'], 'op' => null, 'maqueta' => '51 Integraciones'],
     'dispositivos' => ['uri' => '/dispositivos', 'permiso' => 'dispositivos.gestionar', 'titulo' => 'Solicitudes de dispositivo', 'modulo' => 'Identidad', 'rf' => ['RF27'], 'op' => 487, 'maqueta' => '30 Solicitudes de dispositivo'],

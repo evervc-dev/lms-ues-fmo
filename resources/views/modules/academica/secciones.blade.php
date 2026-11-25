@@ -1,6 +1,6 @@
 {{-- Secciones por ámbito. --}}
 <div class="flex flex-col gap-5">
-    <x-ui.encabezado :titulo="$titulo" :subtitulo="$soloLectura ? __('Secciones de su carrera en el período en curso. Puede consultar sus contenidos, notas, asistencia y progreso sin modificarlos, y gestionar la matrícula de sus estudiantes.') : __('Secciones del período en curso.')" />
+    <x-ui.encabezado :titulo="$titulo" :subtitulo="$soloLectura ? __('Grupos teóricos de su carrera en el período en curso. Puede consultar sus contenidos, notas, asistencia y progreso sin modificarlos, y gestionar la matrícula de sus estudiantes.') : __('Grupos teóricos del período en curso.')" />
 
     @if ($pestanas)
         <x-ui.tabs :pestanas="$pestanas" />
@@ -9,7 +9,7 @@
     <x-ui.search wire:model.live.debounce.300ms="buscar" :placeholder="__('Buscar por código o asignatura…')" class="max-w-md" />
 
     @if ($secciones->isEmpty())
-        <x-ui.card><x-ui.empty-state icono="academic-cap" :titulo="__('No hay secciones')">{{ __('No tiene secciones en el período en curso con esos filtros.') }}</x-ui.empty-state></x-ui.card>
+        <x-ui.card><x-ui.empty-state icono="academic-cap" :titulo="__('No hay grupos teóricos')">{{ __('No tiene grupos teóricos en el período en curso con esos filtros.') }}</x-ui.empty-state></x-ui.card>
     @else
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             @foreach ($secciones as $s)
