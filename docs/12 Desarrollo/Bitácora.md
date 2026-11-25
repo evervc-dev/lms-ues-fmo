@@ -68,7 +68,6 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Decisiones:** ninguna ADR nueva.
 - **Pendiente:** del informe quedan fuera, por decisión del usuario, el `token_expired` del QR y el nombre que
   no se refresca desde Google.
-
 ### 2026-11-18 · RF17, RF20, RF21 · Nota acumulada, asistencia ya marcada y enlace de Meet
 - **Autor:** IA (Claude Code), a pedido del usuario
 - **OpenProject:** OP# pendiente · **PR:** → test

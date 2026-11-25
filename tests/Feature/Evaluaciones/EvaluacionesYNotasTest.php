@@ -471,56 +471,6 @@ it('en una tarea anónima el nombre del archivo no delata al estudiante', functi
         ->assertDontSee('informe-de-juan-perez.pdf')->assertSee('Estudiante 1.pdf');
 });
 
-it('CP-RF17-13 un cómputo sin notas queda pendiente y no hunde la acumulada', function () {
-    $e = escenario();
-    $c = computos($e);
-
-    // Solo el cómputo 2 (30 %) tiene una actividad calificada, que además pesa 40 % dentro del cómputo.
-    $tarea = tareaDe($e, $c[1], ['peso' => 40]);
-    actingAs($e['estudiante']);
-    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])
-        ->set('archivo', UploadedFile::fake()->create('informe.pdf', 50))->call('entregar')->assertHasNoErrors();
-    $entrega = (int) DB::table('submissions')->value('id');
-
-    actingAs($e['docente']);
-    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->call('abrir', $entrega)->set('nota', 7.6)->call('calificar')->call('publicar');
-
-    $servicio = app(CalificacionService::class);
-    $boleta = $servicio->boleta($e['estudiante'], $e['seccion']);
-    $porNumero = $boleta['computos']->keyBy('number');
-
-    // Los cómputos 1 y 3 no tienen nada publicado: pendientes, fuera del promedio. La acumulada es la del 2.
-    expect($servicio->computoPendiente($porNumero[1], $boleta['notas'], $boleta['heredadas']))->toBeTrue()
-        ->and($servicio->computoPendiente($porNumero[2], $boleta['notas'], $boleta['heredadas']))->toBeFalse()
-        ->and($servicio->notaComputo($porNumero[2], $boleta['notas'], true, $boleta['heredadas']))->toEqual(7.6)
-        ->and($boleta['final'])->toEqual(7.6);
-
-    // Al cerrar sí cuentan los tres cómputos, y los vacíos valen 0: (30 × 0 + 30 × 7.6 + 40 × 0) / 100 = 2.3.
-    expect($servicio->notaFinal($boleta['computos'], $boleta['notas'], soloPublicadas: false))->toEqual(2.3);
-});
-
-it('«Mis notas» lista cada actividad calificada con su nota', function () {
-    $e = escenario();
-    $tarea = tareaDe($e, computos($e)[0]);
-    actingAs($e['estudiante']);
-    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])
-        ->set('archivo', UploadedFile::fake()->create('informe.pdf', 50))->call('entregar')->assertHasNoErrors();
-    $entrega = (int) DB::table('submissions')->value('id');
-
-    actingAs($e['docente']);
-    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->call('abrir', $entrega)->set('nota', 9.3)->call('calificar')->call('publicar');
-
-    actingAs($e['estudiante']);
-    $materia = app(CalificacionService::class)->misNotas($e['estudiante'])['materias']->sole();
-
-    expect($materia->actividades)->toHaveCount(1)
-        ->and($materia->actividades[0]->titulo)->toBe('Tarea 1')
-        ->and($materia->actividades[0]->nota)->toEqual(9.3)
-        ->and($materia->actividades[0]->ulid)->toBe($tarea);
-
-    $this->get(route('mis-notas'))->assertOk()->assertSeeText(['Notas por actividad', 'Tarea 1', '9.3']);
-});
-
 it('CP-RF16-06 con cantidad 0 el intento trae todas las preguntas del banco, y el tema se elige de las que hay', function () {
     $e = escenario();
     $c = computos($e);
@@ -576,4 +526,54 @@ it('el dueño renombra y borra su banco; con un cuestionario que lo usa, no', fu
     $servicio->eliminarBanco($e['docente'], $banco);
     expect(DB::table('question_banks')->where('id', $banco)->exists())->toBeFalse()
         ->and(DB::table('questions')->where('bank_id', $banco)->exists())->toBeFalse();
+});
+
+it('CP-RF17-13 un cómputo sin notas queda pendiente y no hunde la acumulada', function () {
+    $e = escenario();
+    $c = computos($e);
+
+    // Solo el cómputo 2 (30 %) tiene una actividad calificada, que además pesa 40 % dentro del cómputo.
+    $tarea = tareaDe($e, $c[1], ['peso' => 40]);
+    actingAs($e['estudiante']);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])
+        ->set('archivo', UploadedFile::fake()->create('informe.pdf', 50))->call('entregar')->assertHasNoErrors();
+    $entrega = (int) DB::table('submissions')->value('id');
+
+    actingAs($e['docente']);
+    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->call('abrir', $entrega)->set('nota', 7.6)->call('calificar')->call('publicar');
+
+    $servicio = app(CalificacionService::class);
+    $boleta = $servicio->boleta($e['estudiante'], $e['seccion']);
+    $porNumero = $boleta['computos']->keyBy('number');
+
+    // Los cómputos 1 y 3 no tienen nada publicado: pendientes, fuera del promedio. La acumulada es la del 2.
+    expect($servicio->computoPendiente($porNumero[1], $boleta['notas'], $boleta['heredadas']))->toBeTrue()
+        ->and($servicio->computoPendiente($porNumero[2], $boleta['notas'], $boleta['heredadas']))->toBeFalse()
+        ->and($servicio->notaComputo($porNumero[2], $boleta['notas'], true, $boleta['heredadas']))->toEqual(7.6)
+        ->and($boleta['final'])->toEqual(7.6);
+
+    // Al cerrar sí cuentan los tres cómputos, y los vacíos valen 0: (30 × 0 + 30 × 7.6 + 40 × 0) / 100 = 2.3.
+    expect($servicio->notaFinal($boleta['computos'], $boleta['notas'], soloPublicadas: false))->toEqual(2.3);
+});
+
+it('«Mis notas» lista cada actividad calificada con su nota', function () {
+    $e = escenario();
+    $tarea = tareaDe($e, computos($e)[0]);
+    actingAs($e['estudiante']);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])
+        ->set('archivo', UploadedFile::fake()->create('informe.pdf', 50))->call('entregar')->assertHasNoErrors();
+    $entrega = (int) DB::table('submissions')->value('id');
+
+    actingAs($e['docente']);
+    Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->call('abrir', $entrega)->set('nota', 9.3)->call('calificar')->call('publicar');
+
+    actingAs($e['estudiante']);
+    $materia = app(CalificacionService::class)->misNotas($e['estudiante'])['materias']->sole();
+
+    expect($materia->actividades)->toHaveCount(1)
+        ->and($materia->actividades[0]->titulo)->toBe('Tarea 1')
+        ->and($materia->actividades[0]->nota)->toEqual(9.3)
+        ->and($materia->actividades[0]->ulid)->toBe($tarea);
+
+    $this->get(route('mis-notas'))->assertOk()->assertSeeText(['Notas por actividad', 'Tarea 1', '9.3']);
 });
