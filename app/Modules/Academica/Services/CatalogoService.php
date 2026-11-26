@@ -63,7 +63,7 @@ class CatalogoService
     }
 
     /**
-     * Carreras donde se lleva cada asignatura (las de sus planes de estudio), sin repetir y por código. El Jefe
+     * Carreras donde se lleva cada asignatura, con sus planes de estudio («ISI · Plan 98, Plan 25»), por código. El Jefe
      * (alcance D) solo ve las carreras de su departamento; el Administrador, todas.
      *
      * @param  array<int, int>  $ids
@@ -77,8 +77,9 @@ class CatalogoService
             ->join('careers', 'careers.id', '=', 'study_plans.career_id')
             ->whereIn('career_subjects.subject_id', $ids)
             ->when($alcance !== 'G', fn ($q) => $q->whereIn('careers.department_id', $this->alcance->departamentos($actor)))
-            ->distinct()->orderBy('careers.code')->get(['career_subjects.subject_id', 'careers.code'])
-            ->groupBy('subject_id')->map(fn ($g) => $g->pluck('code')->unique()->values()->all())->all();
+            ->orderBy('careers.code')->orderBy('study_plans.id')->get(['career_subjects.subject_id', 'careers.code', 'study_plans.name as plan'])
+            // «ISI · Plan 98, Plan 25»: la carrera con los pensum donde se lleva.
+            ->groupBy('subject_id')->map(fn ($g) => $g->groupBy('code')->map(fn ($planes, $carrera) => $carrera.' · '.$planes->pluck('plan')->unique()->implode(', '))->values()->all())->all();
     }
 
     /**

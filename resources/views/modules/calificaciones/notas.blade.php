@@ -5,7 +5,7 @@
 
     @if ($esEstudiante)
         <div class="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-            <x-ui.card :titulo="__('Mi boleta')" :descripcion="__('Nota acumulada con lo calificado hasta hoy: lo que aún no tiene nota no se promedia. Al cerrar el período, lo que quede sin nota contará como 0.')">
+            <x-ui.card :titulo="__('Mi boleta')" :descripcion="__('Promedio de lo calificado hasta hoy: lo que aún no tiene nota no se promedia. Al cerrar el período, lo que quede sin nota contará como 0.')">
                 @foreach ($boleta['computos'] as $c)
                     {{-- Un cómputo sin notas en este grupo conserva el del grupo anterior (ADR-062). --}}
                     @php($heredado = $boleta['heredadas'][(int) $c->number] ?? null)
@@ -32,9 +32,20 @@
             </x-ui.card>
             <div class="flex flex-col gap-5">
                 <x-ui.card>
-                    <p class="text-xs uppercase text-texto-suave">{{ __('Nota acumulada') }}</p>
-                    <p @class(['text-4xl font-semibold', 'text-emerald-700' => $boleta['final'] >= $minima, 'text-red-700' => $boleta['final'] < $minima])>{{ $fmt($boleta['final']) }}</p>
-                    <p class="text-xs text-texto-suave">{{ __('Se aprueba con :m.', ['m' => number_format($minima, 1)]) }}</p>
+                    {{-- El promedio de lo evaluado junto a cuánto del curso está evaluado: un 8.8 con el 30 % evaluado
+                         no es una materia aprobada (revisión UX del 22/11/2026). --}}
+                    @if ($boleta['evaluado'] <= 0)
+                        <p class="text-xs uppercase text-texto-suave">{{ __('Promedio') }}</p>
+                        <p class="text-lg font-medium text-texto-suave">{{ __('Sin notas aún') }}</p>
+                    @else
+                        <p class="text-xs uppercase text-texto-suave">{{ $boleta['evaluado'] >= 100 ? __('Nota del curso') : __('Promedio de lo evaluado') }}</p>
+                        <p @class(['text-4xl font-semibold', 'text-emerald-700' => $boleta['final'] >= $minima, 'text-red-700' => $boleta['final'] < $minima])>{{ $fmt($boleta['final']) }}</p>
+                        @if ($boleta['evaluado'] < 100)
+                            <x-ui.progress class="mt-3" :valor="$boleta['evaluado']" :mostrar="false" :etiqueta="__('Porcentaje del curso evaluado')" />
+                            <p class="mt-1 text-xs text-texto-suave">{{ __(':p % del curso evaluado · lleva :n de 10 puntos', ['p' => rtrim(rtrim(number_format($boleta['evaluado'], 1), '0'), '.'), 'n' => $fmt($boleta['puntos'])]) }}</p>
+                        @endif
+                    @endif
+                    <p class="mt-1 text-xs text-texto-suave">{{ __('Se aprueba con :m.', ['m' => number_format($minima, 1)]) }}</p>
                 </x-ui.card>
                 <x-ui.card :titulo="__('Por unidad')">
                     @forelse ($boleta['porUnidad'] as $unidad => $nota)

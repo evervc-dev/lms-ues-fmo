@@ -51,7 +51,7 @@ class InscripcionDetalle extends Component
     {
         $detalle = $matricula->detalleMateria(auth()->user(), $this->asignaturaId);
 
-        return $this->pagina('modules.academica.inscripcion-detalle', $detalle + ['plazo' => $matricula->plazoDe((int) auth()->id())],
+        return $this->pagina('modules.academica.inscripcion-detalle', $detalle + ['plazo' => $matricula->plazoDe((int) auth()->id()), 'plan' => $matricula->planDe((int) auth()->id())],
             titulo: $detalle['asignatura']->code.' · '.$detalle['asignatura']->name);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Modules\Academica\Livewire;
 
 use App\Modules\Academica\Services\MatriculaService;
 use App\Modules\Academica\Services\PeriodoService;
+use App\Modules\Academica\Services\PlanesService;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -65,7 +66,7 @@ class MisMaterias extends Component
         $usuario = auth()->user();
         $materias = DB::table('enrollments as e')->join('sections as s', 's.id', '=', 'e.section_id')->join('subjects as a', 'a.id', '=', 's.subject_id')
             ->where('e.student_id', $usuario->id)->where('e.status', 'active')->where('e.period_id', PeriodoService::activoId())
-            ->select('e.id', 's.ulid', 's.code as grupo', 'a.code', 'a.name',
+            ->select('e.id', 's.ulid', 's.code as grupo', 'a.id as asignatura_id', 'a.code', 'a.name',
                 DB::raw('(select count(*) from resources r join units u on u.id = r.unit_id where u.section_id = s.id and r.deleted_at is null and u.deleted_at is null) as recursos'),
                 DB::raw('(select count(*) from resource_progress p where p.enrollment_id = e.id) as completados'),
                 DB::raw("(select users.first_name || ' ' || users.last_name from teaching_assignments t join users on users.id = t.teacher_id where t.section_id = s.id and t.is_responsible = true and t.ended_at is null limit 1) as docente"))
@@ -75,8 +76,12 @@ class MisMaterias extends Component
         $periodo = PeriodoService::activoId();
         $plazoCambio = $periodo === null ? null : app(MatriculaService::class)->plazoDeCambio($periodo);
 
+        // Pensum de cada materia dentro de la carrera del estudiante: «Plan 98 · Plan 25» si la llevan los dos.
+        $carreras = DB::table('student_careers')->where('student_id', $usuario->id)->where('status', 'active')->pluck('career_id')->map(fn ($id) => (int) $id)->all();
+
         return $this->pagina('modules.academica.mis-materias', [
             'materias' => $materias,
+            'planes' => app(PlanesService::class)->etiquetas($materias->pluck('asignatura_id'), $carreras ?: null),
             'plazoCambio' => $plazoCambio,
             'cambioAbierto' => $plazoCambio !== null && now()->lte($plazoCambio),
         ]);

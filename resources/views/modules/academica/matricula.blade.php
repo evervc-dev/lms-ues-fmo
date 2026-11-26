@@ -23,7 +23,11 @@
                     <td><span class="font-semibold">{{ $m->code }}</span> · {{ $m->grupo }}</td>
                     <td>{{ $vias[$m->enrolled_via] ?? $m->enrolled_via }}</td>
                     <td><x-ui.badge :color="['active' => 'verde', 'withdrawn' => 'gris', 'transferred' => 'azul'][$m->status]">{{ ['active' => __('Activa'), 'withdrawn' => __('Retirada'), 'transferred' => __('Trasladada')][$m->status] }}</x-ui.badge></td>
-                    <td class="text-right">@if ($puedeRetirar && $m->status === 'active')<x-ui.button tamano="sm" variante="peligro" wire:click="confirmarRetiro({{ $m->id }})">{{ __('Retirar') }}</x-ui.button>@endif</td>
+                    <td class="text-right">@if ($puedeRetirar && $m->status === 'active')
+                        <x-ui.acciones-fila :etiqueta="__('Acciones de la matrícula')">
+                            <x-ui.dropdown.item icono="x-circle" peligro x-on:click="abierto = false" wire:click="confirmarRetiro({{ $m->id }})">{{ __('Retirar matrícula') }}</x-ui.dropdown.item>
+                        </x-ui.acciones-fila>
+                    @endif</td>
                 </tr>
             @endforeach
         </x-ui.table>

@@ -17,7 +17,7 @@
                 <div wire:key="materia-{{ $m->id }}" class="flex flex-col rounded-xl bg-white ring-1 ring-borde transition hover:ring-marca-300">
                     {{-- Toda la parte de arriba abre la materia, con el cursor de enlace y un «Ingresar» visible. --}}
                     <a href="{{ route('secciones.contenidos', ['seccion' => $m->ulid]) }}" wire:navigate class="flex flex-1 cursor-pointer flex-col gap-3 p-4">
-                        <div class="flex gap-1"><x-ui.badge color="marca">{{ $m->code }}</x-ui.badge><x-ui.badge>{{ __('Grupo :g', ['g' => $m->grupo]) }}</x-ui.badge></div>
+                        <div class="flex flex-wrap gap-1"><x-ui.badge color="marca">{{ $m->code }}</x-ui.badge><x-ui.badge>{{ __('Grupo :g', ['g' => $m->grupo]) }}</x-ui.badge>@if ($planes[$m->asignatura_id] ?? null)<x-ui.badge color="azul">{{ $planes[$m->asignatura_id] }}</x-ui.badge>@endif</div>
                         <h2 class="font-semibold text-texto">{{ $m->name }}</h2>
                         <p class="text-sm text-texto-suave">{{ $m->docente ?? __('Docente por asignar') }}</p>
                         {{-- Sin materiales, «Sin material» en vez de un 0 % (igual que en Inicio). --}}

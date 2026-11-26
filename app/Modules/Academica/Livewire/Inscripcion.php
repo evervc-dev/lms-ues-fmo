@@ -41,6 +41,7 @@ class Inscripcion extends Component
             'buscando' => trim($this->buscar) !== '' || $this->soloConGrupos,
             'periodo' => DB::table('academic_periods')->where('id', PeriodoService::activoId())->value('name'),
             'plazo' => $matricula->plazoDe((int) auth()->id()),
+            'plan' => $matricula->planDe((int) auth()->id()),
         ]);
     }
 }

@@ -10,7 +10,8 @@
             </x-ui.empty-state>
         </x-ui.card>
     @else
-        <x-ui.card :titulo="__('Departamentos')" :descripcion="__('Departamento → carreras → materias, grupos teóricos y docentes de cada carrera.')">
+        {{-- Sin título propio: repetía el de la página (revisión UX del 22/11/2026). --}}
+        <x-ui.card>
             <x-ui.table>
                 <x-slot:cabecera>
                     <th>{{ __('Departamento') }}</th>

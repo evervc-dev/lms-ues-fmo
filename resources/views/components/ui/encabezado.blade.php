@@ -12,7 +12,9 @@
         @endif
         {{ $slot }}
     </div>
+    {{-- Los selectores de las acciones toman su ancho natural: a ancho completo se apilaban uno sobre otro y, con la
+         alineación abajo, el título quedaba por debajo de los filtros (revisión UX del 22/11/2026). --}}
     @isset($acciones)
-        <div class="flex flex-wrap items-center gap-2">{{ $acciones }}</div>
+        <div class="flex flex-wrap items-center gap-2 [&_select]:w-auto">{{ $acciones }}</div>
     @endisset
 </div>

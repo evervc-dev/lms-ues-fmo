@@ -4,6 +4,7 @@ namespace App\Modules\Reportes\Services;
 
 use App\Models\User;
 use App\Modules\Asistencia\Services\AsistenciaService;
+use App\Modules\Calificaciones\Services\CalificacionService;
 use App\Modules\Reportes\Notifications\ReporteProgramado;
 use App\Support\Alcance;
 use App\Support\DbContext;
@@ -138,12 +139,24 @@ class ReporteService
             ? $filas->countBy(fn (array $f) => (string) $f[4])->map(fn (int $n, string $tipoAlerta) => [$tipoAlerta, $n])->values()
             : $filas->filter(fn (array $f) => $f[$valor] !== null)->map(fn (array $f) => [(string) $f[$etiqueta], (float) $f[$valor]])->values();
 
+        // Asistencia y notas: primero los más bajos, que son los que hay que atender, con la línea del mínimo. Antes
+        // salían 40 barras casi iguales en el orden de la tabla, sin valor ni referencia (revisión UX del 22/11/2026).
+        $umbral = match ($tipo) {
+            'asistencia' => 75.0,
+            'notas' => CalificacionService::notaMinima(),
+            default => null,
+        };
+        if ($umbral !== null) {
+            $puntos = $puntos->sortBy(fn (array $p) => $p[1])->values();
+        }
+
         return [
             'titulo' => $titulo,
             'etiquetas' => $puntos->take(self::BARRAS)->pluck(0)->all(),
             'valores' => $puntos->take(self::BARRAS)->pluck(1)->map(fn ($v) => (float) $v)->all(),
             'maximo' => $maximo,
             'sufijo' => $sufijo,
+            'umbral' => $umbral,
             // Conteos (estudiantes, alertas): el eje va de uno en uno, sin decimales.
             'enteros' => in_array($tipo, ['carga_docente', 'bajo_rendimiento'], true),
             'recortado' => $puntos->count() > self::BARRAS,

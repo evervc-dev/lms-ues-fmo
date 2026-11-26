@@ -9,11 +9,12 @@
                 @foreach ($pendientes as $p)
                     <li class="flex flex-wrap items-center justify-between gap-3 py-3" wire:key="pend-{{ $p->tipo }}-{{ $p->id }}">
                         <span class="min-w-0">
-                            <span class="flex items-center gap-2 font-medium text-texto">{{ $p->title }} @if ($p->is_anonymous)<x-ui.badge>{{ __('Anónima') }}</x-ui.badge>@endif</span>
-                            <span class="text-xs text-texto-suave">{{ $p->code }} · {{ $p->grupo }} · {{ $p->tipo === 'tarea' ? __('Tarea') : __('Cuestionario (ensayos)') }} · {{ __('cerró :f', ['f' => \Illuminate\Support\Carbon::parse($p->closes_at)->format('d/m/Y')]) }}</span>
+                            {{-- La materia y el grupo primero: dos «Tarea 2» de grupos distintos se veían iguales (revisión UX del 22/11/2026). --}}
+                            <span class="flex flex-wrap items-center gap-2 font-medium text-texto"><x-ui.badge color="marca">{{ $p->code }} · {{ $p->grupo }}</x-ui.badge>{{ $p->title }} @if ($p->is_anonymous)<x-ui.badge>{{ __('Anónima') }}</x-ui.badge>@endif</span>
+                            <span class="mt-0.5 block text-xs text-texto-suave">{{ $p->tipo === 'tarea' ? __('Tarea') : __('Cuestionario (ensayos)') }} · {{ __('cerró :f', ['f' => \Illuminate\Support\Carbon::parse($p->closes_at)->format('d/m/Y')]) }}</span>
                         </span>
                         <span class="flex items-center gap-3">
-                            <x-ui.badge color="marca">{{ $p->pendientes }}</x-ui.badge>
+                            <span class="text-sm text-texto-suave">{{ trans_choice('{1} 1 por calificar|[2,*] :count por calificar', $p->pendientes) }}</span>
                             <x-ui.button tamano="sm" :href="$p->tipo === 'tarea' ? route('secciones.tareas.entregas', ['seccion' => $p->seccion, 'tarea' => $p->ulid]) : route('secciones.cuestionarios.show', ['seccion' => $p->seccion, 'cuestionario' => $p->ulid])">{{ __('Calificar') }}</x-ui.button>
                         </span>
                     </li>

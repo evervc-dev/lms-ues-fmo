@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modules\Academica\Services\PeriodoService;
 use Database\Seeders\Concerns\InsertsRows;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -131,17 +132,9 @@ class InstitutionSeeder extends Seeder
                 'name' => $name, 'start_date' => $start, 'end_date' => $end, 'status' => $status, 'preparation_stage' => $stage,
             ] + $this->stamps());
 
-            // Tres cómputos por período: 30 %, 30 % y 40 %.
-            $from = now()->parse($start);
-            foreach ([[1, 30], [2, 30], [3, 40]] as [$number, $weight]) {
-                DB::table('grading_component_templates')->insert([
-                    'period_id' => $periodId,
-                    'number' => $number,
-                    'name' => "Cómputo {$number}",
-                    'starts_on' => $from->copy()->addWeeks(($number - 1) * 6)->toDateString(),
-                    'ends_on' => $number === 3 ? $end : $from->copy()->addWeeks($number * 6)->subDay()->toDateString(),
-                    'weight_percent' => $weight,
-                ] + $this->stamps());
+            // Los cuatro cómputos de la plantilla del período (ADR-085).
+            foreach (PeriodoService::plantillaComputos($start, $end) as $computo) {
+                DB::table('grading_component_templates')->insert($computo + ['period_id' => $periodId] + $this->stamps());
             }
         }
     }

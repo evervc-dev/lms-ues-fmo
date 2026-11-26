@@ -7,6 +7,14 @@
     <x-ui.alert tipo="info" :titulo="__('Las áreas valen para todas las clases presenciales')">
         {{ __('No se asignan a una carrera, asignatura ni docente: el QR de cualquier sesión presencial se acepta si el estudiante está dentro de cualquier área activa. El nombre solo sirve para reconocerla en esta lista. Para dejar de aceptar un lugar, desactive su área.') }}
     </x-ui.alert>
+@php($paraMapa = $areas->map(fn ($a) => ['id' => (int) $a->id, 'nombre' => $a->name, 'activa' => (bool) $a->is_active, 'tipo' => $a->area_type,
+        'lat' => (float) $a->center_lat, 'lng' => (float) $a->center_lng, 'radio' => (int) $a->radius_m, 'vertices' => json_decode((string) $a->polygon, true) ?? []])->values())
+    {{-- Mapa de solo lectura con todas las áreas, para comprobar que cubren el campus (QA admin 21/11). --}}
+    <div x-data="mapaAreas(@js($paraMapa))" x-init="iniciar()" x-on:enfocar-area.window="enfocar($event.detail)" class="shrink-0 overflow-hidden rounded-xl ring-1 ring-borde">
+        <div wire:ignore x-ref="vista" class="h-72 w-full bg-zinc-100" role="img" aria-label="{{ __('Mapa de las áreas de asistencia') }}"></div>
+        <p class="bg-white px-3 py-2 text-xs text-texto-suave">{{ __('En rojo, las áreas activas; en gris punteado, las inactivas. Pase el cursor sobre una para ver su nombre.') }}</p>
+    </div>
+
     <x-ui.table ajustar :vacio="__('No hay áreas configuradas.')">
         <x-slot:cabecera><th>{{ __('Área') }}</th><th>{{ __('Centro') }}</th><th>{{ __('Forma') }}</th><th>{{ __('Estado') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
         @foreach ($areas as $a)
@@ -16,6 +24,7 @@
                 <td>{{ $a->area_type === 'polygon' ? __('Polígono · :n vértices', ['n' => count(json_decode((string) $a->polygon, true) ?? [])]) : __('Círculo · :m m', ['m' => $a->radius_m]) }}</td>
                 <td><x-ui.badge :color="$a->is_active ? 'verde' : 'gris'">{{ $a->is_active ? __('Activa') : __('Inactiva') }}</x-ui.badge></td>
                 <td class="text-right whitespace-nowrap">
+                    <x-ui.button tamano="sm" variante="fantasma" icono="map-pin" x-data x-on:click="$dispatch('enfocar-area', {{ (int) $a->id }})">{{ __('Ver en el mapa') }}</x-ui.button>
                     <x-ui.button tamano="sm" variante="fantasma" :href="route('areas-asistencia.editar', ['area' => $a->id])">{{ __('Editar') }}</x-ui.button>
                     <x-ui.button tamano="sm" variante="secundario" wire:click="alternar({{ $a->id }})">{{ $a->is_active ? __('Desactivar') : __('Activar') }}</x-ui.button>
                 </td>

@@ -33,11 +33,11 @@ it('CP-RF06-12 el Jefe ve solo las carreras de su departamento y no la columna D
     prnEnOtraCarrera($e);
     actingAs($e['jefe']);
 
-    expect(app(CatalogoService::class)->carreras($e['jefe'], [$e['prn']]))->toBe([$e['prn'] => ['ISI']]);
+    expect(app(CatalogoService::class)->carreras($e['jefe'], [$e['prn']]))->toBe([$e['prn'] => ['ISI · Plan 25']]);
 
     Livewire::test(Catalogo::class)
         ->assertViewHas('veDepartamento', false)
-        ->assertSeeHtml('<th>'.__('Carreras').'</th>')
+        ->assertSeeHtml('<th>'.__('Carrera y plan').'</th>')
         ->assertDontSeeHtml('<th>'.__('Depto.').'</th>')
         ->assertDontSee('LMA');
 });
@@ -48,7 +48,7 @@ it('CP-RF06-12 el Administrador ve el departamento y todas las carreras; sin pla
     actingAs($e['administrador']);
 
     $carreras = app(CatalogoService::class)->carreras($e['administrador'], [$e['prn'], $e['mat']]);
-    expect($carreras)->toBe([$e['prn'] => ['ISI', 'LMA']]);
+    expect($carreras)->toBe([$e['prn'] => ['ISI · Plan 25', 'LMA · Plan 20']]);
 
     Livewire::test(Catalogo::class)
         ->assertViewHas('veDepartamento', true)

@@ -26,7 +26,7 @@ it('shows one panel block per role of the user', function () {
     $this->actingAs(usuarioCon('coordinador', 'docente'))
         ->get(route('inicio'))
         ->assertOk()
-        ->assertSeeTextInOrder(['Docente', 'Clases de hoy', 'Coordinador', 'Matrículas activas'])
+        ->assertSeeTextInOrder(['Docente', 'Alertas de estudiantes', 'Coordinador', 'Matrículas activas'])
         ->assertDontSeeText('Cambios de teléfono pendientes');
 });
 

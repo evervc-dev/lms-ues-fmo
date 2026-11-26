@@ -15,12 +15,17 @@
                         @if (collect($m->computos)->every(fn ($c) => $c->pendiente))
                             <span class="text-right text-sm text-texto-suave">{{ __('Sin notas aún') }}</span>
                         @else
-                            <span @class(['text-2xl font-semibold', 'text-emerald-700' => $m->final >= $minima, 'text-red-700' => $m->final < $minima])>{{ $fmt($m->final) }}</span>
+                            <span class="text-right">
+                                <span @class(['block text-2xl font-semibold', 'text-emerald-700' => $m->final >= $minima, 'text-red-700' => $m->final < $minima])>{{ $fmt($m->final) }}</span>
+                                @if ($m->evaluado < 100)
+                                    <span class="block text-xs text-texto-suave">{{ __('en el :p % evaluado', ['p' => rtrim(rtrim(number_format($m->evaluado, 1), '0'), '.')]) }}</span>
+                                @endif
+                            </span>
                         @endif
                     </div>
                     <dl class="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
                         {{-- Un cómputo sin notas en el grupo nuevo conserva el del grupo anterior (ADR-062). --}}
-                        @foreach ($m->computos as $c)<div class="rounded-lg bg-zinc-50 p-2"><dt class="text-texto-suave">{{ $c->nombre }} · {{ rtrim(rtrim(number_format($c->peso, 2), '0'), '.') }} %</dt><dd @class(['text-sm font-semibold', 'font-normal text-texto-suave' => $c->pendiente])>{{ $c->pendiente ? __('Pendiente') : $fmt($c->nota) }}</dd>
+                        @foreach ($m->computos as $c)<div class="rounded-lg bg-zinc-50 p-2"><dt class="text-texto-suave">{{ $c->nombre }}<span class="block text-[11px]">{{ rtrim(rtrim(number_format($c->peso, 2), '0'), '.') }} %</span></dt><dd @class(['text-sm font-semibold', 'font-normal text-texto-suave' => $c->pendiente])>{{ $c->pendiente ? __('Pendiente') : $fmt($c->nota) }}</dd>
                             @if ($c->heredadoDe)<dd class="mt-1"><x-ui.badge color="azul" :title="__('Esta nota la trae de su grupo anterior.')">{{ __('del grupo :g', ['g' => $c->heredadoDe]) }}</x-ui.badge></dd>@endif
                         </div>@endforeach
                     </dl>
@@ -30,7 +35,31 @@
 
         {{-- Actividad por actividad: qué puso el docente y dónde ver su retroalimentación (QA 17/11). --}}
         <x-ui.card :titulo="__('Notas por actividad')" :descripcion="__('Cada nota publicada en el período. Abra una actividad para ver su retroalimentación y su rúbrica.')">
-            <x-ui.table :vacio="__('Todavía no le han publicado ninguna nota.')">
+            {{-- En el teléfono, una línea por actividad: la tabla de cuatro columnas obligaba a desplazar a los lados. --}}
+            <ul class="flex flex-col divide-y divide-borde md:hidden">
+                @php($hayActividades = false)
+                @foreach ($materias as $m)
+                    @foreach ($m->actividades as $a)
+                        @php($hayActividades = true)
+                        @php([$ruta, $parametro] = $a->tipo === 'quiz' ? ['secciones.cuestionarios.show', 'cuestionario'] : ['secciones.tareas.show', 'tarea'])
+                        <li wire:key="act-movil-{{ $m->seccion_id }}-{{ $loop->index }}" class="flex items-center justify-between gap-3 py-2.5">
+                            <div class="min-w-0">
+                                @if ($a->ulid)
+                                    <a href="{{ route($ruta, ['seccion' => $m->ulid, $parametro => $a->ulid]) }}" wire:navigate class="font-medium text-marca-700 hover:underline">{{ $a->titulo }}</a>
+                                @else
+                                    <span class="font-medium text-texto">{{ $a->titulo }}</span>
+                                @endif
+                                <p class="text-xs text-texto-suave">{{ $m->code }} · {{ $a->computo }}</p>
+                            </div>
+                            <span @class(['shrink-0 font-semibold', 'text-emerald-700' => $a->nota !== null && $a->nota >= $minima, 'text-red-700' => $a->nota !== null && $a->nota < $minima, 'text-texto-suave' => $a->nota === null])>{{ $a->nota === null ? '—' : $fmt($a->nota) }}</span>
+                        </li>
+                    @endforeach
+                @endforeach
+                @if (! $hayActividades)
+                    <li class="py-6 text-center text-sm text-texto-suave">{{ __('Todavía no le han publicado ninguna nota.') }}</li>
+                @endif
+            </ul>
+            <x-ui.table class="hidden md:block" :vacio="__('Todavía no le han publicado ninguna nota.')">
                 <x-slot:cabecera><th>{{ __('Asignatura') }}</th><th>{{ __('Actividad') }}</th><th>{{ __('Cómputo') }}</th><th class="text-right">{{ __('Nota') }}</th></x-slot:cabecera>
                 @foreach ($materias as $m)
                     @foreach ($m->actividades as $a)

@@ -84,9 +84,14 @@
             <x-ui.stat :etiqueta="__('Matrícula y carga académica')" :valor="$b['matricula']" icono="users" :detalle="trans_choice('{1} en 1 grupo teórico|[0,*] en :count grupos teóricos', $b['secciones'])" />
             <x-ui.stat :etiqueta="__('Estudiantes en alerta')" :valor="$b['enAlerta']" icono="exclamation-triangle" :tono="$b['enAlerta'] ? 'error' : 'exito'" />
         </div>
-        <div class="mt-4 grid gap-4 lg:grid-cols-2">
+        {{-- Sin clases hoy, una línea en vez de media fila vacía junto a las alertas (revisión UX del 22/11/2026). --}}
+        @if ($b['clasesHoy']->isEmpty())
+            <p class="mt-4 flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm text-texto-suave ring-1 ring-borde"><x-ui.icon name="calendar-days" class="size-4" />{{ __('Hoy no tiene clases.') }}</p>
+        @endif
+        <div @class(['mt-4 grid gap-4', 'lg:grid-cols-2' => $b['clasesHoy']->isNotEmpty()])>
+            @if ($b['clasesHoy']->isNotEmpty())
             <x-ui.card :titulo="__('Clases de hoy')">
-                @forelse ($b['clasesHoy'] as $c)
+                @foreach ($b['clasesHoy'] as $c)
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-borde py-2 last:border-0">
                         <span class="text-sm"><span class="font-semibold">{{ $c->code }} · {{ $c->grupo }}</span> {{ $c->name }}<span class="block text-xs text-texto-suave">{{ substr($c->start_time, 0, 5) }}–{{ substr($c->end_time, 0, 5) }}{{ $c->aula ? ' · '.$c->aula : '' }}</span></span>
                         @if ($c->sesion_abierta)
@@ -95,10 +100,9 @@
                             <x-ui.button tamano="sm" icono="qr-code" :href="route('secciones.asistencia', ['seccion' => $c->ulid])">{{ __('Abrir asistencia') }}</x-ui.button>
                         @endif
                     </div>
-                @empty
-                    <p class="text-sm text-texto-suave">{{ __('Hoy no tiene clases.') }}</p>
-                @endforelse
+                @endforeach
             </x-ui.card>
+            @endif
             <x-ui.card :titulo="__('Alertas de estudiantes')">
                 @forelse ($b['alertas'] as $a)
                     <p class="flex items-center justify-between gap-2 py-1 text-sm"><span class="min-w-0">{{ $a->first_name }} {{ $a->last_name }} · {{ $a->code }}</span><x-ui.badge :color="$a->alert_type === 'attendance_78' ? 'ambar' : 'rojo'">{{ $alertas[$a->alert_type] }}</x-ui.badge></p>

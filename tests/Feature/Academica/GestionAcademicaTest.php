@@ -45,7 +45,7 @@ function prnInscribible(array $e): void
 }
 
 describe('períodos (RF06)', function () {
-    it('creates a period in planning with three grading components', function () {
+    it('creates a period in planning with four grading components (ADR-085)', function () {
         $e = escenario();
         actingAs($e['administrador']);
 
@@ -53,7 +53,16 @@ describe('períodos (RF06)', function () {
 
         $periodo = DB::table('academic_periods')->where('name', '2027-I')->first();
         expect($periodo->status)->toBe('planned')
-            ->and(DB::table('grading_component_templates')->where('period_id', $periodo->id)->sum('weight_percent'))->toEqual(100);
+            ->and(DB::table('grading_component_templates')->where('period_id', $periodo->id)->sum('weight_percent'))->toEqual(100)
+            ->and(DB::table('grading_component_templates')->where('period_id', $periodo->id)->orderBy('number')->get(['number', 'weight_percent', 'starts_on', 'ends_on'])
+                ->map(fn ($c) => [(int) $c->number, (float) $c->weight_percent, (string) $c->starts_on, (string) $c->ends_on])->all())
+            ->toEqual([
+                // 138 días: 30 % (41), 25 % (35), 25 % (34) y el resto (28) hasta el último día.
+                [1, 25.0, '2027-02-01', '2027-03-13'],
+                [2, 25.0, '2027-03-14', '2027-04-17'],
+                [3, 25.0, '2027-04-18', '2027-05-21'],
+                [4, 25.0, '2027-05-22', '2027-06-18'],
+            ]);
     });
 
     it('shows the whole weights of the grading components without cutting their zeros', function () {
@@ -62,7 +71,7 @@ describe('períodos (RF06)', function () {
         Livewire::test(Periodos::class)->set('nombre', '2027-I')->set('inicio', '2027-02-01')->set('fin', '2027-06-18')->call('crear');
 
         $this->get(route('periodos.show', ['periodo' => DB::table('academic_periods')->where('name', '2027-I')->value('id')]))
-            ->assertOk()->assertSeeText(['30 %', '40 %']);
+            ->assertOk()->assertSeeText(['Cómputo 4', '25 %']);
     });
 
     it('CP-RF06-01 refuses to activate a second period while one is in course', function () {

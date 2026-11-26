@@ -4,7 +4,7 @@
 <div class="flex flex-col gap-5">
     <x-ui.encabezado :titulo="$asignatura->code.' · '.$asignatura->name">
         <div class="mt-2 flex flex-wrap gap-1">
-            <x-ui.badge color="marca">{{ __('Ciclo :n del plan', ['n' => $asignatura->cycle]) }}</x-ui.badge>
+            <x-ui.badge color="marca">{{ $plan ? __('Ciclo :n del :plan', ['n' => $asignatura->cycle, 'plan' => $plan]) : __('Ciclo :n del plan', ['n' => $asignatura->cycle]) }}</x-ui.badge>
             <x-ui.badge>{{ trans_choice('{1} 1 crédito|[2,*] :count créditos', $asignatura->credits) }}</x-ui.badge>
             @if ($inscrito)<x-ui.badge color="verde">{{ __('Inscrito') }}</x-ui.badge>@endif
         </div>

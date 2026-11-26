@@ -161,20 +161,37 @@ it('CP-RF15-05 solo el docente de la sección arma equipos, y solo en tareas gru
         ->toThrow(ValidationException::class, 'no es grupal');
 });
 
-it('CP-RF15-09 cancelar la entrega vacía su nota: la nueva entrega vuelve a la bandeja del docente', function () {
+it('CP-RF15-09 una entrega calificada no se puede cancelar y conserva su nota (ADR-086)', function () {
     $e = escenarioGrupal();
     equipoAlfa($e);
     actingAs($e['estudiante']);
     Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $e['tarea']])
-        ->set('archivo', UploadedFile::fake()->create('proyecto.pdf', 100))->call('entregar')->assertHasNoErrors();
+        ->set('archivo', UploadedFile::fake()->create('proyecto.pdf', 100))->call('entregar')->assertHasNoErrors()
+        ->assertSeeText('Cancelar entrega');
     actingAs($e['docente']);
     app(ActividadService::class)->calificarEntrega($e['docente'], $e['seccion'], (int) DB::table('submissions')->value('id'), 8.5, [], null);
 
+    // Con nota (aunque sea en borrador) ya no se ofrece cancelar, y el servicio lo rechaza.
     actingAs($e['estudiante']);
-    app(ActividadService::class)->cancelarEntrega($e['estudiante'], $e['seccion'], $e['tarea']);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $e['tarea']])
+        ->assertDontSeeText('Cancelar entrega')->assertSeeText('Su docente ya calificó esta entrega')
+        ->call('cancelar')->assertDispatched('aviso', tipo: 'error');
+    expect(fn () => app(ActividadService::class)->cancelarEntrega($e['estudiante'], $e['seccion'], $e['tarea']))
+        ->toThrow(ValidationException::class, 'ya fue calificada');
 
-    expect(DB::table('grades')->whereNotNull('score')->count())->toBe(0)
-        ->and(DB::table('grades')->pluck('status')->unique()->all())->toBe(['draft']);
+    expect(DB::table('submissions')->value('status'))->not->toBe('cancelled')
+        ->and((float) DB::table('grades')->whereNotNull('score')->value('score'))->toBe(8.5);
+});
+
+it('CP-RF15-09 sin nota, la entrega se cancela mientras la tarea está abierta', function () {
+    $e = escenarioGrupal();
+    equipoAlfa($e);
+    actingAs($e['estudiante']);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $e['tarea']])
+        ->set('archivo', UploadedFile::fake()->create('proyecto.pdf', 100))->call('entregar')->assertHasNoErrors()
+        ->call('cancelar')->assertDispatched('aviso', tipo: 'exito');
+
+    expect(DB::table('submissions')->value('status'))->toBe('cancelled');
 });
 
 /** Equipo con la entrega calificada con 8.5 y publicada; devuelve el id de la actividad de notas. */

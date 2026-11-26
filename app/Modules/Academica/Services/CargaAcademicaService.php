@@ -84,8 +84,11 @@ class CargaAcademicaService
             return $otro?->etiqueta;
         };
 
-        $resultado = $secciones->map(function ($s) use ($docentes, $bloques, $choqueDe) {
+        $planes = app(PlanesService::class)->etiquetas($secciones->pluck('subject_id'));
+
+        $resultado = $secciones->map(function ($s) use ($docentes, $bloques, $choqueDe, $planes) {
             $s->docentes = ($docentes[$s->id] ?? collect())->values();
+            $s->plan = $planes[$s->subject_id] ?? null;
             $s->horario = ($bloques[$s->id] ?? collect())->map(fn ($b) => self::etiquetaBloque($b))->all();
             $s->bloques = ($bloques[$s->id] ?? collect())->map(fn ($b) => (object) ['id' => (int) $b->id, 'etiqueta' => self::etiquetaBloque($b), 'aulaId' => $b->classroom_id ? (int) $b->classroom_id : null])->values();
             $s->choque = ($bloques[$s->id] ?? collect())->map(fn ($b) => $choqueDe($b, (int) $s->id))->filter()->first();
