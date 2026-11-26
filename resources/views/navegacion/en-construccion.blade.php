@@ -8,7 +8,7 @@
 
 @if ($layout === 'exam')
     <x-layouts::exam :title="$titulo">
-        @include('navegacion.partials.ficha')
+        <div class="mx-auto max-w-3xl">@include('navegacion.partials.ficha')</div>
     </x-layouts::exam>
 @elseif ($layout === 'projection')
     <x-layouts::projection :title="$titulo">

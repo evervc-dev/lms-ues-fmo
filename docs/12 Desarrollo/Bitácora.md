@@ -18,6 +18,38 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-22 · RF38 · Lección con verificación de lectura (no suma a la nota)
+- **Autor:** IA (Claude Code), a pedido del equipo, sobre el trabajo de la lección que estaba en curso en otra sesión
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** la lección (RF38): un material (archivo o página) con su cuestionario en la misma página. El estudiante debe cumplir el tiempo mínimo de lectura y, si se exige, llegar al final (PDF.js); luego pulsa «Ya lo leí» y se habilita el cuestionario en modo examen. El cuestionario de la lección es una **verificación de lectura que no suma a la nota**: no pide cómputo ni peso, no crea ítem de calificación (`quiz_settings.is_reading_check`), no admite ensayos y el estudiante ve su resultado como retroalimentación.
+- **CP cubiertos:** CP-RF38-01 a CP-RF38-08.
+- **Decisiones:** [[ADR-091 Lección con cuestionario y lectura comprobada]] (pendiente; se numeró ADR-089 en la rama de la lección y se renumeró porque ese número ya estaba usado).
+- **Pendiente:** aceptar la ADR-091.
+
+### 2026-11-22 · RF21 · Editar y cancelar una clase virtual
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** una clase virtual programada no se podía corregir ni cancelar (reporte del rol Docente en staging). Ahora cada clase tiene «Editar», que abre el mismo modal de programar con sus datos: programada cambia todo; en curso, tema, enlace y alargar la duración; finalizada o con reporte, solo el tema. «Cancelar clase» borra una clase programada sin reporte. El evento de Google Calendar se actualiza (`ActualizarEventoDeClase`, `CalendarGateway::actualizarClase`) o se borra en la cola `google`. Se quita el campo «Enlace de Meet (opcional)», que confundía: el enlace lo crea Google Calendar, y con la integración activa programar exige tener el Calendar conectado (el modal lleva a conectarlo). La tabla indica la hora a la que subir el reporte de la clase en curso. Se agrega al set el ícono `pencil-square`, que salía como «?» en este y otros 4 botones.
+- **CP cubiertos:** CP-RF21-10, CP-RF21-11.
+- **Decisiones:** [[ADR-090 Editar y cancelar una clase virtual]] (pendiente).
+- **Pendiente:** aceptar la ADR-090.
+
+### 2026-11-22 · RF07 · Crear departamentos desde Departamentos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** el Administrador no encontraba cómo crear un departamento: solo se podía en Catálogo › Estructura. Ahora la pantalla Departamentos tiene «Nuevo departamento» y, en cada fila, «Editar» (y «Eliminar» cuando no tiene carreras, materias ni jefe). La lógica sigue en `CatalogoService` (asignaturas.gestionar G); las acciones pasan al trait `GestionaDepartamentos` y el modal a un parcial, compartidos con Estructura.
+- **CP cubiertos:** CP-RF07-22 (ampliado).
+- **Decisiones:** —
+- **Pendiente:** —
+
+### 2026-11-22 · RF07 · Una asignatura va en un solo plan de cada carrera
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** las materias se mezclaban entre el Plan 25 y el Plan 98 de ISI. El seeder siembra cada plan con sus propias asignaturas (ciclos 1-3 en el Plan 25, el resto en el Plan 98, con su equivalente en el otro plan) y prerrequisitos solo dentro del plan. `CatalogoService` rechaza poner una asignatura en dos planes de la misma carrera, y el formulario desactiva la carrera ya elegida. La demo deja a `estudiante.dev` solo en materias de su plan y abre la sesión QR en BAD115-02.
+- **CP cubiertos:** CP-RF07-27.
+- **Decisiones:** [[ADR-089 Una asignatura va en un solo plan de cada carrera]] (pendiente).
+- **Pendiente:** aceptar la ADR-089; en bases ya sembradas, separar los planes con el script de tinker.
+
 ### 2026-11-22 · RF15 · Prórrogas a varios estudiantes, con buscador por nombre o carné
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
@@ -111,6 +143,7 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **CP cubiertos:** —
 - **Decisiones:** reparto y cuentas decididos por el usuario el 21/11/2026. La cuenta privilegiada es la superadmin de ADR-082 (no una cuenta de emergencia aparte).
 - **Pendiente:** —
+
 ### 2026-11-21 · RF04 · Roles laxos para pruebas en staging
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
@@ -118,6 +151,7 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **CP cubiertos:** CP-RF04-29.
 - **Decisiones:** retirar y terminar en vez de borrar en cascada: los triggers de ADR-027 impiden borrar matrículas, notas y asistencia (decidido por el usuario el 21/11/2026).
 - **Pendiente:** poner `LMS_ROLES_LAXOS=true` en el entorno de staging.
+
 ### 2026-11-21 · RF06, RF08 · Asignar grupo desde la ficha y calendario por mes
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test
@@ -335,6 +369,7 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Decisiones:** ninguna ADR nueva.
 - **Pendiente:** del informe quedan fuera, por decisión del usuario, el `token_expired` del QR y el nombre que
   no se refresca desde Google.
+
 ### 2026-11-18 · RF17, RF20, RF21 · Nota acumulada, asistencia ya marcada y enlace de Meet
 - **Autor:** IA (Claude Code), a pedido del usuario
 - **OpenProject:** OP# pendiente · **PR:** → test
@@ -514,6 +549,7 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Corregido de paso:** [[RF09]] seguía diciendo que Soporte Técnico no inscribe, afirmación que [[ADR-037 Jerarquía de creación y asignación de roles]] (punto 6) reemplazó y que es la que originó el CP-RF09-05 obsoleto. El PHPDoc de `MatriculaService::aprobarCambio()` también seguía declarando el asunto como pendiente.
 - **Deuda de tipado:** `phpstan-baseline.neon` baja de 126 a 124. El cambio sacó 6 errores de genéricos y se arreglaron de raíz (patrón `@template TNota of object`, anotación real del retorno de `boleta()` y un `map()` con closure tipada sustituido por `foreach`); dos entradas del baseline quedaron obsoletas y se quitaron.
 - **Pendiente:** aceptar ADR-062. El avance por unidad de [[RF18]] tendrá que decidir qué hace con la cadena cuando exista `ProgresoService`.
+
 ### 2026-10-31 · RF04, RF07, RF08, RF09, RF25 · Casos que solo esperaban su prueba
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** → test

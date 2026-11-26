@@ -64,16 +64,26 @@
         @endunless
     </div>
 
-    <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_17rem]">
-        <div class="flex min-w-0 flex-col gap-5">
+    {{-- La tarjeta de la pregunta y el panel de avance miden lo mismo: la fila se estira a la más alta de las dos y los
+         botones de navegación quedan al pie de la tarjeta (QA 22/11). --}}
+    <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <section class="flex min-w-0 flex-col gap-5 rounded-xl bg-white p-5 ring-1 ring-borde" aria-label="{{ __('Pregunta') }}">
             @if ($pregunta)
-                <section class="rounded-xl bg-white p-5 ring-1 ring-borde" wire:key="pregunta-{{ $pregunta->respuesta_id }}">
+                <div class="max-w-3xl" wire:key="pregunta-{{ $pregunta->respuesta_id }}">
                     <p class="text-base font-medium text-texto">{{ $pregunta->statement }}</p>
                     <div class="mt-4 flex flex-col gap-2">
                         @if (in_array($pregunta->question_type, ['multiple_choice', 'true_false'], true))
                             @foreach ($pregunta->opciones as $o)
-                                <label @class(['flex items-center gap-3 rounded-lg p-3 ring-1 transition', 'ring-marca-300 bg-marca-50' => (int) ($opciones[$pregunta->respuesta_id] ?? 0) === (int) $o->id, 'ring-borde hover:bg-zinc-50' => (int) ($opciones[$pregunta->respuesta_id] ?? 0) !== (int) $o->id])>
-                                    <input type="radio" wire:model.live="opciones.{{ $pregunta->respuesta_id }}" value="{{ $o->id }}" @disabled($terminado) class="text-marca-600 focus:ring-marca-600">
+                                @php
+                                    $elegida = (int) ($opciones[$pregunta->respuesta_id] ?? 0) === (int) $o->id;
+                                @endphp
+                                {{-- En la revisión, la opción elegida se pinta verde si acertó y roja si no; mientras responde, neutra. --}}
+                                <label @class(['flex items-center gap-3 rounded-lg p-3 ring-1 transition',
+                                    'ring-2 ring-emerald-500 bg-emerald-50' => $elegida && $revision && $o->is_correct,
+                                    'ring-2 ring-red-500 bg-red-50' => $elegida && $revision && ! $o->is_correct,
+                                    'ring-2 ring-zinc-500 bg-zinc-100' => $elegida && ! $revision,
+                                    'ring-borde hover:bg-zinc-100 hover:ring-zinc-300' => ! $elegida])>
+                                    <input type="radio" wire:model.live="opciones.{{ $pregunta->respuesta_id }}" value="{{ $o->id }}" @disabled($terminado) class="text-zinc-700 focus:ring-zinc-500">
                                     <span class="text-sm">{{ $o->text }}</span>
                                     @if ($revision && $o->is_correct)
                                         <x-ui.badge color="verde" class="ml-auto">{{ __('Correcta') }}</x-ui.badge>
@@ -106,9 +116,9 @@
                             <x-ui.alert class="mt-3" tipo="info" :titulo="__('Justificación')">{{ $pregunta->justification }}</x-ui.alert>
                         @endif
                     @endif
-                </section>
+                </div>
             @endif
-            <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-borde pt-4">
                 @if (! $lineal)<x-ui.button variante="secundario" wire:click="ir({{ $actual - 1 }})" :disabled="$actual === 0">{{ __('Anterior') }}</x-ui.button>@else<span></span>@endif
                 @if ($actual < $preguntas->count() - 1)
                     <div class="flex items-center gap-3">
@@ -127,31 +137,68 @@
                     </x-ui.button>
                 @endif
             </div>
-        </div>
+        </section>
         {{-- Avance y selector de preguntas a la derecha de la pregunta (arriba en el teléfono), con el modo de navegación
              explicado: en «una a una» no se vuelve atrás (QA Estudiante 22/11). --}}
-        <aside class="order-first flex flex-col gap-3 rounded-xl bg-white p-4 ring-1 ring-borde lg:order-none lg:sticky lg:top-0" aria-label="{{ __('Avance del intento') }}">
-            @php($respondidas = $preguntas->count() - $sinResponder)
-            <div>
-                <p class="text-sm font-semibold text-texto">{{ __(':r de :t respondidas', ['r' => $respondidas, 't' => $preguntas->count()]) }}</p>
-                <x-ui.progress class="mt-2" :valor="$preguntas->count() ? 100 * $respondidas / $preguntas->count() : 0" :mostrar="false" :etiqueta="__('Preguntas respondidas')" />
-            </div>
+        <aside class="order-first flex flex-col gap-3 rounded-xl bg-white p-4 ring-1 ring-borde lg:order-none" aria-label="{{ __('Avance del intento') }}">
+            @php
+                $respondidas = $preguntas->count() - $sinResponder;
+            @endphp
+            @if ($revision)
+                {{-- Retroalimentación del intento (QA 22/11): cuántas acertó, cuántas falló y cuántas fueron parciales. --}}
+                @php
+                    $conteo = $preguntas->countBy(fn ($p) => $p->score === null ? 'pendiente' : ((float) $p->score >= 1 ? 'bien' : ((float) $p->score > 0 ? 'parcial' : 'mal')));
+                @endphp
+                <div>
+                    <p class="text-sm font-semibold text-texto">{{ __('Resultado del intento') }}</p>
+                    <dl class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                        <div class="rounded-lg bg-emerald-50 p-2 ring-1 ring-emerald-200"><dt class="text-emerald-800">{{ __('Correctas') }}</dt><dd class="text-lg font-semibold text-emerald-900">{{ $conteo['bien'] ?? 0 }}</dd></div>
+                        <div class="rounded-lg bg-red-50 p-2 ring-1 ring-red-200"><dt class="text-red-800">{{ __('Incorrectas') }}</dt><dd class="text-lg font-semibold text-red-900">{{ $conteo['mal'] ?? 0 }}</dd></div>
+                        <div class="rounded-lg bg-amber-50 p-2 ring-1 ring-amber-200"><dt class="text-amber-800">{{ __('Parciales') }}</dt><dd class="text-lg font-semibold text-amber-900">{{ $conteo['parcial'] ?? 0 }}</dd></div>
+                        <div class="rounded-lg bg-zinc-50 p-2 ring-1 ring-zinc-200"><dt class="text-zinc-700">{{ __('Por calificar') }}</dt><dd class="text-lg font-semibold text-zinc-900">{{ $conteo['pendiente'] ?? 0 }}</dd></div>
+                    </dl>
+                </div>
+            @else
+                <div>
+                    <p class="text-sm font-semibold text-texto">{{ __(':r de :t respondidas', ['r' => $respondidas, 't' => $preguntas->count()]) }}</p>
+                    <x-ui.progress class="mt-2" :valor="$preguntas->count() ? 100 * $respondidas / $preguntas->count() : 0" :mostrar="false" :etiqueta="__('Preguntas respondidas')" />
+                </div>
+            @endif
             <nav class="grid grid-cols-6 gap-1 sm:grid-cols-8 lg:grid-cols-5" aria-label="{{ __('Preguntas') }}">
                 @foreach ($preguntas as $i => $p)
-                    @php($respondida = ! empty($opciones[$p->respuesta_id]) || filled($textos[$p->respuesta_id] ?? null))
+                    @php
+                        $respondida = ! empty($opciones[$p->respuesta_id]) || filled($textos[$p->respuesta_id] ?? null);
+                    @endphp
+                    {{-- En la revisión, cada número dice cómo le fue: verde bien, rojo mal, ámbar parcial; gris si falta calificar. --}}
+                    @php
+                        $resultado = ! $revision ? null : ($p->score === null ? 'pendiente' : ((float) $p->score >= 1 ? 'bien' : ((float) $p->score > 0 ? 'parcial' : 'mal')));
+                    @endphp
                     <button type="button" @if (! $lineal) wire:click="ir({{ $i }})" @endif @disabled($lineal)
-                        aria-label="{{ __('Pregunta :n: :e', ['n' => $i + 1, 'e' => $i === $actual ? __('actual') : ($respondida ? __('respondida') : __('sin responder'))]) }}"
+                        aria-label="{{ __('Pregunta :n: :e', ['n' => $i + 1, 'e' => match ($resultado) { 'bien' => __('correcta'), 'mal' => __('incorrecta'), 'parcial' => __('parcialmente correcta'), 'pendiente' => __('por calificar'), default => $i === $actual ? __('actual') : ($respondida ? __('respondida') : __('sin responder')) }]) }}"
                         @if ($i === $actual) aria-current="step" @endif
                         @class(['size-9 rounded-lg text-xs font-semibold', 'cursor-not-allowed' => $lineal && $i !== $actual,
-                            'bg-marca-600 text-white' => $i === $actual,
-                            'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200' => $i !== $actual && $respondida,
-                            'bg-white ring-1 ring-borde' => $i !== $actual && ! $respondida])>{{ $i + 1 }}</button>
+                            'ring-offset-2 ring-2 ring-zinc-800' => $resultado !== null && $i === $actual,
+                            'bg-emerald-600 text-white' => $resultado === 'bien',
+                            'bg-red-600 text-white' => $resultado === 'mal',
+                            'bg-amber-400 text-amber-950' => $resultado === 'parcial',
+                            'bg-zinc-200 text-zinc-700' => $resultado === 'pendiente',
+                            'bg-marca-600 text-white' => $resultado === null && $i === $actual,
+                            'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200' => $resultado === null && $i !== $actual && $respondida,
+                            'bg-white ring-1 ring-borde' => $resultado === null && $i !== $actual && ! $respondida])>{{ $i + 1 }}</button>
                 @endforeach
             </nav>
             <ul class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-texto-suave">
-                <li class="flex items-center gap-1"><span class="size-3 rounded bg-marca-600"></span>{{ __('Actual') }}</li>
-                <li class="flex items-center gap-1"><span class="size-3 rounded bg-emerald-50 ring-1 ring-emerald-200"></span>{{ __('Respondida') }}</li>
-                <li class="flex items-center gap-1"><span class="size-3 rounded bg-white ring-1 ring-borde"></span>{{ __('Sin responder') }}</li>
+                @if ($revision)
+                    <li class="flex items-center gap-1"><span class="size-3 rounded bg-emerald-600"></span>{{ __('Correcta') }}</li>
+                    <li class="flex items-center gap-1"><span class="size-3 rounded bg-red-600"></span>{{ __('Incorrecta') }}</li>
+                    <li class="flex items-center gap-1"><span class="size-3 rounded bg-amber-400"></span>{{ __('Parcial') }}</li>
+                    <li class="flex items-center gap-1"><span class="size-3 rounded bg-zinc-200"></span>{{ __('Por calificar') }}</li>
+                    <li class="flex items-center gap-1"><span class="size-3 rounded ring-2 ring-zinc-800"></span>{{ __('Actual') }}</li>
+                @else
+                    <li class="flex items-center gap-1"><span class="size-3 rounded bg-marca-600"></span>{{ __('Actual') }}</li>
+                    <li class="flex items-center gap-1"><span class="size-3 rounded bg-emerald-50 ring-1 ring-emerald-200"></span>{{ __('Respondida') }}</li>
+                    <li class="flex items-center gap-1"><span class="size-3 rounded bg-white ring-1 ring-borde"></span>{{ __('Sin responder') }}</li>
+                @endif
             </ul>
             @unless ($terminado)
                 @if ($lineal)

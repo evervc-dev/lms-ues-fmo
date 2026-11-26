@@ -51,7 +51,9 @@
         </div>
 
         {{-- Escritorio: una columna por ciclo, con desplazamiento a los lados si no caben. Teléfono: un ciclo debajo de otro. --}}
-        <div class="overflow-x-auto pb-2">
+        {{-- El relleno deja ver completos el borde de la tarjeta elegida y los de sus prerrequisitos: el contenedor con
+             desplazamiento lateral recortaba el contorno de las tarjetas de la orilla (QA 22/11). --}}
+        <div class="overflow-x-auto p-1.5 pb-3">
             <div class="flex flex-col gap-5 md:min-w-max md:flex-row md:items-start md:gap-3">
                 @foreach ($ciclos as $ciclo => $materias)
                     <section wire:key="ciclo-{{ $ciclo }}" class="flex flex-col gap-2 md:w-44">
@@ -72,7 +74,7 @@
                                         {{ $m->code }}
                                         <span class="font-sans font-normal">{{ __(':n UV', ['n' => $m->credits]) }}</span>
                                     </span>
-                                    <span class="px-2.5 py-2 text-sm leading-snug text-texto">{{ $m->name }}</span>
+                                    <span class="break-words px-2.5 py-2 text-sm leading-snug text-texto">{{ $m->name }}</span>
                                     <span class="mt-auto flex items-baseline justify-between gap-2 border-t border-black/5 px-2.5 py-1.5 text-xs">
                                         <span class="text-texto-suave">{{ $e['etiqueta'] }}</span>
                                         @if ($m->nota !== null)

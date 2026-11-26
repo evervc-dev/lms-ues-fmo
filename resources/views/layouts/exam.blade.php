@@ -17,12 +17,12 @@
             <div class="flex items-center gap-3 text-sm">{{ $estado }}</div>
         @endisset
     </header>
-    <main id="contenido" class="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
+    <main id="contenido" class="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
         {{ $slot }}
     </main>
     @isset($pie)
         <footer class="sticky bottom-0 border-t border-zinc-200 bg-white px-4 py-3">
-            <div class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2">{{ $pie }}</div>
+            <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">{{ $pie }}</div>
         </footer>
     @endisset
     <x-ui.toasts />

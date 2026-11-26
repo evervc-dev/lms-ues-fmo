@@ -12,7 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Borra de Google Calendar el evento de una clase virtual cancelada (RF32 + RF21, ADR-018), y Google avisa a los
+ * Borra de Google Calendar el evento de una clase virtual cancelada (RF32 + RF21, ADR-018, ADR-090), y Google avisa a los
  * invitados. El evento está en el calendario del docente que programó la clase, que no se guarda: se prueba con los
  * docentes vigentes de la sección, primero el responsable. Va en la cola «google» con reintentos. Idempotente: sin
  * evento no hace nada, y al borrarlo se quita `google_event_id`.
@@ -28,14 +28,18 @@ class CancelarEventoDeClase implements ShouldQueue
     /** @var list<int> */
     public array $backoff = [30, 120, 600];
 
-    public function __construct(public int $claseId)
+    /**
+     * `$seccionId` y `$eventoId` van cuando la clase se borra al cancelarla (CP-RF21-11): el job ya no la encuentra.
+     */
+    public function __construct(public int $claseId, public ?int $seccionId = null, public ?string $eventoId = null)
     {
         $this->onQueue('google');
     }
 
     public function handle(CalendarGateway $calendario): void
     {
-        $clase = DB::table('video_sessions')->where('id', $this->claseId)->first(['id', 'section_id', 'google_event_id']);
+        $clase = DB::table('video_sessions')->where('id', $this->claseId)->first(['id', 'section_id', 'google_event_id'])
+            ?? ($this->seccionId !== null && $this->eventoId !== null ? (object) ['id' => $this->claseId, 'section_id' => $this->seccionId, 'google_event_id' => $this->eventoId] : null);
         if ($clase === null || $clase->google_event_id === null) {
             return;
         }

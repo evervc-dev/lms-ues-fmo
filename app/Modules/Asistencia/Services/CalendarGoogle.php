@@ -9,8 +9,8 @@ use Illuminate\Support\Str;
 
 /**
  * Google Calendar real (RF21, ADR-018): `events.insert` en el calendario principal del docente, con enlace de Meet
- * (`conferenceDataVersion=1`, `hangoutsMeet`) e invitación a los matriculados (`sendUpdates=all`), y `events.delete`
- * cuando se cancela la clase; y los eventos del calendario de evaluaciones del período (RF06) en el calendario del
+ * (`conferenceDataVersion=1`, `hangoutsMeet`) e invitación a los matriculados (`sendUpdates=all`), `events.patch` cuando
+ * se edita y `events.delete` cuando se cancela; y los eventos del calendario de evaluaciones del período (RF06) en el calendario del
  * Administrador. Se llama desde jobs de la cola «google»; un error de Google se lanza para que el job reintente.
  *
  * Solo se invita a correos @ues.edu.sv. Si el docente no conectó su cuenta o Google revocó el permiso, devuelve
@@ -47,6 +47,32 @@ class CalendarGoogle implements CalendarGateway
             ])->throw()->json();
 
         return ['evento' => (string) $evento['id'], 'meet' => $evento['hangoutLink'] ?? null];
+    }
+
+    /**
+     * `events.patch` del evento de la clase editada con `sendUpdates=all`: Google avisa a los invitados del cambio. Un 404
+     * indica que el evento no está en el calendario de este docente; un 410, que ya se había borrado (nada que cambiar).
+     */
+    public function actualizarClase(User $docente, string $eventoId, string $titulo, Carbon $inicio, int $minutos): ?bool
+    {
+        $token = $this->conexion->tokenDeAcceso($docente);
+        if ($token === null) {
+            return null;
+        }
+
+        $zona = (string) config('app.timezone');
+        $respuesta = Http::withToken($token)->timeout(20)->withQueryParameters(['sendUpdates' => 'all'])
+            ->patch(self::EVENTOS.'/'.rawurlencode($eventoId), [
+                'summary' => $titulo,
+                'start' => ['dateTime' => $inicio->copy()->timezone($zona)->toIso8601String(), 'timeZone' => $zona],
+                'end' => ['dateTime' => $inicio->copy()->timezone($zona)->addMinutes($minutos)->toIso8601String(), 'timeZone' => $zona],
+            ]);
+
+        return match (true) {
+            $respuesta->status() === 404 => false,
+            $respuesta->successful(), $respuesta->status() === 410 => true,
+            default => (bool) $respuesta->throw(),
+        };
     }
 
     /**

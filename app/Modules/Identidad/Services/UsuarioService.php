@@ -373,11 +373,19 @@ class UsuarioService
             }
         }
 
-        if (in_array('estudiante', $quitados, true)
-            && DB::table('enrollments')->join('academic_periods', 'academic_periods.id', '=', 'enrollments.period_id')
+        if (in_array('estudiante', $quitados, true)) {
+            // Se nombran las materias, como con los grupos del docente: el reporte de QA pedía saber cuáles retirar.
+            $materias = DB::table('enrollments')->join('academic_periods', 'academic_periods.id', '=', 'enrollments.period_id')
+                ->join('sections', 'sections.id', '=', 'enrollments.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
                 ->where('enrollments.student_id', $usuarioId)->where('enrollments.status', 'active')
-                ->where('academic_periods.status', '!=', 'closed')->exists()) {
-            throw ValidationException::withMessages(['roles' => __('Tiene matrículas activas. Retírelas antes de quitar el rol Estudiante.')]);
+                ->where('academic_periods.status', '!=', 'closed')
+                ->orderBy('subjects.code')->get(['subjects.code', 'sections.code as grupo'])->map(fn ($m) => $m->code.'-'.$m->grupo);
+
+            if ($materias->isNotEmpty()) {
+                throw ValidationException::withMessages(['roles' => trans_choice(
+                    '{1} Tiene 1 materia inscrita en el período (:materias). Retírela en Matrícula antes de quitar el rol Estudiante.|[2,*] Tiene :count materias inscritas en el período (:materias). Retírelas en Matrícula antes de quitar el rol Estudiante.',
+                    $materias->count(), ['materias' => $materias->implode(', ')])]);
+            }
         }
     }
 

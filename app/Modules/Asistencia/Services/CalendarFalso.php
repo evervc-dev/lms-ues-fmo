@@ -18,6 +18,9 @@ class CalendarFalso implements CalendarGateway
     /** @var list<array{docente: int, evento: string}> */
     public array $cancelados = [];
 
+    /** @var list<array{docente: int, evento: string, titulo: string, inicio: string, minutos: int}> */
+    public array $actualizados = [];
+
     /** @var list<array{organizador: int, evento: string|null, titulo: string, inicio: string, fin: string|null, invitados: list<string>}> */
     public array $sincronizados = [];
 
@@ -26,6 +29,13 @@ class CalendarFalso implements CalendarGateway
         $this->creados[] = ['docente' => $docente->id, 'titulo' => $titulo, 'inicio' => $inicio->toIso8601String(), 'minutos' => $minutos, 'invitados' => $invitados];
 
         return ['evento' => 'evento-'.Str::lower(Str::random(10)), 'meet' => 'https://meet.google.com/abc-defg-hij'];
+    }
+
+    public function actualizarClase(User $docente, string $eventoId, string $titulo, Carbon $inicio, int $minutos): ?bool
+    {
+        $this->actualizados[] = ['docente' => $docente->id, 'evento' => $eventoId, 'titulo' => $titulo, 'inicio' => $inicio->toIso8601String(), 'minutos' => $minutos];
+
+        return true;
     }
 
     public function sincronizarEvento(User $organizador, ?string $eventoId, string $titulo, Carbon $inicio, ?Carbon $fin, array $invitados): ?string

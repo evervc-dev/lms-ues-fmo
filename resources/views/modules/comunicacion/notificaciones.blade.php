@@ -30,26 +30,30 @@
             <ul class="divide-y divide-borde">
                 @foreach ($avisos as $aviso)
                     @php $destino = ! empty($aviso->data['url']); @endphp
-                    <li wire:key="aviso-{{ $aviso->id }}" @class(['flex flex-wrap items-start gap-3 py-3 sm:flex-nowrap', 'opacity-70' => $aviso->read_at])>
-                        <span @class(['mt-0.5 rounded-lg p-2', 'bg-marca-50 text-marca-600' => ! $aviso->read_at, 'bg-zinc-100 text-texto-suave' => $aviso->read_at])>
+                    {{-- En teléfono las acciones van debajo del texto: al lado lo dejaban en una columna de una palabra por
+                         línea (reporte del 22/11/2026). Desde sm vuelven a la derecha. --}}
+                    <li wire:key="aviso-{{ $aviso->id }}" @class(['flex items-start gap-3 py-3', 'opacity-70' => $aviso->read_at])>
+                        <span @class(['mt-0.5 shrink-0 rounded-lg p-2', 'bg-marca-50 text-marca-600' => ! $aviso->read_at, 'bg-zinc-100 text-texto-suave' => $aviso->read_at])>
                             <x-ui.icon :name="$iconos[$aviso->event_code] ?? 'bell'" />
                         </span>
-                        {{-- Abrir el aviso lo marca leído y lleva al evento; si no tiene pantalla, solo lo marca. --}}
-                        <button type="button" wire:click="abrir('{{ $aviso->id }}')" class="-m-2 min-w-0 flex-1 rounded-lg p-2 text-left hover:bg-zinc-50"
-                            aria-label="{{ $destino ? __('Abrir: :aviso', ['aviso' => $aviso->data['title'] ?? __('Aviso')]) : __('Marcar leído: :aviso', ['aviso' => $aviso->data['title'] ?? __('Aviso')]) }}">
-                            <span @class(['block text-sm text-texto', 'font-semibold' => ! $aviso->read_at])>{{ $aviso->data['title'] ?? __('Aviso') }}</span>
-                            @if (! empty($aviso->data['body']))
-                                <span class="block text-sm text-texto-suave">{{ $aviso->data['body'] }}</span>
-                            @endif
-                            <span class="mt-1 block text-xs text-texto-suave">{{ $aviso->created_at->diffForHumans() }}</span>
-                        </button>
-                        <div class="flex shrink-0 items-center gap-2">
-                            @if ($destino)
-                                <x-ui.button tamano="sm" variante="secundario" icono="chevron-right" wire:click="abrir('{{ $aviso->id }}')">{{ __('Ir al evento') }}</x-ui.button>
-                            @endif
-                            @unless ($aviso->read_at)
-                                <x-ui.button tamano="sm" variante="fantasma" wire:click="marcarLeida('{{ $aviso->id }}')">{{ __('Marcar leída') }}</x-ui.button>
-                            @endunless
+                        <div class="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
+                            {{-- Abrir el aviso lo marca leído y lleva al evento; si no tiene pantalla, solo lo marca. --}}
+                            <button type="button" wire:click="abrir('{{ $aviso->id }}')" class="-m-2 min-w-0 flex-1 rounded-lg p-2 text-left hover:bg-zinc-50"
+                                aria-label="{{ $destino ? __('Abrir: :aviso', ['aviso' => $aviso->data['title'] ?? __('Aviso')]) : __('Marcar leído: :aviso', ['aviso' => $aviso->data['title'] ?? __('Aviso')]) }}">
+                                <span @class(['block break-words text-sm text-texto', 'font-semibold' => ! $aviso->read_at])>{{ $aviso->data['title'] ?? __('Aviso') }}</span>
+                                @if (! empty($aviso->data['body']))
+                                    <span class="block break-words text-sm text-texto-suave">{{ $aviso->data['body'] }}</span>
+                                @endif
+                                <span class="mt-1 block text-xs text-texto-suave">{{ $aviso->created_at->diffForHumans() }}</span>
+                            </button>
+                            <div class="flex flex-wrap items-center gap-2 sm:shrink-0">
+                                @if ($destino)
+                                    <x-ui.button tamano="sm" variante="secundario" icono="chevron-right" wire:click="abrir('{{ $aviso->id }}')">{{ __('Ir al evento') }}</x-ui.button>
+                                @endif
+                                @unless ($aviso->read_at)
+                                    <x-ui.button tamano="sm" variante="fantasma" wire:click="marcarLeida('{{ $aviso->id }}')">{{ __('Marcar leída') }}</x-ui.button>
+                                @endunless
+                            </div>
                         </div>
                     </li>
                 @endforeach

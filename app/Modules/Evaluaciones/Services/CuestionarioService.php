@@ -184,13 +184,21 @@ class CuestionarioService
     }
 
     /**
-     * @param  array{componente: int, titulo: string, instrucciones?: string|null, abre: string, cierra: string, peso: float, minutos: int, intentos: int, navegacion: string, banco: int, cantidad: int, tema?: string|null}  $datos
+     * Con `verificacion` es la verificación de lectura de una lección (RF38, ADR-091): sin cómputo ni peso, sin ítem de
+     * calificación (no suma a la nota) y sin preguntas de ensayo, que dejarían al docente calificando algo que no cuenta.
+     *
+     * @param  array{componente?: int|null, titulo: string, instrucciones?: string|null, abre: string, cierra: string, peso?: float|null, minutos: int, intentos: int, navegacion: string, banco: int, cantidad: int, tema?: string|null, verificacion?: bool}  $datos
      */
     public function crearCuestionario(User $docente, int $seccionId, array $datos): string
     {
         abort_unless($this->alcance->puedeEnSeccion($docente, 'cuestionarios.gestionar', $seccionId), 403);
         $this->bancos($docente)->contains('id', $datos['banco']) || abort(403);
-        $this->actividades->validarPeso((int) $datos['componente'], $seccionId, (float) $datos['peso']);
+        $verificacion = (bool) ($datos['verificacion'] ?? false);
+        if ($verificacion) {
+            $this->sinEnsayos((int) $datos['banco'], $datos['tema'] ?? null);
+        } else {
+            $this->actividades->validarPeso((int) $datos['componente'], $seccionId, (float) $datos['peso']);
+        }
         $disponibles = DB::table('questions')->where('bank_id', $datos['banco'])->when($datos['tema'] ?? null, fn ($q, $t) => $q->where('topic', $t))->count();
         // Cantidad 0 = todas las del banco con ese tema; el intento las sortea al empezar.
         if ($disponibles === 0) {
@@ -203,14 +211,15 @@ class CuestionarioService
             throw ValidationException::withMessages(['cierra' => __('El cierre debe ser posterior a la apertura.')]);
         }
 
-        return DbContext::run(function () use ($seccionId, $datos) {
-            $item = DB::table('grade_items')->insertGetId(['component_id' => $datos['componente'], 'section_id' => $seccionId, 'item_type' => 'quiz', 'title' => $datos['titulo'],
+        return DbContext::run(function () use ($seccionId, $datos, $verificacion) {
+            $item = $verificacion ? null : DB::table('grade_items')->insertGetId(['component_id' => $datos['componente'], 'section_id' => $seccionId, 'item_type' => 'quiz', 'title' => $datos['titulo'],
                 'weight_percent' => $datos['peso'], 'is_published' => false, 'created_at' => now(), 'updated_at' => now()]);
             $ulid = (string) Str::ulid();
             $id = DB::table('assessments')->insertGetId(['ulid' => $ulid, 'section_id' => $seccionId, 'grade_item_id' => $item, 'assessment_type' => 'quiz', 'title' => $datos['titulo'],
                 'instructions' => $datos['instrucciones'] ?? null, 'opens_at' => $datos['abre'], 'closes_at' => $datos['cierra'], 'max_attempts' => max(1, $datos['intentos']),
                 'is_anonymous' => false, 'created_at' => now(), 'updated_at' => now()]);
-            DB::table('quiz_settings')->insert(['assessment_id' => $id, 'time_limit_minutes' => $datos['minutos'], 'autosave_seconds' => 30, 'navigation' => $datos['navegacion'], 'review_published' => false]);
+            DB::table('quiz_settings')->insert(['assessment_id' => $id, 'time_limit_minutes' => $datos['minutos'], 'autosave_seconds' => 30, 'navigation' => $datos['navegacion'],
+                'review_published' => false, 'is_reading_check' => $verificacion]);
             DB::table('quiz_question_rules')->insert(['assessment_id' => $id, 'bank_id' => $datos['banco'], 'topic' => $datos['tema'] ?? null, 'quantity' => $datos['cantidad'], 'created_at' => now(), 'updated_at' => now()]);
 
             return $ulid;
@@ -224,9 +233,13 @@ class CuestionarioService
     {
         abort_unless($this->alcance->puedeEnSeccion($docente, 'cuestionarios.gestionar', $seccionId), 403);
         $c = DB::table('assessments')->where('section_id', $seccionId)->where('ulid', $ulid)->where('assessment_type', 'quiz')->first() ?? abort(404);
+        $verificacion = self::esVerificacion((int) $c->id);
 
         if (isset($datos['banco'])) {
             $this->bancos($docente)->contains('id', $datos['banco']) || abort(403);
+            if ($verificacion) {
+                $this->sinEnsayos((int) $datos['banco'], $datos['tema'] ?? null);
+            }
             $disponibles = DB::table('questions')->where('bank_id', $datos['banco'])->when($datos['tema'] ?? null, fn ($q, $t) => $q->where('topic', $t))->count();
             if ($disponibles === 0) {
                 throw ValidationException::withMessages(['cantidad' => __('El banco no tiene preguntas con ese tema. Elija otro tema o agregue preguntas al banco.')]);
@@ -236,19 +249,23 @@ class CuestionarioService
             }
         }
 
-        $this->actividades->validarPeso((int) $datos['componente'], $seccionId, (float) $datos['peso'], (int) $c->grade_item_id);
+        if (! $verificacion) {
+            $this->actividades->validarPeso((int) $datos['componente'], $seccionId, (float) $datos['peso'], (int) $c->grade_item_id);
+        }
 
         if (Carbon::parse($datos['cierra'])->lte(Carbon::parse($datos['abre']))) {
             throw ValidationException::withMessages(['cierra' => __('El cierre debe ser posterior a la apertura.')]);
         }
 
-        DbContext::run(function () use ($c, $datos) {
-            DB::table('grade_items')->where('id', $c->grade_item_id)->update([
-                'component_id' => $datos['componente'],
-                'title' => $datos['titulo'],
-                'weight_percent' => $datos['peso'],
-                'updated_at' => now(),
-            ]);
+        DbContext::run(function () use ($c, $datos, $verificacion) {
+            if (! $verificacion) {
+                DB::table('grade_items')->where('id', $c->grade_item_id)->update([
+                    'component_id' => $datos['componente'],
+                    'title' => $datos['titulo'],
+                    'weight_percent' => $datos['peso'],
+                    'updated_at' => now(),
+                ]);
+            }
 
             DB::table('assessments')->where('id', $c->id)->update([
                 'title' => $datos['titulo'],
@@ -282,9 +299,10 @@ class CuestionarioService
     {
         abort_unless($this->alcance->puedeEnSeccion($docente, 'cuestionarios.gestionar', $seccionId), 403);
         $c = DB::table('assessments as a')->join('quiz_settings as s', 's.assessment_id', '=', 'a.id')
-            ->join('grade_items as g', 'g.id', '=', 'a.grade_item_id')
+            ->leftJoin('grade_items as g', 'g.id', '=', 'a.grade_item_id')
             ->where('a.section_id', $seccionId)->where('a.ulid', $ulid)->where('a.assessment_type', 'quiz')
-            ->first(['a.*', 's.time_limit_minutes', 's.navigation', 'g.component_id', 'g.weight_percent', 'g.id as item_id']) ?? abort(404);
+            ->where(fn ($q) => $q->whereNotNull('a.grade_item_id')->orWhere('s.is_reading_check', true))
+            ->first(['a.*', 's.time_limit_minutes', 's.navigation', 's.is_reading_check', 'g.component_id', 'g.weight_percent', 'g.id as item_id']) ?? abort(404);
 
         $regla = DB::table('quiz_question_rules')->where('assessment_id', $c->id)->first();
         $intentosCount = DB::table('quiz_attempts')->where('assessment_id', $c->id)->count();
@@ -302,9 +320,11 @@ class CuestionarioService
     public function cuestionario(User $usuario, int $seccionId, string $ulid): array
     {
         abort_unless($this->alcance->puedeEnSeccion($usuario, 'contenidos.ver', $seccionId), 403);
-        $c = DB::table('assessments as a')->join('quiz_settings as s', 's.assessment_id', '=', 'a.id')->join('grade_items as g', 'g.id', '=', 'a.grade_item_id')
+        // La verificación de lectura (ADR-091) no tiene ítem de calificación; una evaluación copiada sin programar (RF14) tampoco, y esa no se muestra.
+        $c = DB::table('assessments as a')->join('quiz_settings as s', 's.assessment_id', '=', 'a.id')->leftJoin('grade_items as g', 'g.id', '=', 'a.grade_item_id')
             ->where('a.section_id', $seccionId)->where('a.ulid', $ulid)->where('a.assessment_type', 'quiz')
-            ->first(['a.*', 's.time_limit_minutes', 's.navigation', 's.review_published', 'g.weight_percent', 'g.is_published', 'g.id as item_id']) ?? abort(404);
+            ->where(fn ($q) => $q->whereNotNull('a.grade_item_id')->orWhere('s.is_reading_check', true))
+            ->first(['a.*', 's.time_limit_minutes', 's.navigation', 's.review_published', 's.is_reading_check', 'g.weight_percent', 'g.is_published', 'g.id as item_id']) ?? abort(404);
         $matricula = $this->actividades->matricula($usuario, $seccionId);
         $gestiona = $this->alcance->puedeEnSeccion($usuario, 'cuestionarios.gestionar', $seccionId);
         $prorroga = $matricula ? $this->prorrogas->vigente($matricula, (int) $c->id, 'submission') : null;
@@ -365,6 +385,12 @@ class CuestionarioService
         }
         if ($datos['misIntentos']->count() >= (int) $c->max_attempts) {
             throw ValidationException::withMessages(['intento' => __('Ya usó sus :n intentos.', ['n' => $c->max_attempts])]);
+        }
+        // Lección con cuestionario (RF38, ADR-091): primero se completa la lectura. Se comprueba aquí y no solo en la
+        // vista, para que el enlace directo al cuestionario no se la salte.
+        $leccion = DB::table('quiz_settings')->where('assessment_id', $c->id)->value('required_resource_id');
+        if ($leccion !== null && ! DB::table('resource_progress')->where('resource_id', $leccion)->where('enrollment_id', $matricula)->exists()) {
+            throw ValidationException::withMessages(['intento' => __('Primero complete la lectura de la lección.')]);
         }
 
         return DbContext::run(function () use ($c, $matricula, $datos, $prorroga) {
@@ -492,6 +518,28 @@ class CuestionarioService
     public static function revisionDesde(object $cuestionario): Carbon
     {
         return self::finEfectivo($cuestionario)->addMinutes(self::demoraRevision());
+    }
+
+    /**
+     * El cuestionario es la verificación de lectura de una lección (ADR-091): no suma a la nota.
+     */
+    public static function esVerificacion(int $cuestionarioId): bool
+    {
+        return (bool) DB::table('quiz_settings')->where('assessment_id', $cuestionarioId)->value('is_reading_check');
+    }
+
+    /**
+     * Rechaza un banco (o un tema del banco) con preguntas de ensayo para una verificación de lectura: el ensayo exige
+     * que el docente lo califique a mano, y la verificación no suma a la nota (ADR-091).
+     *
+     * @throws ValidationException
+     */
+    private function sinEnsayos(int $bancoId, ?string $tema): void
+    {
+        $ensayos = DB::table('questions')->where('bank_id', $bancoId)->when($tema, fn ($q, $t) => $q->where('topic', $t))->where('question_type', 'essay')->exists();
+        if ($ensayos) {
+            throw ValidationException::withMessages(['banco' => __('La verificación de lectura no admite preguntas de ensayo: elija otro banco o un tema sin ensayos.')]);
+        }
     }
 
     public static function revisionVisible(object $cuestionario): bool
@@ -801,6 +849,10 @@ class CuestionarioService
         DB::table('quiz_attempts')->where('id', $intentoId)->update(['score' => $nota, 'status' => $pendientes ? 'pending_grading' : 'graded', 'updated_at' => now()]);
 
         $item = DB::table('assessments')->join('grade_items', 'grade_items.id', '=', 'assessments.grade_item_id')->where('assessments.id', $intento->assessment_id)->first(['grade_items.id', 'grade_items.section_id', 'grade_items.is_published']);
+        // Verificación de lectura (ADR-091): el resultado queda solo en el intento, como retroalimentación; no va al libro de notas.
+        if ($item === null) {
+            return;
+        }
         $mejor = (float) DB::table('quiz_attempts')->where('assessment_id', $intento->assessment_id)->where('enrollment_id', $intento->enrollment_id)->max('score');
         DB::table('grades')->updateOrInsert(['grade_item_id' => $item->id, 'enrollment_id' => $intento->enrollment_id], [
             'section_id' => $item->section_id, 'score' => $mejor, 'score_before_penalty' => $mejor, 'status' => $item->is_published ? 'published' : 'draft',

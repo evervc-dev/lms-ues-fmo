@@ -15,6 +15,8 @@ use Illuminate\Validation\ValidationException;
  * - `{"type": "min_score", "assessment_id": N, "min": 6.0}`: nota publicada del cuestionario igual o mayor.
  * - `{"type": "submission", "assessment_id": N}`: entrega de la tarea (en una grupal, la del equipo).
  * - `{"type": "forum_posts", "thread_id": N, "count": 2}`: mensajes del estudiante en ese hilo del foro.
+ * - `{"type": "read", "min_seconds": 300, "to_end": true}`: lectura comprobada de una lección (RF38, ADR-091). No se
+ *   completa sola: el estudiante pulsa «Ya lo leí» y el servidor comprueba el tiempo visible y la llegada al final.
  *
  * La regla se evalúa cuando ocurre el evento (listeners de Contenidos) y, al fijarla, para quienes ya la cumplen.
  * Un recurso completado no se desmarca aunque la regla deje de cumplirse (decidido por el usuario el 01/11/2026).
@@ -26,7 +28,11 @@ class ProgresoService
         'min_score' => 'Nota mínima en un cuestionario',
         'submission' => 'Entrega de una tarea',
         'forum_posts' => 'Mensajes en un hilo del foro',
+        'read' => 'Lectura comprobada',
     ];
+
+    /** Minutos de lectura que admite una lección (RF38): de 1 a 120. */
+    public const MAXIMO_MINUTOS_LECTURA = 120;
 
     public function __construct(private Alcance $alcance) {}
 
@@ -54,6 +60,9 @@ class ProgresoService
             'submission' => $deLaSeccion('assignment')
                 ? ['type' => 'submission', 'assessment_id' => (int) $regla['assessment_id']]
                 : throw ValidationException::withMessages(['regla' => __('Elija una tarea de este grupo teórico.')]),
+            'read' => is_numeric($regla['min_seconds'] ?? null) && (int) $regla['min_seconds'] >= 60 && (int) $regla['min_seconds'] <= self::MAXIMO_MINUTOS_LECTURA * 60
+                ? ['type' => 'read', 'min_seconds' => (int) $regla['min_seconds'], 'to_end' => (bool) ($regla['to_end'] ?? false)]
+                : throw ValidationException::withMessages(['regla' => __('La lectura mínima debe ser de 1 a :n minutos.', ['n' => self::MAXIMO_MINUTOS_LECTURA])]),
             'forum_posts' => DB::table('forum_threads')->where('id', (int) ($regla['thread_id'] ?? 0))->where('section_id', $seccionId)->exists()
                 && is_numeric($regla['count'] ?? null) && (int) $regla['count'] >= 1 && (int) $regla['count'] <= 20
                 ? ['type' => 'forum_posts', 'thread_id' => (int) $regla['thread_id'], 'count' => (int) $regla['count']]
@@ -96,6 +105,9 @@ class ProgresoService
 
         return match ($regla['type'] ?? null) {
             'opened' => __('Se completa al abrirlo.'),
+            'read' => ($regla['to_end'] ?? false)
+                ? trans_choice('{1} Léalo al menos 1 minuto y llegue al final; luego pulse «Ya lo leí».|[2,*] Léalo al menos :count minutos y llegue al final; luego pulse «Ya lo leí».', intdiv((int) ($regla['min_seconds'] ?? 60), 60))
+                : trans_choice('{1} Léalo al menos 1 minuto; luego pulse «Ya lo leí».|[2,*] Léalo al menos :count minutos; luego pulse «Ya lo leí».', intdiv((int) ($regla['min_seconds'] ?? 60), 60)),
             'min_score' => __('Se completa al obtener :n o más en «:e», cuando se publique la nota.', ['n' => number_format((float) $regla['min'], 1), 'e' => $this->titulo((int) $regla['assessment_id'])]),
             'submission' => __('Se completa al entregar la tarea «:e».', ['e' => $this->titulo((int) $regla['assessment_id'])]),
             'forum_posts' => trans_choice('{1} Se completa al escribir 1 mensaje en el hilo «:h» del foro.|[2,*] Se completa al escribir :count mensajes en el hilo «:h» del foro.',
@@ -117,6 +129,26 @@ class ProgresoService
         $regla = is_string($recurso->completion_rule) ? json_decode($recurso->completion_rule, true) : $recurso->completion_rule;
 
         return is_array($regla) && isset($regla['type']) ? $regla : ['type' => 'opened'];
+    }
+
+    /**
+     * Cuánto lleva leída una lección la matrícula (RF38): segundos con la pestaña visible, si llegó al final y si ya
+     * cumple la regla `read`. Sin esa regla, `cumple` es true: no hay nada que comprobar. Llegar al final solo se exige
+     * si la página lo puede detectar (`$finDetectable`: una página o un PDF en el visor); si no, basta el tiempo (ADR-091).
+     *
+     * @param  array<string, mixed>|null  $regla
+     * @return array{segundos: int, minimo: int, alFinal: bool, exigeFinal: bool, cumple: bool}
+     */
+    public function lectura(?array $regla, int $recursoId, ?int $matricula, bool $finDetectable = true): array
+    {
+        $minimo = ($regla['type'] ?? null) === 'read' ? (int) $regla['min_seconds'] : 0;
+        $exigeFinal = $finDetectable && ($regla['type'] ?? null) === 'read' && (bool) ($regla['to_end'] ?? false);
+        $registros = fn () => DB::table('resource_access_logs')->where('resource_id', $recursoId)->where('enrollment_id', (int) $matricula);
+        $segundos = $matricula === null ? 0 : (int) $registros()->sum('duration_seconds');
+        $alFinal = $matricula !== null && $registros()->where('event_type', 'end')->exists();
+
+        return ['segundos' => $segundos, 'minimo' => $minimo, 'alFinal' => $alFinal, 'exigeFinal' => $exigeFinal,
+            'cumple' => $segundos >= $minimo && ($alFinal || ! $exigeFinal)];
     }
 
     /**

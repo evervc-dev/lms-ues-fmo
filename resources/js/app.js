@@ -7,6 +7,7 @@ import lectorAsistencia from './lector-asistencia';
 import mapaArea from './mapa-area';
 import mapaAreas from './mapa-areas';
 import selectorCarpeta from './selector-carpeta';
+import visorPdf from './visor-pdf';
 
 // Autofocus automático en el primer campo inválido de cualquier formulario tras validación
 registrarAutofocusValidacion();
@@ -19,5 +20,6 @@ document.addEventListener('alpine:init', () => {
     window.Alpine.data('mapaArea', mapaArea);
     window.Alpine.data('mapaAreas', mapaAreas);
     window.Alpine.data('graficoReporte', graficoReporte);
+    window.Alpine.data('visorPdf', visorPdf);
     window.Alpine.magic('copiar', () => copiar);
 });

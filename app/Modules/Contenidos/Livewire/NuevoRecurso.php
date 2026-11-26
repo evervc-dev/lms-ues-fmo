@@ -4,9 +4,11 @@ namespace App\Modules\Contenidos\Livewire;
 
 use App\Modules\Contenidos\Services\ContenidoService;
 use App\Modules\Contenidos\Services\ProgresoService;
+use App\Modules\Evaluaciones\Services\CuestionarioService;
 use App\Support\Navegacion\FormularioPorPasos;
 use App\Support\Navegacion\PaginaDeSeccion;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -58,6 +60,22 @@ class NuevoRecurso extends Component
     /** Mensajes exigidos en el hilo, de 1 a 20. */
     public int $reglaMensajes = 2;
 
+    /** Lección con cuestionario (RF38): el material (archivo o página) lleva un cuestionario que se intenta al leerlo. */
+    public bool $leccion = false;
+
+    /** Minutos mínimos con la pestaña visible para dar por leída la lección (RF38). */
+    public int $lecturaMinutos = 5;
+
+    /** Si además debe llegar al final del material (última página del PDF o final de la página). */
+    public bool $lecturaFinal = true;
+
+    /**
+     * Cuestionario de la lección, con los mismos datos que «Nuevo cuestionario» (RF16).
+     *
+     * @var array{abre: string, cierra: string, minutos: int|string, intentos: int|string, navegacion: string, banco: int|string|null, cantidad: int|string, tema: string}
+     */
+    public array $cuestionario = ['abre' => '', 'cierra' => '', 'minutos' => 20, 'intentos' => 1, 'navegacion' => 'free', 'banco' => null, 'cantidad' => 10, 'tema' => ''];
+
     /** @var TemporaryUploadedFile|null */
     public $archivo = null;
 
@@ -81,6 +99,32 @@ class NuevoRecurso extends Component
         $this->unidadId = $unidad;
         // Comprueba el permiso y el alcance sobre la unidad antes de mostrar el formulario.
         $this->unidad($contenidos);
+        $this->cuestionario['abre'] = now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
+        $this->cuestionario['cierra'] = now()->addWeek()->setTime(23, 59)->format('Y-m-d\TH:i');
+    }
+
+    /**
+     * Una lección se completa con la lectura comprobada; al dejar de serlo, vuelve al punto de partida del tipo.
+     */
+    public function updatedLeccion(bool $valor): void
+    {
+        if ($valor) {
+            $this->completion = 'automatic';
+            $this->reglaTipo = 'read';
+
+            return;
+        }
+        $this->updatedTipo($this->tipo);
+    }
+
+    /**
+     * Al cambiar de banco, el tema elegido ya no aplica (los temas son del banco).
+     */
+    public function updatedCuestionario(mixed $valor, string $clave): void
+    {
+        if ($clave === 'banco') {
+            $this->cuestionario['tema'] = '';
+        }
     }
 
     /**
@@ -88,6 +132,10 @@ class NuevoRecurso extends Component
      */
     public function updatedTipo(string $valor): void
     {
+        if ($this->leccion && in_array($valor, ContenidoService::TIPOS_LECCION, true)) {
+            return;
+        }
+        $this->leccion = false;
         $this->completion = $valor === 'page' ? 'automatic' : 'manual';
         $this->reglaTipo = 'opened';
     }
@@ -104,8 +152,27 @@ class NuevoRecurso extends Component
             'min_score' => ['type' => 'min_score', 'assessment_id' => $this->reglaEvaluacion, 'min' => $this->reglaMinimo],
             'submission' => ['type' => 'submission', 'assessment_id' => $this->reglaEvaluacion],
             'forum_posts' => ['type' => 'forum_posts', 'thread_id' => $this->reglaHilo, 'count' => $this->reglaMensajes],
+            'read' => ['type' => 'read', 'min_seconds' => $this->lecturaMinutos * 60, 'to_end' => $this->lecturaFinal],
             default => null,
         };
+    }
+
+    /**
+     * Datos del cuestionario de la lección, tal como los espera CuestionarioService::crearCuestionario(). Es una
+     * verificación de lectura: no lleva cómputo ni peso y no suma a la nota (ADR-091).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function datosCuestionario(): ?array
+    {
+        if (! $this->leccion) {
+            return null;
+        }
+        $c = $this->cuestionario;
+
+        return ['verificacion' => true, 'titulo' => $this->tituloRecurso, 'instrucciones' => null, 'abre' => $c['abre'], 'cierra' => $c['cierra'],
+            'minutos' => (int) $c['minutos'], 'intentos' => (int) $c['intentos'], 'navegacion' => $c['navegacion'],
+            'banco' => (int) $c['banco'], 'cantidad' => (int) $c['cantidad'], 'tema' => $c['tema'] ?: null];
     }
 
     /**
@@ -115,11 +182,11 @@ class NuevoRecurso extends Component
      */
     public function pasos(): array
     {
-        return [
+        $pasos = [
             [
                 'titulo' => __('Qué es'),
                 'descripcion' => __('Tipo, título y descripción.'),
-                'reglas' => ['tipo' => 'required|in:'.implode(',', array_keys(ContenidoService::TIPOS)), 'tituloRecurso' => 'required|string|max:200', 'descripcion' => 'nullable|string|max:500'],
+                'reglas' => ['tipo' => 'required|in:'.implode(',', array_keys(ContenidoService::TIPOS)), 'tituloRecurso' => 'required|string|max:200', 'descripcion' => 'nullable|string|max:500', 'leccion' => 'boolean'],
                 'atributos' => ['tituloRecurso' => __('título'), 'tipo' => __('tipo')],
             ],
             [
@@ -146,14 +213,33 @@ class NuevoRecurso extends Component
                     'reglaMinimo' => 'nullable|numeric|between:0,10',
                     'reglaHilo' => 'nullable|integer',
                     'reglaMensajes' => 'nullable|integer|between:1,20',
+                    'lecturaMinutos' => 'required|integer|between:1,'.ProgresoService::MAXIMO_MINUTOS_LECTURA,
+                    'lecturaFinal' => 'boolean',
                 ],
-                'atributos' => ['completion' => __('forma de completarlo'), 'reglaTipo' => __('regla'), 'reglaMinimo' => __('nota mínima'), 'reglaMensajes' => __('cantidad de mensajes')],
-            ],
-            [
-                'titulo' => __('Revisar y publicar'),
-                'descripcion' => __('Confirme antes de publicarlo en la unidad.'),
+                'atributos' => ['completion' => __('forma de completarlo'), 'reglaTipo' => __('regla'), 'reglaMinimo' => __('nota mínima'), 'reglaMensajes' => __('cantidad de mensajes'), 'lecturaMinutos' => __('minutos de lectura')],
             ],
         ];
+        if ($this->leccion) {
+            $pasos[] = [
+                'titulo' => __('Verificación'),
+                'descripcion' => __('Cuestionario corto al terminar la lectura; no suma a la nota.'),
+                'reglas' => [
+                    'cuestionario.abre' => 'required|date', 'cuestionario.cierra' => 'required|date|after:cuestionario.abre',
+                    'cuestionario.minutos' => 'required|integer|min:1|max:600', 'cuestionario.intentos' => 'required|integer|min:1|max:10',
+                    'cuestionario.navegacion' => 'required|in:free,linear', 'cuestionario.banco' => 'required|integer',
+                    'cuestionario.cantidad' => 'required|integer|min:0|max:200', 'cuestionario.tema' => 'nullable|string|max:100',
+                ],
+                'atributos' => ['cuestionario.abre' => __('apertura'),
+                    'cuestionario.cierra' => __('cierre'), 'cuestionario.minutos' => __('minutos'), 'cuestionario.intentos' => __('intentos'),
+                    'cuestionario.navegacion' => __('navegación'), 'cuestionario.banco' => __('banco'), 'cuestionario.cantidad' => __('cantidad')],
+            ];
+        }
+        $pasos[] = [
+            'titulo' => __('Revisar y publicar'),
+            'descripcion' => __('Confirme antes de publicarlo en la unidad.'),
+        ];
+
+        return $pasos;
     }
 
     /**
@@ -220,7 +306,7 @@ class NuevoRecurso extends Component
                 'tipo' => $this->tipo, 'titulo' => $this->tituloRecurso, 'descripcion' => $this->descripcion ?: null,
                 'url' => $this->url ?: null, 'texto' => $this->texto, 'pdf' => $this->pdf, 'archivo' => $this->archivo,
                 'archivos' => $this->archivos, 'rutas' => $this->rutas,
-                'completion' => $this->completion, 'regla' => $this->regla(),
+                'completion' => $this->completion, 'regla' => $this->regla(), 'cuestionario' => $this->datosCuestionario(),
             ]);
 
             return true;
@@ -229,13 +315,19 @@ class NuevoRecurso extends Component
             return;
         }
 
-        session()->flash('aviso', ['tipo' => 'exito', 'mensaje' => __('Recurso publicado.')]);
+        session()->flash('aviso', ['tipo' => 'exito', 'mensaje' => $this->leccion ? __('Lección publicada con su cuestionario.') : __('Recurso publicado.')]);
         $this->redirectRoute('secciones.contenidos', ['seccion' => $this->seccion], navigate: true);
     }
 
-    public function render(ContenidoService $contenidos, ProgresoService $progreso): View
+    public function render(ContenidoService $contenidos, ProgresoService $progreso, CuestionarioService $cuestionarios): View
     {
+        $banco = $this->leccion && $this->cuestionario['banco'] ? (int) $this->cuestionario['banco'] : null;
+
         return $this->paginaDeSeccion('modules.contenidos.nuevo-recurso', $progreso->opciones($this->seccionId()) + [
+            'tiposLeccion' => ContenidoService::TIPOS_LECCION,
+            'bancos' => $this->leccion ? $cuestionarios->bancos(auth()->user()) : collect(),
+            'temas' => $banco === null ? collect() : $cuestionarios->temasDelBanco(auth()->user(), $banco),
+            'disponibles' => $banco === null ? 0 : DB::table('questions')->where('bank_id', $banco)->when($this->cuestionario['tema'], fn ($q, $t) => $q->where('topic', $t))->count(),
             'unidad' => $this->unidad($contenidos),
             'reglas' => ProgresoService::REGLAS,
             'reglaEnPalabras' => $this->completion === 'automatic' ? $progreso->describir($this->regla()) : null,

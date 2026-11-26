@@ -57,7 +57,7 @@
             </x-ui.card>
         @endif
 
-        <x-ui.card :titulo="__('Carreras y planes de estudio')" :descripcion="__('En qué carrera, plan y ciclo se lleva. Una materia compartida va en varias carreras, y sus grupos los cursan estudiantes de todas.')">
+        <x-ui.card :titulo="__('Carreras y planes de estudio')" :descripcion="__('En qué carrera, plan y ciclo se lleva. Una materia compartida va en varias carreras, y sus grupos los cursan estudiantes de todas. En cada carrera va en un solo plan.')">
             <div class="flex flex-col gap-3">
                 @if ($planes !== [])
                     <div class="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_5.5rem_2.5rem] gap-3 px-1 text-xs font-semibold uppercase tracking-wide text-texto-suave sm:grid">
@@ -66,13 +66,15 @@
                 @endif
                 @foreach ($planes as $i => $fila)
                     @php($carrera = $carreras->firstWhere('id', (int) ($fila['carrera'] ?? 0)))
+                    {{-- Las carreras de las otras filas no se ofrecen: una asignatura va en un solo plan de cada carrera (ADR-089). --}}
+                    @php($usadas = collect($planes)->except($i)->pluck('carrera')->filter()->map(fn ($c) => (int) $c)->all())
                     <div wire:key="plan-fila-{{ $i }}" class="flex flex-col gap-2 rounded-lg bg-zinc-50 p-3 ring-1 ring-borde sm:bg-transparent sm:p-0 sm:ring-0">
                         <div class="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_5.5rem_2.5rem] sm:items-start">
                             <div>
                                 <label for="plan-carrera-{{ $i }}" class="mb-1 block text-xs font-medium text-texto-suave sm:sr-only">{{ __('Carrera') }}</label>
                                 <x-ui.select id="plan-carrera-{{ $i }}" wire:model.live="planes.{{ $i }}.carrera">
                                     <option value="">{{ __('Elija la carrera…') }}</option>
-                                    @foreach ($carreras as $c)<option value="{{ $c->id }}">{{ $c->code }} · {{ $c->name }}</option>@endforeach
+                                    @foreach ($carreras as $c)<option value="{{ $c->id }}" @disabled(in_array((int) $c->id, $usadas, true))>{{ $c->code }} · {{ $c->name }}{{ in_array((int) $c->id, $usadas, true) ? ' · '.__('ya elegida') : '' }}</option>@endforeach
                                 </x-ui.select>
                             </div>
                             <div>

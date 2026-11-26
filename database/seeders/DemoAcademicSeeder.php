@@ -198,7 +198,10 @@ class DemoAcademicSeeder extends Seeder
         }
         // estudiante.dev solo en las secciones de docente.dev (no chocan: el mismo docente no da dos a la vez), para
         // probar con las dos cuentas de desarrollo la asistencia con QR y el resto del curso.
-        foreach ($sections->where('teacher', $this->dev['docente']) as $s) {
+        // Solo las de su plan: una asignatura va en un solo plan de la carrera (ADR-089).
+        $planDelEstudiante = DB::table('student_careers')->where('student_id', $this->dev['estudiante'])->value('study_plan_id');
+        $deSuPlan = DB::table('career_subjects')->where('study_plan_id', $planDelEstudiante)->pluck('subject_id')->all();
+        foreach ($sections->where('teacher', $this->dev['docente'])->whereIn('subject_id', $deSuPlan) as $s) {
             $rows[] = ['student_id' => $this->dev['estudiante'], 'section_id' => $s->id, 'period_id' => $this->period, 'subject_id' => $s->subject_id,
                 'status' => 'active', 'enrolled_via' => 'key', 'enrolled_by' => $this->dev['estudiante']] + $this->stamps(now()->parse('2026-07-27'));
         }
@@ -520,8 +523,8 @@ class DemoAcademicSeeder extends Seeder
             }
         }
 
-        // Sesión abierta ahora mismo en PRN115-01 (docente.dev), con su QR rotativo.
-        $open = $sections->first(fn ($s) => $s->code === 'PRN115' && $s->section === '01');
+        // Sesión abierta ahora mismo en BAD115-02 (docente.dev, plan de estudiante.dev), con su QR rotativo.
+        $open = $sections->first(fn ($s) => $s->code === 'BAD115' && $s->section === '02');
         $sessionId = DB::table('attendance_sessions')->insertGetId(['ulid' => (string) Str::ulid(), 'section_id' => $open->id, 'area_id' => $area, 'session_date' => now()->toDateString(),
             'modality' => 'in_person', 'status' => 'open', 'opened_at' => now()->subMinutes(3), 'qr_validity_minutes' => 15, 'qr_rotation_seconds' => 10, 'late_after_minutes' => 15,
             'opened_by' => $open->teacher] + $this->stamps(now()->subMinutes(3)));

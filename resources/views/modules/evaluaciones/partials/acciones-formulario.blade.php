@@ -1,12 +1,11 @@
 {{--
-    Barra de acciones de un formulario largo (tarea, cuestionario): queda pegada abajo mientras se desplaza, así el botón
-    de guardar siempre está a mano. Variables: $volver (URL de Cancelar) y $enviar (texto del botón).
-    Fondo opaco y sombra hacia arriba: con el fondo translúcido y desenfocado, los campos de detrás se veían encimados
-    bajo la barra (revisión del rol Docente). El formulario que la incluye deja espacio con scroll-mb para que el campo
-    enfocado no quede escondido detrás. En escritorio el <main> se desplaza con 20 px de relleno abajo (py-5): sin el
-    -bottom-5, entre la barra y el borde se asomaba el contenido.
+    Barra de acciones de un formulario largo (tarea, cuestionario): va al final del formulario, en el flujo normal.
+    Variables: $volver (URL de Cancelar) y $enviar (texto del botón).
+    Antes quedaba pegada abajo (sticky) mientras se desplazaba; aun con fondo opaco tapaba los campos de debajo y se veía
+    encimada sobre «Cómputo» y «Peso» (revisión del rol Docente en staging, 22/11/2026). Ahora no flota: se llega a ella
+    al terminar de llenar, como en el resto de formularios.
 --}}
-<div class="sticky bottom-0 z-10 lg:-bottom-5 -mx-1 flex justify-end gap-2 rounded-t-xl border-t border-borde bg-white px-4 py-3 shadow-[0_-6px_16px_-8px_rgb(0_0_0/0.15)]">
+<div class="flex justify-end gap-2 border-t border-borde pt-4">
     <x-ui.button variante="secundario" :href="$volver">{{ __('Cancelar') }}</x-ui.button>
     <x-ui.button type="submit" wire:loading.attr="disabled" wire:target="guardar">{{ $enviar }}</x-ui.button>
 </div>
