@@ -61,9 +61,9 @@ class CalendarioEvaluaciones extends Component
     /**
      * Pulsar un día del calendario abre «Agregar fecha» con ese día como inicio.
      */
-    public function elegirDia(string $fecha): void
+    public function elegirDia(string $fecha, CalendarioPeriodoService $calendario): void
     {
-        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha) || ! $calendario->puedeGestionar(auth()->user())) {
             return;
         }
         $this->resetValidation();
@@ -207,6 +207,7 @@ class CalendarioEvaluaciones extends Component
             'ambitos' => $calendario->ambitos($usuario),
             'calendarHabilitado' => $conexion->habilitada(),
             'calendarConectado' => $conexion->conectado($usuario),
+            'puedeGestionar' => $calendario->puedeGestionar($usuario),
         ], titulo: __('Calendario de evaluaciones'));
     }
 }

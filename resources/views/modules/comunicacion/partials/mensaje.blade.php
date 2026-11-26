@@ -7,7 +7,7 @@
                 @if ($m->is_hidden)<x-ui.badge>{{ __('Oculto') }}</x-ui.badge>@endif
                 · {{ \Illuminate\Support\Carbon::parse($m->created_at)->diffForHumans() }}</span>
             <span class="flex gap-2">
-                @unless ($hilo->is_closed)<button type="button" wire:click="responderA({{ $m->id }})" class="hover:text-marca-700">{{ __('Responder') }}</button>@endunless
+                @if ($participa && ! $hilo->is_closed)<button type="button" wire:click="responderA({{ $m->id }})" class="hover:text-marca-700">{{ __('Responder') }}</button>@endif
                 @if ($modera)<button type="button" wire:click="moderar('ocultar', {{ $m->id }})" class="hover:text-red-700">{{ $m->is_hidden ? __('Mostrar') : __('Ocultar') }}</button>@endif
             </span>
         </div>

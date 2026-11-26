@@ -18,6 +18,22 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-23 · RF22, RF04 · La clase abierta no cuenta en el porcentaje; tabla de Usuarios legible
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** con marca de salida (ADR-079), el estudiante que marcaba solo la entrada veía 100 % mientras la clase seguía abierta. Ahora el porcentaje solo cuenta sesiones cerradas; en su historial la clase abierta dice «Clase en curso» y, con la salida abierta, «Entrada registrada: 1 de 2». En /usuarios, la columna del usuario tenía un ancho mínimo de una sílaba y partía los nombres; ahora tiene ancho fijo, el correo se recorta y «Último acceso» se muestra desde pantallas anchas.
+- **CP cubiertos:** CP-RF22-07.
+- **Decisiones:** una sesión abierta no entra al porcentaje hasta cerrarse.
+- **Pendiente:** —
+
+### 2026-11-22 · RF06, RF07 · Archivar períodos, departamentos, carreras y asignaturas
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** períodos cerrados, departamentos y carreras se archivan (`archived_at`); las asignaturas usan su `is_active`, que en pantalla pasa de «Desactivar» a «Archivar». Lo archivado sale de las listas y los selectores y los Services rechazan usarlo; Períodos, Departamentos, Carreras y Catálogo tienen la vista «Archivados» con «Desarchivar». Archivar algo en uso se rechaza nombrando qué lo impide. Solo el Administrador, salvo las asignaturas, que también archiva el Jefe de su departamento.
+- **CP cubiertos:** CP-RF06-14, CP-RF07-02 (cambia), CP-RF07-28 a CP-RF07-30.
+- **Decisiones:** [[ADR-092 Archivar períodos, departamentos, carreras y asignaturas]] (pendiente).
+- **Pendiente:** aceptar la ADR-092.
+
 ### 2026-11-22 · RF38 · Lección con verificación de lectura (no suma a la nota)
 - **Autor:** IA (Claude Code), a pedido del equipo, sobre el trabajo de la lección que estaba en curso en otra sesión
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

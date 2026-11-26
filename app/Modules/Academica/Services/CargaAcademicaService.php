@@ -299,7 +299,7 @@ class CargaAcademicaService
     {
         $global = $this->alcance->exigir($actor, 'secciones.crear') === 'G';
 
-        return DB::table('departments')
+        return DB::table('departments')->whereNull('archived_at')
             ->when(! $global, fn ($q) => $q->whereIn('id', $this->carrerasParaGrupos($actor)->pluck('department_id')->unique()->all()))
             ->orderBy('code')->get(['id', 'code', 'name']);
     }
@@ -313,7 +313,7 @@ class CargaAcademicaService
     {
         $alcance = $this->alcance->exigir($actor, 'secciones.crear');
 
-        return DB::table('careers')
+        return DB::table('careers')->whereNull('archived_at')
             ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
             ->when($alcance === 'C', fn ($q) => $q->whereIn('id', $this->alcance->carreras($actor)))
             ->when(! in_array($alcance, ['G', 'D', 'C'], true), fn ($q) => $q->whereRaw('1 = 0'))

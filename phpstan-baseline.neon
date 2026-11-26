@@ -211,7 +211,7 @@ parameters:
 			path: app/Modules/Asistencia/Services/AsistenciaService.php
 
 		-
-			message: '#^Method App\\Modules\\Asistencia\\Services\\AsistenciaService\:\:sesion\(\) should return array\{sesion\: object, estudiantes\: Illuminate\\Support\\Collection\<int, object\>, rechazos\: Illuminate\\Support\\Collection\<int, object\>, conteo\: array\<string, int\>, segundos\: int\} but returns array\{sesion\: stdClass\|null, estudiantes\: Illuminate\\Support\\Collection\<int, stdClass\>, rechazos\: Illuminate\\Support\\Collection\<int, stdClass\>, conteo\: array\<int\>, segundos\: int\<0, max\>\}\.$#'
+			message: '#^Method App\\Modules\\Asistencia\\Services\\AsistenciaService\:\:sesion\(\) should return array\{sesion\: object, estudiantes\: Illuminate\\Support\\Collection\<int, object\>, rechazos\: Illuminate\\Support\\Collection\<int, object\>, conteo\: array\<string, int\>, segundos\: int, soloLectura\: bool, fueraDeHorario\: bool, motivoFueraHorario\: string\|null\} but returns array\{sesion\: stdClass\|null, estudiantes\: Illuminate\\Support\\Collection\<int, stdClass\>, rechazos\: Illuminate\\Support\\Collection\<int, stdClass\>, conteo\: array\<int\>, segundos\: int\<0, max\>, soloLectura\: bool, fueraDeHorario\: bool, motivoFueraHorario\: string\|null\}\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Modules/Asistencia/Services/AsistenciaService.php

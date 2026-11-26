@@ -153,13 +153,33 @@ it('CP-RF06-04 rechaza fechas fuera del período, un fin anterior al inicio y ca
     expect(fn () => calendarioPeriodo()->agregar($e['administrador'], $e['periodo'], 'Tarde', '2026-11-10 08:00', null))->toThrow(ValidationException::class, 'cerrado');
 });
 
-it('CP-RF06-04 quien no gestiona el calendario no lo ve ni lo toca', function (string $rol) {
+it('CP-RF06-04 quien no gestiona ni consulta el calendario no lo ve ni lo toca', function () {
     $e = escenario();
-    actingAs($e[$rol]);
+    actingAs($e['soporte']);
 
-    expect(fn () => calendarioPeriodo()->agregar($e[$rol], $e['periodo'], 'Parcial', '2026-11-10 08:00', null))->toThrow(AuthorizationException::class)
-        ->and(fn () => calendarioPeriodo()->eventos($e[$rol], $e['periodo']))->toThrow(AuthorizationException::class);
-})->with(['docente', 'estudiante', 'soporte']);
+    expect(fn () => calendarioPeriodo()->agregar($e['soporte'], $e['periodo'], 'Parcial', '2026-11-10 08:00', null))->toThrow(AuthorizationException::class)
+        ->and(fn () => calendarioPeriodo()->eventos($e['soporte'], $e['periodo']))->toThrow(AuthorizationException::class);
+    actingAs($e['soporte'])->get(route('periodos.calendario'))->assertForbidden();
+});
+
+it('ADR-094 el docente y el estudiante consultan las fechas que les aplican sin poder cambiarlas', function (string $rol) {
+    $e = escenario();
+    actingAs($e['administrador']);
+    $global = calendarioPeriodo()->agregar($e['administrador'], $e['periodo'], 'Primer parcial', '2026-11-10 08:00', null);
+    actingAs($e['jefe']);
+    $suyo = calendarioPeriodo()->agregar($e['jefe'], $e['periodo'], 'Parcial de Ingeniería', '2026-11-12 08:00', null, 'departamento:'.$e['dia']);
+    $ajeno = DbContext::system(fn () => DB::table('period_calendar_events')->insertGetId(['period_id' => $e['periodo'], 'department_id' => $e['dcnm'],
+        'title' => 'Parcial de Ciencias', 'starts_at' => '2026-11-13 08:00', 'created_at' => now(), 'updated_at' => now()]));
+
+    actingAs($e[$rol]);
+    $ids = calendarioPeriodo()->eventos($e[$rol], $e['periodo'])->pluck('id')->all();
+    expect($ids)->toContain($global, $suyo)->not->toContain($ajeno)
+        ->and(calendarioPeriodo()->eventos($e[$rol], $e['periodo'])->every(fn ($f) => ! $f->editable))->toBeTrue()
+        ->and(calendarioPeriodo()->ambitos($e[$rol]))->toBe([])
+        ->and(fn () => calendarioPeriodo()->agregar($e[$rol], $e['periodo'], 'Parcial', '2026-11-10 08:00', null))->toThrow(AuthorizationException::class)
+        ->and(fn () => calendarioPeriodo()->eliminar($e[$rol], $global))->toThrow(AuthorizationException::class)
+        ->and(fn () => calendarioPeriodo()->sincronizar($e[$rol], $e['periodo']))->toThrow(AuthorizationException::class);
+})->with(['docente', 'estudiante']);
 
 it('CP-RF06-04 el Administrador agrega fechas desde la página del calendario y ve su estado en Google Calendar', function () {
     $e = escenario();
@@ -257,11 +277,17 @@ it('CP-RF06-09 el Jefe y el Coordinador entran a la página del calendario y a M
     actingAs($e[$rol])->get(route('perfil.google-calendar'))->assertOk();
 })->with(['jefe', 'coordinador']);
 
-it('CP-RF06-09 el docente no entra a la página del calendario de evaluaciones', function () {
+it('ADR-094 el docente y el estudiante ven la página del calendario en solo lectura', function (string $rol) {
     $e = escenario();
+    actingAs($e['administrador']);
+    $global = calendarioPeriodo()->agregar($e['administrador'], $e['periodo'], 'Primer parcial', '2026-11-10 08:00', null);
 
-    actingAs($e['docente'])->get(route('periodos.calendario'))->assertForbidden();
-});
+    actingAs($e[$rol])->get(route('periodos.calendario'))->assertOk()
+        ->assertSeeText(['Calendario de evaluaciones', 'Primer parcial', 'Lista de fechas'])
+        ->assertDontSeeText(['Agregar fecha', 'Sincronizar con mi Google Calendar', 'Eliminar', 'Google Calendar']);
+    Livewire::actingAs($e[$rol])->test(CalendarioEvaluaciones::class)
+        ->call('eliminarFecha', $global)->assertForbidden();
+})->with(['docente', 'estudiante']);
 
 it('no muestra fechas como sincronizadas si la integración con Google Calendar no está habilitada', function () {
     $e = escenario();

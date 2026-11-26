@@ -91,7 +91,7 @@ it('CP-RF07-23 la confirmación nombra las dependientes y el aviso las lista', f
     actingAs($e['jefe']);
 
     Livewire::test(Catalogo::class)
-        ->assertSeeHtml(e(__('¿Desactivar :c? También se desactivarán las que dependen de ella: :d.', ['c' => 'PR1', 'd' => 'PR2, PR3'])))
+        ->assertSeeHtml(e(__('¿Archivar :c? También se archivarán las que dependen de ella: :d.', ['c' => 'PR1', 'd' => 'PR2, PR3'])))
         ->call('alternarEstado', $pr['PR1'])
-        ->assertDispatched('aviso', tipo: 'exito', mensaje: __('Asignatura desactivada junto con las que dependen de ella: :codigos. No se ofrecerán al crear grupos teóricos.', ['codigos' => 'PR2, PR3']));
+        ->assertDispatched('aviso', tipo: 'exito', mensaje: __('Asignatura archivada junto con las que dependen de ella: :codigos. No se ofrecerán al crear grupos teóricos.', ['codigos' => 'PR2, PR3']));
 });

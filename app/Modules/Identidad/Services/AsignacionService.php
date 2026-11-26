@@ -230,8 +230,8 @@ class AsignacionService
         $permitidos = $actor === null ? null : $this->jerarquia->departamentosPermitidos($actor);
 
         return [
-            'departamentos' => DB::table('departments')->when($permitidos !== null, fn ($q) => $q->whereIn('id', $permitidos))->orderBy('name')->get(['id', 'code', 'name']),
-            'carreras' => DB::table('careers')->when($permitidos !== null, fn ($q) => $q->whereIn('department_id', $permitidos))->orderBy('name')->get(['id', 'code', 'name', 'department_id']),
+            'departamentos' => DB::table('departments')->whereNull('archived_at')->when($permitidos !== null, fn ($q) => $q->whereIn('id', $permitidos))->orderBy('name')->get(['id', 'code', 'name']),
+            'carreras' => DB::table('careers')->whereNull('archived_at')->when($permitidos !== null, fn ($q) => $q->whereIn('department_id', $permitidos))->orderBy('name')->get(['id', 'code', 'name', 'department_id']),
             'planes' => DB::table('study_plans')->orderBy('name')->get(['id', 'career_id', 'name']),
         ];
     }
@@ -289,8 +289,8 @@ class AsignacionService
      */
     private function escribirCoordinacion(int $actorId, int $usuarioId, int $carreraId): void
     {
-        if (! DB::table('careers')->where('id', $carreraId)->exists()) {
-            throw ValidationException::withMessages(['carrera' => __('La carrera elegida no existe.')]);
+        if (! DB::table('careers')->where('id', $carreraId)->whereNull('archived_at')->exists()) {
+            throw ValidationException::withMessages(['carrera' => __('La carrera elegida no existe o está archivada.')]);
         }
 
         $this->relevar($actorId, 'career_coordinators', 'career_id', $usuarioId, $carreraId);
@@ -298,8 +298,8 @@ class AsignacionService
 
     private function escribirJefatura(int $actorId, int $usuarioId, int $departamentoId): void
     {
-        if (! DB::table('departments')->where('id', $departamentoId)->exists()) {
-            throw ValidationException::withMessages(['departamento' => __('El departamento elegido no existe.')]);
+        if (! DB::table('departments')->where('id', $departamentoId)->whereNull('archived_at')->exists()) {
+            throw ValidationException::withMessages(['departamento' => __('El departamento elegido no existe o está archivado.')]);
         }
 
         $this->relevar($actorId, 'department_heads', 'department_id', $usuarioId, $departamentoId);
@@ -361,8 +361,8 @@ class AsignacionService
 
     private function escribirDocente(int $usuarioId, int $departamentoId): void
     {
-        if (! DB::table('departments')->where('id', $departamentoId)->exists()) {
-            throw ValidationException::withMessages(['departamento' => __('El departamento elegido no existe.')]);
+        if (! DB::table('departments')->where('id', $departamentoId)->whereNull('archived_at')->exists()) {
+            throw ValidationException::withMessages(['departamento' => __('El departamento elegido no existe o está archivado.')]);
         }
 
         $actual = DB::table('teacher_profiles')->where('user_id', $usuarioId)->value('department_id');
@@ -384,8 +384,8 @@ class AsignacionService
         $planId = $this->entero($datos, 'plan', __('Elija el plan de estudios.'));
         $ciclo = $this->entero($datos, 'ciclo', __('Indique el ciclo del estudiante.'));
 
-        if (! DB::table('careers')->where('id', $carreraId)->exists()) {
-            throw ValidationException::withMessages(['carrera' => __('La carrera elegida no existe.')]);
+        if (! DB::table('careers')->where('id', $carreraId)->whereNull('archived_at')->exists()) {
+            throw ValidationException::withMessages(['carrera' => __('La carrera elegida no existe o está archivada.')]);
         }
         if (! DB::table('study_plans')->where('id', $planId)->where('career_id', $carreraId)->exists()) {
             throw ValidationException::withMessages(['plan' => __('El plan de estudios no pertenece a la carrera elegida.')]);

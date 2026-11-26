@@ -10,7 +10,7 @@ capturas: pendientes
 
 Como Administrador, usted ve y gestiona toda la facultad: las cuentas y sus roles, los períodos académicos, el catálogo de asignaturas, las áreas de asistencia y la configuración técnica. También es el único que desactiva cuentas y el último paso para cerrar un período.
 
-Sus opciones están en el menú, en el grupo **Administración**: **Usuarios**, **Importar estudiantes**, **Roles y permisos**, **Períodos**, **Catálogo**, **Carga académica**, **Matrícula**, **Áreas de asistencia**, **Clases canceladas**, **Integraciones** y **Monitoreo técnico**. En **Consultas** tiene **Reportes**, **Estadísticas de oferta** y **Auditoría**.
+Sus opciones están en el menú, en el grupo **Administración**: **Usuarios**, **Importar estudiantes**, **Roles y permisos**, **Períodos**, **Calendario de evaluaciones**, **Departamentos**, **Catálogo**, **Carga académica**, **Matrícula**, **Áreas de asistencia**, **Clases canceladas**, **Integraciones** y **Monitoreo técnico**. En **Consultas** tiene **Reportes**, **Estadísticas de oferta** y **Auditoría**.
 
 ## 1. Ingresar al sistema
 *Requisitos: [[RF01]]*
@@ -29,7 +29,7 @@ Sus opciones están en el menú, en el grupo **Administración**: **Usuarios**, 
 1. En **Usuarios**, pulse **Nuevo usuario**: datos de la cuenta, rol y asignación (carrera o departamento), y **Crear cuenta**. El correo debe ser @ues.edu.sv.
 2. Para muchos estudiantes a la vez, use **Importar estudiantes** (sección 3).
 3. Una persona que entra por primera vez con su correo @ues.edu.sv queda con su cuenta creada pero **sin rol**: búsquela en **Usuarios** con el filtro **Sin rol** y asígnele uno.
-4. Para cambiar los roles de alguien, entre a su cuenta y pulse **Roles y asignaciones**. Usted puede dar cualquier rol.
+4. Para cambiar los roles de alguien, entre a su cuenta y pulse **Roles y asignaciones**. Usted puede dar cualquier rol. Docente, Coordinador, Jefe de Departamento y Administrador se pueden combinar; **Estudiante** y **Soporte Técnico** no se combinan con ningún otro rol.
 5. A Soporte Técnico puede darle **Permitir crear docentes** desde la cuenta de esa persona. Sin ese permiso, Soporte solo crea estudiantes.
 6. Para quitar el acceso a alguien, pulse **Desactivar** y escriba el motivo. Las cuentas no se borran, para conservar su historial; puede volver a activarla con **Reactivar**.
 
@@ -63,6 +63,8 @@ En **Roles y permisos** verá qué puede hacer cada rol. Busque un permiso por s
 3. Para **cerrarlo**, todos los departamentos deben haber autorizado su cierre: lo ve en «Cierres departamentales». Pulse **Cerrar período**: las notas finales quedan congeladas.
 4. Para **reabrirlo**, pulse **Reabrir período** y escriba el motivo. Se avisa a los Coordinadores. Las autorizaciones de cierre se conservan, así que puede volver a cerrarlo sin repetir las actas.
 5. Desde el mismo detalle puede descargar el histórico del período en Excel, PDF o CSV.
+6. Cada período trae **cuatro cómputos** de 25 % cada uno, con fechas que se reparten solas a lo largo del período.
+7. Un período **cerrado** que ya no necesita a la vista se puede **Archivar**: sale de las listas y de los selectores, pero sus notas y actas se conservan. Lo encuentra en **Archivados**, donde puede **Desarchivarlo**.
 
 > [!example] Captura pendiente
 > Pantalla: abrir, cerrar y reabrir un período.
@@ -83,13 +85,27 @@ En **Roles y permisos** verá qué puede hacer cada rol. Busque un permiso por s
 *Requisitos: [[RF07]]*
 
 1. En **Catálogo**, pulse **Nueva asignatura**: código único, nombre, créditos, departamento y **prerrequisitos** (marque todas las que correspondan).
-2. Una asignatura que ya no se imparte se **Desactiva**; si nunca tuvo secciones, se puede **Eliminar**.
-3. Con **Departamentos, carreras y aulas** administra la estructura de la facultad y agrega aulas.
+2. Una asignatura va en un solo plan de cada carrera. Los prerrequisitos quedan registrados, pero no impiden inscribirse.
+3. Una asignatura que ya no se imparte se **Archiva**; si nunca tuvo grupos, se puede **Eliminar**. No se archiva si tiene grupos en un período que no está cerrado.
+4. Con **Departamentos, carreras y aulas** administra la estructura de la facultad y agrega aulas.
+5. Los Jefes de Departamento también administran las asignaturas de su propio departamento.
 
 > [!example] Captura pendiente
 > Pantalla: mantener el catálogo.
 
-## 8. Definir las áreas de asistencia
+## 8. Departamentos y carreras
+*Requisitos: [[ADR-083 El Administrador navega departamentos y carreras]] · [[ADR-092 Archivar períodos, departamentos, carreras y asignaturas]]*
+
+1. En **Departamentos** verá cada departamento con su jefe y su oferta del período en curso. Entre a uno para ver sus carreras, y a una carrera para ver su detalle.
+2. Puede **Archivar** un departamento o una carrera que ya no se usa. La plataforma no lo permite, y le dice por qué, si todavía está en uso:
+   - un departamento, si tiene carreras sin archivar, asignaturas activas o un jefe vigente;
+   - una carrera, si tiene estudiantes activos o un coordinador vigente.
+3. Lo archivado no se borra: sale de las listas y de los selectores, y se ve aparte en **Archivados**, con **Desarchivar**. Una carrera no se desarchiva mientras su departamento siga archivado.
+
+> [!example] Captura pendiente
+> Pantalla: departamentos y carreras.
+
+## 9. Definir las áreas de asistencia
 *Requisitos: [[RF26]]*
 
 El estudiante solo puede marcar asistencia con QR si está dentro de un **área activa**. Las áreas valen para todas las clases presenciales.
@@ -103,7 +119,7 @@ El estudiante solo puede marcar asistencia con QR si está dentro de un **área 
 > [!example] Captura pendiente
 > Pantalla: definir las áreas de asistencia.
 
-## 9. Cancelar clases en toda la facultad
+## 10. Cancelar clases en toda la facultad
 *Requisitos: [[RF32]]*
 
 En **Clases canceladas**, pulse **Cancelar para la facultad**, elija la fecha y escriba el motivo (por ejemplo, un asueto). Ese día no cuenta para la asistencia, los estudiantes reciben un aviso y los eventos de las clases virtuales se borran de Google Calendar. Ahí mismo puede aprobar o rechazar las solicitudes de los docentes.
@@ -111,7 +127,7 @@ En **Clases canceladas**, pulse **Cancelar para la facultad**, elija la fecha y 
 > [!example] Captura pendiente
 > Pantalla: cancelar clases en toda la facultad.
 
-## 10. Revisar la configuración técnica
+## 11. Revisar la configuración técnica
 *Requisitos: [[RNF09]]*
 
 1. **Integraciones** muestra qué está configurado: el inicio de sesión con Google y el correo institucional. Los secretos nunca se muestran. Si algo aparece **Pendiente**, pida al equipo técnico que lo complete en el servidor.

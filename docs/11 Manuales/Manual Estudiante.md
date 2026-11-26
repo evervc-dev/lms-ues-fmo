@@ -52,12 +52,22 @@ La asistencia con QR solo se acepta desde **un** teléfono registrado a su nombr
 
 1. En **Mis materias**, abra la materia y pulse **Solicitar cambio de grupo**. Solo se puede durante las **primeras 3 semanas** del período.
 2. Elija el grupo al que quiere pasar (con cupo y sin choque de horario), escriba el motivo y pulse **Enviar solicitud**.
-3. El Coordinador la aprueba o la rechaza; usted recibe un aviso. Si se aprueba, conserva sus notas y entregas.
+3. El Jefe del departamento de la materia la aprueba o la rechaza; usted recibe un aviso. Si se aprueba, conserva sus notas y entregas.
 
 > [!example] Captura pendiente
 > Pantalla: solicitar un cambio de grupo.
 
-## 5. Su página de inicio
+## 5. Ver su plan de estudios
+*Requisitos: [[RF37]]*
+
+1. En el menú, abra **Mi plan**. Verá las materias de su plan agrupadas por ciclo.
+2. Cada materia muestra su estado: **Aprobada** (con su nota final), **En curso** (con su nota actual), **Reprobada** (con la última nota) o **Pendiente**.
+3. Arriba verá cuántas lleva aprobadas, sus UV y su **CUM**. Toque una materia para ver sus prerrequisitos.
+
+> [!example] Captura pendiente
+> Pantalla: ver su plan de estudios.
+
+## 6. Su página de inicio
 *Requisitos: [[RF24]] · [[RF18]]*
 
 Al entrar verá de un vistazo lo que tiene que hacer:
@@ -68,7 +78,7 @@ Al entrar verá de un vistazo lo que tiene que hacer:
 > [!example] Captura pendiente
 > Pantalla: su página de inicio.
 
-## 6. Estudiar los materiales de una materia
+## 7. Estudiar los materiales de una materia
 *Requisitos: [[RF11]] · [[RF12]] · [[RF18]]*
 
 1. En **Mis materias**, abra la materia. La pestaña **Contenidos** muestra las unidades; ábralas y ciérrelas con un clic.
@@ -76,24 +86,25 @@ Al entrar verá de un vistazo lo que tiene que hacer:
 3. Algunos materiales tienen el botón **Ya lo leí**: púlselo cuando termine.
 4. Otros se marcan **solos**: al abrirlos, al entregar una tarea, al sacar una nota mínima en un cuestionario o al escribir en el foro. En la página del material verá qué le falta, por ejemplo «Se completa al obtener 6.0 o más en Parcial 1».
 5. Lo que ya está completado no se desmarca.
+6. Una **lección** trae un material y un cuestionario corto en la misma página. Primero lea: puede pedirle un tiempo mínimo de lectura y llegar al final del texto. Cuando cumpla, pulse **Ya lo leí** y se habilita el cuestionario. Ese cuestionario solo comprueba la lectura: **no suma a su nota**.
 
 > [!example] Captura pendiente
 > Pantalla: estudiar los materiales de una materia.
 
-## 7. Entregar una tarea
+## 8. Entregar una tarea
 *Requisitos: [[RF15]]*
 
 1. En la materia, abra la pestaña **Actividades** y luego la tarea.
 2. Revise la **fecha límite**, los tipos de archivo permitidos y el tamaño máximo.
 3. Adjunte su archivo y pulse **Enviar entrega**.
-4. Mientras la tarea esté abierta puede pulsar **Cancelar entrega** y volver a entregar.
+4. Mientras la tarea esté abierta y el docente todavía no la haya calificado, puede pulsar **Cancelar entrega** y volver a entregar. Una entrega ya calificada no se cancela.
 5. Si la tarea tiene **periodo de gracia**, podrá entregar después de la fecha límite, pero la entrega queda como tardía y puede tener descuento.
 6. En una tarea **en equipo**, basta con que entregue un integrante: la entrega cuenta para todos.
 
 > [!example] Captura pendiente
 > Pantalla: entregar una tarea.
 
-## 8. Resolver un cuestionario
+## 9. Resolver un cuestionario
 *Requisitos: [[RF16]]*
 
 1. En **Actividades**, abra el cuestionario y pulse **Comenzar intento**.
@@ -106,7 +117,7 @@ Al entrar verá de un vistazo lo que tiene que hacer:
 > [!example] Captura pendiente
 > Pantalla: resolver un cuestionario.
 
-## 9. Marcar asistencia en una clase presencial
+## 10. Marcar asistencia en una clase presencial
 *Requisitos: [[RF20]] · [[RF28]]*
 
 1. Active la **ubicación** de su teléfono registrado.
@@ -114,11 +125,12 @@ Al entrar verá de un vistazo lo que tiene que hacer:
 3. El código **cambia cada 10 segundos**: escanee el que está en pantalla, no una foto.
 4. La asistencia queda abierta entre 5 y 15 minutos y usted tiene **3 intentos**.
 5. Si no puede escanear, pida al docente un **código temporal**: escríbalo en **Ingresar código temporal**. Dura 30 segundos y solo sirve para usted.
+6. Algunos docentes piden también la **marca de salida** al final de la clase: vuelva a escanear el QR (tiene otros 3 intentos). Verá «Entrada registrada: 1 de 2. Marque la salida.» y, al marcarla, «Entrada y salida: 2 de 2». Si marca solo la entrada o solo la salida, queda con **tardanza**.
 
 > [!example] Captura pendiente
 > Pantalla: marcar asistencia en una clase presencial.
 
-## 10. Asistencia en una clase virtual
+## 11. Asistencia en una clase virtual
 *Requisitos: [[RF21]]*
 
 1. Entre a la clase con el enlace **Unirse a Meet** de la pestaña **Asistencia** de la materia, o desde la invitación que le llega a su Google Calendar.
@@ -129,7 +141,7 @@ Al entrar verá de un vistazo lo que tiene que hacer:
 > [!example] Captura pendiente
 > Pantalla: asistencia en una clase virtual.
 
-## 11. Consultar su asistencia y justificar una falta
+## 12. Consultar su asistencia y justificar una falta
 *Requisitos: [[RF19]] · [[RF22]]*
 
 1. En **Mi asistencia** verá su porcentaje por materia. Para el detalle, abra la materia → pestaña **Asistencia** → **Mi historial**.
@@ -139,7 +151,7 @@ Al entrar verá de un vistazo lo que tiene que hacer:
 > [!example] Captura pendiente
 > Pantalla: consultar su asistencia y justificar una falta.
 
-## 12. Consultar sus notas y pedir una revisión
+## 13. Consultar sus notas y pedir una revisión
 *Requisitos: [[RF17]] · [[RF35]]*
 
 1. En **Mis notas** verá sus materias del período y su **Historial** de períodos anteriores.
@@ -150,7 +162,7 @@ Al entrar verá de un vistazo lo que tiene que hacer:
 > [!example] Captura pendiente
 > Pantalla: consultar sus notas y pedir una revisión.
 
-## 13. Participar en el foro
+## 14. Participar en el foro
 *Requisitos: [[RF30]]*
 
 1. En la materia, abra la pestaña **Foro**.
@@ -161,7 +173,7 @@ Al entrar verá de un vistazo lo que tiene que hacer:
 > [!example] Captura pendiente
 > Pantalla: participar en el foro.
 
-## 14. Elegir sus avisos por correo
+## 15. Elegir sus avisos por correo
 *Requisitos: [[RF23]]*
 
 1. En **Mi perfil → Notificaciones**, en «Avisos por correo», encienda o apague cada aviso.
@@ -180,5 +192,6 @@ Al entrar verá de un vistazo lo que tiene que hacer:
 | «Código vencido; escanee el QR actual» | Escanee el código que está en pantalla en ese momento, no una foto |
 | «Este teléfono no es su dispositivo registrado» | Use su teléfono registrado o pida el cambio en **Mi perfil → Dispositivo de asistencia** |
 | «Ya usó sus 3 intentos en esta sesión» | Pida un código temporal a su docente |
+| «Su entrega ya fue calificada: no se puede cancelar.» | El docente ya la calificó. Si no está de acuerdo con la nota, pida una revisión |
 | «La tarea ya cerró.» | Pasó la fecha límite y la tarea no tiene periodo de gracia: hable con su docente |
 | Se cortó el internet en un cuestionario | No cierre la página; al volver la conexión, sus respuestas se guardan |

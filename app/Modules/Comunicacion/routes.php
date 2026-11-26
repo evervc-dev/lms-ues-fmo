@@ -14,6 +14,6 @@ Route::middleware('auth')->group(function (): void {
     Route::livewire('/ayuda/{manual?}', Ayuda::class)->name('ayuda');
     Route::livewire('/secciones/{seccion}/notas/mensajes/crear', MensajeCondicional::class)->middleware('permission:mensajes.condicionales.enviar')->name('secciones.mensajes.crear');
     Route::livewire('/secciones/{seccion}/notas/mensajes', MensajesEnviados::class)->middleware('permission:mensajes.condicionales.enviar')->name('secciones.mensajes');
-    Route::livewire('/secciones/{seccion}/foro', Foro::class)->middleware('permission:foros.participar')->name('secciones.foro');
-    Route::livewire('/secciones/{seccion}/foro/{hilo}', HiloForo::class)->middleware('permission:foros.participar')->whereNumber('hilo')->name('secciones.foro.hilo');
+    Route::livewire('/secciones/{seccion}/foro', Foro::class)->middleware('permission:foros.ver|foros.participar')->name('secciones.foro');
+    Route::livewire('/secciones/{seccion}/foro/{hilo}', HiloForo::class)->middleware('permission:foros.ver|foros.participar')->whereNumber('hilo')->name('secciones.foro.hilo');
 });

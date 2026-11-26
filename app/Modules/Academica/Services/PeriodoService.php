@@ -83,14 +83,33 @@ class PeriodoService
     /**
      * @return Collection<int, object>
      */
-    public function listar(User $actor): Collection
+    public function listar(User $actor, bool $archivados = false): Collection
     {
         $this->alcance->exigir($actor, 'periodos.gestionar');
 
-        return DB::table('academic_periods as p')
+        // ADR-092: los archivados salen de la lista principal y se ven aparte.
+        return DB::table('academic_periods as p')->when($archivados, fn ($q) => $q->whereNotNull('p.archived_at'), fn ($q) => $q->whereNull('p.archived_at'))
             ->select('p.*', DB::raw('(select count(*) from sections s where s.period_id = p.id) as secciones'),
                 DB::raw("(select count(*) from enrollments e where e.period_id = p.id and e.status = 'active') as matriculas"))
             ->orderByDesc('start_date')->get();
+    }
+
+    /**
+     * Archiva o desarchiva un período (ADR-092). Solo se archiva uno cerrado: sale de la lista principal y de los
+     * selectores de informes, y su historial queda intacto.
+     *
+     * @throws ValidationException
+     */
+    public function archivar(User $actor, int $periodoId, bool $archivar): void
+    {
+        $this->alcance->exigir($actor, 'periodos.gestionar');
+        $periodo = DB::table('academic_periods')->where('id', $periodoId)->first(['status']) ?? abort(404);
+        if ($archivar && $periodo->status !== 'closed') {
+            throw ValidationException::withMessages(['estado' => __('Solo se archiva un período cerrado.')]);
+        }
+
+        DbContext::run(fn () => DB::table('academic_periods')->where('id', $periodoId)->update(['archived_at' => $archivar ? now() : null, 'updated_at' => now()]),
+            $archivar ? 'academic_period.archived' : 'academic_period.unarchived');
     }
 
     /**

@@ -73,6 +73,8 @@
                             <p class="text-sm text-texto-suave">{{ __('No hay clases virtuales programadas.') }}</p>
                         @endforelse
                     </x-ui.card>
+
+                    @include('modules.reportes.partials.evaluaciones', ['evaluaciones' => $b['evaluaciones']])
                 </div>
             </div>
         </div>
@@ -80,10 +82,15 @@
 
     @case('docente')
         <div class="grid gap-3 sm:grid-cols-3">
-            <x-ui.stat :etiqueta="__('Pendientes de calificar')" :valor="$b['porCalificar']" icono="inbox-stack" :tono="$b['porCalificar'] ? 'aviso' : 'exito'" />
-            <x-ui.stat :etiqueta="__('Matrícula y carga académica')" :valor="$b['matricula']" icono="users" :detalle="trans_choice('{1} en 1 grupo teórico|[0,*] en :count grupos teóricos', $b['secciones'])" />
-            <x-ui.stat :etiqueta="__('Estudiantes en alerta')" :valor="$b['enAlerta']" icono="exclamation-triangle" :tono="$b['enAlerta'] ? 'error' : 'exito'" />
+            {{-- Tarjetas como atajos (QA 24/11/2026): llevan a la lista y, si hay algo que hacer, muestran el botón. --}}
+            <x-ui.stat :etiqueta="__('Pendientes de calificar')" :valor="$b['porCalificar']" icono="inbox-stack" :tono="$b['porCalificar'] ? 'error' : 'exito'"
+                :href="auth()->user()->checkPermissionTo('calificaciones.gestionar') ? route('pendientes-de-calificar') : null" :accion="$b['porCalificar'] ? __('Calificar') : null" />
+            <x-ui.stat :etiqueta="__('Matrícula y carga académica')" :valor="$b['matricula']" icono="users" :detalle="trans_choice('{1} en 1 grupo teórico|[0,*] en :count grupos teóricos', $b['secciones'])"
+                :href="route('secciones', ['ambito' => 'propias'])" />
+            <x-ui.stat :etiqueta="__('Estudiantes en alerta')" :valor="$b['enAlerta']" icono="exclamation-triangle" :tono="$b['enAlerta'] ? 'error' : 'exito'"
+                :detalle="$b['enAlerta'] ? __('Vea quiénes son en «Alertas de estudiantes»') : __('Nadie bajo el mínimo de asistencia')" />
         </div>
+        @include('modules.reportes.partials.que-sigue', ['pendientes' => $b['queSigue']])
         {{-- Sin clases hoy, una línea en vez de media fila vacía junto a las alertas (revisión UX del 22/11/2026). --}}
         @if ($b['clasesHoy']->isEmpty())
             <p class="mt-4 flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm text-texto-suave ring-1 ring-borde"><x-ui.icon name="calendar-days" class="size-4" />{{ __('Hoy no tiene clases.') }}</p>
@@ -110,6 +117,7 @@
                     <p class="text-sm text-texto-suave">{{ __('Sin alertas abiertas.') }}</p>
                 @endforelse
             </x-ui.card>
+            @include('modules.reportes.partials.evaluaciones', ['evaluaciones' => $b['evaluaciones']])
         </div>
         @break
 
@@ -120,34 +128,29 @@
              aclaraban si eran de los docentes o de los estudiantes (revisión del rol Jefe de departamento). --}}
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {{-- Rótulos cortos y el detalle abajo (QA Jefe 21/11); las explicaciones van en gris, el verde solo dice «todo bien». --}}
+            {{-- Cada tarjeta lleva a la lista ya filtrada (QA 24/11/2026): «En riesgo» abre el reporte de estudiantes en
+                 riesgo y «Sin docente», Carga académica con ese filtro. Sin el permiso de la pantalla, la tarjeta no enlaza. --}}
+            @php($puede = fn (string $permiso) => auth()->user()->checkPermissionTo($permiso))
             <x-ui.stat :etiqueta="__('Matrículas activas')" :valor="number_format($b['matricula'])" icono="users"
-                :detalle="__('De estudiantes, una por materia').' · '.trans_choice('{1} 1 grupo teórico|[0,*] :count grupos teóricos', $b['secciones'])" />
+                :detalle="__('De estudiantes, una por materia').' · '.trans_choice('{1} 1 grupo teórico|[0,*] :count grupos teóricos', $b['secciones'])"
+                :href="$puede('matricula.gestionar') ? route('matricula') : null" />
             <x-ui.stat :etiqueta="__('Asistencia')" :valor="$b['asistencia'] !== null ? $b['asistencia'].' %' : '—'" icono="clipboard-document-check"
-                :tono="$b['asistencia'] !== null && $b['asistencia'] < 85 ? 'aviso' : 'neutro'"
-                :detalle="__('De los estudiantes matriculados; no incluye la de los docentes')" />
-            <x-ui.stat :etiqueta="__('En riesgo')" :valor="$b['riesgo']" icono="exclamation-triangle" :tono="$b['riesgo'] ? 'error' : 'neutro'"
-                :detalle="__('Matrículas con asistencia bajo el 75 % o riesgo de reprobar por notas')" />
-            @php($vaACarga = $b['sinDocente'] > 0 && auth()->user()->checkPermissionTo('secciones.asignar-docente'))
-            @if ($vaACarga)
-                {{-- Lleva a Carga académica filtrada por «Sin docente» (QA admin 21/11). --}}
-                <a href="{{ route('carga-academica', ['estado' => 'sin_docente']) }}" wire:navigate class="rounded-xl transition hover:ring-2 hover:ring-marca-200">
-            @endif
-            <x-ui.stat :etiqueta="__('Sin docente')" :valor="$b['sinDocente']" icono="user-plus" :tono="$b['sinDocente'] ? 'aviso' : 'exito'"
-                :detalle="$vaACarga ? __('Grupos teóricos por asignar · ver en Carga académica') : trans_choice('{0} Todos los grupos teóricos tienen docente|{1} 1 grupo teórico por asignar|[2,*] :count grupos teóricos por asignar', $b['sinDocente'])" />
-            @if ($vaACarga)
-                </a>
-            @endif
+                :tono="$b['asistencia'] === null ? 'neutro' : ($b['asistencia'] < 85 ? 'aviso' : 'exito')"
+                :detalle="__('De los estudiantes matriculados; no incluye la de los docentes')"
+                :href="$puede('reportes.ver') ? route('reportes', ['tipo' => 'asistencia']) : null" />
+            <x-ui.stat :etiqueta="__('En riesgo')" :valor="$b['riesgo']" icono="exclamation-triangle" :tono="$b['riesgo'] ? 'error' : 'exito'"
+                :detalle="__('Matrículas con asistencia bajo el 75 % o riesgo de reprobar por notas')"
+                :href="$puede('reportes.ver') ? route('reportes', ['tipo' => 'bajo_rendimiento']) : null" :accion="$b['riesgo'] ? __('Revisar') : null" />
+            @php($vaACarga = $puede('secciones.asignar-docente'))
+            <x-ui.stat :etiqueta="__('Sin docente')" :valor="$b['sinDocente']" icono="user-plus" :tono="$b['sinDocente'] ? 'error' : 'exito'"
+                :detalle="trans_choice('{0} Todos los grupos teóricos tienen docente|{1} 1 grupo teórico por asignar|[2,*] :count grupos teóricos por asignar', $b['sinDocente'])"
+                :href="$vaACarga ? route('carga-academica', $b['sinDocente'] ? ['estado' => 'sin_docente'] : []) : null" :accion="$vaACarga && $b['sinDocente'] ? __('Asignar') : null" />
         </div>
+        @isset($b['queSigue'])
+            @include('modules.reportes.partials.que-sigue', ['pendientes' => $b['queSigue']])
+        @endisset
         @if ($rol === 'coordinador')
-            <x-ui.card class="mt-4" :titulo="__('Pendientes de decisión')">
-                <div class="grid gap-3 sm:grid-cols-3">
-                    @if (auth()->user()->checkPermissionTo('matricula.cambio.resolver'))
-                        <x-ui.button variante="secundario" :href="route('matricula.solicitudes')">{{ __('Cambios de grupo: :n', ['n' => $b['pendientes']['cambios']]) }}</x-ui.button>
-                    @endif
-                    <x-ui.button variante="secundario" :href="route('actas')">{{ __('Actas por validar: :n', ['n' => $b['pendientes']['actas']]) }}</x-ui.button>
-                    <x-ui.button variante="secundario" :href="route('clases-canceladas')">{{ __('Cancelaciones y cambios de modalidad: :n', ['n' => $b['pendientes']['cancelaciones']]) }}</x-ui.button>
-                </div>
-            </x-ui.card>
+            {{-- «Pendientes de decisión» pasó a «Qué sigue», con fecha y botón por cada pendiente (QA 24/11/2026). --}}
         @elseif ($rol === 'jefe_departamento')
             <div class="mt-4 grid gap-4 lg:grid-cols-2">
                 <x-ui.card :titulo="__('Estado del cierre')" :descripcion="__('Actas de los grupos teóricos de su departamento en el período en curso.')">
@@ -174,9 +177,12 @@
             </div>
         @else
             <div class="mt-4 grid gap-3 sm:grid-cols-3">
-                <x-ui.stat :etiqueta="__('Estado del período')" :valor="$b['periodo']?->name ?? '—'" icono="calendar-days" :detalle="__('Cierres: :a de :d departamentos', ['a' => $b['cierres']['autorizados'], 'd' => $b['cierres']['departamentos']])" />
-                <x-ui.stat :etiqueta="__('Actividad en la plataforma')" :valor="number_format($b['usuarios']['accesosHoy'])" icono="users" :detalle="__(':n cuentas activas', ['n' => number_format($b['usuarios']['activos'])])" />
-                <x-ui.stat :etiqueta="__('Estado técnico')" :valor="$b['colas']" icono="queue-list" :tono="$b['colas'] ? 'error' : 'exito'" :detalle="__('trabajos fallidos en colas')" />
+                <x-ui.stat :etiqueta="__('Estado del período')" :valor="$b['periodo']?->name ?? '—'" icono="calendar-days" :detalle="__('Cierres: :a de :d departamentos', ['a' => $b['cierres']['autorizados'], 'd' => $b['cierres']['departamentos']])"
+                    :href="$b['periodo'] && $puede('periodos.gestionar') ? route('periodos.show', ['periodo' => $b['periodo']->id]) : null" />
+                <x-ui.stat :etiqueta="__('Actividad en la plataforma')" :valor="number_format($b['usuarios']['accesosHoy'])" icono="users" :detalle="__('Ingresos de hoy · :n cuentas activas', ['n' => number_format($b['usuarios']['activos'])])"
+                    :href="$puede('usuarios.ver') ? route('usuarios') : null" />
+                <x-ui.stat :etiqueta="__('Estado técnico')" :valor="$b['colas']" icono="queue-list" :tono="$b['colas'] ? 'error' : 'exito'" :detalle="$b['colas'] ? __('trabajos fallidos en colas') : __('Sin trabajos fallidos')"
+                    :href="$puede('horizon.ver') ? route('horizon.index') : null" :externo="true" :accion="$b['colas'] ? __('Revisar') : null" />
             </div>
         @endif
         @break

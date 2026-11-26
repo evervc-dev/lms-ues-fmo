@@ -37,6 +37,7 @@ return [
                 ['clave' => 'mis-notas', 'etiqueta' => 'Mis notas', 'ruta' => 'mis-notas', 'permiso' => 'calificaciones.ver', 'icono' => 'chart-bar'],
                 ['clave' => 'mi-plan', 'etiqueta' => 'Mi plan', 'ruta' => 'mi-plan', 'permiso' => 'plan.ver', 'icono' => 'table-cells'],
                 ['clave' => 'mi-asistencia', 'etiqueta' => 'Mi asistencia', 'ruta' => 'mi-asistencia', 'permiso' => 'asistencia.ver', 'icono' => 'clipboard-document-check'],
+                ['clave' => 'calendario-evaluaciones', 'etiqueta' => 'Calendario de evaluaciones', 'ruta' => 'periodos.calendario', 'permiso' => 'periodos.calendario.ver', 'icono' => 'calendar-days'],
             ],
         ],
         [
@@ -46,6 +47,7 @@ return [
                 ['clave' => 'mis-secciones', 'etiqueta' => 'Mis grupos teóricos', 'ruta' => 'secciones', 'parametros' => ['ambito' => 'propias'], 'permiso' => 'contenidos.gestionar', 'icono' => 'academic-cap'],
                 ['clave' => 'pendientes-de-calificar', 'etiqueta' => 'Pendientes de calificar', 'ruta' => 'pendientes-de-calificar', 'permiso' => 'calificaciones.gestionar', 'icono' => 'inbox-stack'],
                 ['clave' => 'bancos-de-preguntas', 'etiqueta' => 'Bancos de preguntas', 'ruta' => 'bancos-de-preguntas', 'permiso' => 'banco-preguntas.gestionar', 'icono' => 'rectangle-stack'],
+                ['clave' => 'calendario-evaluaciones', 'etiqueta' => 'Calendario de evaluaciones', 'ruta' => 'periodos.calendario', 'permiso' => 'periodos.calendario.ver', 'icono' => 'calendar-days'],
             ],
         ],
         [

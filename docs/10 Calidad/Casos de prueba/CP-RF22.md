@@ -4,7 +4,7 @@ rf: "[[RF22]]"
 nombre: Alertas de límite de inasistencias
 prioridad: Media
 nivel: feature
-casos: 6
+casos: 7
 estado: automatizado
 ---
 
@@ -20,5 +20,6 @@ Casos derivados de los criterios de aceptación de [[RF22]]. Nivel: **feature**.
 | CP-RF22-04 | **Dado** el mismo umbral y cómputo, **entonces** el aviso se envía una sola vez ([[RNF12]]). | automatizado |
 | CP-RF22-05 | **Dado** una clase cancelada o una inasistencia justificada, **entonces** no cuenta como falta. | automatizado |
 | CP-RF22-06 | **Dado** el docente, **entonces** ve en su panel a los estudiantes en alerta. | automatizado |
+| CP-RF22-07 | **Dado** una clase presencial todavía abierta, **cuando** el estudiante marcó solo la entrada, **entonces** su porcentaje no cambia (la clase no cuenta hasta cerrarse) y su historial dice «Clase en curso»; si el docente abrió la salida, «Entrada registrada: 1 de 2»; al cerrar sin salida queda Tarde ([[ADR-079 Marca de entrada y salida en clase presencial]]). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF22-01 …')`.

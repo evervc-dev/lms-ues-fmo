@@ -116,7 +116,7 @@ class ReporteService
      */
     public function periodos(): Collection
     {
-        return DB::table('academic_periods')->whereIn('status', ['active', 'closed'])->orderByDesc('start_date')->get(['id', 'name', 'status']);
+        return DB::table('academic_periods')->whereIn('status', ['active', 'closed'])->whereNull('archived_at')->orderByDesc('start_date')->get(['id', 'name', 'status']);
     }
 
     /**

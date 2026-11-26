@@ -8,9 +8,9 @@ capturas: pendientes
 
 # Manual del Coordinador
 
-Como Coordinador de carrera, usted organiza las secciones y la matrícula de **su carrera**, aprueba cambios de grupo y cancelaciones, valida las actas de notas y supervisa las aulas. Todo lo que ve y hace se limita a su carrera.
+Como Coordinador de carrera, usted organiza los grupos teóricos y la matrícula de **su carrera**, aprueba cancelaciones de clases, valida las actas de notas y supervisa las aulas. Todo lo que ve y hace se limita a su carrera.
 
-Sus opciones están en el menú, en el grupo **Coordinación**: **Carreras**, **Supervisión de aulas**, **Carga académica**, **Matrícula**, **Actas por validar** y **Clases canceladas**. En **Consultas** tiene **Reportes** y **Estadísticas de oferta**.
+Sus opciones están en el menú, en el grupo **Coordinación**: **Carreras**, **Supervisión de aulas**, **Carga académica**, **Matrícula**, **Actas por validar**, **Calendario de evaluaciones** y **Clases canceladas**. En **Consultas** tiene **Reportes** y **Estadísticas de oferta**.
 
 ## 1. Ingresar al sistema
 *Requisitos: [[RF01]]*
@@ -23,16 +23,16 @@ Sus opciones están en el menú, en el grupo **Coordinación**: **Carreras**, **
 > [!example] Captura pendiente
 > Pantalla: ingresar al sistema.
 
-## 2. Armar las secciones y asignar docentes
-*Requisitos: [[RF08]]*
+## 2. Programar los grupos teóricos y asignar docentes
+*Requisitos: [[RF08]] · [[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]] · [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]]*
 
-1. Abra **Carga académica**. Verá las secciones del período de su carrera.
-2. Para abrir un grupo nuevo, pulse **Nueva sección**, elija la asignatura y pulse **Crear sección**.
-3. En cada sección:
+1. Abra **Carga académica**. Verá los grupos teóricos del período de las materias de su carrera, aunque los compartan otras carreras.
+2. Usted no crea grupos: los crean el Jefe de Departamento y el Administrador. Si falta un grupo, pídaselo al Jefe.
+3. En cada grupo:
    - **Horario**: agregue los bloques de día, hora y aula.
    - **Asignar docente**: elija uno o más docentes.
 4. La plataforma no deja guardar si un docente o un aula queda en dos lugares a la misma hora, ni si un docente pasa de su tope de carga.
-5. El cupo de una sección lo cambia el Jefe de Departamento.
+5. El cupo de un grupo lo cambia el Jefe de Departamento.
 
 > [!example] Captura pendiente
 > Pantalla: armar las secciones y asignar docentes.
@@ -40,11 +40,12 @@ Sus opciones están en el menú, en el grupo **Coordinación**: **Carreras**, **
 ## 3. Manejar la matrícula
 *Requisitos: [[RF09]] · [[RF29]]*
 
-En **Matrícula** hay cuatro pestañas:
+En **Matrícula** hay tres pestañas:
 - **Estudiantes**: con **Inscribir estudiante** inscribe a alguien de su carrera en una sección. Se revisan el cupo, que no esté inscrito ya y el choque de horario; los prerrequisitos no se exigen. Con **Retirar** lo saca de la sección, con un motivo.
-- **Claves por asignatura**: la clave que usan los estudiantes para inscribirse solos. Cambie la de cada asignatura o use **Aplicar a todas**.
-- **Solicitudes de cambio de grupo**: en **Pendientes**, use **Aprobar** o **Rechazar** (con motivo). El estudiante recibe un aviso. Solo se piden en las primeras 3 semanas del período.
+- **Claves por asignatura**: la clave que usan los estudiantes para inscribirse solos. Cambie la de cada asignatura o use **Aplicar a todas**. Con **Ver clave** vuelve a consultar la vigente.
 - **Plazos**: verá la fecha límite de inscripción de su departamento. A un estudiante que se pasó del plazo puede darle **Otorgar prórroga** hasta una fecha.
+
+Los **cambios de grupo** que piden los estudiantes los resuelve el Jefe de Departamento, no usted.
 
 > [!example] Captura pendiente
 > Pantalla: manejar la matrícula.
@@ -80,10 +81,12 @@ En **Matrícula** hay cuatro pestañas:
 > Pantalla: aprobar cancelaciones de clases.
 
 ## 7. Supervisar las aulas de su carrera
-*Requisitos: [[RF03]] · [[RF13]] · [[RF18]] · [[RF24]]*
+*Requisitos: [[RF03]] · [[RF13]] · [[RF18]] · [[RF24]] · [[RF39]]*
 
-1. En **Supervisión de aulas** verá las secciones de su carrera. Al abrir una, puede ver sus contenidos, notas, asistencia, **Progreso** y **Analítica**, en modo de solo lectura.
-2. Su página de **Inicio** le muestra lo que espera su respuesta: cambios de grupo, actas por validar y cancelaciones.
+1. En **Supervisión de aulas** verá los grupos de su carrera. Al abrir uno, puede ver sus contenidos, notas, revisiones, asistencia, **Progreso**, **Analítica** y **Foro**, en modo de solo lectura.
+2. En **Asistencia**, cada sesión muestra la hora de apertura y de cierre, si se abrió **dentro o fuera del horario** y, si fue fuera, el **motivo** que dio el docente. Al abrir una sesión verá a cada estudiante con su estado, su hora de entrada y de salida, cómo marcó y, en las clases virtuales, su porcentaje en Meet.
+3. En el **Foro** lee los hilos y las respuestas, pero no puede escribir.
+4. Su página de **Inicio** le muestra lo que espera su respuesta: actas por validar y cancelaciones.
 
 > [!example] Captura pendiente
 > Pantalla: supervisar las aulas de su carrera.
@@ -102,7 +105,9 @@ En **Matrícula** hay cuatro pestañas:
 ## Problemas frecuentes
 | Si le pasa esto… | Haga esto |
 |---|---|
-| No puedo cambiar el cupo de una sección | El cupo lo cambia el Jefe de Departamento |
+| No puedo cambiar el cupo de un grupo | El cupo lo cambia el Jefe de Departamento |
+| No puedo crear un grupo teórico | Los crean el Jefe de Departamento y el Administrador |
+| Un estudiante pide cambiarse de grupo | Lo resuelve el Jefe de Departamento |
 | No encuentro a un estudiante para inscribirlo | Solo aparecen los de su carrera; si no tiene cuenta, Soporte Técnico o el Administrador la crean |
 | Un estudiante se pasó de la fecha de inscripción | Dele una prórroga en **Matrícula → Plazos → Otorgar prórroga** |
 | Necesito importar estudiantes desde un archivo | La carga masiva la hacen Soporte Técnico y el Administrador |

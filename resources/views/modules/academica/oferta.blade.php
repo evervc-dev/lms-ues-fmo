@@ -1,6 +1,13 @@
 {{-- Estadísticas de oferta académica (RF10, maqueta 50). --}}
 <div class="flex flex-col gap-5 lg:h-full">
-    <x-ui.encabezado :titulo="__('Estadísticas de oferta')" :subtitulo="__('Inscritos del período en curso y resultados del último período cerrado (:p).', ['p' => $cerrado ?? '—'])" />
+    <x-ui.encabezado :titulo="__('Estadísticas de oferta')" :subtitulo="__('Inscritos del período en curso y resultados del último período cerrado (:p).', ['p' => $cerrado ?? '—'])">
+        {{-- La fórmula se explica en el (i) y no en una caja fija: ocupaba media pantalla en cada visita (QA 24/11/2026). --}}
+        <x-slot:info>
+            <x-ui.info :titulo="__('Fórmula provisional')">
+                {{ __('Demanda = reprobados de la materia + aprobados de su prerrequisito en el último período cerrado; grupos = demanda ÷ :c, redondeado hacia arriba. Es una estimación provisional, mientras se define la fórmula oficial.', ['c' => $cupo]) }}
+            </x-ui.info>
+        </x-slot:info>
+    </x-ui.encabezado>
 
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <x-ui.stat :etiqueta="__('Inscritos (período en curso)')" :valor="number_format($totales['inscritos'])" icono="users" />
@@ -8,10 +15,6 @@
         <x-ui.stat :etiqueta="__('Reprobados')" :valor="number_format($totales['reprobados'])" icono="x-circle" tono="error" />
         <x-ui.stat :etiqueta="__('Grupos propuestos')" :valor="$totales['grupos']" icono="squares-2x2" />
     </div>
-
-    <x-ui.alert tipo="aviso" :titulo="__('Fórmula provisional')">
-        {{ __('Demanda = reprobados de la materia + aprobados de su prerrequisito en el último período cerrado; grupos = demanda ÷ :c, redondeado hacia arriba. Es una estimación provisional, mientras se define la fórmula oficial.', ['c' => $cupo]) }}
-    </x-ui.alert>
 
     <div class="grid gap-3 md:grid-cols-[minmax(0,20rem)]">
         <x-ui.select wire:model.live="filtroCarrera" :aria-label="__('Carrera')">

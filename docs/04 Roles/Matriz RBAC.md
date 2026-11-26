@@ -38,6 +38,7 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 |---|---|---|---|---|---|---|---|
 | `periodos.gestionar` | G | | | | | | [[RF06]], [[RF34]] (con este permiso el Administrador cierra el período, último eslabón de la cadena de actas) |
 | `periodos.calendario.gestionar` | G | D | C | | | | [[RF06]], [[ADR-068 Calendario de evaluaciones por ámbito]] (el Administrador fija las fechas globales del período, el Jefe las de su departamento y el Coordinador las de su carrera; cada quien sincroniza con su propio Google Calendar) |
+| `periodos.calendario.ver` | | | | S | M | | [[RF06]], [[ADR-094 Calendario de evaluaciones en lectura para docente y estudiante]] (consulta sin cambios: fechas globales y las del departamento y las carreras de sus grupos o matrículas) |
 | `asignaturas.gestionar` | G | D | | | | | [[RF07]], [[ADR-072 El Jefe gestiona las asignaturas de su departamento]] (el Jefe, solo las asignaturas de su departamento; la estructura institucional sigue siendo del Administrador) |
 | `carreras.ver` | G | D | C | | | | [[RF07]], [[RF08]], [[ADR-047 Carreras visibles y carga masiva sin el Coordinador]], [[ADR-083 El Administrador navega departamentos y carreras]] (el Administrador entra por `/departamentos`) |
 | `secciones.crear` | G | D | | | | | [[RF08]], [[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]] (crear grupos teóricos; el Coordinador ya no los crea) |
@@ -59,31 +60,32 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 ## Contenidos y evaluaciones
 | Permiso | Adm | Jefe | Coord | Doc | Est | Sop | RF |
 |---|---|---|---|---|---|---|---|
-| `contenidos.ver` | | | C (lectura) | S | M | | [[RF11]], [[RF03]] |
+| `contenidos.ver` | | **D** | C (lectura) | S | M | | [[RF11]], [[RF03]], [[RF39]] |
 | `contenidos.gestionar` | | | | S | | | [[RF11]], [[RF12]] |
 | `contenidos.reutilizar` | | | | S | | | [[RF14]] |
-| `contenidos.analitica.ver` | | | C | S | | | [[RF13]] |
+| `contenidos.analitica.ver` | | **D** | C | S | | | [[RF13]], [[RF39]] |
 | `tareas.gestionar` | | | | S | | | [[RF15]] |
 | `tareas.entregar` | | | | | M | | [[RF15]] |
 | `banco-preguntas.gestionar` | | | | S | | | [[RF16]] |
 | `cuestionarios.gestionar` | | | | S | | | [[RF16]] |
 | `cuestionarios.resolver` | | | | | M | | [[RF16]] |
+| `foros.ver` | | **D** | **C** | | | | [[RF39]], [[ADR-093 Permisos de supervisión del Jefe y lectura de sesiones de asistencia]] |
 | `foros.participar` | | | | S | M | | [[RF30]] |
 | `foros.moderar` | | | | S | | | [[RF30]] |
 
 ## Calificaciones y progreso
 | Permiso | Adm | Jefe | Coord | Doc | Est | Sop | RF |
 |---|---|---|---|---|---|---|---|
-| `calificaciones.ver` | | | C | S | P | | [[RF17]] |
+| `calificaciones.ver` | | **D** | C | S | P | | [[RF17]], [[RF39]] |
 | `calificaciones.gestionar` | | | | S | | | [[RF17]] |
 | `calificaciones.revision.solicitar` | | | | | M | | [[RF35]], [[ADR-040 Solicitud de revisión de calificaciones]] |
 | `calificaciones.revision.resolver` | | | | S | | | [[RF35]] |
-| `calificaciones.revision.ver` | | | C | S | | | [[RF35]] |
+| `calificaciones.revision.ver` | | **D** | C | S | | | [[RF35]], [[RF39]] |
 | `actas.publicar` | | | | S | | | [[RF34]] |
 | `actas.validar` | | | C | | | | [[RF34]] |
 | `cierre.autorizar` | | D | | | | | [[RF34]] |
 | `calificaciones.corregir` | | | C (período cerrado) | S (período abierto) | | | [[RF03]], [[RF17]] |
-| `progreso.ver` | | | C | S | P | | [[RF18]] |
+| `progreso.ver` | | **D** | C | S | P | | [[RF18]], [[RF39]] |
 
 ## Asistencia
 | Permiso | Adm | Jefe | Coord | Doc | Est | Sop | RF |
@@ -93,7 +95,8 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 | `asistencia.codigo-temporal.generar` | | | | S | | | [[RF28]] |
 | `asistencia.diagnostico.ver` | | | | | | G | [[RF20]] (solo lectura) |
 | `asistencia.corregir` | | | | S | | | [[RF19]] |
-| `asistencia.ver` | | | C | S | P | | [[RF19]], [[RF22]] |
+| `asistencia.sesion.ver` | | **D** | **C** | | | | [[RF39]], [[ADR-093 Permisos de supervisión del Jefe y lectura de sesiones de asistencia]] |
+| `asistencia.ver` | | **D** | C | S | P | | [[RF19]], [[RF22]], [[RF39]] |
 | `videoconferencias.gestionar` | | | | S | | | [[RF21]] |
 | `clases.solicitar-cancelacion` | | | | S | | | [[RF32]] |
 | `clases.cancelar` | G | | C | | | | [[RF32]] |
@@ -143,9 +146,10 @@ Cada permiso de *Roles y permisos.pdf* y su nombre técnico. Sirve para revisar 
 | Docente | Filtrar alumnos y enviar mensajes masivos | `mensajes.condicionales.enviar` | |
 | Coordinador | Programar horario, aula y docentes de los grupos de las materias de su carrera, aunque los compartan otras (sin crearlos) | `secciones.gestionar`, `secciones.asignar-docente` (C) | [[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]], [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]] |
 | Coordinador | Inscribir o retirar estudiantes | `matricula.gestionar`, `matricula.claves.gestionar` (C) | Clave por asignatura (ADR-032) |
-| Coordinador | Lectura de aulas, progreso y asistencias | `contenidos.ver`, `progreso.ver`, `asistencia.ver`, `calificaciones.ver` (C) | |
+| Coordinador | Lectura de aulas, progreso y asistencias | `contenidos.ver`, `progreso.ver`, `asistencia.ver`, `asistencia.sesion.ver`, `calificaciones.ver`, `foros.ver` (C) | [[RF39]] |
 | Coordinador | *(enfoque)* Validar calificaciones finales | `actas.validar` (C) | [[RF34]] |
 | Jefe | Consultar y descargar desempeño docente | `desempeno-docente.ver`, `reportes.ver` (D) | |
+| Jefe | Supervisar el trabajo docente en sus secciones (lectura) | `contenidos.ver`, `contenidos.analitica.ver`, `calificaciones.ver`, `calificaciones.revision.ver`, `asistencia.ver`, `asistencia.sesion.ver`, `progreso.ver`, `foros.ver` (D) | [[RF39]], [[ADR-093 Permisos de supervisión del Jefe y lectura de sesiones de asistencia]] |
 | Jefe | Crear y programar los grupos teóricos de su departamento | `secciones.crear`, `secciones.gestionar`, `secciones.cupo` (D) | [[ADR-073 El Jefe crea los grupos teóricos de su departamento]] |
 | Jefe | Administrar las asignaturas de su departamento | `asignaturas.gestionar` (D) | [[ADR-072 El Jefe gestiona las asignaturas de su departamento]] |
 | Jefe | Inspeccionar auditoría departamental | `auditoria.ver` (D) | RLS (ADR-029) |

@@ -99,7 +99,7 @@ class Usuarios extends Component
             'controlTotal' => $jerarquia->controlTotal($actor),
             // Alcance de la lista, para decirlo en el subtítulo y ofrecer solo los roles que pueden aparecer (QA Jefe 21/11).
             'departamentosAlcance' => app(Alcance::class)->de($actor, 'usuarios.ver') === 'G' ? null
-                : DB::table('departments')->whereIn('id', app(Alcance::class)->departamentos($actor))->orderBy('code')->pluck('code')->all(),
+                : DB::table('departments')->whereNull('archived_at')->whereIn('id', app(Alcance::class)->departamentos($actor))->orderBy('code')->pluck('code')->all(),
             // Cuentas de la página cuyos roles puede cambiar (el Jefe, las de su departamento: ADR-037).
             'rolesEditables' => collect($this->usuarios->items())
                 ->filter(fn ($usuario) => $usuario->id !== $actor->id && $jerarquia->puedeCambiarRoles($actor, $usuario))

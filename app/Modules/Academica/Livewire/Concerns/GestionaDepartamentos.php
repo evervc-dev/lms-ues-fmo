@@ -51,6 +51,19 @@ trait GestionaDepartamentos
     }
 
     /**
+     * Archiva o desarchiva el departamento (ADR-092); si algo lo impide, el Service explica qué.
+     */
+    public function archivarDepartamento(int $id, bool $archivar, CatalogoService $catalogo): void
+    {
+        try {
+            $catalogo->archivarDepartamento(auth()->user(), $id, $archivar);
+            $this->dispatch('aviso', tipo: 'exito', mensaje: $archivar ? __('Departamento archivado.') : __('Departamento desarchivado.'));
+        } catch (ValidationException $e) {
+            $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
+        }
+    }
+
+    /**
      * Elimina el departamento si nada lo usa; si no, el Service explica qué lo usa (CP-RF07-10).
      */
     public function eliminarDepartamento(int $id, CatalogoService $catalogo): void

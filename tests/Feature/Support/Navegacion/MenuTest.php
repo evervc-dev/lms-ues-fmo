@@ -26,7 +26,7 @@ function menuDe(User $usuario): array
 it('shows a student only the study and account groups', function () {
     expect(menuDe(usuarioCon('estudiante')))->toBe([
         '—' => ['inicio'],
-        'Estudio' => ['escanear-qr', 'inscripcion', 'mis-materias', 'mis-notas', 'mi-plan', 'mi-asistencia'],
+        'Estudio' => ['escanear-qr', 'inscripcion', 'mis-materias', 'mis-notas', 'mi-plan', 'mi-asistencia', 'calendario-evaluaciones'],
         'Cuenta' => ['perfil', 'ayuda'],
     ]);
 });

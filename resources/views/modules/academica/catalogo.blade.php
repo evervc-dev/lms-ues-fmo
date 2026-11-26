@@ -9,6 +9,14 @@
         </x-slot:acciones>
     </x-ui.encabezado>
 
+    {{-- Activas y archivadas (ADR-092): una archivada no se ofrece al crear grupos ni en los planes. --}}
+    <div class="flex gap-1 rounded-lg bg-white p-1 text-sm ring-1 ring-borde sm:self-start" role="tablist">
+        @foreach ([0 => __('Activas'), 1 => __('Archivadas')] as $valor => $etiqueta)
+            <button type="button" role="tab" wire:click="$set('archivadas', {{ $valor ? 'true' : 'false' }})" aria-selected="{{ $archivadas === (bool) $valor ? 'true' : 'false' }}"
+                @class(['rounded-md px-3 py-1.5 font-medium', 'bg-marca-600 text-white' => $archivadas === (bool) $valor, 'text-texto-suave hover:bg-zinc-100' => $archivadas !== (bool) $valor])>{{ $etiqueta }}</button>
+        @endforeach
+    </div>
+
     {{-- Pestañas superiores por departamento para agilizar la navegación si el usuario gestiona múltiples departamentos --}}
     @if ($veDepartamento && $departamentos->count() > 1)
         <div class="flex flex-wrap items-center gap-1.5 border-b border-borde pb-2">
@@ -146,7 +154,7 @@
                                     <td>
                                         <div class="font-medium text-zinc-900">{{ $a->name }}</div>
                                         @unless ($a->is_active)
-                                            <x-ui.badge class="mt-0.5">{{ __('Inactiva') }}</x-ui.badge>
+                                            <x-ui.badge class="mt-0.5">{{ __('Archivada') }}</x-ui.badge>
                                         @endunless
                                     </td>
                                     @if ($veDepartamento)<td>{{ $a->departamento }}</td>@endif
@@ -175,9 +183,9 @@
                                         @php($dependientes = $a->is_active ? ($dependientesDe[$a->id] ?? collect())->pluck('code') : collect())
                                         <x-ui.acciones-fila :etiqueta="__('Más acciones de :c', ['c' => $a->code])">
                                             @if ($dependientes->isNotEmpty())
-                                                <x-ui.dropdown.item icono="x-circle" x-on:click="abierto = false" wire:click="alternarEstado({{ $a->id }})" wire:confirm="{{ __('¿Desactivar :c? También se desactivarán las que dependen de ella: :d.', ['c' => $a->code, 'd' => $dependientes->implode(', ')]) }}">{{ __('Desactivar') }}</x-ui.dropdown.item>
+                                                <x-ui.dropdown.item icono="x-circle" x-on:click="abierto = false" wire:click="alternarEstado({{ $a->id }})" wire:confirm="{{ __('¿Archivar :c? También se archivarán las que dependen de ella: :d.', ['c' => $a->code, 'd' => $dependientes->implode(', ')]) }}">{{ __('Archivar') }}</x-ui.dropdown.item>
                                             @else
-                                                <x-ui.dropdown.item :icono="$a->is_active ? 'x-circle' : 'check-circle'" x-on:click="abierto = false" wire:click="alternarEstado({{ $a->id }})">{{ $a->is_active ? __('Desactivar') : __('Reactivar') }}</x-ui.dropdown.item>
+                                                <x-ui.dropdown.item :icono="$a->is_active ? 'x-circle' : 'check-circle'" x-on:click="abierto = false" wire:click="alternarEstado({{ $a->id }})">{{ $a->is_active ? __('Archivar') : __('Desarchivar') }}</x-ui.dropdown.item>
                                             @endif
                                             <x-ui.dropdown.item icono="x-mark" peligro x-on:click="abierto = false" wire:click="eliminar({{ $a->id }})" wire:confirm="{{ __('¿Eliminar :c? Solo se puede si ningún grupo teórico, plan ni asignatura la usa.', ['c' => $a->code]) }}">{{ __('Eliminar') }}</x-ui.dropdown.item>
                                         </x-ui.acciones-fila>

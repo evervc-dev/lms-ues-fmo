@@ -25,12 +25,17 @@ use stdClass;
  * ámbito. `google_sync_refs` guarda el id del evento y el estado de cada fecha.
  *
  * Todos ven las fechas globales del período, porque les aplican; solo las toca quien las creó en su ámbito.
+ *
+ * Con `periodos.calendario.ver` (ADR-094) el Docente (S) y el Estudiante (M) consultan el calendario en solo lectura:
+ * las fechas globales y las del departamento y las carreras de sus grupos teóricos o de sus matrículas.
  */
 class CalendarioPeriodoService
 {
     public const ENTIDAD = 'period_calendar_event';
 
     public const PERMISO = 'periodos.calendario.gestionar';
+
+    public const PERMISO_VER = 'periodos.calendario.ver';
 
     public function __construct(private Alcance $alcance, private CalendarConexionService $conexion) {}
 
@@ -42,7 +47,7 @@ class CalendarioPeriodoService
      */
     public function eventos(User $usuario, int $periodoId): Collection
     {
-        $alcance = $this->alcance->exigir($usuario, self::PERMISO);
+        $alcance = $this->alcanceDeLectura($usuario);
 
         $consulta = DB::table('period_calendar_events as e')
             ->leftJoin('google_sync_refs as g', fn ($j) => $j->on('g.entity_id', '=', 'e.id')->where('g.entity_type', self::ENTIDAD)->where('g.provider', 'google_calendar'))
@@ -52,10 +57,11 @@ class CalendarioPeriodoService
 
         // El Jefe y el Coordinador ven además las fechas globales del período: les aplican aunque no las manejen.
         if ($alcance !== 'G') {
+            [$departamentos, $carreras] = $this->ambitosQueLeAplican($usuario, $periodoId);
             $consulta->where(fn (Builder $q) => $q
                 ->where(fn (Builder $g) => $g->whereNull('e.department_id')->whereNull('e.career_id'))
-                ->orWhereIn('e.department_id', $this->alcance->departamentos($usuario))
-                ->orWhereIn('e.career_id', $this->alcance->carreras($usuario)));
+                ->orWhereIn('e.department_id', $departamentos)
+                ->orWhereIn('e.career_id', $carreras));
         }
 
         return $consulta->orderBy('e.starts_at')
@@ -79,15 +85,19 @@ class CalendarioPeriodoService
      */
     public function ambitos(User $usuario): array
     {
-        $alcance = $this->alcance->exigir($usuario, self::PERMISO);
+        // Quien solo consulta (ADR-094) no crea fechas en ningún ámbito.
+        $alcance = $this->alcance->de($usuario, self::PERMISO);
+        if ($alcance === null) {
+            return [];
+        }
         $opciones = $alcance === 'G' ? [['valor' => 'global', 'etiqueta' => __('Todo el período')]] : [];
 
         if (in_array($alcance, ['G', 'D'], true)) {
-            foreach (DB::table('departments')->whereIn('id', $this->alcance->departamentos($usuario))->orderBy('name')->get(['id', 'name']) as $d) {
+            foreach (DB::table('departments')->whereNull('archived_at')->whereIn('id', $this->alcance->departamentos($usuario))->orderBy('name')->get(['id', 'name']) as $d) {
                 $opciones[] = ['valor' => 'departamento:'.$d->id, 'etiqueta' => __('Departamento: :n', ['n' => $d->name])];
             }
         }
-        foreach (DB::table('careers')->whereIn('id', $this->alcance->carreras($usuario))->orderBy('name')->get(['id', 'name']) as $c) {
+        foreach (DB::table('careers')->whereNull('archived_at')->whereIn('id', $this->alcance->carreras($usuario))->orderBy('name')->get(['id', 'name']) as $c) {
             $opciones[] = ['valor' => 'carrera:'.$c->id, 'etiqueta' => __('Carrera: :n', ['n' => $c->name])];
         }
 
@@ -218,13 +228,71 @@ class CalendarioPeriodoService
     }
 
     /**
-     * Cabecera del período para la pantalla. Exige el permiso: la fija cualquiera de los tres ámbitos.
+     * Las próximas fechas del período vigente que le aplican, para el Inicio (ADR-094): las que aún no terminan.
+     *
+     * @return Collection<int, stdClass>
+     */
+    public function proximas(User $usuario, int $limite = 5): Collection
+    {
+        $periodo = $this->periodoVigente();
+        if ($periodo === null || $this->alcance->de($usuario, self::PERMISO) === null && $this->alcance->de($usuario, self::PERMISO_VER) === null) {
+            return collect();
+        }
+
+        return $this->eventos($usuario, $periodo)
+            ->filter(fn (stdClass $e) => Carbon::parse($e->ends_at ?? $e->starts_at)->gte(now()->startOfDay()))
+            ->take($limite)->values();
+    }
+
+    /**
+     * ¿Puede agregar, eliminar o sincronizar fechas? Sin «gestionar», la pantalla es de solo lectura.
+     */
+    public function puedeGestionar(User $usuario): bool
+    {
+        return $this->alcance->de($usuario, self::PERMISO) !== null;
+    }
+
+    /**
+     * Cabecera del período para la pantalla. Basta con poder leer el calendario.
      */
     public function periodo(User $usuario, int $periodoId): object
     {
-        $this->alcance->exigir($usuario, self::PERMISO);
+        $this->alcanceDeLectura($usuario);
 
         return DB::table('academic_periods')->where('id', $periodoId)->first(['id', 'name', 'status', 'start_date', 'end_date']) ?? abort(404);
+    }
+
+    /**
+     * Alcance con que ve el calendario: el de gestionar si lo tiene; si no, el de consultar (S o M).
+     */
+    private function alcanceDeLectura(User $usuario): string
+    {
+        return $this->alcance->de($usuario, self::PERMISO) ?? $this->alcance->exigir($usuario, self::PERMISO_VER);
+    }
+
+    /**
+     * Departamentos y carreras cuyas fechas le aplican: los que dirige o coordina y, como docente o estudiante, los
+     * de las materias de sus grupos teóricos y de sus matrículas activas del período (una materia es de todas las
+     * carreras que la llevan en su plan, ADR-080), más la carrera en que estudia.
+     *
+     * @return array{0: list<int>, 1: list<int>}
+     */
+    private function ambitosQueLeAplican(User $usuario, int $periodoId): array
+    {
+        $grupos = DB::table('sections')->where('sections.period_id', $periodoId)
+            ->where(fn (Builder $q) => $q
+                ->whereIn('sections.id', DB::table('teaching_assignments')->where('teacher_id', $usuario->id)->whereNull('ended_at')->select('section_id'))
+                ->orWhereIn('sections.id', DB::table('enrollments')->where('student_id', $usuario->id)->where('status', 'active')->select('section_id')));
+
+        $departamentos = (clone $grupos)->join('subjects', 'subjects.id', '=', 'sections.subject_id')->pluck('subjects.department_id');
+        $carreras = (clone $grupos)->join('career_subjects as cs', 'cs.subject_id', '=', 'sections.subject_id')
+            ->join('study_plans as sp', 'sp.id', '=', 'cs.study_plan_id')->pluck('sp.career_id')
+            ->merge(DB::table('student_careers')->where('student_id', $usuario->id)->where('status', 'active')->pluck('career_id'));
+
+        return [
+            collect($this->alcance->departamentos($usuario))->merge($departamentos)->map(fn ($id) => (int) $id)->unique()->values()->all(),
+            collect($this->alcance->carreras($usuario))->merge($carreras)->map(fn ($id) => (int) $id)->unique()->values()->all(),
+        ];
     }
 
     /**

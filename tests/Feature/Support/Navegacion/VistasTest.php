@@ -91,8 +91,7 @@ it('shows the section header and only the tabs the role may see', function () {
     $this->actingAs($e['jefe'])
         ->get(route('secciones.estudiantes', ['seccion' => $e['ulid']]))
         ->assertOk()
-        ->assertSeeText('Estudiantes')
-        ->assertDontSeeText(['Contenidos', 'Foro']);
+        ->assertSeeText(['Estudiantes', 'Contenidos', 'Foro']); // RF39, ADR-093: el Jefe supervisa en lectura.
 });
 
 it('forbids a section outside the scope of the role', function () {
@@ -159,7 +158,7 @@ it('no muestra al estudiante el aviso de una sesión de asistencia de otro día 
     $this->actingAs($e['estudiante'])->get(route('inicio'))->assertOk()->assertDontSeeText('Asistencia abierta');
 });
 
-it('muestra solo las pestañas con alcance sobre la sección: el Coordinador que también es docente no ve el Foro de una sección que supervisa', function () {
+it('muestra las pestañas con alcance sobre la sección: el Coordinador que también es docente ve el Foro de la sección que supervisa en lectura (RF39)', function () {
     $e = escenario();
     DbContext::system(fn () => $e['coordinador']->assignRole('docente'));
 
@@ -167,7 +166,7 @@ it('muestra solo las pestañas con alcance sobre la sección: el Coordinador que
         ->get(route('secciones.notas', ['seccion' => $e['ulid']]))
         ->assertOk()
         ->assertSeeTextInOrder(['Contenidos', 'Notas', 'Asistencia', 'Estudiantes'])
-        ->assertDontSee(route('secciones.foro', ['seccion' => $e['ulid']]));
+        ->assertSee(route('secciones.foro', ['seccion' => $e['ulid']]));
 
     $this->actingAs($e['docente'])
         ->get(route('secciones.notas', ['seccion' => $e['ulid']]))
@@ -183,12 +182,12 @@ it('mantiene la barra de pestañas en las pantallas de la sección que ocupan to
         ->assertSee(route('secciones.contenidos', ['seccion' => $e['ulid']]));
 })->with(['secciones.revisiones', 'secciones.estudiantes', 'secciones.acta']);
 
-it('la miga del grupo lleva a una pestaña que el usuario puede abrir: al Jefe no lo manda a Contenidos (403)', function () {
+it('la miga del grupo lleva a una pestaña que el usuario puede abrir: el Jefe ya abre Contenidos (RF39)', function () {
     $e = escenario();
 
     $pagina = $this->actingAs($e['jefe'])->get(route('secciones.estudiantes', ['seccion' => $e['ulid']]))->assertOk();
-    $pagina->assertDontSee('href="'.route('secciones.contenidos', ['seccion' => $e['ulid']]).'"', false);
-    $this->get(route('secciones.contenidos', ['seccion' => $e['ulid']]))->assertForbidden();
+    $pagina->assertSee('href="'.route('secciones.contenidos', ['seccion' => $e['ulid']]).'"', false);
+    $this->get(route('secciones.contenidos', ['seccion' => $e['ulid']]))->assertOk();
 
     $this->actingAs($e['docente'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()
         ->assertSee('href="'.route('secciones.contenidos', ['seccion' => $e['ulid']]).'"', false);

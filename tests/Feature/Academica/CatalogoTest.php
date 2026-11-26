@@ -42,12 +42,12 @@ function asignaturaSuelta(int $departamento, string $codigo = 'ELE101', int $cre
     ]));
 }
 
-it('CP-RF07-02 impide eliminar la asignatura que tiene secciones y sugiere desactivarla', function () {
+it('CP-RF07-02 impide eliminar la asignatura que tiene secciones y sugiere archivarla', function () {
     $e = escenario();
     actingAs($e['administrador']);
 
     expect(fn () => catalogo()->eliminarAsignatura($e['administrador'], $e['prn']))
-        ->toThrow(ValidationException::class, 'Desactívela');
+        ->toThrow(ValidationException::class, 'Archívela');
 
     expect(DB::table('subjects')->where('id', $e['prn'])->exists())->toBeTrue();
 });
@@ -79,12 +79,20 @@ it('CP-RF07-02 elimina la asignatura que nada usa junto con sus propios prerrequ
         ->and(DB::table('subjects')->where('id', $e['prn'])->exists())->toBeTrue();
 });
 
-it('CP-RF07-02 la asignatura desactivada deja de ofrecerse al crear secciones y conserva las que tiene', function () {
+it('CP-RF07-02 no archiva una asignatura con grupos en un período que no está cerrado (ADR-092)', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+
+    expect(fn () => catalogo()->cambiarEstadoAsignatura($e['administrador'], $e['prn'], false))->toThrow(ValidationException::class)
+        ->and((bool) DB::table('subjects')->where('id', $e['prn'])->value('is_active'))->toBeTrue();
+});
+
+it('CP-RF07-02 la asignatura archivada deja de ofrecerse al crear secciones y conserva las que tiene', function () {
     $e = escenario();
     actingAs($e['administrador']);
     $carga = app(CargaAcademicaService::class);
 
-    catalogo()->cambiarEstadoAsignatura($e['administrador'], $e['prn'], false);
+    DbContext::system(fn () => DB::table('subjects')->where('id', $e['prn'])->update(['is_active' => false]));
 
     expect($carga->asignaturas($e['coordinador'])->pluck('code')->all())->not->toContain('PRN115')
         ->and(DB::table('sections')->where('id', $e['seccion'])->exists())->toBeTrue();
@@ -94,17 +102,17 @@ it('CP-RF07-02 la asignatura desactivada deja de ofrecerse al crear secciones y 
     expect($carga->asignaturas($e['coordinador'])->pluck('code')->all())->toContain('PRN115');
 });
 
-it('CP-RF07-02 avisa en pantalla por qué no se puede eliminar y desactiva desde el catálogo', function () {
+it('CP-RF07-02 avisa en pantalla por qué no se puede eliminar ni archivar desde el catálogo', function () {
     $e = escenario();
     actingAs($e['administrador']);
 
     Livewire::test(Catalogo::class)
         ->call('eliminar', $e['prn'])
-        ->assertDispatched('aviso', tipo: 'error', mensaje: __('No se puede eliminar: tiene :usos. Desactívela para que no se programe en nuevos períodos.', ['usos' => 'secciones, planes de estudio']))
+        ->assertDispatched('aviso', tipo: 'error', mensaje: __('No se puede eliminar: tiene :usos. Archívela para que no se programe en nuevos períodos.', ['usos' => 'secciones, planes de estudio']))
         ->call('alternarEstado', $e['prn'])
-        ->assertSee('Inactiva')->assertSee('Reactivar');
+        ->assertDispatched('aviso', tipo: 'error', mensaje: __('No se puede archivar: tiene grupos teóricos en un período que no está cerrado.'));
 
-    expect((bool) DB::table('subjects')->where('id', $e['prn'])->value('is_active'))->toBeFalse();
+    expect((bool) DB::table('subjects')->where('id', $e['prn'])->value('is_active'))->toBeTrue();
 });
 
 it('CP-RF07-02 impide eliminar y desactivar asignaturas a quien no administra el catálogo', function (string $rol, string $departamento) {

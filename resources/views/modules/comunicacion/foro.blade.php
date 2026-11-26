@@ -1,7 +1,9 @@
 {{-- Vista de sección › Foro (RF30, maqueta 40). --}}
 <div class="flex flex-col gap-5">
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
-    <div class="flex justify-end"><x-ui.button icono="plus" x-on:click="$dispatch('abrir-modal', 'nuevo-hilo')">{{ __('Nuevo hilo') }}</x-ui.button></div>
+    @if ($participa)
+        <div class="flex justify-end"><x-ui.button icono="plus" x-on:click="$dispatch('abrir-modal', 'nuevo-hilo')">{{ __('Nuevo hilo') }}</x-ui.button></div>
+    @endif
 
     <x-ui.card :titulo="__('Foro del grupo teórico')">
         @if ($hilos->isEmpty())
@@ -27,14 +29,16 @@
         @endif
     </x-ui.card>
 
-    <x-ui.modal nombre="nuevo-hilo" :titulo="__('Nuevo hilo')" ancho="lg">
-        <form wire:submit="crear" id="form-hilo" class="flex flex-col gap-4">
-            <x-ui.field :etiqueta="__('Título')" para="tituloHilo" error="titulo" requerido><x-ui.input id="tituloHilo" wire:model="titulo" /></x-ui.field>
-            <x-ui.field :etiqueta="__('Mensaje')" para="mensajeHilo" error="mensaje" requerido><x-ui.textarea id="mensajeHilo" wire:model="mensaje" rows="5" /></x-ui.field>
-        </form>
-        <x-slot:pie>
-            <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'nuevo-hilo')">{{ __('Cancelar') }}</x-ui.button>
-            <x-ui.button type="submit" form="form-hilo">{{ __('Publicar') }}</x-ui.button>
-        </x-slot:pie>
-    </x-ui.modal>
+    @if ($participa)
+        <x-ui.modal nombre="nuevo-hilo" :titulo="__('Nuevo hilo')" ancho="lg">
+            <form wire:submit="crear" id="form-hilo" class="flex flex-col gap-4">
+                <x-ui.field :etiqueta="__('Título')" para="tituloHilo" error="titulo" requerido><x-ui.input id="tituloHilo" wire:model="titulo" /></x-ui.field>
+                <x-ui.field :etiqueta="__('Mensaje')" para="mensajeHilo" error="mensaje" requerido><x-ui.textarea id="mensajeHilo" wire:model="mensaje" rows="5" /></x-ui.field>
+            </form>
+            <x-slot:pie>
+                <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'nuevo-hilo')">{{ __('Cancelar') }}</x-ui.button>
+                <x-ui.button type="submit" form="form-hilo">{{ __('Publicar') }}</x-ui.button>
+            </x-slot:pie>
+        </x-ui.modal>
+    @endif
 </div>

@@ -3,6 +3,7 @@
 namespace App\Modules\Reportes\Services;
 
 use App\Models\User;
+use App\Modules\Academica\Services\CalendarioPeriodoService;
 use App\Modules\Academica\Services\PeriodoService;
 use App\Modules\Academica\Services\PlanesService;
 use App\Modules\Asistencia\Services\AsistenciaService;
@@ -21,7 +22,7 @@ class PanelService
     /** Filas que muestra una lista del panel antes de mandar a la pantalla completa. */
     private const FILAS_PANEL = 6;
 
-    public function __construct(private Alcance $alcance) {}
+    public function __construct(private Alcance $alcance, private QueSigueService $queSigue, private CalendarioPeriodoService $calendario) {}
 
     /**
      * @return array<string, mixed>
@@ -53,6 +54,7 @@ class PanelService
             'clasesVirtuales' => DB::table('video_sessions as v')->join('sections', 'sections.id', '=', 'v.section_id')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
                 ->whereIn('v.section_id', $secciones)->where('v.starts_at', '>=', now())->orderBy('v.starts_at')->limit(3)
                 ->get(['v.topic', 'v.starts_at', 'v.meet_url', 'subjects.code']),
+            'evaluaciones' => $this->calendario->proximas($u),
         ];
     }
 
@@ -230,6 +232,8 @@ class PanelService
             'enAlerta' => $this->alertas($secciones)->getCountForPagination(),
             'alertas' => $this->alertas($secciones)->limit(5)->get()
                 ->each(fn (object $a) => $a->alert_type = AsistenciaService::alertaDeGravedad((int) $a->gravedad)),
+            'queSigue' => $this->queSigue->docente($u, $secciones),
+            'evaluaciones' => $this->calendario->proximas($u),
         ];
     }
 
@@ -263,6 +267,7 @@ class PanelService
                 'actas' => DB::table('grade_sheets')->whereIn('section_id', $secciones)->where('status', 'published')->count(),
                 'cancelaciones' => DB::table('class_cancellations')->whereIn('section_id', $secciones)->where('status', 'requested')->count(),
             ],
+            'queSigue' => $this->queSigue->coordinador($u, $secciones),
         ];
     }
 
@@ -275,7 +280,10 @@ class PanelService
         $deps = $this->alcance->departamentos($u);
         $secciones = DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')->where('sections.period_id', $periodo)->whereIn('subjects.department_id', $deps)->pluck('sections.id');
 
-        return $this->gestion($secciones) + [
+        $gestion = $this->gestion($secciones);
+
+        return $gestion + [
+            'queSigue' => $this->queSigue->jefe($u, $secciones, $gestion['sinDocente']),
             'actas' => ['validadas' => DB::table('grade_sheets')->whereIn('section_id', $secciones)->where('status', 'validated')->count(), 'total' => $secciones->count()],
             // Con quién lo hizo y, si es una cuenta, sobre quién: el panel las muestra en frases (QA Jefe 21/11).
             'auditoria' => DB::table('audit_logs')->leftJoin('users as actor', 'actor.id', '=', 'audit_logs.actor_user_id')
@@ -294,11 +302,16 @@ class PanelService
         $periodo = DB::table('academic_periods')->where('status', 'active')->first(['id', 'name', 'end_date']);
         $secciones = DB::table('sections')->where('period_id', $periodo?->id)->pluck('id');
 
-        return $this->gestion($secciones) + [
+        $gestion = $this->gestion($secciones);
+        $cierres = ['autorizados' => DB::table('department_closures')->where('period_id', $periodo?->id)->count(), 'departamentos' => DB::table('departments')->whereNull('archived_at')->count()];
+        $colas = DB::table('failed_jobs')->count();
+
+        return $gestion + [
             'periodo' => $periodo,
-            'cierres' => ['autorizados' => DB::table('department_closures')->where('period_id', $periodo?->id)->count(), 'departamentos' => DB::table('departments')->count()],
+            'cierres' => $cierres,
             'usuarios' => ['activos' => DB::table('users')->where('is_active', true)->count(), 'accesosHoy' => DB::table('login_history')->where('occurred_at', '>=', now()->startOfDay())->where('result', 'success')->count()],
-            'colas' => DB::table('failed_jobs')->count(),
+            'colas' => $colas,
+            'queSigue' => $this->queSigue->administrador($u, $periodo, $gestion['sinDocente'], $cierres['autorizados'], $cierres['departamentos'], $colas),
         ];
     }
 

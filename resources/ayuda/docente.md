@@ -24,6 +24,15 @@ Este manual le explica cómo preparar su curso, crear tareas y cuestionarios, ca
 3. Puede cambiar la regla después, desde la página del recurso. Quien ya la cumplía queda completado al instante, y lo completado no se desmarca.
 4. Lo que elimine va a la **Papelera**, donde puede restaurarlo durante **30 días**.
 
+### Lección con cuestionario
+
+Una lección es un material (página, PDF u otro archivo) con un cuestionario corto que comprueba que el estudiante lo leyó.
+1. En **Agregar recurso**, marque **Es una lección con verificación de lectura**.
+2. En **Cómo se completa**, fije el **tiempo mínimo** de lectura (de 1 a 120 minutos) y, si quiere, exija **llegar al final** del texto o del PDF.
+3. Agregue las preguntas del cuestionario. No admite preguntas de ensayo.
+4. El estudiante lee, pulsa **Ya lo leí** cuando cumple las condiciones y solo entonces puede intentar el cuestionario, en la misma página.
+5. El cuestionario de una lección **no suma a la nota**: no lleva cómputo ni peso. El estudiante ve su resultado como retroalimentación.
+
 ## 3. Reutilizar el curso de un período anterior
 
 1. En **Contenidos**, pulse **Importar de un período anterior**, elija la sección de origen y pulse **Importar contenido**.
@@ -55,11 +64,11 @@ Este manual le explica cómo preparar su curso, crear tareas y cuestionarios, ca
 
 ## 6. Calificar y publicar notas
 
-1. Revise los pesos en **Notas → Pesos**. La sección trae los cómputos del período (30/30/40); puede cambiarlos con **Guardar pesos** mientras no haya notas publicadas. Los cómputos deben sumar 100 %, y las actividades de cada cómputo, 100 % o menos.
+1. Revise los pesos en **Notas → Pesos**. La sección trae los **cuatro cómputos** del período, de **25 %** cada uno. Puede cambiarlos con **Guardar pesos** mientras no haya notas publicadas: deben sumar 100 % y ninguno puede bajar de **20 %** ni pasar de **40 %**. Las actividades de cada cómputo deben sumar 100 % o menos.
 2. Califique desde **Pendientes de calificar** o desde las **Entregas** de cada tarea: pulse **Calificar**, ponga la nota (0 a 10) o los niveles de la rúbrica y una retroalimentación, y pulse **Guardar**.
 3. En una tarea en equipo, la nota se copia a todos los integrantes. Con **Ajustar** cambia la de uno solo, con un motivo.
 4. Pulse **Publicar notas**: los estudiantes las ven y reciben un aviso. Si la nota proyectada de alguien baja de la mínima, le llega un aviso de **riesgo de reprobar**.
-5. Si un estudiante pide la revisión de una nota, la verá en la pestaña **Revisiones**: lea su motivo y resuélvala con **Revisar y resolver**.
+5. Si un estudiante pide la revisión de una nota, la verá en la pestaña **Revisiones**: lea su motivo y resuélvala con **Revisar y resolver**. En una tarea en equipo, lo que resuelva vale para todo el equipo.
 6. Con el período **cerrado** ya no puede cambiar notas: la corrección la hace el Coordinador de la carrera, con un motivo, y el estudiante recibe un aviso.
 
 ## 7. Publicar el acta de notas
@@ -69,14 +78,31 @@ Este manual le explica cómo preparar su curso, crear tareas y cuestionarios, ca
 
 ## 8. Tomar asistencia con QR
 
-1. En la pestaña **Asistencia**, elija la **vigencia** (de 5 a 15 minutos) y pulse **Abrir asistencia**.
+1. En la pestaña **Asistencia**, elija la **vigencia** (de 5 a 15 minutos) y pulse **Abrir asistencia**. Se abre una sola sesión por grupo y día.
+   - Si no es la hora de clase del grupo (desde 15 minutos antes del inicio hasta 15 minutos después del fin), la plataforma le pide un **Motivo**, por ejemplo «Clase adelantada» o «Reposición de clase». Queda registrado y lo pueden ver su Coordinador y su Jefe.
 2. Pulse **Proyectar QR** y déjelo en pantalla todo el tiempo. El código cambia cada 10 segundos, así que una foto compartida no sirve.
 3. Los estudiantes marcan con su teléfono registrado y dentro del campus. Cada uno tiene 3 intentos.
 4. Si alguien no puede escanear, use **Código temporal**: dura 30 segundos y sirve solo para ese estudiante. También puede **Corregir** su registro a mano, con un motivo.
 5. En **Rechazos de la sesión** verá cada intento fallido con su motivo (fuera del área, código vencido, otro teléfono).
-6. Pulse **Cerrar sesión** al terminar; quien no marcó queda ausente.
+6. Pulse **Cerrar asistencia** al terminar; quien no marcó queda ausente.
 7. Si tomó la asistencia en papel, use **Importar desde Excel o CSV** con el carné y el estado: revise la **vista previa** y pulse **Confirmar importación**. Se rechazan las filas de quien no está en el grupo.
-8. En **Justificaciones pendientes**, acepte o rechace las justificaciones de los estudiantes.
+8. En **Justificaciones de esta sesión**, acepte o rechace las justificaciones de los estudiantes.
+
+### Marca de salida (clase presencial)
+
+Si quiere comprobar que los estudiantes se quedaron toda la clase, pida también la salida. Es opcional y solo se puede el mismo día de la clase presencial.
+1. Al final de la clase, en la sesión pulse **Abrir marca de salida**. Si la entrada seguía abierta, se cierra primero.
+2. Los estudiantes vuelven a escanear el QR (tienen otros 3 intentos). También sirve el **Código temporal**.
+3. Pulse **Cerrar salida**. El estado de cada uno queda así:
+
+| Entrada | Salida | Estado |
+|---|---|---|
+| Sí | Sí | El de la entrada (Presente, o Tarde si llegó tarde) |
+| Sí | No | Tarde |
+| No | Sí | Tarde |
+| No | No | Ausente |
+
+Si a alguien que llegó tarde le corrigió la entrada a mano, cuenta como entrada. Las justificadas no cambian.
 
 ## 9. Conectar su Google Calendar
 
@@ -86,17 +112,30 @@ Una sola vez, para que sus clases virtuales se creen solas en su calendario con 
 2. Elija **su** cuenta @ues.edu.sv, la misma con la que entró, y acepte el permiso de Calendar.
 3. Verá «Conectado». Puede **Desconectar** cuando quiera.
 
-> [!info] Si no conecta su calendario
-> Sus clases virtuales se programan igual, pero sin evento en Calendar: escriba usted el enlace de Meet al programarlas.
+> [!info] Es obligatorio para programar clases virtuales
+> El enlace de Meet lo crea el evento de su Google Calendar; no se escribe a mano. Si no tiene el calendario conectado, al programar una clase la plataforma le pide conectarlo.
 
 ## 10. Dar una clase virtual y registrar la asistencia
 
 1. En **Asistencia → Clases virtuales**, pulse **Programar clase**: escriba el tema, la fecha y hora y la duración, y pulse **Programar**.
-2. Si conectó su Google Calendar, se crea el evento con enlace de Meet y se invita a los estudiantes matriculados. Si usted escribe su propio enlace de Meet, se conserva.
+2. Se crea el evento en su Google Calendar con enlace de Meet y se invita a los estudiantes matriculados.
 3. Al terminar la clase, en Meet descargue el **reporte de asistencia** (CSV o Excel). En la clase finalizada, pulse **Subir reporte** y luego **Leer reporte**.
 4. Revise la vista previa: **Presentes**, **Ausentes** y **Sin asociar**. A las filas sin asociar (alguien que entró sin su cuenta institucional), use **Asignar** o **Descartar**. Luego pulse **Confirmar asistencia**.
 5. Queda presente quien estuvo al menos el **70 %** de la duración programada.
 6. Con **Grabación** puede guardar el enlace de la grabación para los estudiantes.
+
+### Editar o cancelar una clase virtual
+
+1. Con **Editar** cambia la clase. Lo que se puede cambiar depende de su estado:
+
+| Estado | Se puede cambiar |
+|---|---|
+| Programada | Tema, fecha y hora, y duración |
+| En curso | Tema, y alargar la duración |
+| Finalizada, o con reporte subido | Solo el tema |
+
+2. Con **Cancelar clase** quita una clase **programada** que todavía no tiene reporte.
+3. Si la clase tiene evento en Google Calendar, el evento se actualiza o se borra solo y Google avisa a los invitados. El enlace de Meet no cambia al editar.
 
 ## 11. Cancelar una clase o cambiar su modalidad
 
@@ -129,5 +168,8 @@ En cada hilo puede **Fijar** o **Desfijar**, **Cerrar hilo** (ya no acepta respu
 | No puedo cambiar los pesos | Ya hay notas publicadas en la sección; los pesos quedan fijos |
 | No me deja publicar el acta | Los pesos no suman 100 % en algún nivel: corríjalos en **Notas → Pesos** |
 | Un estudiante no puede marcar con QR | Dele un **código temporal** o corrija su registro a mano |
-| Mi clase virtual no tiene enlace de Meet | Conecte su Google Calendar (sección 9) o escriba el enlace al programarla |
+| Mi clase virtual no tiene enlace de Meet | Conecte su Google Calendar (sección 9). Si ya lo está, avise a Soporte Técnico: puede que la integración con Google no esté activa |
+| Me pide un motivo para abrir la asistencia | No es la hora de clase del grupo: escriba por qué la abre (adelanto, reposición) |
+| No me deja abrir otra sesión de asistencia hoy | Solo se abre una por grupo y día. Si falta alguien, corrija su registro a mano |
+| No me deja guardar los pesos | Deben sumar 100 % y cada cómputo debe quedar entre 20 % y 40 % |
 | Necesito cambiar una nota con el período cerrado | Pídasela al Coordinador de la carrera |

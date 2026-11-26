@@ -86,13 +86,16 @@ class AsistenciaService
     }
 
     /**
-     * Condición SQL: el registro cuenta para el porcentaje porque su sesión no cae en un día cancelado (RF32), sea
+     * Condición SQL: el registro cuenta para el porcentaje porque su sesión ya se cerró y no cae en un día cancelado (RF32), sea
      * por una cancelación aprobada de la sección, de una carrera del grupo o de toda la facultad. Las carreras del grupo
      * son todas las que llevan su materia en el plan: la cancelación de una carrera alcanza al grupo entero (ADR-080).
+     * Una sesión abierta no cuenta todavía: con marca de salida (ADR-079) la entrada sola dejaba el 100 % antes de
+     * cerrar la clase, cuando al final podía quedar Tarde (QA Estudiante 23/11).
      */
     public static function cuentaSql(string $tabla = 'r'): string
     {
-        return 'not exists (select 1 from attendance_sessions cs join class_cancellations cc on cc.date = cs.session_date'
+        return "exists (select 1 from attendance_sessions so where so.id = {$tabla}.session_id and so.status = 'closed') and "
+            .'not exists (select 1 from attendance_sessions cs join class_cancellations cc on cc.date = cs.session_date'
             ." where cs.id = {$tabla}.session_id and cc.status = 'approved' and cc.kind = 'cancellation'"
             ." and (cc.scope = 'faculty' or (cc.scope = 'section' and cc.section_id = {$tabla}.section_id)"
             ." or (cc.scope = 'career' and cc.career_id in (select sp.career_id from sections sx join career_subjects csx on csx.subject_id = sx.subject_id"
@@ -128,7 +131,8 @@ class AsistenciaService
         $registros = DB::table('attendance_records as r')->join('attendance_sessions as s', 's.id', '=', 'r.session_id')
             ->leftJoin('attendance_justifications as j', 'j.record_id', '=', 'r.id')
             ->where('r.enrollment_id', $matricula)->orderByDesc('s.session_date')
-            ->get(['r.id', 'r.status', 'r.method', 'r.recorded_at', 's.session_date', 's.modality', 'j.status as justificacion', DB::raw(self::cuentaSql().' as cuenta')]);
+            ->get(['r.id', 'r.status', 'r.method', 'r.recorded_at', 'r.exit_recorded_at', 's.session_date', 's.modality', 's.status as sesion', 's.exit_opened_at',
+                'j.status as justificacion', DB::raw(self::cuentaSql().' as cuenta')]);
 
         return [
             'registros' => $registros,
@@ -156,7 +160,9 @@ class AsistenciaService
             ->get(['e.id', 'sections.id as seccion_id', 'sections.ulid', 'sections.code as grupo', 'subjects.code', 'subjects.name',
                 DB::raw('(select '.self::porcentajeSql().' from attendance_records r where r.enrollment_id = e.id) as porcentaje'),
                 DB::raw('(select count(*) from attendance_records r where r.enrollment_id = e.id and '.self::cuentaSql().') as clases'),
-                DB::raw("(select count(*) from attendance_records r where r.enrollment_id = e.id and r.status = 'absent' and ".self::cuentaSql().') as faltas')])
+                DB::raw("(select count(*) from attendance_records r where r.enrollment_id = e.id and r.status = 'absent' and ".self::cuentaSql().') as faltas'),
+                // La clase de hoy, mientras sigue abierta: aún no entra al porcentaje.
+                DB::raw("(select count(*) from attendance_records r join attendance_sessions s on s.id = r.session_id where r.enrollment_id = e.id and s.status = 'open') as en_curso")])
             ->each(fn ($m) => $m->nivel = $m->porcentaje === null ? 'sin_datos' : match (true) {
                 // Los umbrales son los de system_settings (RF22), no valores fijos.
                 $m->porcentaje < $umbrales['attendance_75'] => 'critico',
@@ -297,21 +303,25 @@ class AsistenciaService
     /**
      * Sesión: cada estudiante activo con su registro, conteos y rechazos.
      *
-     * @return array{sesion: object, estudiantes: Collection<int, object>, rechazos: Collection<int, object>, conteo: array<string, int>, segundos: int}
+     * @return array{sesion: object, estudiantes: Collection<int, object>, rechazos: Collection<int, object>, conteo: array<string, int>, segundos: int, soloLectura: bool, fueraDeHorario: bool, motivoFueraHorario: ?string}
      */
-    public function sesion(User $docente, int $seccionId, string $ulid): array
+    public function sesion(User $usuario, int $seccionId, string $ulid): array
     {
-        $this->exigirEnSeccion($docente, 'asistencia.sesion.abrir', $seccionId);
+        $puedeOperar = $this->alcance->puedeEnSeccion($usuario, 'asistencia.sesion.abrir', $seccionId);
+        if (! $puedeOperar && ! $this->alcance->puedeEnSeccion($usuario, 'asistencia.sesion.ver', $seccionId)) {
+            throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
+        }
         $sesion = DB::table('attendance_sessions')->where('section_id', $seccionId)->where('ulid', $ulid)->first() ?? abort(404);
-        if ($sesion->status === 'open' && now()->gt(Carbon::parse($sesion->opened_at)->addMinutes((int) $sesion->qr_validity_minutes))) {
-            $this->cerrar($docente, $seccionId, $ulid);
+        if ($puedeOperar && $sesion->status === 'open' && now()->gt(Carbon::parse($sesion->opened_at)->addMinutes((int) $sesion->qr_validity_minutes))) {
+            $this->cerrar($usuario, $seccionId, $ulid);
             $sesion = DB::table('attendance_sessions')->where('id', $sesion->id)->first();
         }
 
         $estudiantes = DB::table('enrollments as e')->join('users as u', 'u.id', '=', 'e.student_id')->leftJoin('student_profiles as p', 'p.user_id', '=', 'u.id')
             ->leftJoin('attendance_records as r', fn ($j) => $j->on('r.enrollment_id', '=', 'e.id')->where('r.session_id', $sesion->id))
             ->where('e.section_id', $seccionId)->where('e.status', 'active')->orderBy('u.last_name')
-            ->get(['e.id as matricula', 'u.first_name', 'u.last_name', 'p.student_code', 'r.id as registro', 'r.status', 'r.method', 'r.recorded_at', 'r.exit_recorded_at', 'r.distance_m', 'r.correction_reason']);
+            ->get(['e.id as matricula', 'u.first_name', 'u.last_name', 'p.student_code', 'r.id as registro', 'r.status', 'r.method', 'r.recorded_at', 'r.exit_recorded_at', 'r.distance_m', 'r.correction_reason', 'r.meet_percent']);
+        $motivoFueraHorario = $this->motivoFueraHorario($seccionId, (int) $sesion->id);
 
         return [
             'sesion' => $sesion,
@@ -320,7 +330,33 @@ class AsistenciaService
                 ->where('a.result', '!=', 'ok')->orderByDesc('a.occurred_at')->get(['a.result', 'a.distance_m', 'a.occurred_at', 'u.first_name', 'u.last_name']),
             'conteo' => $estudiantes->countBy(fn ($e) => $e->status ?? 'sin_registro')->all(),
             'segundos' => $sesion->status === 'open' ? max(0, (int) now()->diffInSeconds(Carbon::parse($sesion->opened_at)->addMinutes((int) $sesion->qr_validity_minutes), false)) : 0,
+            'soloLectura' => ! $puedeOperar,
+            // RF39: la apertura de la entrada; con la marca de salida, opened_at ya es la de la salida (ADR-079).
+            'fueraDeHorario' => $motivoFueraHorario !== null
+                || ($sesion->exit_opened_at === null && ! $this->dentroDelHorario($seccionId, Carbon::parse($sesion->opened_at))),
+            'motivoFueraHorario' => $motivoFueraHorario,
         ];
+    }
+
+    /**
+     * Motivo de abrir fuera del horario (ADR-075, RF39). Solo existe en la auditoría de PostgreSQL; quien llega aquí
+     * ya tiene alcance sobre la sección, así que la RLS se abre solo para el departamento de esa sección (ADR-029).
+     */
+    private function motivoFueraHorario(int $seccionId, int $sesionId): ?string
+    {
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            return null;
+        }
+        $departamento = (int) DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')->where('sections.id', $seccionId)->value('subjects.department_id');
+
+        $motivo = DB::transaction(function () use ($departamento, $sesionId) {
+            DbContext::auditScope(false, [$departamento]);
+
+            return DB::table('audit_logs')->where('entity_type', 'attendance_sessions')->where('entity_id', $sesionId)
+                ->where('event_type', 'attendance_session.opened')->whereNotNull('reason')->orderBy('occurred_at')->value('reason');
+        });
+
+        return $motivo !== null ? (string) $motivo : null;
     }
 
     /**

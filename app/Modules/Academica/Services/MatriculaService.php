@@ -358,7 +358,7 @@ class MatriculaService
         $porDefecto = $this->plazoPorDefecto($periodo);
         $filas = DB::table('enrollment_deadlines')->where('period_id', $periodo)->get()->keyBy('department_id');
 
-        return DB::table('departments')->when($departamentos !== null, fn ($q) => $q->whereIn('id', $departamentos))
+        return DB::table('departments')->whereNull('archived_at')->when($departamentos !== null, fn ($q) => $q->whereIn('id', $departamentos))
             ->orderBy('name')->get(['id', 'name'])
             ->map(function (object $d) use ($periodo, $porDefecto, $filas): object {
                 $fila = $filas[$d->id] ?? null;
@@ -742,7 +742,7 @@ class MatriculaService
         if ($departamentos !== null && ! in_array($departamentoId, $departamentos, true)) {
             throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
         }
-        DB::table('departments')->where('id', $departamentoId)->exists() || abort(404);
+        DB::table('departments')->where('id', $departamentoId)->whereNull('archived_at')->exists() || abort(404);
     }
 
     private function periodoEnCurso(string $campo): int
