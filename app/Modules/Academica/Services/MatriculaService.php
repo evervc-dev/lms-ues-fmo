@@ -20,11 +20,11 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Matrícula (RF09, RF29, ADR-030, ADR-032, ADR-050; Flujo Matrícula y cambio de grupo).
- * Valida cupo, duplicado, choque de horario, que la asignatura sea del plan de la carrera del estudiante y sus
- * sin validar prerrequisitos (ADR-030, ADR-032; ADR-052 rechazada por ADR-078). Docente (S), Coordinador (C),
- * Jefe (D) y Administrador (G) inscriben; el estudiante elige una materia de su carrera y ciclo y se
- * automatricula con la clave de esa asignatura, que ponen el Coordinador (C) y el Jefe (D).
- * Retirar exige motivo y lo hacen Coordinador, Jefe y Administrador.
+ * Valida período en curso, cupo, duplicado, choque de horario y que la asignatura sea del plan de la carrera del
+ * estudiante; los prerrequisitos no se validan (ADR-030, ADR-032; ADR-052 rechazada por ADR-078). Docente (S),
+ * Coordinador (C), Jefe (D), Administrador (G) y Soporte (G) inscriben; el estudiante elige una materia de su
+ * carrera y ciclo y se automatricula con la clave de esa asignatura, que ponen el Coordinador (C) y el Jefe (D).
+ * Retirar exige motivo y lo hacen todos menos el Docente. El cambio de grupo lo resuelve el Jefe (ADR-078).
  * Toda inscripción nueva respeta la fecha límite del departamento de la carrera del estudiante (ADR-051).
  */
 class MatriculaService
@@ -195,7 +195,8 @@ class MatriculaService
     }
 
     /**
-     * Claves vigentes por asignatura del período (Coordinador, sus carreras; Jefe, su departamento).
+     * Claves vigentes por asignatura del período (Administrador, toda la facultad; Jefe, su departamento; Coordinador,
+     * sus carreras). Con «Aplicar a todas», el Administrador pone una sola clave para la facultad (ADR-080).
      *
      * @return Collection<int, object>
      */
@@ -205,10 +206,12 @@ class MatriculaService
         // Las claves se configuran también en un período en preparación (Ciclo de vida del período académico).
         $periodo = PeriodoService::preparableOActivo($periodoId);
         $buscar = Busqueda::fragmento($buscar);
-        $ambito = $alcance === 'D'
-            ? DB::table('subjects')->whereIn('department_id', $this->alcance->departamentos($actor))->select('id')
-            : DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
-                ->whereIn('study_plans.career_id', $this->alcance->carreras($actor))->select('career_subjects.subject_id');
+        $ambito = match ($alcance) {
+            'G' => DB::table('subjects')->select('id'),
+            'D' => DB::table('subjects')->whereIn('department_id', $this->alcance->departamentos($actor))->select('id'),
+            default => DB::table('career_subjects')->join('study_plans', 'study_plans.id', '=', 'career_subjects.study_plan_id')
+                ->whereIn('study_plans.career_id', $this->alcance->carreras($actor))->select('career_subjects.subject_id'),
+        };
 
         return DB::table('subjects')
             ->when($buscar !== '%%', fn ($q) => $q->where(fn ($q) => $q->whereRaw("lower(subjects.code) like ? escape '\\'", [$buscar])

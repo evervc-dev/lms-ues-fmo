@@ -60,3 +60,4 @@ flowchart TD
 - Quien no puede escanear: [[Flujo Código temporal]] o marcado manual (auditado).
 - Al cerrar la sesión, los matriculados sin registro quedan `absent`.
 - Los tokens vencidos se purgan a los 7 días; los intentos se conservan.
+- **Marca de salida (opcional):** al final de la clase el docente abre la salida en la misma sesión; si la entrada sigue abierta, primero se cierra. El mismo escaneo (o el código temporal) escribe `exit_recorded_at`, con otros 3 intentos. Al cerrar la salida: entrada y salida conservan el estado de la entrada, una sola marca queda `late` y ninguna `absent`; las justificadas y las correcciones del docente no cambian ([[ADR-079 Marca de entrada y salida en clase presencial]]).

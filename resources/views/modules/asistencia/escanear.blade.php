@@ -20,8 +20,8 @@
 
     {{-- Ya marcó en la sesión abierta: no se ofrece el lector ni el código (QA 17/11). --}}
     @if ($yaRegistrada)
-        <x-ui.alert tipo="exito" :titulo="__('Asistencia registrada')">
-            {{ $yaRegistrada->code }} · {{ $yaRegistrada->name }} · {{ \Illuminate\Support\Carbon::parse($yaRegistrada->hora)->timezone('America/El_Salvador')->format('H:i') }}
+        <x-ui.alert tipo="exito" :titulo="$yaRegistrada->salida ? __('Salida registrada') : __('Asistencia registrada')">
+            {{ $yaRegistrada->code }} · {{ $yaRegistrada->name }} · {{ \Illuminate\Support\Carbon::parse($yaRegistrada->salida ?? $yaRegistrada->hora)->timezone('America/El_Salvador')->format('H:i') }}
         </x-ui.alert>
         <x-ui.button variante="secundario" :href="route('mi-asistencia')">{{ __('Ver mi asistencia') }}</x-ui.button>
     @else
@@ -92,7 +92,7 @@
 
         @if ($resultado)
             @if ($resultado['resultado'] === 'ok')
-                <x-ui.alert tipo="exito" :titulo="__('Asistencia registrada')">{{ $resultado['hora'] }}</x-ui.alert>
+                <x-ui.alert tipo="exito" :titulo="rtrim($resultado['mensaje'], '.')">{{ $resultado['hora'] }}</x-ui.alert>
             @else
                 <x-ui.alert tipo="error" :titulo="__($resultado['mensaje'])">
                     @if ($resultado['intentosRestantes'] > 0 && ! in_array($resultado['resultado'], ['already_recorded', 'session_closed', 'not_enrolled'], true))
@@ -104,7 +104,7 @@
     </div>
 
     @if ($registrado)
-        <x-ui.alert tipo="exito" :titulo="__('Asistencia registrada')">{{ __(':m · :h', ['m' => $registrado, 'h' => now()->timezone('America/El_Salvador')->format('H:i')]) }}</x-ui.alert>
+        <x-ui.alert tipo="exito" :titulo="$registrado['salida'] ? __('Salida registrada') : __('Asistencia registrada')">{{ __(':m · :h', ['m' => $registrado['materia'], 'h' => now()->timezone('America/El_Salvador')->format('H:i')]) }}</x-ui.alert>
     @endif
 
     <x-ui.card :titulo="__('Ingresar código temporal')">

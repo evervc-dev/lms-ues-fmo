@@ -34,5 +34,6 @@ Casos derivados de los criterios de aceptación de [[RF07]]. Nivel: **feature**.
 | CP-RF07-18 | **Dado** el Jefe, **cuando** crea una asignatura, **entonces** no elige departamento (se usa el suyo), solo ve las carreras de su departamento y la asignatura queda en los planes y ciclos elegidos. | automatizado |
 | CP-RF07-19 | **Dado** el plan de una carrera de otro departamento, **cuando** el Jefe lo usa, **entonces** recibe 403; el Administrador sí puede. | automatizado |
 | CP-RF07-20 | **Dado** una asignatura en planes de varios departamentos, **cuando** el Jefe la edita, **entonces** solo ve y cambia los de su departamento, y los demás se conservan. | automatizado |
+| CP-RF07-21 | **Dado** el Administrador o el Jefe, **cuando** crea o edita una asignatura, **entonces** lo hace en su propia página (sus carreras y planes crecen con los datos); el Jefe no abre la de otro departamento (403). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF07-01 …')`.

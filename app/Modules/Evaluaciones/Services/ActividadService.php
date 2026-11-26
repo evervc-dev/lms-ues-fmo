@@ -360,6 +360,29 @@ class ActividadService
     }
 
     /**
+     * Calificación ya puesta a una entrega, para volver a abrirla con sus valores (RF15): la nota antes de la
+     * penalización por tardía (así no se descuenta dos veces al guardar), los puntos por criterio y la retroalimentación.
+     *
+     * @return array{nota: ?float, puntos: array<int, float>, comentario: ?string}
+     */
+    public function calificacionDeEntrega(User $docente, int $seccionId, int $entregaId): array
+    {
+        abort_unless($this->alcance->puedeEnSeccion($docente, 'calificaciones.gestionar', $seccionId), 403);
+        $entrega = DB::table('submissions as s')->join('assessments as a', 'a.id', '=', 's.assessment_id')
+            ->where('s.id', $entregaId)->where('s.section_id', $seccionId)->first(['s.id', 's.enrollment_id', 's.team_id', 'a.grade_item_id']) ?? abort(404);
+        $matricula = $entrega->team_id ? $this->equipos->matriculasDe((int) $entrega->team_id)->first() : $entrega->enrollment_id;
+        $nota = $matricula === null ? null : DB::table('grades')->where('grade_item_id', $entrega->grade_item_id)->where('enrollment_id', $matricula)
+            ->first(['score', 'score_before_penalty', 'comment']);
+
+        return [
+            'nota' => $nota === null || $nota->score === null ? null : (float) ($nota->score_before_penalty ?? $nota->score),
+            'puntos' => DB::table('submission_rubric_scores')->where('submission_id', $entrega->id)->pluck('points', 'criterion_id')
+                ->mapWithKeys(fn ($puntos, $criterio) => [(int) $criterio => (float) $puntos])->all(),
+            'comentario' => DB::table('submission_feedback')->where('submission_id', $entrega->id)->where('author_id', $docente->id)->value('comment') ?? $nota?->comment,
+        ];
+    }
+
+    /**
      * Entregas que el estudiante hizo en los grupos anteriores de un cambio de grupo (RF09, [[ADR-062]]).
      * Son histórico de **solo lectura**: el docente del grupo nuevo las ve con su actividad y el grupo de
      * origen, pero no las califica ni las modifica aquí. Resolver la cadena no abre la sección anterior:

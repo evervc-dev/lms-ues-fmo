@@ -18,6 +18,46 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF07, RF26, RF15 · Formularios complejos fuera del modal
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** la asignatura del catálogo y el área de asistencia pasan a su propia página, como pide Layout base (más de 6 campos o campos que crecen; el mapa necesita espacio). El calificador de entregas pasa a modal de pantalla completa con el nombre de la entrega, la nota anterior precargada, «Anterior», «Siguiente» y «Guardar y siguiente». Se corrigió el botón «Calificar», que no hacía nada en el navegador (`@js` sin compilar dentro de un atributo de componente).
+- **CP cubiertos:** CP-RF07-21, CP-RF26-03, CP-RF15-10; pruebas existentes reapuntadas al componente nuevo.
+- **Decisiones:** —
+- **Pendiente:** grupos B y C de la lista de formularios (horario, clase virtual, calendario, período, cancelación; tarea y cuestionario por secciones).
+
+### 2026-11-21 · RF08 · El grupo teórico es de la asignatura (D2)
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** el alcance de carrera de los grupos, las carreras de un grupo y la cancelación por carrera salen del plan de estudios, no de `sections.career_id`, que queda como dato de la carrera que lo solicitó.
+- **CP cubiertos:** CP-RF08-12, CP-RF32-04 y CP-RF34-13 reescritos con la regla nueva.
+- **Decisiones:** [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]] (pendiente): Coordinador ve los grupos de las materias de su plan; la cancelación de una carrera alcanza al grupo entero; career_id informativo; el Administrador pone la clave única de la facultad (CP-RF29-21). En [[ADR-079 Marca de entrada y salida en clase presencial]], la entrada que el docente marca a mano vale como marca al cerrar la salida (CP-RF20-17).
+- **Pendiente:** D6 (aceptar las ADR pendientes).
+
+### 2026-11-21 · RF20 · Marca de entrada y salida en clase presencial
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** «Abrir marca de salida» en la sesión del día (cierra la entrada si sigue abierta), QR y código temporal que marcan la salida, recálculo al cerrar, columna «Salida» y fase en la proyección y el escáner; columnas `attendance_sessions.exit_opened_at` y `attendance_records.exit_recorded_at`.
+- **CP cubiertos:** CP-RF20-15 a CP-RF20-20.
+- **Decisiones:** [[ADR-079 Marca de entrada y salida en clase presencial]] (pendiente): una sola sesión, el docente abre la salida, dos marcas = estado de la entrada, una = Tarde, ninguna = Ausente; solo presencial.
+- **Pendiente:** correr las pruebas en PostgreSQL 17 (triggers de auditoría sobre las columnas nuevas).
+
+### 2026-11-21 · — · Vault sincronizado con las correcciones de la revisión de flujos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** flujos de matrícula (Soporte inscribe, el Docente no retira, el Jefe resuelve el cambio de grupo), ciclo de vida del período (quién crea grupos y claves; condiciones de etapa), resolución de cuestionario (revisión a los 10 min; respaldo sin conexión) y solicitud de revisión (acta publicada); RF09 y RF19; `.ai/guidelines` y `AGENTS.md`; docblocks de `MatriculaService` e `ImportacionService`.
+- **CP cubiertos:** —
+- **Decisiones:** —
+- **Pendiente:** D2 (grupo de otra carrera y clave por asignatura) y D6 (aceptar las ADR pendientes ya implementadas: 047, 059, 070, 073, 074, 075, 076, 077, 078).
+
+### 2026-11-21 · RF04 · Carga masiva en cola y con ámbito (revisión de flujos)
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** la carga masiva va en la cola `importaciones` (`ProcesarImportacionUsuarios`), una transacción por fila, conteos al terminar y aviso `users.import_finished` a quien la subió; Docente, Coordinador y Jefe se importan con su ámbito tomado de la columna carrera, por `AsignacionService`.
+- **CP cubiertos:** CP-RF04-24, CP-RF04-25, CP-RF04-26.
+- **Decisiones:** los duplicados siguen contándose entre los errores del lote: separar «omitidos» exige una columna nueva en `import_batches`, que no está en el ER.
+- **Pendiente:** —
+
 ### 2026-11-21 · RF06–RF08 · Preparación del período siguiente (revisión de flujos)
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

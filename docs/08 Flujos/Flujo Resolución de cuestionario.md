@@ -23,7 +23,7 @@ sequenceDiagram
     E->>L: Guarda respuestas
     L-->>E: OK + tiempo restante
   end
-  Note over E,L: Si se corta la red, el navegador guarda localmente y reintenta
+  Note over E,L: Si se corta la red, el navegador guarda las respuestas (localStorage) y las reenvía al reconectar o al recargar
   E-->>L: Reconexión
   L-->>E: Recupera el intento con sus respuestas guardadas
   alt El estudiante envía
@@ -38,6 +38,6 @@ sequenceDiagram
 ## Reglas
 - Las preguntas sorteadas **se fijan en el intento**: al recargar no cambian.
 - Navegación «una a una»: el servidor rechaza respuestas a preguntas anteriores.
-- La revisión (respuestas y justificación) se muestra solo cuando el docente la publica.
+- La revisión (respuestas y justificación) se muestra sola al estudiante 10 minutos después del cierre del cuestionario ([[RF35]], [[ADR-040 Solicitud de revisión de calificaciones]]).
 - Mientras tenga ensayos sin calificar, el intento queda «pendiente de calificar».
 - Carga: 100 intentos simultáneos con `p95 < 2 s` ([[Pruebas de carga]]).

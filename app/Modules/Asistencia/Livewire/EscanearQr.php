@@ -22,7 +22,8 @@ class EscanearQr extends Component
 
     public string $codigo = '';
 
-    public ?string $registrado = null;
+    /** @var array{materia: string, salida: bool}|null Marca hecha con el código temporal. */
+    public ?array $registrado = null;
 
     #[Locked]
     public string $qrInicial = '';
@@ -95,7 +96,7 @@ class EscanearQr extends Component
      * La asistencia que ya tiene registrada en la sesión abierta de alguna de sus secciones, si la hay. Mientras
      * exista, no se ofrece volver a marcar: antes la pantalla seguía mostrando el lector y el código (QA 17/11).
      *
-     * @return object{code: string, name: string, hora: string}|null
+     * @return object{code: string, name: string, hora: string, salida: ?string}|null
      */
     private function yaRegistrada(): ?object
     {
@@ -105,13 +106,15 @@ class EscanearQr extends Component
             ->join('enrollments as e', fn ($j) => $j->on('e.section_id', '=', 'a.section_id')->where('e.status', 'active'))
             ->where('e.student_id', auth()->id())
             ->tap(fn ($q) => AsistenciaService::soloVigentes($q, 'a'))
-            ->whereNotExists(fn ($q) => $q->from('attendance_records as r')->whereColumn('r.session_id', 'a.id')->whereColumn('r.enrollment_id', 'e.id'))
+            // En la ventana de salida (ADR-079) espera su marca quien aún no marcó la salida.
+            ->whereNotExists(fn ($q) => $q->from('attendance_records as r')->whereColumn('r.session_id', 'a.id')->whereColumn('r.enrollment_id', 'e.id')
+                ->where(fn ($w) => $w->whereNull('a.exit_opened_at')->orWhereNotNull('r.exit_recorded_at')))
             ->exists();
         if ($pendiente) {
             return null;
         }
 
-        /** @var object{code: string, name: string, hora: string}|null $fila */
+        /** @var object{code: string, name: string, hora: string, salida: ?string}|null $fila */
         $fila = DB::table('attendance_records as r')
             ->join('attendance_sessions as a', 'a.id', '=', 'r.session_id')
             ->join('enrollments as e', 'e.id', '=', 'r.enrollment_id')
@@ -120,7 +123,7 @@ class EscanearQr extends Component
             ->where('e.student_id', auth()->id())
             ->tap(fn ($q) => AsistenciaService::soloVigentes($q, 'a'))
             ->orderByDesc('a.opened_at')
-            ->first(['m.code', 'm.name', 'r.recorded_at as hora']);
+            ->first(['m.code', 'm.name', 'r.recorded_at as hora', 'r.exit_recorded_at as salida']);
 
         return $fila;
     }

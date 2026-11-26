@@ -34,5 +34,6 @@ Casos derivados de los criterios de aceptación de [[RF29]]. Nivel: **feature**.
 | CP-RF29-18 | **Dado** el Jefe, **cuando** prorroga el plazo de su departamento con motivo, **entonces** se vuelve a inscribir y la fecha original se conserva; sin motivo, o si lo intenta el Coordinador, se rechaza. | pasa |
 | CP-RF29-19 | **Dado** una prórroga para un estudiante (Coordinador o Jefe, con motivo), **entonces** solo ese estudiante puede inscribirse, con clave o manualmente; los demás siguen bloqueados. | pasa |
 | CP-RF29-20 | **Dado** una materia de otro departamento, **entonces** rige la fecha del departamento de la carrera del estudiante, no la del que ofrece la materia. | pasa |
+| CP-RF29-21 | **Dado** el Administrador, **cuando** aplica una clave a todas, **entonces** queda la misma clave en todas las asignaturas de la facultad ([[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]]). | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF29-01 …')`.

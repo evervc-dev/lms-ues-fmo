@@ -78,7 +78,9 @@
                         <x-ui.select id="departamentoGrupo" wire:model.live="departamentoGrupo"><option value="">{{ __('Elija…') }}</option>@foreach ($departamentosGrupo as $d)<option value="{{ $d->id }}">{{ $d->code }} · {{ $d->name }}</option>@endforeach</x-ui.select>
                     </x-ui.field>
                 @endif
-                <x-ui.field :etiqueta="__('Carrera')" para="carreraGrupo" error="carreraGrupo" requerido>
+                {{-- ADR-080: la carrera solo filtra las materias y queda como dato; el grupo lo comparten todas las carreras que llevan la materia. --}}
+                <x-ui.field :etiqueta="__('Carrera que lo solicita')" para="carreraGrupo" error="carreraGrupo" requerido
+                    :ayuda="__('El grupo lo pueden cursar los estudiantes de todas las carreras que llevan la materia en su plan.')">
                     <x-ui.select id="carreraGrupo" wire:model.live="carreraGrupo" :disabled="$carrerasGrupo->isEmpty()"><option value="">{{ __('Elija…') }}</option>@foreach ($carrerasGrupo as $c)<option value="{{ $c->id }}">{{ $c->code }} · {{ $c->name }}</option>@endforeach</x-ui.select>
                 </x-ui.field>
                 <x-ui.field :etiqueta="__('Asignatura')" para="asignaturaId" error="asignaturaId" requerido

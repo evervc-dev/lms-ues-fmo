@@ -41,6 +41,7 @@ return [
         'grade_review.resolved' => ['estudiante'],
         'extension.granted' => ['estudiante'],
         'period.reopened' => ['coordinador'],
+        'users.import_finished' => ['administrador', 'soporte_tecnico'],
     ],
 
 ];

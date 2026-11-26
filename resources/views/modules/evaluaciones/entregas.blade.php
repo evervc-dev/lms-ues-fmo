@@ -38,7 +38,7 @@
                         @endif
                     </td>
                     <td class="text-right">{{ $e->score !== null ? number_format((float) $e->score, 2) : '—' }}</td>
-                    <td class="text-right"><x-ui.button tamano="sm" :variante="$e->score === null ? 'primario' : 'secundario'" wire:click="abrir({{ $e->id }}, '{{ $e->ulid }}', @js($e->archivo))">{{ $e->score === null ? __('Calificar') : __('Cambiar') }}</x-ui.button></td>
+                    <td class="text-right"><x-ui.button tamano="sm" :variante="$e->score === null ? 'primario' : 'secundario'" wire:click="abrir({{ $e->id }})">{{ $e->score === null ? __('Calificar') : __('Cambiar') }}</x-ui.button></td>
                 </tr>
             @endforeach
         </x-ui.table>
@@ -122,49 +122,94 @@
         </x-ui.modal>
     @endif
 
-    <x-ui.modal nombre="calificar" :titulo="__('Calificar entrega')" ancho="xl">
-        {{-- El documento a la izquierda y la nota a la derecha: calificar sin poder abrir la entrega era el defecto. --}}
-        <div class="grid gap-4 md:grid-cols-2">
-            <div class="flex flex-col gap-2">
+    @php
+        $actual = $entregas->firstWhere('id', $entregaId);
+        $posicion = $actual ? $entregas->search(fn ($e) => $e->id === $actual->id) : false;
+        $pendientes = $entregas->whereNull('score')->count();
+    @endphp
+    <x-ui.modal nombre="calificar" ancho="completo"
+        :titulo="$actual ? __('Calificar · :n', ['n' => $actual->nombre]) : __('Calificar entrega')"
+        :subtitulo="$actual ? __('Entrega :i de :t · entregada el :f', ['i' => $posicion + 1, 't' => $entregas->count(), 'f' => \Illuminate\Support\Carbon::parse($actual->submitted_at)->timezone('America/El_Salvador')->format('d/m/Y H:i')]) : null">
+        {{-- El documento a la izquierda, con todo el alto, y la nota a la derecha: se califica mirando la entrega. --}}
+        <div class="grid gap-5 lg:h-full lg:grid-cols-[minmax(0,1fr)_22rem]">
+            <div class="flex min-h-0 flex-col gap-2">
                 @php($ext = strtolower(pathinfo((string) $entregaArchivo, PATHINFO_EXTENSION)))
                 @php($url = $entregaUlid !== '' ? route('secciones.entregas.archivo', ['seccion' => $seccion, 'entrega' => $entregaUlid]) : null)
                 @if ($url && $ext === 'pdf')
-                    <iframe src="{{ $url }}#view=FitH" class="h-96 w-full rounded-md border border-borde" title="{{ __('Documento de la entrega') }}"></iframe>
+                    <iframe wire:key="visor-{{ $entregaUlid }}" src="{{ $url }}#view=FitH" class="h-[60vh] w-full rounded-lg border border-borde lg:h-auto lg:flex-1" title="{{ __('Documento de la entrega') }}"></iframe>
                 @elseif ($url && in_array($ext, ['png', 'jpg', 'jpeg', 'webp'], true))
-                    <img src="{{ $url }}" alt="{{ __('Documento de la entrega') }}" class="max-h-96 w-full rounded-md border border-borde object-contain">
+                    <div class="flex h-[60vh] items-center justify-center overflow-auto rounded-lg border border-borde bg-zinc-50 lg:h-auto lg:flex-1">
+                        <img wire:key="visor-{{ $entregaUlid }}" src="{{ $url }}" alt="{{ __('Documento de la entrega') }}" class="max-h-full max-w-full object-contain">
+                    </div>
                 @elseif ($url)
-                    <div class="flex h-96 flex-col items-center justify-center gap-2 rounded-md border border-dashed border-borde p-4 text-center text-sm text-texto-suave">
-                        <p>{{ __('Este tipo de archivo no se puede ver aquí.') }}</p>
+                    <div class="flex h-64 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-borde p-4 text-center text-sm text-texto-suave lg:h-auto lg:flex-1">
+                        <x-ui.icon name="arrow-down-tray" class="size-8" />
+                        <p>{{ __('Este tipo de archivo no se puede ver aquí: descárguelo para revisarlo.') }}</p>
                         <p class="font-medium text-texto">{{ $entregaArchivo }}</p>
                     </div>
                 @else
-                    <div class="flex h-96 items-center justify-center rounded-md border border-dashed border-borde text-sm text-texto-suave">{{ __('La entrega no tiene archivo.') }}</div>
+                    <div class="flex h-64 items-center justify-center rounded-lg border border-dashed border-borde text-sm text-texto-suave lg:h-auto lg:flex-1">{{ __('La entrega no tiene archivo.') }}</div>
                 @endif
                 @if ($url)
-                    <x-ui.button variante="secundario" tamano="sm" :href="$url" target="_blank" rel="noopener">{{ __('Descargar :a', ['a' => $entregaArchivo]) }}</x-ui.button>
+                    <div><x-ui.button variante="secundario" tamano="sm" icono="arrow-top-right-on-square" :href="$url" target="_blank" rel="noopener">{{ __('Abrir :a en otra pestaña', ['a' => $entregaArchivo]) }}</x-ui.button></div>
                 @endif
             </div>
-        <form wire:submit="calificar" id="form-calificar" class="flex flex-col gap-4">
-            @if ($rubrica->isNotEmpty())
-                @foreach ($rubrica as $criterio)
-                    @php($maximo = rtrim(rtrim(number_format((float) $criterio->max_points, 2, '.', ''), '0'), '.'))
-                    <x-ui.field :etiqueta="$criterio->name" :para="'crit-'.$criterio->id" :error="'puntos.'.$criterio->id" :ayuda="__('De 0 a :m.', ['m' => $maximo])" requerido>
-                        <x-ui.input :id="'crit-'.$criterio->id" type="number" step="0.1" min="0" :max="$criterio->max_points" wire:model.live="puntos.{{ $criterio->id }}" />
+
+            <form wire:submit="calificar" id="form-calificar" class="flex flex-col gap-4">
+                @if ($actual)
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if ($actual->is_late)
+                            <x-ui.badge color="ambar">{{ (float) $actual->late_penalty_applied > 0 ? __('Tardía · −:p %', ['p' => rtrim(rtrim(number_format((float) $actual->late_penalty_applied, 2, '.', ''), '0'), '.')]) : __('Tardía') }}</x-ui.badge>
+                        @endif
+                        <x-ui.badge :color="$actual->score === null ? 'gris' : 'verde'">{{ $actual->score === null ? __('Sin nota') : __('Nota actual: :n', ['n' => number_format((float) $actual->score, 2)]) }}</x-ui.badge>
+                    </div>
+                @endif
+                @if ($rubrica->isNotEmpty())
+                    <fieldset class="flex flex-col gap-3">
+                        <legend class="mb-1 text-sm font-semibold text-texto">{{ __('Rúbrica') }}</legend>
+                        @foreach ($rubrica as $criterio)
+                            @php($maximo = rtrim(rtrim(number_format((float) $criterio->max_points, 2, '.', ''), '0'), '.'))
+                            <x-ui.field :etiqueta="$criterio->name" :para="'crit-'.$criterio->id" :error="'puntos.'.$criterio->id" requerido>
+                                <div class="flex items-center gap-2">
+                                    <x-ui.input :id="'crit-'.$criterio->id" type="number" step="0.1" min="0" :max="$criterio->max_points" wire:model.live.debounce.300ms="puntos.{{ $criterio->id }}" class="w-24" />
+                                    <span class="text-sm text-texto-suave">{{ __('de :m', ['m' => $maximo]) }}</span>
+                                </div>
+                            </x-ui.field>
+                        @endforeach
+                    </fieldset>
+                    @php($total = collect($rubrica)->sum(fn ($c) => (float) ($puntos[$c->id] ?? 0)))
+                    <div class="flex items-baseline justify-between rounded-lg bg-marca-50 px-4 py-3">
+                        <span class="text-sm font-medium text-marca-800">{{ __('Nota') }}</span>
+                        <span class="text-2xl font-semibold text-marca-800">{{ rtrim(rtrim(number_format($total, 2, '.', ''), '0'), '.') ?: '0' }} <span class="text-sm font-normal">/ 10</span></span>
+                    </div>
+                @else
+                    <x-ui.field :etiqueta="__('Nota (0 a 10)')" para="notaEntrega" error="nota" requerido>
+                        <x-ui.input id="notaEntrega" type="number" step="0.1" min="0" max="10" wire:model="nota" class="text-lg" />
                     </x-ui.field>
-                @endforeach
-                @php($total = collect($rubrica)->sum(fn ($c) => (float) ($puntos[$c->id] ?? 0)))
-                <p class="text-sm font-medium">{{ __('Nota: :n de 10', ['n' => rtrim(rtrim(number_format($total, 2, '.', ''), '0'), '.')]) }}</p>
-            @else
-                <x-ui.field :etiqueta="__('Nota (0 a 10)')" para="notaEntrega" error="nota" requerido><x-ui.input id="notaEntrega" type="number" step="0.1" min="0" max="10" wire:model="nota" /></x-ui.field>
-            @endif
-            @error('nota')<p class="text-xs font-medium text-red-700">{{ $message }}</p>@enderror
-            <x-ui.field :etiqueta="__('Retroalimentación')" para="comentario"><x-ui.textarea id="comentario" wire:model="comentario" rows="3" /></x-ui.field>
-            <p class="text-xs text-texto-suave">{{ __('Si la entrega fue tardía con penalización, se descuenta automáticamente.') }}</p>
-        </form>
+                @endif
+                @if ($rubrica->isNotEmpty())@error('nota')<p class="text-xs font-medium text-red-700">{{ $message }}</p>@enderror@endif
+                <x-ui.field :etiqueta="__('Retroalimentación')" para="comentario" :ayuda="__('La ve el estudiante cuando se publiquen las notas.')">
+                    <x-ui.textarea id="comentario" wire:model="comentario" rows="5" />
+                </x-ui.field>
+                @if ($actual && $actual->is_late && (float) $actual->late_penalty_applied > 0)
+                    <p class="text-xs text-texto-suave">{{ __('Escriba la nota sin descontar: la penalización por tardía se aplica sola al guardar.') }}</p>
+                @endif
+            </form>
         </div>
         <x-slot:pie>
-            <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'calificar')">{{ __('Cancelar') }}</x-ui.button>
-            <x-ui.button type="submit" form="form-calificar">{{ __('Guardar') }}</x-ui.button>
+            {{-- Un solo bloque: en el teléfono el pie apilaba cinco botones y se comía un cuarto de la pantalla. --}}
+            <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
+                <div class="flex items-center justify-between gap-2 sm:flex-1 sm:justify-start">
+                    <x-ui.button variante="fantasma" tamano="sm" icono="arrow-left" wire:click="moverA(-1)" :disabled="$posicion === false || $posicion === 0">{{ __('Anterior') }}</x-ui.button>
+                    <span class="text-xs text-texto-suave sm:order-last">{{ trans_choice('{0} Todas calificadas|{1} Falta 1 sin nota|[2,*] Faltan :count sin nota', $pendientes) }}</span>
+                    <x-ui.button variante="fantasma" tamano="sm" wire:click="moverA(1)" :disabled="$posicion === false || $posicion >= $entregas->count() - 1">{{ __('Siguiente') }} <x-ui.icon name="chevron-right" class="size-4" /></x-ui.button>
+                </div>
+                <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+                    <span class="hidden sm:inline-flex"><x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'calificar')">{{ __('Cerrar') }}</x-ui.button></span>
+                    <x-ui.button type="submit" form="form-calificar" variante="secundario">{{ __('Guardar') }}</x-ui.button>
+                    <x-ui.button type="button" wire:click="calificar(true)">{{ __('Guardar y siguiente') }}</x-ui.button>
+                </div>
+            </div>
         </x-slot:pie>
     </x-ui.modal>
 </div>

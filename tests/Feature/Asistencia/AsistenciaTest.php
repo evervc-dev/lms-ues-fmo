@@ -1,7 +1,7 @@
 <?php
 
 use App\Modules\Asistencia\Jobs\CerrarSesionesVencidas;
-use App\Modules\Asistencia\Livewire\AreasAsistencia;
+use App\Modules\Asistencia\Livewire\AreaFormulario;
 use App\Modules\Asistencia\Livewire\AsistenciaSeccion;
 use App\Modules\Asistencia\Livewire\ClasesCanceladas;
 use App\Modules\Asistencia\Livewire\EscanearQr;
@@ -219,8 +219,8 @@ it('validates the attendance area radius', function () {
     $e = escenario();
     actingAs($e['administrador']);
 
-    Livewire::test(AreasAsistencia::class)->call('nueva')->set('nombre', 'Campus')->set('latitud', '13.4393')->set('longitud', '-88.1597')->set('radio', 5)->call('guardar')->assertHasErrors(['radio']);
-    Livewire::test(AreasAsistencia::class)->call('nueva')->set('nombre', 'Campus')->set('latitud', '13.4393')->set('longitud', '-88.1597')->set('radio', 450)->call('guardar')->assertHasNoErrors();
+    Livewire::test(AreaFormulario::class)->set('nombre', 'Campus')->set('latitud', '13.4393')->set('longitud', '-88.1597')->set('radio', 5)->call('guardar')->assertHasErrors(['radio']);
+    Livewire::test(AreaFormulario::class)->set('nombre', 'Campus')->set('latitud', '13.4393')->set('longitud', '-88.1597')->set('radio', 450)->call('guardar')->assertHasNoErrors();
 });
 
 /** Cuadrado de unos 200 m de lado alrededor del campus FMO, como lo marcaría el Administrador en el mapa. */
@@ -233,7 +233,7 @@ it('CP-RF26-01 el Administrador define un área por polígono y queda disponible
     $e = escenario();
     actingAs($e['administrador']);
 
-    Livewire::test(AreasAsistencia::class)->call('nueva')->set('nombre', 'Edificio de Ingeniería')->set('tipo', 'polygon')
+    Livewire::test(AreaFormulario::class)->set('nombre', 'Edificio de Ingeniería')->set('tipo', 'polygon')
         ->set('vertices', poligonoCampus())->call('guardar')->assertHasNoErrors();
 
     $area = DB::table('attendance_areas')->sole();
@@ -280,7 +280,7 @@ it('CP-RF26-01 pide al menos 3 vértices marcados en el formulario', function ()
     $e = escenario();
     actingAs($e['administrador']);
 
-    Livewire::test(AreasAsistencia::class)->call('nueva')->set('nombre', 'Aula')->set('tipo', 'polygon')
+    Livewire::test(AreaFormulario::class)->set('nombre', 'Aula')->set('tipo', 'polygon')
         ->set('vertices', [[13.4384, -88.1606]])->call('guardar')->assertHasErrors(['vertices']);
     expect(DB::table('attendance_areas')->exists())->toBeFalse();
 });
@@ -296,8 +296,25 @@ it('CP-RF26-01 solo el Administrador configura las áreas', function (string $ro
 it('offers to fill the area center with the device location', function () {
     $e = escenario();
 
-    actingAs($e['administrador'])->get(route('areas-asistencia'))->assertOk()
+    actingAs($e['administrador'])->get(route('areas-asistencia.crear'))->assertOk()
         ->assertSeeText('Usar mi ubicación')->assertSee('getCurrentPosition', false);
+});
+
+it('CP-RF26-03 crear y editar un área van en su propia página con el mapa, y solo para quien gestiona áreas', function () {
+    $e = escenario();
+    $area = DbContext::system(fn () => DB::table('attendance_areas')->insertGetId(['name' => 'Edificio de Ingeniería', 'area_type' => 'circle', 'center_lat' => 13.4393,
+        'center_lng' => -88.1597, 'radius_m' => 120, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]));
+    actingAs($e['administrador']);
+
+    $this->get(route('areas-asistencia'))->assertOk()->assertSee(route('areas-asistencia.editar', ['area' => $area]), false)->assertDontSee('x-ref="mapa"', false);
+    $this->get(route('areas-asistencia.editar', ['area' => $area]))->assertOk()->assertSee('Editar Edificio de Ingeniería')->assertSee('x-ref="mapa"', false);
+    Livewire::test(AreaFormulario::class, ['area' => $area])->assertSet('radio', 120)->set('radio', 200)->call('guardar')
+        ->assertHasNoErrors()->assertRedirect(route('areas-asistencia'));
+    expect((int) DB::table('attendance_areas')->where('id', $area)->value('radius_m'))->toBe(200);
+    $this->get(route('areas-asistencia.editar', ['area' => 999999]))->assertNotFound();
+
+    actingAs($e['docente']);
+    $this->get(route('areas-asistencia.crear'))->assertForbidden();
 });
 
 it('renders my attendance for the student', function () {

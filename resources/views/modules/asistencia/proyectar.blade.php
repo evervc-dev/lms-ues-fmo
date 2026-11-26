@@ -6,6 +6,10 @@
         <x-ui.icon name="arrow-left" class="size-4" />{{ __('Salir de la proyección') }}
     </a>
     @if ($abierta)
+        {{-- ADR-079: en la ventana de salida se avisa que el escaneo marca la salida. --}}
+        <p class="rounded-full px-5 py-1.5 text-lg font-semibold uppercase tracking-wide {{ $salida ? 'bg-amber-400 text-amber-950' : 'bg-white/15 text-white' }}">
+            {{ $salida ? __('Marca de salida') : __('Marca de entrada') }}
+        </p>
         <div class="aspect-square w-full max-w-[min(80vh,36rem)] rounded-3xl bg-white p-6 [&_svg]:size-full" aria-label="{{ __('Código QR de asistencia') }}">
             {!! $svg !!}
         </div>
@@ -18,7 +22,7 @@
                     x-text="`${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`"></p>
             </div>
             <div>
-                <p class="text-sm uppercase tracking-wide text-white/60">{{ __('Presentes') }}</p>
+                <p class="text-sm uppercase tracking-wide text-white/60">{{ $salida ? __('Salidas') : __('Presentes') }}</p>
                 <p class="font-mono text-4xl font-semibold">{{ $presentes }}</p>
             </div>
         </div>
@@ -26,6 +30,6 @@
     @else
         <x-ui.icon name="lock-closed" class="size-20 text-white/60" />
         <p class="text-3xl font-semibold">{{ __('La sesión de asistencia está cerrada') }}</p>
-        <p class="text-lg text-white/70">{{ __('Presentes: :n', ['n' => $presentes]) }}</p>
+        <p class="text-lg text-white/70">{{ $salida ? __('Salidas: :n', ['n' => $presentes]) : __('Presentes: :n', ['n' => $presentes]) }}</p>
     @endif
 </div>

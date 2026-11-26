@@ -16,6 +16,7 @@ Casos derivados de los criterios de aceptación de [[RF26]]. Nivel: **feature**.
 |---|---|---|
 | CP-RF26-01 | **Dado** el Administrador, **cuando** define un área por centro y radio o por polígono, **entonces** queda disponible para las sesiones de asistencia. | automatizado |
 | CP-RF26-02 | **Dado** una ubicación fuera del área, **entonces** el registro se rechaza ([[RF20]]). | automatizado |
+| CP-RF26-03 | **Dado** quien gestiona áreas, **cuando** crea o edita un área, **entonces** la dibuja en su propia página con el mapa grande; otro rol recibe 403. | automatizado |
 
 > El polígono lo cubren `tests/Feature/Asistencia/AsistenciaTest.php` (CP-RF26-01) y `AsistenciaQrTest.php` (CP-RF26-02, dentro y fuera de un polígono); la geometría, `tests/Unit/Asistencia/GeocercaTest.php` ([[ADR-055 Leaflet y OpenStreetMap para las áreas de asistencia]]).
 >

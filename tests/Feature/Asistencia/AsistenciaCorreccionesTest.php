@@ -84,10 +84,13 @@ it('CP-RF28-05 usar el código cuando ya lo marcaron a mano avisa en vez de fall
     expect(fn () => $this->asistencia->usarCodigo($this->e['estudiante'], $codigo))->toThrow(ValidationException::class, 'Ya tiene registrada');
 });
 
-it('CP-RF32-04 la cancelación de una carrera no alcanza al grupo de la misma materia abierto para otra carrera (ADR-074)', function () {
+it('CP-RF32-04 la cancelación de una carrera alcanza al grupo entero de una materia compartida (ADR-080)', function () {
     $e = $this->e;
     [$industrial, $grupoIndustrial] = DbContext::system(function () use ($e) {
         $ind = DB::table('careers')->insertGetId(['department_id' => $e['dia'], 'code' => 'IND', 'name' => 'Ingeniería Industrial', 'created_at' => now(), 'updated_at' => now()]);
+        $plan = DB::table('study_plans')->insertGetId(['career_id' => $ind, 'name' => 'Plan 26', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('career_subjects')->insert(['study_plan_id' => $plan, 'subject_id' => $e['prn'], 'cycle' => 2]);
+        // Solicitado por Industrial, pero lo comparten ISI e Industrial.
         $grupo = DB::table('sections')->insertGetId(['ulid' => (string) str()->ulid(), 'period_id' => $e['periodo'], 'subject_id' => $e['prn'], 'career_id' => $ind,
             'code' => '02', 'max_capacity' => 40, 'created_at' => now(), 'updated_at' => now()]);
 
@@ -97,10 +100,16 @@ it('CP-RF32-04 la cancelación de una carrera no alcanza al grupo de la misma ma
     $deIsi = AsistenciaService::seccionesDeCancelacion((object) ['scope' => 'career', 'career_id' => $e['isi'], 'section_id' => null]);
     $deIndustrial = AsistenciaService::seccionesDeCancelacion((object) ['scope' => 'career', 'career_id' => $industrial, 'section_id' => null]);
 
-    // El grupo del escenario no tiene carrera: lo toma ISI, que lleva PRN115 en su plan. El de Industrial es solo de Industrial.
-    expect($deIsi->all())->toContain($e['seccion'])->not->toContain($grupoIndustrial)
-        ->and($deIndustrial->all())->toBe([$grupoIndustrial])
-        ->and(AsistenciaService::carrerasDeSeccion($grupoIndustrial)->all())->toBe([$industrial]);
+    expect($deIsi->all())->toContain($e['seccion'], $grupoIndustrial)->not->toContain($e['otra'])
+        ->and($deIndustrial->all())->toContain($e['seccion'], $grupoIndustrial)
+        ->and(AsistenciaService::carrerasDeSeccion($grupoIndustrial)->all())->toEqualCanonicalizing([$e['isi'], $industrial]);
+
+    // Una clase cancelada por Industrial no cuenta para el estudiante de ISI del grupo compartido.
+    $sesion = $this->asistencia->abrir($e['docente'], $e['seccion'], 10);
+    $this->asistencia->cerrar($e['docente'], $e['seccion'], $sesion);
+    DbContext::system(fn () => DB::table('class_cancellations')->insert(['scope' => 'career', 'career_id' => $industrial, 'date' => now()->toDateString(), 'kind' => 'cancellation',
+        'reason' => 'Actividad de la carrera.', 'status' => 'approved', 'requested_by' => $e['coordinador']->id, 'created_at' => now(), 'updated_at' => now()]));
+    expect(DB::table('attendance_records as r')->where('r.enrollment_id', $e['matricula'])->whereRaw(AsistenciaService::cuentaSql())->count())->toBe(0);
 });
 
 it('CP-RF32-05 el docente pide el cambio de modalidad en los dos sentidos', function () {

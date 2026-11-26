@@ -18,7 +18,7 @@
 >
     <template x-if="! conectado"><span wire:poll.15s="refrescar" class="hidden" aria-hidden="true"></span></template>
 
-    <x-ui.dropdown alinear="derecha" ancho="w-96 max-w-[calc(100vw-1.5rem)]">
+    <x-ui.dropdown alinear="derecha" ancho="w-96 max-w-[calc(100vw-1.5rem)]" fijo-en-movil>
         <x-slot:disparador>
             <span
                 class="relative block rounded-lg p-2 text-texto-suave hover:bg-zinc-100"

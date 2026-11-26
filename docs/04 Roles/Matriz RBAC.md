@@ -8,7 +8,7 @@ fuente: Roles y permisos.pdf
 
 Permisos con nombres listos para `spatie/laravel-permission`. Cada celda indica el **alcance** de datos con que se concede el permiso. spatie dice si el usuario tiene el permiso; **el alcance lo aplica cada Service** con `App\Support\Alcance`, que lee las asignaciones vigentes (`teaching_assignments`, `career_coordinators`, `department_heads`; ver [[Modelo entidad-relación]]). No se usan Policies ([[ADR-026 Autorización sin Policies]]).
 
-**Alcances:** **G** = global · **D** = su departamento · **C** = su carrera · **S** = las secciones que imparte · **M** = las asignaturas donde está matriculado · **P** = solo lo propio · vacío = sin permiso.
+**Alcances:** **G** = global · **D** = su departamento · **C** = su carrera (en grupos: los de materias de los planes de su carrera, [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]]) · **S** = las secciones que imparte · **M** = las asignaturas donde está matriculado · **P** = solo lo propio · vacío = sin permiso.
 
 Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinador]] (Coord) · [[Docente]] (Doc) · [[Estudiante]] (Est) · [[Soporte Técnico]] (Sop)
 
@@ -42,7 +42,7 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 | `secciones.cupo` | G | D | | | | | [[RF08]], [[ADR-037 Jerarquía de creación y asignación de roles]] |
 | `matricula.gestionar` | G | D | C | S | | G | [[RF09]], [[ADR-030 Matrícula ampliada]], [[ADR-032 Ajustes por el documento de roles]], [[ADR-037 Jerarquía de creación y asignación de roles]] |
 | `matricula.cambio.resolver` | | D | | | | | [[RF09]], [[ADR-078 El Jefe resuelve el cambio de grupo y no se validan prerrequisitos]] |
-| `matricula.claves.gestionar` | | D | C | | | | [[RF29]], [[ADR-050 Inscripción por catálogo y claves compartidas]] |
+| `matricula.claves.gestionar` | G | D | C | | | | [[RF29]], [[ADR-050 Inscripción por catálogo y claves compartidas]], [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]] (el Administrador pone la clave única de la facultad) |
 | `matricula.automatricular` | | | | | P | | [[RF29]] |
 | `matricula.plazo.gestionar` | G | D | C | | | | [[RF29]], [[ADR-051 Fecha límite de inscripción por departamento]] (el Coordinador, en los departamentos de sus carreras) |
 | `matricula.plazo.prorrogar` | | D | | | | | [[RF29]], [[ADR-051 Fecha límite de inscripción por departamento]] |
@@ -136,7 +136,7 @@ Cada permiso de *Roles y permisos.pdf* y su nombre técnico. Sirve para revisar 
 | Docente | Registrar notas, calificar con rúbricas, libro de calificaciones | `calificaciones.gestionar`, `calificaciones.corregir`, `actas.publicar` (S) | Incluye la calificación anónima |
 | Docente | Iniciar asistencia QR y configurar asistencia en Meet | `asistencia.sesion.abrir`, `asistencia.codigo-temporal.generar`, `videoconferencias.gestionar` | En Meet solo programa la clase y sube el reporte (ADR-003) |
 | Docente | Filtrar alumnos y enviar mensajes masivos | `mensajes.condicionales.enviar` | |
-| Coordinador | Programar horario, aula y docentes de los grupos de su carrera (sin crearlos) | `secciones.gestionar`, `secciones.asignar-docente` (C) | [[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]] |
+| Coordinador | Programar horario, aula y docentes de los grupos de las materias de su carrera, aunque los compartan otras (sin crearlos) | `secciones.gestionar`, `secciones.asignar-docente` (C) | [[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]], [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]] |
 | Coordinador | Inscribir o retirar estudiantes | `matricula.gestionar`, `matricula.claves.gestionar` (C) | Clave por asignatura (ADR-032) |
 | Coordinador | Lectura de aulas, progreso y asistencias | `contenidos.ver`, `progreso.ver`, `asistencia.ver`, `calificaciones.ver` (C) | |
 | Coordinador | *(enfoque)* Validar calificaciones finales | `actas.validar` (C) | [[RF34]] |

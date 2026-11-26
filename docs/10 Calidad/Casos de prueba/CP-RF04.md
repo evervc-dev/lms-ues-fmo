@@ -4,7 +4,7 @@ rf: "[[RF04]]"
 nombre: Gestión de usuarios
 prioridad: Alta
 nivel: feature
-casos: 23
+casos: 26
 estado: automatizado
 ---
 
@@ -37,6 +37,9 @@ Casos derivados de los criterios de aceptación de [[RF04]]. Nivel: **feature**.
 | CP-RF04-21 | **Dado** un libro de Excel (`.xlsx`) con las columnas de la plantilla, **cuando** se sube sin convertirlo a CSV, **entonces** la vista previa lo lee y la importación crea las cuentas ([[ADR-048 Lector propio de hojas para el reporte de Meet]]). | pasa |
 | CP-RF04-22 | **Dado** una cuenta con el rol Estudiante, **cuando** se le intenta asignar Docente o Soporte Técnico, **entonces** se rechaza nombrando el choque; los demás roles sí coexisten y las cuentas que ya tienen la combinación no se tocan ([[ADR-053 Roles incompatibles con el de Estudiante]]). | automatizado |
 | CP-RF04-23 | **Dado** un nombre o apellido con una palabra de más de 25 letras o más de 60 caracteres, **cuando** se crea, se edita o se importa la cuenta, **entonces** se rechaza diciendo qué corregir; los demás se guardan como nombre propio ([[ADR-060 Formato de los nombres de usuario]]). | automatizado |
+| CP-RF04-24 | **Dado** un archivo válido, **cuando** se importa, **entonces** el lote queda en espera y el trabajo va a la cola `importaciones`. | automatizado |
+| CP-RF04-25 | **Dado** filas de Docente o Coordinador, **cuando** se importan, **entonces** el Docente queda con el departamento de su carrera y el Coordinador con la carrera; sin carrera, la fila se rechaza. | automatizado |
+| CP-RF04-26 | **Dado** una fila que falla al crearse, **entonces** las demás se crean igual, el lote termina con sus conteos y se avisa a quien subió el archivo. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF04-01 …')`.
 >

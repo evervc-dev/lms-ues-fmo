@@ -2,7 +2,9 @@
 
 use App\Models\User;
 use App\Modules\Comunicacion\Livewire\Ayuda;
+use App\Modules\Identidad\Jobs\ProcesarImportacionUsuarios;
 use App\Modules\Identidad\Livewire\ImportarUsuarios;
+use App\Modules\Identidad\Services\AsignacionService;
 use App\Modules\Identidad\Services\ImportacionService;
 use App\Modules\Reportes\Livewire\Reportes;
 use App\Support\DbContext;
@@ -10,6 +12,8 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\Support\HojaXlsx;
 
@@ -208,4 +212,62 @@ it('CP-RF04-23 la carga masiva rechaza la fila con un nombre sin espacios y norm
     $c->call('importar')->assertRedirect();
     expect(User::query()->where('institutional_email', 'ab26001@ues.edu.sv')->first()->only('first_name', 'last_name'))
         ->toBe(['first_name' => 'Ana María', 'last_name' => 'Ruiz de León']);
+});
+
+it('CP-RF04-24 la carga masiva se encola en importaciones y deja el lote en espera', function () {
+    $e = escenario();
+    Queue::fake();
+    actingAs($e['administrador']);
+    $archivo = csvDeImportacion([['AB26001', 'Ana', 'Ruiz', 'ab26001@ues.edu.sv', 'estudiante', 'ISI', 'Plan 25', '1']]);
+
+    $lote = app(ImportacionService::class)->importar($e['administrador'], $archivo->getRealPath(), 'nuevo_ingreso.csv');
+
+    Queue::assertPushedOn('importaciones', ProcesarImportacionUsuarios::class);
+    expect(DB::table('import_batches')->where('id', $lote)->value('status'))->toBe('queued')
+        ->and(User::query()->where('institutional_email', 'ab26001@ues.edu.sv')->exists())->toBeFalse();
+});
+
+it('CP-RF04-25 Docente y Coordinador se importan con su departamento o su carrera, y sin carrera se rechazan', function () {
+    $e = escenario();
+    $lma = DbContext::system(function () use ($e) {
+        $carrera = DB::table('careers')->insertGetId(['department_id' => $e['dcnm'], 'code' => 'LMA', 'name' => 'Licenciatura en Matemática', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('study_plans')->insert(['career_id' => $carrera, 'name' => 'Plan 20', 'created_at' => now(), 'updated_at' => now()]);
+
+        return $carrera;
+    });
+    actingAs($e['administrador']);
+    $archivo = csvDeImportacion([
+        ['', 'Rosa', 'Díaz', 'rd26002@ues.edu.sv', 'docente', 'ISI', '', ''],
+        ['', 'Elena', 'Flores', 'ef26003@ues.edu.sv', 'coordinador', 'LMA', '', ''],
+        ['', 'Juan', 'Paz', 'jp26004@ues.edu.sv', 'docente', '', '', ''],
+    ]);
+
+    $lote = app(ImportacionService::class)->importar($e['administrador'], $archivo->getRealPath(), 'personal.csv');
+
+    $rosa = User::query()->where('institutional_email', 'rd26002@ues.edu.sv')->first();
+    $elena = User::query()->where('institutional_email', 'ef26003@ues.edu.sv')->first();
+    expect($rosa->hasRole('docente'))->toBeTrue()
+        ->and((int) DB::table('teacher_profiles')->where('user_id', $rosa->id)->value('department_id'))->toBe($e['dia'])
+        ->and((int) DB::table('career_coordinators')->where('user_id', $elena->id)->whereNull('valid_to')->value('career_id'))->toBe($lma)
+        ->and(User::query()->where('institutional_email', 'jp26004@ues.edu.sv')->exists())->toBeFalse()
+        ->and(DB::table('import_batch_errors')->where('batch_id', $lote)->value('message'))->toContain('necesita la carrera');
+});
+
+it('CP-RF04-26 una fila que falla al crearse no deshace las demás y se avisa a quien subió el archivo', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+    $this->mock(AsignacionService::class)->shouldReceive('escribir')->andThrow(ValidationException::withMessages(['departamento' => 'Falla simulada.']));
+    $archivo = csvDeImportacion([
+        ['AB26001', 'Ana', 'Ruiz', 'ab26001@ues.edu.sv', 'estudiante', 'ISI', 'Plan 25', '1'],
+        ['', 'Rosa', 'Díaz', 'rd26002@ues.edu.sv', 'docente', 'ISI', '', ''],
+    ]);
+
+    $lote = app(ImportacionService::class)->importar($e['administrador'], $archivo->getRealPath(), 'mixto.csv');
+
+    expect(User::query()->where('institutional_email', 'ab26001@ues.edu.sv')->exists())->toBeTrue()
+        ->and(User::query()->where('institutional_email', 'rd26002@ues.edu.sv')->exists())->toBeFalse()
+        ->and(DB::table('import_batches')->where('id', $lote)->first(['status', 'valid_rows', 'error_rows']))
+        ->toEqual((object) ['status' => 'finished', 'valid_rows' => 1, 'error_rows' => 1])
+        ->and(DB::table('import_batch_errors')->where('batch_id', $lote)->value('row_number'))->toBe(3)
+        ->and(DB::table('notifications')->where('notifiable_id', $e['administrador']->id)->where('event_code', 'users.import_finished')->exists())->toBeTrue();
 });

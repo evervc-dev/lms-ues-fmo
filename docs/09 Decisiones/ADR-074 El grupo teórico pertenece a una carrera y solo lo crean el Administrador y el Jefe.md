@@ -11,6 +11,8 @@ fuentes: ["Decisión del usuario del 18/11/2026"]
 
 > [!info] Pendiente de aceptar por el equipo. Completa [[ADR-073 El Jefe crea los grupos teóricos de su departamento]].
 
+> [!warning] Reemplazada en parte el 21/11/2026 por [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]]: el grupo es de la asignatura y lo comparten las carreras; `sections.career_id` queda solo como dato. Sigue vigente que solo el Administrador y el Jefe crean grupos.
+
 ## Contexto
 - El Coordinador podía crear grupos teóricos (`secciones.gestionar` C) y el usuario pidió que solo los creen el Administrador y el Jefe.
 - El grupo (`sections`) solo guardaba la materia. Como una materia puede estar en planes de varias carreras (ISI e Industrial, o MAT115), el alcance C del Coordinador («grupos de las materias de los planes de mi carrera») le mostraba también los grupos abiertos para otra carrera.

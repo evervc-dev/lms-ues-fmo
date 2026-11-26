@@ -3,8 +3,9 @@
     Abrir:  $dispatch('abrir-modal', 'nombre')   ·  Livewire: $this->dispatch('abrir-modal', 'nombre')
     Cerrar: $dispatch('cerrar-modal', 'nombre')
     <x-ui.modal nombre="inscribirme" titulo="Inscribirme con clave">…<x-slot:pie>…</x-slot:pie></x-ui.modal>
+    ancho: sm, md (por omisión), lg, xl o completo (casi toda la pantalla, para trabajar sobre un documento).
 --}}
-@props(['nombre', 'titulo', 'ancho' => 'md', 'abierto' => false])
+@props(['nombre', 'titulo', 'ancho' => 'md', 'abierto' => false, 'subtitulo' => null])
 
 @php
     $idTitulo = 'modal-'.$nombre.'-titulo';
@@ -32,22 +33,28 @@
         x-transition
         x-trap.noscroll="abierto"
         @class([
-            'relative flex max-h-[90vh] w-full flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl',
+            'relative flex w-full flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl',
+            $ancho === 'completo' ? 'h-[94vh] max-h-[94vh]' : 'max-h-[90vh]',
             match ($ancho) {
                 'sm' => 'sm:max-w-sm',
                 'lg' => 'sm:max-w-2xl',
                 'xl' => 'sm:max-w-4xl',
+                // Para trabajar sobre un documento, como el calificador de entregas: casi toda la pantalla.
+                'completo' => 'sm:max-w-7xl',
                 default => 'sm:max-w-lg',
             },
         ])
     >
         <header class="flex items-center justify-between gap-4 border-b border-zinc-100 px-5 py-4">
-            <h2 id="{{ $idTitulo }}" class="text-lg font-semibold text-zinc-900">{{ $titulo }}</h2>
+            <div class="min-w-0">
+                <h2 id="{{ $idTitulo }}" class="truncate text-lg font-semibold text-zinc-900">{{ $titulo }}</h2>
+                @if ($subtitulo)<p class="truncate text-sm text-zinc-500">{{ $subtitulo }}</p>@endif
+            </div>
             <button type="button" x-on:click="abierto = false" class="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700" aria-label="{{ __('Cerrar') }}">
                 <x-ui.icon name="x-mark" />
             </button>
         </header>
-        <div class="overflow-y-auto px-5 py-4">{{ $slot }}</div>
+        <div @class(['overflow-y-auto px-5 py-4', 'flex-1' => $ancho === 'completo'])>{{ $slot }}</div>
         @isset($pie)
             <footer class="flex flex-col-reverse gap-2 border-t border-zinc-100 px-5 py-4 sm:flex-row sm:justify-end">{{ $pie }}</footer>
         @endisset

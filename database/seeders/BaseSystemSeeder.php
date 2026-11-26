@@ -105,6 +105,7 @@ class BaseSystemSeeder extends Seeder
             'grade_review.resolved' => 'Solicitud de revisión resuelta',
             'extension.granted' => 'Prórroga concedida',
             'period.reopened' => 'Período reabierto',
+            'users.import_finished' => 'Carga masiva terminada',
         ];
 
         foreach ($events as $code => $description) {

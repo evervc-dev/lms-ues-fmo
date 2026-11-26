@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Academica\Livewire\AsignaturaFormulario;
 use App\Modules\Academica\Livewire\CalendarioEvaluaciones;
 use App\Modules\Academica\Livewire\CargaAcademica;
 use App\Modules\Academica\Livewire\CarreraDetalle;
@@ -29,6 +30,9 @@ Route::middleware('auth')->group(function (): void {
     // ruta se usa el vigente, porque el Jefe y el Coordinador no entran a la lista de períodos.
     Route::livewire('/calendario-evaluaciones/{periodo?}', CalendarioEvaluaciones::class)->middleware('permission:periodos.calendario.gestionar')->whereNumber('periodo')->name('periodos.calendario');
     Route::livewire('/catalogo', Catalogo::class)->middleware('permission:asignaturas.gestionar')->name('catalogo');
+    // RF07: el formulario de la asignatura va en página (sus planes crecen con los datos); se edita por código.
+    Route::livewire('/catalogo/asignaturas/nueva', AsignaturaFormulario::class)->middleware('permission:asignaturas.gestionar')->name('catalogo.asignaturas.crear');
+    Route::livewire('/catalogo/asignaturas/{asignatura}/editar', AsignaturaFormulario::class)->middleware('permission:asignaturas.gestionar')->name('catalogo.asignaturas.editar');
     Route::livewire('/catalogo/estructura', Estructura::class)->middleware('permission:asignaturas.gestionar')->name('catalogo.estructura');
     // Jefe (D) y Coordinador (C): las carreras de su ámbito, con sus docentes, materias, grupos y horarios.
     Route::livewire('/carreras', Carreras::class)->middleware('permission:carreras.ver')->name('carreras');

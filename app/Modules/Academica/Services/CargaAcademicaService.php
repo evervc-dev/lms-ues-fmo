@@ -95,7 +95,8 @@ class CargaAcademicaService
 
     /**
      * Crea un grupo teórico (RF08). Si se indica la carrera, debe estar en el alcance del actor y la asignatura debe
-     * estar en alguno de sus planes de estudio: así se crea desde la pantalla (carrera → materia).
+     * estar en alguno de sus planes de estudio: así se crea desde la pantalla (carrera → materia). La carrera queda como
+     * dato de quién lo solicitó; el grupo lo comparten todas las carreras que llevan la materia (ADR-080).
      *
      * @throws AuthorizationException|ValidationException
      */

@@ -29,7 +29,7 @@ return [
         'secciones.cupo' => ['administrador' => 'G', 'jefe_departamento' => 'D'],
         'matricula.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C', 'docente' => 'S', 'soporte_tecnico' => 'G'],
         'matricula.cambio.resolver' => ['jefe_departamento' => 'D'],
-        'matricula.claves.gestionar' => ['jefe_departamento' => 'D', 'coordinador' => 'C'],
+        'matricula.claves.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C'],
         'matricula.automatricular' => ['estudiante' => 'P'],
         'matricula.plazo.gestionar' => ['administrador' => 'G', 'jefe_departamento' => 'D', 'coordinador' => 'C'],
         'matricula.plazo.prorrogar' => ['jefe_departamento' => 'D'],

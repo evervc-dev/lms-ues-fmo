@@ -21,6 +21,7 @@ use App\Modules\Comunicacion\Notifications\Aviso;
 use App\Modules\Comunicacion\Services\NotificacionService;
 use App\Modules\Evaluaciones\Events\ProrrogaConcedida;
 use App\Modules\Evaluaciones\Events\RevisionCuestionarioPublicada;
+use App\Modules\Identidad\Events\ImportacionTerminada;
 use App\Support\Alcance;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -63,6 +64,21 @@ class EnviarAvisos
     /**
      * Avisa a los docentes vigentes de la sección que el Coordinador devolvió el acta, con el motivo (RF34).
      */
+    /**
+     * Terminó la carga masiva (RF04): se avisa a quien subió el archivo, con el enlace al informe del lote.
+     */
+    public function importacionTerminada(ImportacionTerminada $evento): void
+    {
+        $lote = DB::table('import_batches')->where('id', $evento->loteId)->first(['id', 'file_name', 'uploaded_by', 'valid_rows', 'error_rows']);
+        if (! $lote) {
+            return;
+        }
+
+        $this->enviar([(int) $lote->uploaded_by], new Aviso('users.import_finished', __('Carga masiva terminada: :f', ['f' => $lote->file_name]),
+            __('Se crearon :n cuentas; :e filas tienen errores.', ['n' => $lote->valid_rows, 'e' => $lote->error_rows]),
+            route('usuarios.lote', ['lote' => $lote->id]), 'users.import_finished:batch:'.$lote->id));
+    }
+
     public function actaDevuelta(ActaDevuelta $evento): void
     {
         $s = $this->seccionConActa($evento->seccionId);
