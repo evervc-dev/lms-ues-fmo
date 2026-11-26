@@ -151,7 +151,7 @@ class DemoAcademicSeeder extends Seeder
     {
         $rows = [];
         foreach (DB::table('subjects')->get(['id', 'code']) as $subject) {
-            $rows[] = ['subject_id' => $subject->id, 'period_id' => $this->period, 'key_hash' => Hash::make('ISI-'.$subject->code, ['rounds' => 4]),
+            $rows[] = ['subject_id' => $subject->id, 'period_id' => $this->period, 'key_hash' => Hash::make('ISI-'.$subject->code, ['rounds' => 4]), 'key_encrypted' => Crypt::encryptString('ISI-'.$subject->code),
                 'valid_until' => '2026-08-14 23:59:00', 'is_active' => true] + $this->stamps(now()->parse('2026-07-20'));
         }
         $this->insertRows('enrollment_keys', $rows);

@@ -32,9 +32,13 @@ trait PaginaDeSeccion
             ? [['etiqueta' => __('Mis materias'), 'url' => route('materias')]]
             : [];
 
+        $pestanas = Vistas::pestanas(auth()->user(), $this->seccion, $this->rutaActual);
+
+        // La miga del grupo lleva a la primera pestaña que el usuario puede abrir: el Jefe y el Administrador no tienen
+        // contenidos.ver, y enlazar siempre a Contenidos les daba 403.
         return $this->pagina($vista, $datos + [
             'resumen' => $resumen,
-            'pestanas' => Vistas::pestanas(auth()->user(), $this->seccion, $this->rutaActual),
-        ], [...$intermedias, ['etiqueta' => $resumen['titulo'], 'url' => route('secciones.contenidos', ['seccion' => $this->seccion])]]);
+            'pestanas' => $pestanas,
+        ], [...$intermedias, ['etiqueta' => $resumen['titulo'], 'url' => $pestanas[0]['url'] ?? null]]);
     }
 }

@@ -1,6 +1,6 @@
 {{-- Claves por asignatura (RF29, ADR-050, maqueta 36). --}}
 <div class="flex flex-col gap-5 lg:h-full">
-    <x-ui.encabezado :titulo="__('Matrícula')" :subtitulo="__('Con la clave, el estudiante elige un grupo teórico con cupo y sin choque de horario. La clave se muestra una sola vez.')" />
+    <x-ui.encabezado :titulo="__('Matrícula')" :subtitulo="__('Con la clave, el estudiante elige un grupo teórico con cupo y sin choque de horario. Puede volver a consultar la clave vigente con «Ver clave».')" />
     <x-ui.tabs :pestanas="$pestanas" />
 
     @if ($periodos->count() > 1)
@@ -32,7 +32,19 @@
                 <tr wire:key="clave-{{ $c->id }}">
                     <td><span class="font-semibold">{{ $c->code }}</span> · {{ $c->name }}</td>
                     <td class="text-right">{{ $c->secciones }}</td>
-                    <td>@if ($c->clave_id)<x-ui.badge color="verde">{{ __('Activa') }}</x-ui.badge> <span class="text-xs text-texto-suave">{{ $c->valid_until ? __('vence :f', ['f' => \Illuminate\Support\Carbon::parse($c->valid_until)->format('d/m/Y')]) : __('sin vencimiento') }}</span>@else<x-ui.badge>{{ __('Sin clave') }}</x-ui.badge>@endif</td>
+                    <td>
+                        @if ($c->clave_id)
+                            <x-ui.badge color="verde">{{ __('Activa') }}</x-ui.badge> <span class="text-xs text-texto-suave">{{ $c->valid_until ? __('vence :f', ['f' => \Illuminate\Support\Carbon::parse($c->valid_until)->format('d/m/Y')]) : __('sin vencimiento') }}</span>
+                            {{-- ADR-087: la vigente se consulta sin cambiarla; las creadas antes de cifrarlas solo se pueden cambiar. --}}
+                            @if ($c->consultable)
+                                <button type="button" wire:click="ver({{ $c->id }})" class="ml-1 text-xs font-medium text-marca-700 hover:underline">{{ __('Ver clave') }}</button>
+                            @else
+                                <span class="ml-1 text-xs text-texto-suave" title="{{ __('Se creó antes de que las claves se pudieran consultar. Cámbiela para poder verla después.') }}">{{ __('· no consultable') }}</span>
+                            @endif
+                        @else
+                            <x-ui.badge>{{ __('Sin clave') }}</x-ui.badge>
+                        @endif
+                    </td>
                     <td class="text-right">{{ $c->por_clave }}</td>
                     <td class="text-right whitespace-nowrap">
                         <x-ui.button tamano="sm" variante="fantasma" wire:click="generar({{ $c->id }})" :wire:confirm="$c->clave_id ? __('La clave actual dejará de funcionar. ¿Generar una nueva?') : null">{{ $c->clave_id ? __('Cambiar clave') : __('Generar clave') }}</x-ui.button>
@@ -83,16 +95,22 @@
             @if ($aplicadas !== null)
                 <p class="text-sm font-medium text-texto">{{ trans_choice('{0} No hay asignaturas en su ámbito.|{1} Se aplicó a 1 asignatura.|[2,*] Se aplicó a :count asignaturas.', $aplicadas) }}</p>
             @endif
-            <p class="text-sm text-texto-suave">{{ __('Compártala con sus estudiantes. Por seguridad no se podrá volver a ver: si se pierde, genere otra.') }}</p>
-            <p class="rounded-xl bg-marca-50 px-6 py-3 font-mono text-2xl font-semibold tracking-wider text-marca-700 ring-1 ring-marca-200">{{ $claveNueva }}</p>
+            <p class="text-sm text-texto-suave">{{ $consultada ? __('Es la clave vigente: sigue funcionando. Compártala con sus estudiantes.') : __('Compártala con sus estudiantes. Podrá volver a verla con «Ver clave».') }}</p>
+            <p class="select-all rounded-xl bg-marca-50 px-6 py-3 font-mono text-2xl font-semibold tracking-wider text-marca-700 ring-1 ring-marca-200">{{ $claveNueva }}</p>
             {{-- Copiar la clave o un mensaje listo para los estudiantes (QA Jefe 21/11: había que seleccionarla a mano). --}}
-            <div class="flex flex-wrap justify-center gap-2" x-data="{ copiado: '' }">
-                <x-ui.button tamano="sm" variante="secundario" x-on:click="navigator.clipboard?.writeText(@js($claveNueva)); copiado = 'clave'">
+            {{-- El texto se lee del data-texto al hacer clic: el modal se dibuja antes de que exista la clave y Alpine no
+                 vuelve a leer una expresión x-on:click que Livewire cambia después. --}}
+            <div class="flex flex-wrap justify-center gap-2" x-data="{ copiado: '' }" wire:key="copiar-{{ $claveNueva }}">
+                <x-ui.button tamano="sm" variante="secundario" data-texto="{{ $claveNueva }}"
+                    x-on:click="copiado = (await $copiar($el.dataset.texto)) ? 'clave' : 'error'">
                     <span x-text="copiado === 'clave' ? @js(__('Clave copiada')) : @js(__('Copiar clave'))"></span>
                 </x-ui.button>
-                <x-ui.button tamano="sm" variante="secundario" x-on:click="navigator.clipboard?.writeText(@js(__('Clave de matrícula de :a: :c. Inscríbase en «Inscripción de materias» del LMS UES FMO.', ['a' => $aplicadas !== null ? __('todas las asignaturas') : $asignaturaNueva, 'c' => $claveNueva]))); copiado = 'mensaje'">
+                <x-ui.button tamano="sm" variante="secundario"
+                    data-texto="{{ __('Clave de matrícula de :a: :c. Inscríbase en «Inscripción de materias» del LMS UES FMO.', ['a' => $aplicadas !== null ? __('todas las asignaturas') : $asignaturaNueva, 'c' => $claveNueva]) }}"
+                    x-on:click="copiado = (await $copiar($el.dataset.texto)) ? 'mensaje' : 'error'">
                     <span x-text="copiado === 'mensaje' ? @js(__('Mensaje copiado')) : @js(__('Copiar mensaje para estudiantes'))"></span>
                 </x-ui.button>
+                <p class="w-full text-xs text-red-700" x-show="copiado === 'error'" x-cloak>{{ __('El navegador no permitió copiar. Seleccione la clave y cópiela a mano.') }}</p>
             </div>
         </div>
         <x-slot:pie><x-ui.button x-on:click="$dispatch('cerrar-modal', 'clave-generada')">{{ __('Listo') }}</x-ui.button></x-slot:pie>

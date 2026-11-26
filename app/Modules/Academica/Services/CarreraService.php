@@ -100,9 +100,11 @@ class CarreraService
         $coordinadores = $this->coordinadores($ids);
         $materias = $this->materiasPorCarrera($ids);
         $oferta = $this->ofertaPorCarrera($ids, $periodoId);
+        $planes = DB::table('study_plans')->whereIn('career_id', $ids)->orderBy('id')->get(['career_id', 'name'])->groupBy('career_id');
 
-        return $carreras->each(function (object $carrera) use ($coordinadores, $materias, $oferta): void {
+        return $carreras->each(function (object $carrera) use ($coordinadores, $materias, $oferta, $planes): void {
             $carrera->coordinador = $coordinadores[$carrera->id]->nombre ?? null;
+            $carrera->planes = ($planes[$carrera->id] ?? collect())->pluck('name')->all();
             $carrera->materias = (int) ($materias[$carrera->id] ?? 0);
             $carrera->grupos = (int) ($oferta[$carrera->id]->grupos ?? 0);
             $carrera->docentes = (int) ($oferta[$carrera->id]->docentes ?? 0);

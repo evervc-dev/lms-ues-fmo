@@ -23,6 +23,7 @@
                 @endunless
             </x-slot:acciones>
 
+            <p class="mb-4 text-sm text-texto-suave">{{ __('Reparta el 100 % entre los cómputos; cada uno pesa al menos :m % (por ejemplo, 25 · 25 · 20 · 30).', ['m' => \App\Modules\Calificaciones\Services\ComputoService::PESO_MINIMO]) }}</p>
             @error('computos')<x-ui.alert class="mb-4" tipo="error">{{ $message }}</x-ui.alert>@enderror
             @error('actividades')<x-ui.alert class="mb-4" tipo="error">{{ $message }}</x-ui.alert>@enderror
 
@@ -32,7 +33,7 @@
                         <div class="flex flex-wrap items-end justify-between gap-3 border-b border-borde p-3">
                             <p class="font-semibold">{{ $c->name }}</p>
                             <x-ui.field class="w-36" :etiqueta="__('Peso del cómputo (%)')" para="computo-{{ $c->id }}" error="computos.{{ $c->id }}" requerido>
-                                <x-ui.input id="computo-{{ $c->id }}" type="number" step="0.01" min="0.01" max="100" wire:model.live.blur="computos.{{ $c->id }}" :disabled="(bool) $bloqueo" />
+                                <x-ui.input id="computo-{{ $c->id }}" type="number" step="0.01" min="{{ \App\Modules\Calificaciones\Services\ComputoService::PESO_MINIMO }}" max="100" wire:model.live.blur="computos.{{ $c->id }}" :disabled="(bool) $bloqueo" />
                             </x-ui.field>
                         </div>
                         @if ($c->items->isEmpty())

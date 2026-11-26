@@ -10,6 +10,7 @@
             <div class="flex flex-wrap items-center gap-1.5">
                 <x-ui.badge color="marca">{{ $m->code }}</x-ui.badge>
                 <span class="text-xs text-texto-suave">{{ __('Grupo :g', ['g' => $m->grupo]) }}</span>
+                @if ($m->plan ?? null)<x-ui.badge color="azul">{{ $m->plan }}</x-ui.badge>@endif
             </div>
             <h3 class="mt-1.5 truncate text-base font-semibold text-texto">{{ $m->name }}</h3>
             @if ($m->docente)

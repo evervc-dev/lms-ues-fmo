@@ -182,3 +182,14 @@ it('mantiene la barra de pestañas en las pantallas de la sección que ocupan to
         ->assertSee('-mb-px shrink-0 overflow-x-auto', false)
         ->assertSee(route('secciones.contenidos', ['seccion' => $e['ulid']]));
 })->with(['secciones.revisiones', 'secciones.estudiantes', 'secciones.acta']);
+
+it('la miga del grupo lleva a una pestaña que el usuario puede abrir: al Jefe no lo manda a Contenidos (403)', function () {
+    $e = escenario();
+
+    $pagina = $this->actingAs($e['jefe'])->get(route('secciones.estudiantes', ['seccion' => $e['ulid']]))->assertOk();
+    $pagina->assertDontSee('href="'.route('secciones.contenidos', ['seccion' => $e['ulid']]).'"', false);
+    $this->get(route('secciones.contenidos', ['seccion' => $e['ulid']]))->assertForbidden();
+
+    $this->actingAs($e['docente'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()
+        ->assertSee('href="'.route('secciones.contenidos', ['seccion' => $e['ulid']]).'"', false);
+});

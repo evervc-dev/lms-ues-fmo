@@ -82,7 +82,7 @@ function estudianteResuelve(array $e, string $cuestionario, string $respuestaCor
 {
     test()->actingAs($e['estudiante']);
     $pagina = navegar(route('secciones.cuestionarios.show', ['seccion' => $e['ulid'], 'cuestionario' => $cuestionario]))->assertSee('Parcial de prueba');
-    aceptarConfirmaciones($pagina)->click('Comenzar intento')->assertSee('Pregunta 1 de 2');
+    $pagina->click('Comenzar intento')->click('Empezar ahora')->assertSee('Pregunta 1 de 2');
     aceptarConfirmaciones($pagina);
 
     // Las preguntas salen en orden aleatorio: se responde según el tipo que tocó en cada posición.
@@ -102,7 +102,7 @@ function estudianteResuelve(array $e, string $cuestionario, string $respuestaCor
         }
     }
 
-    $pagina->click('Terminar intento')->assertSee('Intento enviado.')->assertSee('Calificado')->assertNoJavaScriptErrors();
+    $pagina->click('Terminar intento')->click('Terminar y enviar')->assertSee('Intento enviado.')->assertSee('Calificado')->assertNoJavaScriptErrors();
 }
 
 it('lets the teacher create and enable an exam, the student solve it and the teacher review the grades', function () {

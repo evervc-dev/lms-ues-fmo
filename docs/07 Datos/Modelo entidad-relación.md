@@ -284,6 +284,7 @@ erDiagram
     bigint subject_id FK "key per subject (ADR-032)"
     bigint period_id FK
     varchar key_hash
+    text key_encrypted "nullable, Crypt with APP_KEY (ADR-087)"
     timestamptz valid_until
     boolean is_active
   }

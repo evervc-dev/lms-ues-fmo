@@ -23,7 +23,7 @@ class EnConstruccion
         if ($ulid = $request->route('seccion')) {
             $seccion = $secciones->resumen((string) $ulid);
             abort_if($seccion === null, 404);
-            $intermedias[] = ['etiqueta' => $seccion['titulo'], 'url' => route('secciones.contenidos', ['seccion' => $ulid])];
+            $intermedias[] = ['etiqueta' => $seccion['titulo'], 'url' => Vistas::pestanas($request->user(), (string) $ulid, $nombre)[0]['url'] ?? null];
         }
 
         return view('navegacion.en-construccion', [

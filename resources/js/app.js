@@ -1,4 +1,5 @@
 import './bootstrap';
+import copiar from './copiar';
 import editorPaginas from './editor-paginas';
 import graficoReporte from './grafico-reporte';
 import lectorAsistencia from './lector-asistencia';
@@ -14,4 +15,5 @@ document.addEventListener('alpine:init', () => {
     window.Alpine.data('mapaArea', mapaArea);
     window.Alpine.data('mapaAreas', mapaAreas);
     window.Alpine.data('graficoReporte', graficoReporte);
+    window.Alpine.magic('copiar', () => copiar);
 });

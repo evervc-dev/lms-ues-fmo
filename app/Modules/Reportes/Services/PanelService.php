@@ -4,6 +4,7 @@ namespace App\Modules\Reportes\Services;
 
 use App\Models\User;
 use App\Modules\Academica\Services\PeriodoService;
+use App\Modules\Academica\Services\PlanesService;
 use App\Modules\Asistencia\Services\AsistenciaService;
 use App\Support\Alcance;
 use Illuminate\Database\Query\Builder;
@@ -92,7 +93,10 @@ class PanelService
             ->whereNull('r.deleted_at')->selectRaw('p.enrollment_id, count(*) as total')
             ->groupBy('p.enrollment_id')->pluck('total', 'p.enrollment_id');
 
-        return $asistencia->map(function (object $m) use ($docentes, $horarios, $publicados, $completados): object {
+        $planes = app(PlanesService::class)->delEstudiante((int) auth()->id(), $asistencia->pluck('code'));
+
+        return $asistencia->map(function (object $m) use ($docentes, $horarios, $publicados, $completados, $planes): object {
+            $m->plan = $planes[$m->code] ?? null;
             $total = (int) ($publicados[$m->seccion_id] ?? 0);
             $hechos = (int) ($completados[$m->id] ?? 0);
 

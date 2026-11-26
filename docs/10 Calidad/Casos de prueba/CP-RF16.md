@@ -24,5 +24,8 @@ Casos derivados de los criterios de aceptación de [[RF16]]. Nivel: **browser + 
 | CP-RF16-06 | **Dado** un banco de 4 preguntas, **cuando** el cuestionario pide 0, **entonces** el intento recibe las 4; si pide 5, se rechaza. El tema se elige de los del banco. | automatizado |
 | CP-RF16-08 | **Dado** un cuestionario una a una, **cuando** se intenta cambiar una pregunta anterior a la última guardada (también manipulando la petición), **entonces** el servidor lo rechaza. | automatizado |
 | CP-RF16-09 | **Dado** una respuesta que no es ensayo o un intento en curso, **cuando** el docente intenta calificarla a mano, **entonces** se rechaza. | automatizado |
+| CP-RF16-10 | **Dado** un docente con un banco, **cuando** descarga el formato, **entonces** recibe un .xlsx con la hoja «Preguntas» (encabezados) y la hoja «Instrucciones» con un ejemplo de cada tipo. | automatizado |
+| CP-RF16-11 | **Dado** un archivo con preguntas de los 4 tipos, **cuando** lo sube, **entonces** ve cuántas se importarán y por tipo; al confirmar se crean todas con sus opciones, la correcta y las respuestas aceptadas. | automatizado |
+| CP-RF16-12 | **Dado** un archivo con alguna fila inválida (sin tipo, sin opción correcta, sin respuestas aceptadas…), **cuando** lo sube, **entonces** ve cada error con su número de fila y no se importa ninguna pregunta. Otro docente sin acceso al banco no puede importar a él. | automatizado |
 
 > Al automatizar un caso, nombra la prueba Pest con su ID: `it('CP-RF16-01 …')`.

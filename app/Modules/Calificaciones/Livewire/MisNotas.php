@@ -2,6 +2,7 @@
 
 namespace App\Modules\Calificaciones\Livewire;
 
+use App\Modules\Academica\Services\PlanesService;
 use App\Modules\Calificaciones\Services\CalificacionService;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
@@ -18,6 +19,13 @@ class MisNotas extends Component
 
     public function render(CalificacionService $calificaciones): View
     {
-        return $this->pagina('modules.calificaciones.mis-notas', $calificaciones->misNotas(auth()->user()) + ['minima' => CalificacionService::notaMinima()]);
+        $datos = $calificaciones->misNotas(auth()->user());
+        // Pensum de cada materia (solo los planes de su carrera), como en Mis materias.
+        $codigos = $datos['materias']->pluck('code');
+
+        return $this->pagina('modules.calificaciones.mis-notas', $datos + [
+            'minima' => CalificacionService::notaMinima(),
+            'planes' => app(PlanesService::class)->delEstudiante((int) auth()->id(), $codigos),
+        ]);
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Modules\Academica\Services\CargaAcademicaService;
+use App\Modules\Academica\Services\PeriodoService;
 use App\Modules\Calificaciones\Livewire\PesosSeccion;
 use App\Modules\Calificaciones\Services\CalificacionService;
 use App\Modules\Calificaciones\Services\ComputoService;
@@ -376,4 +377,24 @@ it('CP-RF17-01 el libro avisa al docente que los pesos no suman 100 % y enlaza a
 
     actingAs($e['docente'])->get(route('secciones.notas', ['seccion' => $e['ulid']]))->assertOk()
         ->assertSeeText(['Revise los pesos: no podrá publicar el acta hasta que sumen 100 %', 'Las actividades de Cómputo 1 suman 70 %: deben sumar 100 %.', 'Ajustar los pesos']);
+});
+
+it('CP-RF17-17 el docente reparte el 100 % entre los cuatro cómputos, pero ninguno baja de 20 %', function () {
+    $e = escenario();
+    DbContext::system(function () use ($e) {
+        foreach (PeriodoService::plantillaComputos('2026-07-27', '2026-12-11') as $c) {
+            DB::table('grading_component_templates')->insert($c + ['period_id' => $e['periodo'], 'created_at' => now(), 'updated_at' => now()]);
+        }
+        app(ComputoService::class)->copiarPlantilla($e['seccion']);
+    });
+    actingAs($e['docente']);
+    $ids = DB::table('grading_components')->where('section_id', $e['seccion'])->orderBy('number')->pluck('id')->all();
+    expect(pesosDe('grading_components', $ids))->toEqual([25.0, 25.0, 25.0, 25.0]);
+
+    app(ComputoService::class)->guardarPesos($e['docente'], $e['seccion'], array_combine($ids, [25, 25, 20, 30]), []);
+    expect(pesosDe('grading_components', $ids))->toEqual([25.0, 25.0, 20.0, 30.0]);
+
+    $errores = pesosErrores(fn () => app(ComputoService::class)->guardarPesos($e['docente'], $e['seccion'], array_combine($ids, [15, 35, 25, 25]), []));
+    expect($errores['computos'][0])->toBe('Cómputo 1 pesa 15 %: cada cómputo debe pesar al menos 20 %.')
+        ->and(pesosDe('grading_components', $ids))->toEqual([25.0, 25.0, 20.0, 30.0]);
 });

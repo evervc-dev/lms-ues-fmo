@@ -86,7 +86,11 @@
             @foreach ($materias as $materia)
                 <tr class="bg-zinc-50" wire:key="materia-{{ $materia->id }}">
                     <td colspan="4">
-                        <span class="font-semibold">{{ $materia->code }}</span> · {{ $materia->name }}
+                        @if (in_array((int) $materia->id, $editables, true))
+                            <a href="{{ route('catalogo.asignaturas.editar', ['asignatura' => $materia->code]) }}" wire:navigate class="text-marca-700 hover:underline"><span class="font-semibold">{{ $materia->code }}</span> · {{ $materia->name }}</a>
+                        @else
+                            <span class="font-semibold">{{ $materia->code }}</span> · {{ $materia->name }}
+                        @endif
                         <span class="ml-1 text-xs text-texto-suave">{{ __('Ciclo :n · :c créditos', ['n' => $materia->ciclo ?? '—', 'c' => $materia->credits]) }}</span>
                         @if (! $materia->is_active)
                             <x-ui.badge class="ml-1">{{ __('Inactiva') }}</x-ui.badge>

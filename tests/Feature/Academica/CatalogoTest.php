@@ -28,6 +28,12 @@ function catalogo(): CatalogoService
     return app(CatalogoService::class);
 }
 
+/** Pone esas asignaturas en el plan del escenario: un prerrequisito debe ser del mismo pensum. */
+function enElPlanDelEscenario(array $e, int ...$asignaturas): void
+{
+    DbContext::system(fn () => DB::table('career_subjects')->insertOrIgnore(array_map(fn (int $id) => ['study_plan_id' => $e['plan'], 'subject_id' => $id, 'cycle' => 2], $asignaturas)));
+}
+
 /** Una asignatura sin secciones, planes ni prerrequisitos. */
 function asignaturaSuelta(int $departamento, string $codigo = 'ELE101', int $creditos = 3): int
 {
@@ -150,6 +156,7 @@ it('CP-RF07-04 filtra por créditos desde la pantalla y lo guarda en la URL', fu
 it('CP-RF07-06 al editar solo agrega y quita los prerrequisitos que cambian', function () {
     $e = escenario();
     $otra = asignaturaSuelta($e['dia'], 'ELE102');
+    enElPlanDelEscenario($e, $e['mat'], $otra);
     actingAs($e['administrador']);
     $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia'], 'planes' => [['plan' => $e['plan'], 'ciclo' => 3]]];
 
@@ -163,6 +170,7 @@ it('CP-RF07-06 al editar solo agrega y quita los prerrequisitos que cambian', fu
 
 it('CP-RF07-06 audita el alta, la edición y los prerrequisitos de la asignatura una sola vez', function () {
     $e = escenario();
+    enElPlanDelEscenario($e, $e['mat']);
     actingAs($e['administrador']);
     $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia'], 'planes' => [['plan' => $e['plan'], 'ciclo' => 3]], 'prerrequisitos' => [$e['prn'], $e['mat']]];
 
@@ -212,6 +220,7 @@ it('CP-RF07-05 encuentra «Administración de Centros de Cómputo» buscando sin
 
 it('CP-RF07-07 elige varios prerrequisitos con casillas, sin la tecla Ctrl', function () {
     $e = escenario();
+    enElPlanDelEscenario($e, $e['mat']);
     actingAs($e['administrador']);
 
     $pantalla = Livewire::test(AsignaturaFormulario::class)
@@ -249,6 +258,7 @@ it('CP-RF07-13 muestra el Catálogo al Jefe con solo las asignaturas de su depar
 
 it('CP-RF07-14 deja al Jefe crear, editar, desactivar y eliminar asignaturas de su departamento', function () {
     $e = escenario();
+    enElPlanDelEscenario($e, $e['mat']);
     actingAs($e['jefe']);
     $datos = ['codigo' => 'ELE200', 'nombre' => 'Electiva', 'creditos' => 3, 'departamento' => $e['dia'], 'planes' => [['plan' => $e['plan'], 'ciclo' => 3]]];
 

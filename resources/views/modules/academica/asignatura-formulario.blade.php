@@ -33,6 +33,30 @@
         </x-ui.card>
 
         {{-- Planes de estudio (career_subjects): en qué carrera, plan y ciclo se lleva. Al crear, al menos uno. --}}
+        @if ($editando)
+            {{-- Solo lectura: quién da cada grupo este período. El docente se asigna en Carga académica. --}}
+            <x-ui.card :titulo="$periodo ? __('Grupos teóricos de :p', ['p' => $periodo]) : __('Grupos teóricos')" :descripcion="__('Docente asignado, horario e inscritos de cada grupo. El docente se asigna o cambia en Carga académica.')">
+                @if ($grupos->isEmpty())
+                    <p class="text-sm text-texto-suave">{{ $periodo ? __('La asignatura no tiene grupos teóricos en este período.') : __('No hay un período en curso.') }}</p>
+                @else
+                    <x-ui.table ajustar>
+                        <x-slot:cabecera><th>{{ __('Grupo') }}</th><th>{{ __('Docente') }}</th><th>{{ __('Horario') }}</th><th class="text-right">{{ __('Inscritos') }}</th></x-slot:cabecera>
+                        @foreach ($grupos as $g)
+                            <tr wire:key="grupo-{{ $g->id }}">
+                                <td class="whitespace-nowrap">{{ __('Grupo :g', ['g' => $g->code]) }}</td>
+                                <td>@if ($g->docentes === [])<x-ui.badge color="ambar">{{ __('Sin docente') }}</x-ui.badge>@else{{ implode(', ', $g->docentes) }}@endif</td>
+                                <td class="text-sm">@forelse ($g->horario as $bloque)<span class="block whitespace-nowrap">{{ $bloque }}</span>@empty<span class="text-texto-suave">{{ __('Sin horario') }}</span>@endforelse</td>
+                                <td class="text-right">{{ $g->inscritos }} / {{ $g->max_capacity }}</td>
+                            </tr>
+                        @endforeach
+                    </x-ui.table>
+                @endif
+                @can('secciones.asignar-docente')
+                    <div class="mt-3"><x-ui.button tamano="sm" variante="secundario" :href="route('carga-academica', ['buscar' => $codigo])">{{ __('Abrir en Carga académica') }}</x-ui.button></div>
+                @endcan
+            </x-ui.card>
+        @endif
+
         <x-ui.card :titulo="__('Carreras y planes de estudio')" :descripcion="__('En qué carrera, plan y ciclo se lleva. Una materia compartida va en varias carreras, y sus grupos los cursan estudiantes de todas.')">
             <div class="flex flex-col gap-3">
                 @if ($planes !== [])
@@ -82,7 +106,7 @@
         </x-ui.card>
 
         {{-- H-11 (QA 27/10): casillas en lugar de <select multiple>, que exigía Ctrl e iba mal en pantallas táctiles. --}}
-        <x-ui.card :titulo="__('Prerrequisitos')" :descripcion="__('Informativos: orientan al estudiante, pero no se exigen al matricular (ADR-078).')">
+        <x-ui.card :titulo="__('Prerrequisitos')" :descripcion="__('Materias del mismo plan de estudios. Informativos: orientan al estudiante, pero no se exigen al matricular (ADR-078).')">
         <div x-data="{ filtro: '' }" class="flex flex-col gap-3">
             @if ($elegidas->isNotEmpty())
                 <div class="flex flex-wrap gap-1.5" aria-label="{{ __('Prerrequisitos elegidos') }}">
@@ -92,12 +116,15 @@
                 </div>
             @endif
             <x-ui.input id="filtro-prerrequisitos" type="search" x-model="filtro" :placeholder="__('Filtrar por código o nombre…')" :aria-label="__('Filtrar prerrequisitos')" />
-            <div class="grid max-h-80 overflow-y-auto rounded-lg border border-borde p-1 md:grid-cols-2">
+            @if ($sinPlan && $todas->isEmpty())
+                <p class="rounded-lg bg-zinc-50 p-3 text-sm text-texto-suave ring-1 ring-borde">{{ __('Elija primero la carrera y el plan de estudios: aquí salen las materias de ese pensum.') }}</p>
+            @endif
+            <div @class(['grid max-h-80 overflow-y-auto rounded-lg border border-borde p-1 md:grid-cols-2', 'hidden' => $todas->isEmpty()])>
                 @foreach ($todas as $t)
                     @continue($t->id === $editando)
                     <label wire:key="pre-{{ $t->id }}" x-show="filtro === '' || @js(\App\Support\Busqueda::normalizar($t->code.' '.$t->name)).includes(filtro.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim())" class="flex items-center gap-3 rounded-md px-2 py-1.5 text-sm text-texto hover:bg-zinc-50">
                         <input type="checkbox" value="{{ $t->id }}" wire:model.live="prerrequisitos" class="size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
-                        <span class="min-w-0"><span class="font-mono text-xs font-semibold">{{ $t->code }}</span> · {{ $t->name }}</span>
+                        <span class="min-w-0"><span class="font-mono text-xs font-semibold">{{ $t->code }}</span> · {{ $t->name }}@if ($t->ciclo)<span class="text-xs text-texto-suave"> · {{ __('ciclo :n', ['n' => $t->ciclo]) }}</span>@endif</span>
                     </label>
                 @endforeach
             </div>

@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Modules\Calificaciones\Services\ComputoService;
 use App\Modules\Identidad\Services\AccesoLocalService;
 use Database\Seeders\Concerns\InsertsRows;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -121,6 +123,8 @@ class EquipoSeeder extends Seeder
                         DB::table('section_schedules')->insert(['section_id' => $id, 'period_id' => $periodo, 'classroom_id' => $aulas[$n * 2 + $turno],
                             'weekday' => $dia, 'start_time' => $this->correr($inicio, $turno), 'end_time' => $this->correr($fin, $turno)] + $this->stamps($alta));
                     }
+                    // Los cuatro cómputos de 25 % del período, como al abrir el grupo en Carga académica (ADR-085).
+                    app(ComputoService::class)->copiarPlantilla($id);
                     $grupos[] = (object) ['id' => $id, 'subject_id' => $materias[$codigo]->id, 'ciclo' => $ciclo, 'grupo' => $grupo, 'franja' => "{$i}-{$turno}"];
                 }
             }
@@ -152,7 +156,7 @@ class EquipoSeeder extends Seeder
     private function claves(int $periodo): void
     {
         $filas = DB::table('subjects')->get(['id', 'code'])->map(fn ($m) => ['subject_id' => $m->id, 'period_id' => $periodo,
-            'key_hash' => Hash::make('ISI-'.$m->code, ['rounds' => 4]), 'valid_until' => null, 'is_active' => true] + $this->stamps())->all();
+            'key_hash' => Hash::make('ISI-'.$m->code, ['rounds' => 4]), 'key_encrypted' => Crypt::encryptString('ISI-'.$m->code), 'valid_until' => null, 'is_active' => true] + $this->stamps())->all();
         $this->insertRows('enrollment_keys', $filas);
     }
 

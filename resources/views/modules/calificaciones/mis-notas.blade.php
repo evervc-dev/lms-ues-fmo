@@ -10,7 +10,7 @@
             @foreach ($materias as $m)
                 <a href="{{ route('secciones.notas', ['seccion' => $m->ulid]) }}" wire:navigate class="rounded-xl bg-white p-4 ring-1 ring-borde transition hover:ring-marca-300" wire:key="nota-{{ $m->seccion_id }}">
                     <div class="flex items-start justify-between gap-3">
-                        <div><x-ui.badge color="marca">{{ $m->code }}</x-ui.badge><h2 class="mt-1 font-semibold text-texto">{{ $m->name }}</h2></div>
+                        <div><div class="flex flex-wrap gap-1"><x-ui.badge color="marca">{{ $m->code }}</x-ui.badge>@if ($planes[$m->code] ?? null)<x-ui.badge color="azul">{{ $planes[$m->code] }}</x-ui.badge>@endif</div><h2 class="mt-1 font-semibold text-texto">{{ $m->name }}</h2></div>
                         {{-- Sin ninguna nota publicada no hay promedio: un 0.0 en rojo parecía una materia reprobada. --}}
                         @if (collect($m->computos)->every(fn ($c) => $c->pendiente))
                             <span class="text-right text-sm text-texto-suave">{{ __('Sin notas aún') }}</span>

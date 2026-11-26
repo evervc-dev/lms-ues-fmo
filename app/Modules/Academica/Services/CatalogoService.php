@@ -111,6 +111,7 @@ class CatalogoService
             throw ValidationException::withMessages(['prerrequisitos' => __('Ese prerrequisito crearía un ciclo (A requiere B y B requiere A).')]);
         }
         $planes = array_key_exists('planes', $datos) || $id === null ? $this->planesValidados($actor, $datos['planes'] ?? [], $id === null) : null;
+        $this->exigirPrerrequisitosDelPlan($id, $prerrequisitos, $planes);
 
         // QA sesión 4 (H-08 parcial): cada fila se escribe solo si cambia, para que la auditoría no se duplique. Antes
         // el alta hacía insert y luego update, y cada guardado borraba y reinsertaba todos los prerrequisitos.
@@ -322,6 +323,104 @@ class CatalogoService
     }
 
     /**
+     * Asignaturas de esos planes de estudios, con el menor ciclo en que se llevan: las opciones de prerrequisito de una
+     * asignatura son las de su propio pensum, no las de cualquier carrera.
+     *
+     * @param  array<int, int>  $planes  ids de study_plans
+     * @return Collection<int, \stdClass> con id, code, name y ciclo
+     */
+    public function asignaturasDePlanes(array $planes): Collection
+    {
+        if ($planes === []) {
+            return collect();
+        }
+
+        return DB::table('career_subjects')->join('subjects', 'subjects.id', '=', 'career_subjects.subject_id')
+            ->whereIn('career_subjects.study_plan_id', $planes)
+            ->groupBy('subjects.id', 'subjects.code', 'subjects.name')
+            ->orderByRaw('min(career_subjects.cycle)')->orderBy('subjects.code')
+            ->get(['subjects.id', 'subjects.code', 'subjects.name', DB::raw('min(career_subjects.cycle) as ciclo')])
+            ->each(function (object $a): void {
+                $a->id = (int) $a->id;
+                $a->ciclo = (int) $a->ciclo;
+            });
+    }
+
+    /**
+     * Un prerrequisito nuevo debe llevarse en alguno de los planes de la asignatura (los que se guardan y los que ya
+     * tiene). Los que ya estaban se conservan aunque no cumplan, para no romper datos anteriores.
+     *
+     * @param  array<int, int>  $prerrequisitos
+     * @param  array<int, int>|null  $planes  plan => ciclo, o null si no cambian
+     *
+     * @throws ValidationException
+     */
+    private function exigirPrerrequisitosDelPlan(?int $id, array $prerrequisitos, ?array $planes): void
+    {
+        $actuales = $id === null ? [] : DB::table('subject_prerequisites')->where('subject_id', $id)->pluck('prerequisite_id')->map(fn ($p) => (int) $p)->all();
+        $nuevos = array_diff($prerrequisitos, $actuales, $id === null ? [] : [$id]);
+        if ($nuevos === []) {
+            return;
+        }
+        $planIds = array_keys($planes ?? []);
+        if ($id !== null) {
+            $planIds = array_merge($planIds, DB::table('career_subjects')->where('subject_id', $id)->pluck('study_plan_id')->map(fn ($p) => (int) $p)->all());
+        }
+        $fuera = array_diff($nuevos, $this->asignaturasDePlanes(array_values(array_unique($planIds)))->pluck('id')->all());
+        if ($fuera !== []) {
+            $codigos = DB::table('subjects')->whereIn('id', $fuera)->orderBy('code')->pluck('code')->implode(', ');
+            throw ValidationException::withMessages(['prerrequisitos' => __('Los prerrequisitos deben ser materias del mismo plan de estudios. No están en él: :c.', ['c' => $codigos])]);
+        }
+    }
+
+    /**
+     * Crea una carrera en un departamento con su primer plan de estudios (RF07, ADR-083). Solo el Administrador. El
+     * código es único sin distinguir mayúsculas y se guarda en mayúsculas; sin plan la carrera no tendría dónde ubicar
+     * sus materias, así que se crean juntos, en la misma transacción.
+     *
+     * @return int El id de la carrera.
+     *
+     * @throws ValidationException
+     */
+    public function crearCarrera(User $actor, int $departamentoId, string $codigo, string $nombre, string $plan): int
+    {
+        $this->exigirGlobal($actor);
+        DB::table('departments')->where('id', $departamentoId)->exists()
+            || throw ValidationException::withMessages(['carreraDepartamento' => __('Elija un departamento válido.')]);
+        $codigo = mb_strtoupper(trim($codigo));
+        if (DB::table('careers')->whereRaw('upper(code) = ?', [$codigo])->exists()) {
+            throw ValidationException::withMessages(['carreraCodigo' => __('Ya existe una carrera con ese código.')]);
+        }
+
+        return DbContext::run(function () use ($departamentoId, $codigo, $nombre, $plan): int {
+            $id = DB::table('careers')->insertGetId([
+                'department_id' => $departamentoId, 'code' => $codigo, 'name' => trim($nombre), 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('study_plans')->insert(['career_id' => $id, 'name' => trim($plan), 'created_at' => now(), 'updated_at' => now()]);
+
+            return $id;
+        }, 'career.created');
+    }
+
+    /**
+     * Agrega un plan de estudios (pensum) a una carrera, como «Plan 25» junto al «Plan 98» (RF07). Solo el
+     * Administrador. El nombre no se repite dentro de la carrera.
+     *
+     * @throws ValidationException
+     */
+    public function agregarPlan(User $actor, int $carreraId, string $plan): void
+    {
+        $this->exigirGlobal($actor);
+        DB::table('careers')->where('id', $carreraId)->exists() || abort(404);
+        $plan = trim($plan);
+        if (DB::table('study_plans')->where('career_id', $carreraId)->whereRaw('lower(name) = ?', [mb_strtolower($plan)])->exists()) {
+            throw ValidationException::withMessages(['planNombre' => __('La carrera ya tiene un plan con ese nombre.')]);
+        }
+
+        DbContext::run(fn () => DB::table('study_plans')->insert(['career_id' => $carreraId, 'name' => $plan, 'created_at' => now(), 'updated_at' => now()]), 'study_plan.created');
+    }
+
+    /**
      * Elimina un departamento que nada usa (RF07). No hay desactivación: si tiene carreras, asignaturas, docentes,
      * jefaturas (vigentes o pasadas), cierres, plazos de matrícula o fechas del calendario, se rechaza nombrándolas.
      * La auditoría es inmutable (ADR-027) y su FK a `departments` es RESTRICT: si el departamento ya figura en ella,
@@ -465,6 +564,56 @@ class CatalogoService
     /**
      * ¿Mantiene el actor la estructura institucional (departamentos, carreras, planes y aulas)? Solo con alcance G.
      */
+    /**
+     * Cuáles de esas asignaturas puede abrir el actor en el Catálogo para ver o editar: todas con alcance global, las de
+     * sus departamentos con alcance D (ADR-072) y ninguna sin asignaturas.gestionar.
+     *
+     * @param  array<int, int>  $ids
+     * @return array<int, int>
+     */
+    public function editables(User $actor, array $ids): array
+    {
+        $alcance = $this->alcance->de($actor, 'asignaturas.gestionar');
+        if ($alcance === null || $ids === []) {
+            return [];
+        }
+
+        return DB::table('subjects')->whereIn('id', $ids)
+            ->when($alcance !== 'G', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
+            ->pluck('id')->map(fn ($id) => (int) $id)->all();
+    }
+
+    /**
+     * Grupos teóricos de la asignatura en el período en curso, con su docente (el responsable primero), horario e
+     * inscritos, para la ficha de la asignatura en el Catálogo. Exige poder editarla.
+     *
+     * @return Collection<int, \stdClass>
+     */
+    public function gruposDelPeriodo(User $actor, int $asignaturaId): Collection
+    {
+        $this->exigirAsignatura($actor, $asignaturaId);
+        $periodo = PeriodoService::activoId();
+        if ($periodo === null) {
+            return collect();
+        }
+        $grupos = DB::table('sections')->where('subject_id', $asignaturaId)->where('period_id', $periodo)->orderBy('code')
+            ->get(['id', 'ulid', 'code', 'max_capacity', DB::raw("(select count(*) from enrollments e where e.section_id = sections.id and e.status = 'active') as inscritos")]);
+        $ids = $grupos->pluck('id');
+        $docentes = DB::table('teaching_assignments')->join('users', 'users.id', '=', 'teaching_assignments.teacher_id')
+            ->whereIn('section_id', $ids)->whereNull('ended_at')->orderByDesc('is_responsible')->orderBy('users.last_name')
+            ->get(['section_id', DB::raw("users.first_name || ' ' || users.last_name as nombre")])->groupBy('section_id');
+        $dias = [1 => 'Lun', 2 => 'Mar', 3 => 'Mié', 4 => 'Jue', 5 => 'Vie', 6 => 'Sáb', 7 => 'Dom'];
+        $horarios = DB::table('section_schedules')->leftJoin('classrooms', 'classrooms.id', '=', 'section_schedules.classroom_id')
+            ->whereIn('section_id', $ids)->orderBy('weekday')->orderBy('start_time')
+            ->get(['section_id', 'weekday', 'start_time', 'end_time', 'classrooms.code as aula'])->groupBy('section_id');
+
+        return $grupos->each(function (object $g) use ($docentes, $horarios, $dias): void {
+            $g->docentes = ($docentes[$g->id] ?? collect())->pluck('nombre')->all();
+            $g->horario = ($horarios[$g->id] ?? collect())
+                ->map(fn ($h) => $dias[(int) $h->weekday].' '.substr($h->start_time, 0, 5).'–'.substr($h->end_time, 0, 5).($h->aula ? ' · '.$h->aula : ''))->all();
+        });
+    }
+
     public function gestionaEstructura(User $actor): bool
     {
         return $this->alcance->de($actor, 'asignaturas.gestionar') === 'G';

@@ -40,7 +40,7 @@
                                         class="rounded p-1 text-texto-suave hover:bg-zinc-100 hover:text-texto"
                                         aria-label="{{ __('Copiar el enlace de Meet') }}"
                                         title="{{ __('Copiar el enlace de Meet') }}"
-                                        x-on:click="navigator.clipboard?.writeText(@js($c->meet_url)); copiado = true; setTimeout(() => copiado = false, 2000)"
+                                        x-on:click="copiado = await $copiar(@js($c->meet_url)); setTimeout(() => copiado = false, 2000)"
                                     >
                                         <x-ui.icon name="clipboard-document-check" class="size-4" />
                                     </button>

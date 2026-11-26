@@ -3,6 +3,7 @@
 namespace App\Modules\Academica\Livewire;
 
 use App\Modules\Academica\Services\CarreraService;
+use App\Modules\Academica\Services\CatalogoService;
 use App\Support\Alcance;
 use App\Support\Navegacion\PaginaLivewire;
 use Illuminate\Contracts\View\View;
@@ -36,6 +37,9 @@ class CarreraDetalle extends Component
             'etiqueta' => $detalle['carrera']->departamentoCodigo,
             'url' => route('carreras', ['departamento' => $detalle['carrera']->department_id]),
         ]];
+
+        // Quien gestiona el catálogo abre la ficha de cada materia desde aquí (su docente, planes y prerrequisitos).
+        $detalle['editables'] = app(CatalogoService::class)->editables(auth()->user(), $detalle['materias']->pluck('id')->map(fn ($id) => (int) $id)->all());
 
         return $this->pagina('modules.academica.carrera-detalle', $detalle, intermedias: $intermedias,
             titulo: __('Carrera :nombre', ['nombre' => $detalle['carrera']->name]));
