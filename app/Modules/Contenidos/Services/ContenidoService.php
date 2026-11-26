@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Contenidos\Jobs\RegistrarAccesoRecurso;
 use App\Modules\Evaluaciones\Services\ReutilizacionService;
 use App\Support\Alcance;
+use App\Support\Busqueda;
 use App\Support\DbContext;
 use DateTimeInterface;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -140,13 +141,13 @@ class ContenidoService
     {
         $this->exigirEnSeccion($usuario, 'contenidos.ver', $seccionId);
         $matricula = $this->matricula($usuario, $seccionId);
-        $buscar = mb_strtolower(trim($buscar));
+        $buscar = trim($buscar);
         $tipo = array_key_exists($tipo, self::TIPOS) ? $tipo : '';
         $tiposBuscados = $this->tiposPorEtiqueta($buscar);
 
         $recursos = DB::table('resources')->join('units', 'units.id', '=', 'resources.unit_id')
             ->where('units.section_id', $seccionId)->whereNull('resources.deleted_at')->whereNull('units.deleted_at')
-            ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->whereRaw('lower(resources.title) like ?', ["%{$buscar}%"])
+            ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q->where(Busqueda::contiene($buscar, ['resources.title']))
                 ->when($tiposBuscados !== [], fn ($q) => $q->orWhereIn('resources.resource_type', $tiposBuscados))))
             ->when($tipo !== '', fn ($q) => $q->where('resources.resource_type', $tipo))
             ->orderBy('resources.position')
@@ -693,7 +694,9 @@ class ContenidoService
             return [];
         }
 
-        return array_keys(array_filter(self::TIPOS, fn (string $etiqueta) => str_starts_with(mb_strtolower(__($etiqueta)), $buscar)));
+        $buscar = Busqueda::normalizar($buscar);
+
+        return array_keys(array_filter(self::TIPOS, fn (string $etiqueta) => str_starts_with(Busqueda::normalizar(__($etiqueta)), $buscar)));
     }
 
     /**

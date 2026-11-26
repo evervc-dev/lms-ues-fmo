@@ -150,6 +150,8 @@ Fechas de la demo: hoy hay una **sesión de asistencia abierta** en PRN115-01 (d
 ## Inicio de sesión en desarrollo
 Con `LMS_DEV_LOGIN=true` aparece **«Entrar como…»** para elegir un usuario sembrado por rol, sin Google. Esto existe en local y staging; **nunca en producción** ([[Entornos]]). Se entra por `/login` → **Entrar como…** (`/dev/entrar-como`): muestra las 6 cuentas de desarrollo y un buscador por correo o nombre para entrar como cualquier otro usuario sembrado.
 
+Con `LMS_ROLES_LAXOS=true`, cambiarle el rol a una cuenta no pide limpiar antes: quitar **Estudiante** retira sus matrículas activas y quitar **Docente** termina sus grupos teóricos del período, con su historial. Al devolverle el rol queda en blanco. No borra notas ni asistencia (ADR-027). Sirve para probar en staging con la misma cuenta; **en producción se ignora** aunque esté activo.
+
 | Cuenta | Rol | Qué ve en la demo |
 |---|---|---|
 | `admin.dev@ues.edu.sv` | Administrador | Todo; reportes programados |

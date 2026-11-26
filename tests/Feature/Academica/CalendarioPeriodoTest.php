@@ -275,3 +275,21 @@ it('no muestra fechas como sincronizadas si la integración con Google Calendar 
     config(['services.google.calendar.enabled' => false]);
     Livewire::test(CalendarioEvaluaciones::class)->assertDontSee('Sincronizada')->assertSee('No disponible');
 });
+
+it('CP-RF06-13 el calendario se ve por mes, dentro del período, y pulsar un día lo propone como inicio', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+    calendarioPeriodo()->agregar($e['administrador'], $e['periodo'], 'Segundo parcial', '2026-11-10 08:00', null);
+
+    // Hoy es 23/10/2026: abre en octubre. El período va del 27/07 al 11/12/2026.
+    $pantalla = Livewire::test(CalendarioEvaluaciones::class, ['periodo' => $e['periodo']])->assertSee('octubre 2026')
+        ->call('mesSiguiente')->assertSet('mes', '2026-11')->assertSee('noviembre 2026')
+        ->assertSeeHtml('wire:key="dia-2026-11-10"')->assertSee('Segundo parcial');
+
+    // No pasa del último mes del período ni del primero.
+    $pantalla->call('mesSiguiente')->call('mesSiguiente')->assertSet('mes', '2026-12');
+    $pantalla->set('mes', '2026-01')->call('mesAnterior')->assertSet('mes', '2026-07');
+
+    $pantalla->call('elegirDia', '2026-11-17')->assertSet('inicioFecha', '2026-11-17T08:00')->assertSet('finFecha', null)
+        ->call('elegirDia', 'no-es-fecha')->assertSet('inicioFecha', '2026-11-17T08:00');
+});

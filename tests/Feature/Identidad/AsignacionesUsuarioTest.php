@@ -494,3 +494,42 @@ it('CP-RF04-28 preselecciona el único departamento del Jefe', function () {
         ->assertOk()
         ->assertSet('departamentoCoordina', $e['dia']);
 });
+
+it('CP-RF04-29 con LMS_ROLES_LAXOS, quitar Estudiante retira sus matrículas y quitar Docente termina sus grupos, sin borrar nada', function () {
+    $e = escenario();
+    config(['lms.roles_laxos' => true]);
+    $usuarios = app(UsuarioService::class);
+    actingAs($e['administrador']);
+
+    // Estudiante con una matrícula activa → Docente: la matrícula queda retirada, con su historial.
+    $usuarios->cambiarRoles($e['administrador'], $e['estudiante']->id, ['docente'], ['docente' => ['departamento' => $e['dia']]]);
+    expect(DB::table('enrollments')->where('id', $e['matricula'])->value('status'))->toBe('withdrawn')
+        ->and(DB::table('enrollment_changes')->where('enrollment_id', $e['matricula'])->where('change_type', 'withdrawn')->exists())->toBeTrue()
+        ->and($e['estudiante']->fresh()->getRoleNames()->all())->toBe(['docente']);
+
+    // Docente con su grupo → Estudiante: el grupo se termina hoy y deja de estar a su cargo.
+    $usuarios->cambiarRoles($e['administrador'], $e['docente']->id, ['estudiante'], ['estudiante' => ['carrera' => $e['isi'], 'plan' => $e['plan'], 'ciclo' => 1, 'carne' => strstr($e['docente']->institutional_email, '@', true)]]);
+    $asignacion = DB::table('teaching_assignments')->where('teacher_id', $e['docente']->id)->where('section_id', $e['seccion'])->first();
+    expect($asignacion->ended_at)->not->toBeNull()->and((bool) $asignacion->is_responsible)->toBeFalse()
+        ->and($e['docente']->fresh()->getRoleNames()->all())->toBe(['estudiante']);
+
+    // De vuelta a Docente, la cuenta queda en blanco y se le puede asignar el mismo grupo otra vez.
+    $usuarios->cambiarRoles($e['administrador'], $e['docente']->id, ['docente'], ['docente' => ['departamento' => $e['dia']]]);
+    app(CargaAcademicaService::class)->asignarDocente($e['administrador'], $e['seccion'], $e['docente']->id);
+    expect(DB::table('teaching_assignments')->where('teacher_id', $e['docente']->id)->where('section_id', $e['seccion'])->whereNull('ended_at')->count())->toBe(1);
+});
+
+it('CP-RF04-29 sin LMS_ROLES_LAXOS, o en producción aunque esté activo, quitar el rol con dependencias se rechaza', function () {
+    $e = escenario();
+    $usuarios = app(UsuarioService::class);
+    actingAs($e['administrador']);
+
+    expect(fn () => $usuarios->cambiarRoles($e['administrador'], $e['docente']->id, ['coordinador'], ['coordinador' => ['carrera' => $e['isi']]]))
+        ->toThrow(ValidationException::class, 'Tiene grupos teóricos asignados');
+
+    config(['lms.roles_laxos' => true]);
+    app()->detectEnvironment(fn () => 'production');
+    expect(UsuarioService::rolesLaxos())->toBeFalse()
+        ->and(fn () => $usuarios->cambiarRoles($e['administrador'], $e['docente']->id, ['coordinador'], ['coordinador' => ['carrera' => $e['isi']]]))
+        ->toThrow(ValidationException::class, 'Tiene grupos teóricos asignados');
+});

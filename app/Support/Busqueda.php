@@ -10,6 +10,9 @@ use Closure;
  * solo lo lleva en medio. Varias palabras se exigen todas, en cualquier orden («pérez jan» sirve).
  *
  * Los correos y los carnés se siguen buscando como subcadena, porque ahí sí se busca un fragmento.
+ *
+ * Toda búsqueda ignora mayúsculas, tildes, diéresis y la eñe: «nunez» encuentra «Núñez» y al revés. Todo buscador nuevo
+ * debe usar esta clase (porNombre(), contiene() o normalizar()) en lugar de escribir su propio LIKE.
  */
 final class Busqueda
 {
@@ -32,12 +35,37 @@ final class Busqueda
             foreach ($palabras as $palabra) {
                 $consulta->where(function ($consulta) use ($palabra, $columnas): void {
                     foreach ($columnas as $columna) {
-                        $consulta->orWhereRaw("lower({$columna}) like ? escape '\'", ["{$palabra}%"])
-                            ->orWhereRaw("lower({$columna}) like ? escape '\'", ["% {$palabra}%"]);
+                        $consulta->orWhereRaw(self::sinTildes($columna)." like ? escape '\\'", ["{$palabra}%"])
+                            ->orWhereRaw(self::sinTildes($columna)." like ? escape '\\'", ["% {$palabra}%"]);
                     }
                 });
             }
         };
+    }
+
+    /**
+     * Condición de subcadena sin tildes para `where()`: alguna de las columnas contiene el texto. Neutraliza los
+     * comodines de LIKE. Para códigos, títulos, correos y carnés; los nombres de persona van con porNombre().
+     *
+     * @param  array<int, string>  $columnas  columnas o expresiones SQL del código (nunca texto del usuario)
+     */
+    public static function contiene(string $texto, array $columnas): Closure
+    {
+        $patron = self::fragmentoSinTildes($texto);
+
+        return function ($consulta) use ($patron, $columnas): void {
+            foreach ($columnas as $columna) {
+                $consulta->orWhereRaw(self::sinTildes($columna)." like ? escape '\\'", [$patron]);
+            }
+        };
+    }
+
+    /**
+     * El texto en minúsculas y sin tildes, para comparar en PHP (filtros sobre colecciones) con la misma regla.
+     */
+    public static function normalizar(string $texto): string
+    {
+        return strtr(mb_strtolower(trim($texto)), self::TILDES);
     }
 
     /**
@@ -86,6 +114,6 @@ final class Busqueda
     {
         $palabras = preg_split('/\s+/', mb_strtolower(trim($texto)), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
-        return array_map(fn (string $palabra) => addcslashes($palabra, '%_\\'), $palabras);
+        return array_map(fn (string $palabra) => strtr(addcslashes($palabra, '%_\\'), self::TILDES), $palabras);
     }
 }

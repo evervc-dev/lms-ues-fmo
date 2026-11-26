@@ -2,13 +2,18 @@
 
 namespace App\Modules\Identidad\Livewire;
 
+use App\Modules\Academica\Services\CargaAcademicaService;
+use App\Modules\Academica\Services\PeriodoService;
 use App\Modules\Identidad\Services\JerarquiaService;
 use App\Modules\Identidad\Services\PerfilContextualService;
 use App\Modules\Identidad\Services\RolService;
 use App\Modules\Identidad\Services\UsuarioService;
+use App\Support\Alcance;
 use App\Support\Navegacion\PaginaLivewire;
 use App\Support\Nombre;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -16,7 +21,8 @@ use Livewire\Component;
 /**
  * Detalle de usuario (RF04): roles, asignaciones vigentes, dispositivo y últimos accesos.
  * Qué edita cada rol lo decide JerarquiaService (ADR-037): el Administrador todo; Soporte, cuentas de estudiantes
- * (y docentes con permiso); el Jefe, los roles Docente y Coordinador de su departamento.
+ * (y docentes con permiso); el Jefe, los roles Docente y Coordinador de su departamento. Desde la ficha de un docente,
+ * quien asigna docentes (RF08) le asigna un grupo teórico sin pasar por Carga académica.
  */
 #[Layout('layouts::app')]
 class UsuarioDetalle extends Component
@@ -29,6 +35,15 @@ class UsuarioDetalle extends Component
     public string $nombres = '';
 
     public string $apellidos = '';
+
+    /** Atajo «Asignar grupo teórico» (RF08): solo se consultan los grupos mientras el modal está abierto. */
+    public bool $asignandoGrupo = false;
+
+    public ?int $periodoGrupo = null;
+
+    public string $buscarGrupo = '';
+
+    public bool $responsableGrupo = true;
 
     public function mount(int $usuario, UsuarioService $usuarios): void
     {
@@ -65,6 +80,43 @@ class UsuarioDetalle extends Component
         $this->dispatch('aviso', tipo: 'exito', mensaje: $permitir ? __('Ahora puede crear docentes.') : __('Ya no puede crear docentes.'));
     }
 
+    public function abrirAsignarGrupo(): void
+    {
+        $this->asignandoGrupo = true;
+        $this->periodoGrupo = PeriodoService::preparableOActivo($this->periodoGrupo);
+        $this->reset('buscarGrupo');
+        $this->responsableGrupo = true;
+        $this->dispatch('abrir-modal', 'asignar-grupo');
+    }
+
+    /**
+     * Asigna este docente al grupo elegido. Las reglas (perfil docente activo, alcance, choque de horario, máximo de
+     * docentes) son las de Carga académica: el Service es el mismo.
+     */
+    public function asignarGrupo(int $seccion, CargaAcademicaService $carga): void
+    {
+        try {
+            $carga->asignarDocente(auth()->user(), $seccion, $this->usuarioId, $this->responsableGrupo);
+            $this->dispatch('aviso', tipo: 'exito', mensaje: __('Grupo teórico asignado.'));
+        } catch (ValidationException $e) {
+            $this->dispatch('aviso', tipo: 'error', mensaje: collect($e->errors())->flatten()->first());
+        }
+    }
+
+    /**
+     * Grupos del período al alcance de quien asigna (Administrador G, Jefe D, Coordinador C).
+     *
+     * @return Collection<int, object>
+     */
+    private function gruposParaAsignar(CargaAcademicaService $carga): Collection
+    {
+        if (! $this->asignandoGrupo) {
+            return collect();
+        }
+
+        return $carga->secciones(auth()->user(), PeriodoService::preparableOActivo($this->periodoGrupo), ['buscar' => $this->buscarGrupo]);
+    }
+
     public function render(UsuarioService $usuarios, JerarquiaService $jerarquia, PerfilContextualService $perfiles): View
     {
         $actor = auth()->user();
@@ -80,6 +132,10 @@ class UsuarioDetalle extends Component
             'creaDocentes' => $ficha['usuario']->hasDirectPermission(JerarquiaService::PERMISO_CREAR_DOCENTE),
             // RF36: el Jefe puede tener delante una cuenta que encontró por su correo, sin vínculo para el perfil.
             'verPerfil' => $this->usuarioId !== $actor->id && $actor->checkPermissionTo('perfiles.ver') && $perfiles->nivel($actor, $this->usuarioId) !== null,
+            // Atajo de RF08: a un docente activo, quien tiene secciones.asignar-docente le asigna un grupo desde aquí.
+            'asignaGrupos' => $ficha['usuario']->is_active && $ficha['usuario']->hasRole('docente') && app(Alcance::class)->de($actor, 'secciones.asignar-docente') !== null,
+            'gruposParaAsignar' => $this->gruposParaAsignar(app(CargaAcademicaService::class)),
+            'periodosGrupo' => PeriodoService::preparables(),
         ], titulo: $ficha['usuario']->fullName());
     }
 
