@@ -1,6 +1,8 @@
 {{-- Usuarios (RF04, maqueta 29). --}}
 <div class="flex flex-col gap-5 lg:h-full">
-    <x-ui.encabezado :titulo="__('Usuarios')" :subtitulo="__('Cuentas institucionales @ues.edu.sv. Las cuentas se desactivan, nunca se eliminan.')">
+    <x-ui.encabezado :titulo="__('Usuarios')" :subtitulo="$departamentosAlcance === null
+        ? __('Cuentas institucionales @ues.edu.sv. Las cuentas se desactivan, nunca se eliminan.')
+        : __('Personal de su departamento (:d): docentes y coordinadores de sus carreras. Los estudiantes de sus grupos teóricos están en Matrícula.', ['d' => implode(', ', $departamentosAlcance)])">
         @if ($importa || $puedeCrear)
             <x-slot:acciones>
                 @if ($importa)
@@ -28,7 +30,8 @@
                 <x-ui.search wire:model.live.debounce.300ms="buscar" :placeholder="__('Nombre o correo…')" />
                 <x-ui.select wire:model.live="rol" :aria-label="__('Rol')">
                     <option value="">{{ __('Todos los roles') }}</option>
-                    @foreach (['administrador', 'jefe_departamento', 'coordinador', 'docente', 'estudiante', 'soporte_tecnico'] as $opcion)
+                    {{-- Con alcance de departamento solo se ofrecen los roles que pueden aparecer en la lista. --}}
+                    @foreach ($departamentosAlcance === null ? ['administrador', 'jefe_departamento', 'coordinador', 'docente', 'estudiante', 'soporte_tecnico'] : ['jefe_departamento', 'coordinador', 'docente'] as $opcion)
                         <option value="{{ $opcion }}">{{ __('roles.'.$opcion) }}</option>
                     @endforeach
                     <option value="{{ \App\Modules\Identidad\Services\UsuarioService::SIN_ROL }}">{{ __('Sin rol') }}</option>

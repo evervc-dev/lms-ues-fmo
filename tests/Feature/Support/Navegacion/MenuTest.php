@@ -120,3 +120,12 @@ it('opens the external technical monitor in another tab, with its label and noti
     expect($html)->toMatch('/<a\s[^>]*href="'.preg_quote(route('horizon.index'), '/').'"[^>]*target="_blank"/')
         ->and($html)->toContain('Monitoreo técnico', '(se abre en otra pestaña)');
 });
+
+it('al Jefe le muestra una sola entrada de Matrícula y «Grupos teóricos» sin cortar', function () {
+    $e = escenario();
+    $jefatura = collect(app(Menu::class)->para($e['jefe'])['grupos'])->firstWhere('titulo', 'Jefatura')['opciones'];
+    $claves = array_map(fn (Opcion $o) => $o->clave, $jefatura);
+
+    expect($claves)->toContain('matricula')->not->toContain('claves-matricula')->not->toContain('plazos-matricula')
+        ->and(collect($jefatura)->firstWhere('clave', 'secciones-del-departamento')->etiqueta)->toBe('Grupos teóricos');
+});

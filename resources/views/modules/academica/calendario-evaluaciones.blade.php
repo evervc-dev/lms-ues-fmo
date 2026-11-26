@@ -136,7 +136,7 @@
 
     <x-ui.modal nombre="agregar-fecha" :titulo="__('Agregar fecha al calendario de evaluaciones')">
         {{-- «Todo el día» deja el fin vacío, que es como el Service guarda un evento de día completo. --}}
-        <form wire:submit="agregarFecha" id="form-agregar-fecha" class="flex flex-col gap-4" x-data="{ todoElDia: ! $wire.finFecha }">
+        <form wire:submit="agregarFecha" id="form-agregar-fecha" class="flex flex-col gap-4" x-data="{ todoElDia: ! $wire.finFecha, soloFecha: '' }" x-effect="soloFecha = ($wire.inicioFecha || '').slice(0, 10)">
             <x-ui.field :etiqueta="__('Evento')" para="fecha-titulo" error="tituloFecha" requerido><x-ui.input id="fecha-titulo" wire:model="tituloFecha" maxlength="255" :placeholder="__('Primer parcial')" /></x-ui.field>
             <x-ui.field :etiqueta="__('Ámbito')" para="fecha-ambito" error="ambito" :ayuda="__('A quién le aplica la fecha y a quién se invita al sincronizar.')" requerido>
                 <x-ui.select id="fecha-ambito" wire:model="ambito">
@@ -148,7 +148,15 @@
                 {{ __('Todo el día') }}
             </label>
             <div class="grid gap-4" :class="todoElDia ? '' : 'sm:grid-cols-2'">
-                <x-ui.field :etiqueta="__('Inicio')" para="fecha-inicio" error="inicioFecha" requerido><x-ui.input id="fecha-inicio" type="datetime-local" wire:model="inicioFecha" /></x-ui.field>
+                {{-- QA admin 21/11: con «Todo el día» se pide solo la fecha; la hora (08:00) la pone el formulario. --}}
+                <div x-show="todoElDia">
+                    <x-ui.field :etiqueta="__('Fecha')" para="fecha-dia" error="inicioFecha" requerido>
+                        <x-ui.input id="fecha-dia" type="date" x-model="soloFecha" x-on:change="$wire.set('inicioFecha', soloFecha ? soloFecha + 'T08:00' : '')" />
+                    </x-ui.field>
+                </div>
+                <div x-show="! todoElDia" x-cloak>
+                    <x-ui.field :etiqueta="__('Inicio')" para="fecha-inicio" error="inicioFecha" requerido><x-ui.input id="fecha-inicio" type="datetime-local" wire:model="inicioFecha" /></x-ui.field>
+                </div>
                 <div x-show="! todoElDia" x-cloak>
                     <x-ui.field :etiqueta="__('Fin')" para="fecha-fin" error="finFecha"><x-ui.input id="fecha-fin" type="datetime-local" wire:model="finFecha" /></x-ui.field>
                 </div>

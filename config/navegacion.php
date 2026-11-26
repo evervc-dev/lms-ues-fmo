@@ -66,11 +66,11 @@ return [
             'opciones' => [
                 ['clave' => 'carreras', 'etiqueta' => 'Carreras', 'ruta' => 'carreras', 'permiso' => 'carreras.ver', 'icono' => 'academic-cap'],
                 ['clave' => 'catalogo', 'etiqueta' => 'Catálogo', 'ruta' => 'catalogo', 'permiso' => 'asignaturas.gestionar', 'icono' => 'squares-2x2'],
-                ['clave' => 'secciones-del-departamento', 'etiqueta' => 'Grupos teóricos del departamento', 'ruta' => 'secciones', 'parametros' => ['ambito' => 'departamento'], 'permiso' => 'matricula.gestionar', 'icono' => 'building-library'],
+                ['clave' => 'secciones-del-departamento', 'etiqueta' => 'Grupos teóricos', 'ruta' => 'secciones', 'parametros' => ['ambito' => 'departamento'], 'permiso' => 'matricula.gestionar', 'icono' => 'building-library'],
                 ['clave' => 'carga-academica', 'etiqueta' => 'Carga académica', 'ruta' => 'carga-academica', 'permiso' => 'secciones.asignar-docente', 'icono' => 'building-office'],
                 ['clave' => 'usuarios', 'etiqueta' => 'Usuarios', 'ruta' => 'usuarios', 'permiso' => 'usuarios.ver', 'icono' => 'users'],
-                ['clave' => 'claves-matricula', 'etiqueta' => 'Claves de matrícula', 'ruta' => 'matricula.claves', 'permiso' => 'matricula.claves.gestionar', 'icono' => 'user-plus'],
-                ['clave' => 'plazos-matricula', 'etiqueta' => 'Plazos de matrícula', 'ruta' => 'matricula.plazos', 'permiso' => 'matricula.plazo.gestionar', 'icono' => 'calendar-days'],
+                // Una sola entrada: Claves, Plazos y Solicitudes son pestañas de Matrícula (QA Jefe 21/11).
+                ['clave' => 'matricula', 'etiqueta' => 'Matrícula', 'ruta' => 'matricula', 'permiso' => 'matricula.gestionar', 'icono' => 'user-plus'],
                 ['clave' => 'cierre', 'etiqueta' => 'Cierre del período', 'ruta' => 'cierre', 'permiso' => 'cierre.autorizar', 'icono' => 'lock-closed'],
                 ['clave' => 'calendario-evaluaciones', 'etiqueta' => 'Calendario de evaluaciones', 'ruta' => 'periodos.calendario', 'permiso' => 'periodos.calendario.gestionar', 'icono' => 'calendar-days'],
                 ['clave' => 'desempeno-docente', 'etiqueta' => 'Desempeño docente', 'ruta' => 'desempeno-docente', 'permiso' => 'desempeno-docente.ver', 'icono' => 'chart-pie'],

@@ -27,11 +27,17 @@
                     <th class="text-right">{{ __('Docentes') }}</th>
                 </x-slot:cabecera>
                 @foreach ($carreras as $carrera)
-                    <tr wire:key="carrera-{{ $carrera->id }}">
+                    {{-- Sin grupos este período se atenúa y se rotula: ICI con 0 en todo parecía un error de datos (QA Jefe 21/11). --}}
+                    <tr wire:key="carrera-{{ $carrera->id }}" @class(['text-texto-suave' => $carrera->grupos === 0])>
                         <td>
                             <a href="{{ route('carreras.show', ['carrera' => $carrera->id]) }}" wire:navigate class="font-medium text-marca-700 hover:underline">
                                 <span class="font-semibold">{{ $carrera->code }}</span> · {{ $carrera->name }}
                             </a>
+                            @if ($carrera->materias === 0)
+                                <x-ui.badge class="ml-1">{{ __('Sin materias en su plan') }}</x-ui.badge>
+                            @elseif ($carrera->grupos === 0)
+                                <x-ui.badge class="ml-1">{{ __('Sin oferta este período') }}</x-ui.badge>
+                            @endif
                         </td>
                         <td>{{ $carrera->departamentoCodigo }}</td>
                         <td>

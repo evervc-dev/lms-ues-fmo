@@ -32,6 +32,9 @@ class ClavesMatricula extends Component
     /** Clave que «Aplicar a todas» pone en todas las asignaturas del ámbito. */
     public string $claveComun = '';
 
+    /** Lo que se escribe para confirmar «Aplicar a todas» (CAMBIAR). */
+    public string $confirmacion = '';
+
     /** Cuántas asignaturas recibieron la clave común; null si la clave mostrada es de una sola. */
     public ?int $aplicadas = null;
 
@@ -60,17 +63,39 @@ class ClavesMatricula extends Component
         $this->dispatch('abrir-modal', 'clave-generada');
     }
 
+    /**
+     * Primer paso de «Aplicar a todas»: valida la clave y abre la confirmación, que dice cuántas asignaturas afecta y pide
+     * escribir CAMBIAR. Antes bastaba un confirm() del navegador para reemplazar todas las claves (QA Jefe 21/11).
+     */
+    public function prepararAplicarATodas(): void
+    {
+        $this->validarClaveComun();
+        $this->reset('confirmacion');
+        $this->dispatch('abrir-modal', 'confirmar-clave-comun');
+    }
+
     public function aplicarATodas(MatriculaService $matricula): void
+    {
+        $this->validarClaveComun();
+        if (mb_strtoupper(trim($this->confirmacion)) !== 'CAMBIAR') {
+            $this->addError('confirmacion', __('Escriba CAMBIAR para confirmar.'));
+
+            return;
+        }
+        $this->dispatch('cerrar-modal', 'confirmar-clave-comun');
+        $this->aplicadas = $matricula->aplicarClaveATodas(auth()->user(), $this->claveComun, $this->vence ?: null, $this->periodoId);
+        $this->claveNueva = trim($this->claveComun);
+        $this->asignaturaNueva = null;
+        $this->reset('claveComun', 'confirmacion');
+        $this->dispatch('abrir-modal', 'clave-generada');
+    }
+
+    private function validarClaveComun(): void
     {
         $this->validate([
             'vence' => 'nullable|date|after_or_equal:today',
             'claveComun' => ['required', 'string', 'min:6', 'max:40', 'regex:/^[A-Za-z0-9-]+$/'],
         ], ['claveComun.regex' => __('La clave solo admite letras, números y guiones.')], ['vence' => 'vencimiento', 'claveComun' => 'clave']);
-        $this->aplicadas = $matricula->aplicarClaveATodas(auth()->user(), $this->claveComun, $this->vence ?: null, $this->periodoId);
-        $this->claveNueva = trim($this->claveComun);
-        $this->asignaturaNueva = null;
-        $this->reset('claveComun');
-        $this->dispatch('abrir-modal', 'clave-generada');
     }
 
     public function desactivar(int $asignatura, MatriculaService $matricula): void
@@ -83,6 +108,8 @@ class ClavesMatricula extends Component
     {
         return $this->pagina('modules.academica.claves', [
             'claves' => $matricula->claves(auth()->user(), $this->buscar, $this->periodoId),
+            // Para la confirmación de «Aplicar a todas»: todo el ámbito, sin el filtro de búsqueda.
+            'ambito' => $matricula->claves(auth()->user(), '', $this->periodoId),
             'periodos' => PeriodoService::preparables(),
             'periodoActual' => PeriodoService::preparableOActivo($this->periodoId),
             'pestanas' => array_values(array_filter([

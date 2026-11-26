@@ -278,3 +278,17 @@ it('CP-RF27-07 al resolver avisa al estudiante y al resto del equipo, no a quien
     expect($resueltos->sort()->values()->all())->toBe(collect([$e['estudiante']->id, $otroSoporte->id])->sort()->values()->all())
         ->and($resueltos)->not->toContain($e['soporte']->id);
 });
+
+it('al Jefe la lista de usuarios le dice su alcance y no le ofrece roles fuera de él', function () {
+    $e = escenario();
+    actingAs($e['jefe']);
+
+    Livewire::test(Usuarios::class)
+        ->assertSee('Personal de su departamento (DIA)')
+        ->assertSee('están en Matrícula')
+        ->assertDontSee('<option value="administrador">', false)
+        ->assertDontSee('<option value="soporte_tecnico">', false);
+
+    actingAs($e['administrador']);
+    Livewire::test(Usuarios::class)->assertSee('<option value="soporte_tecnico">', false);
+});

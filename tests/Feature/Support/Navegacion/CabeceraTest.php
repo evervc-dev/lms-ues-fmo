@@ -26,7 +26,7 @@ it('shows one panel block per role of the user', function () {
     $this->actingAs(usuarioCon('coordinador', 'docente'))
         ->get(route('inicio'))
         ->assertOk()
-        ->assertSeeTextInOrder(['Docente', 'Clases de hoy', 'Coordinador', 'Matrículas activas de estudiantes'])
+        ->assertSeeTextInOrder(['Docente', 'Clases de hoy', 'Coordinador', 'Matrículas activas'])
         ->assertDontSeeText('Cambios de teléfono pendientes');
 });
 
@@ -74,4 +74,11 @@ it('renders the projection layout without student data', function () {
     $html = Blade::render('<x-layouts::projection title="PRN115 · Asistencia"><p>QR</p></x-layouts::projection>');
 
     expect($html)->toContain('PRN115 · Asistencia', 'QR')->not->toContain('Menú principal');
+});
+
+it('muestra junto al rol la unidad que dirige o coordina', function () {
+    $e = escenario();
+
+    $this->actingAs($e['jefe'])->get(route('inicio'))->assertOk()->assertSeeText('Jefe de Departamento · DIA');
+    $this->actingAs($e['coordinador'])->get(route('inicio'))->assertOk()->assertSeeText('· ISI');
 });

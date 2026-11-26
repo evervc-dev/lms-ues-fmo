@@ -167,3 +167,17 @@ it('CP-RF08-03 traduce el choque de aula de la base a un error del campo aula, n
         expect($excepcion->errors())->toBe(['aula' => [__('El aula ya está ocupada en ese horario.')]]);
     }
 })->skip(fn () => DB::connection()->getDriverName() !== 'pgsql', 'El EXCLUDE de aulas solo existe en PostgreSQL.');
+
+it('CP-RF08-03 la carga académica marca el choque de aula entre dos grupos sin consultar bloque por bloque', function () {
+    $e = escenario();
+    // MAT115 · 01 en la misma aula y a la misma hora que PRN115 · 01 (lunes 07:00–08:40 en A-101). SQLite no tiene el EXCLUDE.
+    DbContext::system(fn () => DB::table('section_schedules')->insert(['section_id' => $e['otra'], 'period_id' => $e['periodo'], 'classroom_id' => $e['aula'],
+        'weekday' => 1, 'start_time' => '08:00', 'end_time' => '09:40', 'created_at' => now(), 'updated_at' => now()]));
+
+    $secciones = app(CargaAcademicaService::class)->secciones($e['administrador'], $e['periodo'])->keyBy('code');
+
+    expect($secciones['PRN115']->estado)->toBe('choque')
+        ->and($secciones['PRN115']->choque)->toBe('MAT115 · 01')
+        ->and($secciones['MAT115']->choque)->toBe('PRN115 · 01')
+        ->and($secciones['PRN115']->horario)->toBe(['Lun 07:00–08:40 · A-101']);
+})->skip(fn () => DB::connection()->getDriverName() === 'pgsql', 'En PostgreSQL el EXCLUDE no deja guardar el choque.');

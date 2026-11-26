@@ -237,3 +237,14 @@ it('CP-RF06-08 la lista muestra una acción de edición visible en el período p
     // El nombre y el botón «Gestionar»: dos enlaces al detalle, no solo el nombre.
     expect(substr_count($html, 'href="'.route('periodos.show', $planificado).'"'))->toBe(2);
 });
+
+it('CP-RF06-01 muestra la etapa del período en curso y rotula el cerrado sin historial', function () {
+    $e = escenario();
+    DbContext::system(fn () => DB::table('academic_periods')->where('id', $e['periodo'])->update(['preparation_stage' => 'ready']));
+    DbContext::system(fn () => DB::table('academic_periods')->insert(['name' => '2026-I', 'start_date' => '2026-02-02', 'end_date' => '2026-06-19',
+        'status' => 'closed', 'preparation_stage' => 'ready', 'created_at' => now(), 'updated_at' => now()]));
+    actingAs($e['administrador']);
+
+    Livewire::test(Periodos::class)
+        ->assertSee(['Listo', 'Concluido', 'Sin historial en el sistema']);
+});
