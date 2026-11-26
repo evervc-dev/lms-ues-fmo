@@ -32,6 +32,7 @@ fuentes: ["Decisión del usuario del 21/11/2026 para el ambiente de pruebas (sta
 - Ambiente: **staging** (ambiente de pruebas).
 
 ## Consecuencias
+- **La superadmin es la cuenta de emergencia** (`is_emergency = true`), decidido por el usuario el 21/11/2026: la base solo deja tener contraseña a esa cuenta (CHECK `users_password_only_emergency`) y solo admite una (`users_single_emergency_unique`). Sin la marca, PostgreSQL rechazaba la creación. Muestra el aviso «Está usando la cuenta de emergencia» y no admite cambio de roles. Si ya existiera otra cuenta de emergencia, `superadmin:crear` falla y lo dice.
 - Riesgo: una cuenta que lo ve todo, sin 2FA. Usar una contraseña larga en `SUPERADMIN_PASSWORD` y retirar la cuenta (`is_active = false`) antes de producción.
 - El menú muestra al superadmin todos los grupos salvo «Estudio».
 - Migración que crea el rol con sus permisos en las bases desplegadas.

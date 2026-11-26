@@ -18,6 +18,29 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · — · DbContext anidado restaura el contexto de afuera
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** `DbContext::within()` guarda los valores del contexto (`app.system_job`, `app.user_id`, `app.event_type`…) y los restaura al salir, en vez de vaciarlos. En staging, sembrar el perfil equipo con `SUPERADMIN_PASSWORD` fallaba con AC900 («Escritura en users sin actor»): `crearCuentaSuperadmin()` abre su propio `DbContext::system()` dentro del de `DatabaseSeeder`, y al cerrarse dejaba al de afuera sin contexto.
+- **CP cubiertos:** pruebas nuevas en `tests/Feature/Support/DbContextTest.php` (solo PostgreSQL). Verificado con PostgreSQL 17 en Docker: la prueba falla sin la corrección y pasa con ella, y `migrate:fresh --seed` del perfil equipo con superadmin funciona.
+- **Decisiones:** —
+- **Pendiente:** —
+
+### 2026-11-21 · RF03 · La superadmin es la cuenta de emergencia
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** `AccesoLocalService::crearCuentaSuperadmin()` marca la cuenta con `is_emergency`. En staging (PostgreSQL), sembrar con `SUPERADMIN_PASSWORD` fallaba por el CHECK `users_password_only_emergency`; las pruebas corren en SQLite, que no lo aplica.
+- **CP cubiertos:** CP-RF03-08 (ampliado: la regla del CHECK se comprueba en cualquier motor y hay un caso de otra cuenta de emergencia).
+- **Decisiones:** superadmin = cuenta de emergencia ([[ADR-082 Cuenta superadministradora de solo lectura total]]).
+- **Pendiente:** correr la suite en PostgreSQL 17; este error lo habría detectado.
+
+### 2026-11-21 · — · Perfil de siembra «equipo»
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** `EquipoSeeder` y `LMS_SEED_PERFIL=equipo`: estructura institucional, cuentas reales del equipo y admin.dev, roles al azar con `LMS_SEED_SEMILLA` (1 jefe, 1 coordinador, 3 docentes, resto estudiantes), matrículas sin notas ni asistencia y la superadmin de ADR-082 si `SUPERADMIN_PASSWORD` está puesta.
+- **CP cubiertos:** —
+- **Decisiones:** reparto y cuentas decididos por el usuario el 21/11/2026. La cuenta privilegiada es la superadmin de ADR-082 (no una cuenta de emergencia aparte).
+- **Pendiente:** —
 ### 2026-11-21 · RF04 · Roles laxos para pruebas en staging
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

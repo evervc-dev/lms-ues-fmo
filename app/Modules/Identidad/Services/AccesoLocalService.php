@@ -67,6 +67,10 @@ class AccesoLocalService
      * Crea o actualiza la cuenta superadministradora con el correo y la contraseña de config/identidad.php. Es
      * idempotente: vuelve a fijar la contraseña, la activa y le deja solo el rol `superadmin` (rol exclusivo).
      *
+     * Es la cuenta de emergencia (`is_emergency`): la base solo deja tener contraseña a esa cuenta
+     * (CHECK users_password_only_emergency) y solo admite una (users_single_emergency_unique). Sin la marca,
+     * PostgreSQL rechazaba la fila; en SQLite no hay CHECK y no se notaba.
+     *
      * @throws \RuntimeException si falta la contraseña o el rol (corra las migraciones).
      */
     public function crearCuentaSuperadmin(): User
@@ -80,9 +84,15 @@ class AccesoLocalService
             throw new \RuntimeException(__('El rol superadmin no existe; corra las migraciones.'));
         }
 
+        $otra = User::query()->where('is_emergency', true)->whereRaw('lower(institutional_email) <> ?', [$correo])->value('institutional_email');
+        if ($otra !== null) {
+            throw new \RuntimeException(__('Ya existe otra cuenta de emergencia (:correo); solo puede haber una. Use ese correo en SUPERADMIN_EMAIL.', ['correo' => $otra]));
+        }
+
         return DbContext::system(function () use ($correo, $clave) {
             $usuario = User::query()->whereRaw('lower(institutional_email) = ?', [$correo])->first() ?? new User(['institutional_email' => $correo]);
             $usuario->forceFill([
+                'is_emergency' => true,
                 'first_name' => $usuario->first_name ?: 'Super',
                 'last_name' => $usuario->last_name ?: 'Administrador',
                 'is_active' => true,

@@ -152,6 +152,19 @@ Con `LMS_DEV_LOGIN=true` aparece **«Entrar como…»** para elegir un usuario s
 
 Con `LMS_ROLES_LAXOS=true`, cambiarle el rol a una cuenta no pide limpiar antes: quitar **Estudiante** retira sus matrículas activas y quitar **Docente** termina sus grupos teóricos del período, con su historial. Al devolverle el rol queda en blanco. No borra notas ni asistencia (ADR-027). Sirve para probar en staging con la misma cuenta; **en producción se ignora** aunque esté activo.
 
+### Perfil de siembra «equipo»
+
+Con `LMS_SEED_PERFIL=equipo`, `php artisan migrate:fresh --seed` siembra la estructura institucional de siempre (departamentos, carreras, planes, aulas, períodos, grupos con horario, claves y plazos), pero **sin personas inventadas**:
+
+- Las cuentas son las del equipo (`database/seeders/data/testers.php`) con su **correo institucional real**, así que entran con Google. Además, `admin.dev@ues.edu.sv` (Administrador, para «Entrar como…»).
+- Los roles se reparten **al azar con semilla fija** (`LMS_SEED_SEMILLA`, 2026 por omisión): 1 Jefe de DIA, 1 Coordinador de ISI y 3 docentes, los cinco con perfil docente e imparten 2 grupos cada uno, y el resto estudiantes, solo con ese rol ([[ADR-081 Estudiante y Soporte Técnico son roles exclusivos]]). La misma semilla repite el reparto; otra lo baraja.
+- Los estudiantes quedan matriculados en el grupo 01 de las materias de su ciclo. **No hay notas ni asistencia inventadas.** Los demás grupos quedan sin docente, para probar la asignación.
+- La **cuenta superadmin** ([[ADR-082 Cuenta superadministradora de solo lectura total]]) se crea si el entorno trae `SUPERADMIN_PASSWORD` (y, opcional, `SUPERADMIN_EMAIL`), con el mismo servicio que `php artisan superadmin:crear`. Entra por `/acceso-local`.
+
+Al final de `migrate:fresh --seed`, con cualquier perfil, se imprime la **distribución final** leída de la base: cuentas por rol, **todas** las cuentas con su rol y su asignación (jefatura, coordinación, grupos o ciclo y materias), y los grupos, docentes y matrículas del período en curso.
+
+En staging: poner `LMS_SEED_PERFIL=equipo` (y, si se quiere, la semilla y `SUPERADMIN_PASSWORD`) y correr `php artisan migrate:fresh --seed --force`. El perfil por omisión sigue siendo `demo`.
+
 | Cuenta | Rol | Qué ve en la demo |
 |---|---|---|
 | `admin.dev@ues.edu.sv` | Administrador | Todo; reportes programados |
@@ -195,6 +208,19 @@ La carpeta `docker/` empaqueta la app para un servidor (OP#518):
 | `docker/nginx.conf`, `php.ini`, `php-fpm.conf`, `supervisord.conf` | Configuración del servidor web. `/app/` se pasa a Reverb, así el navegador usa el mismo dominio |
 
 **Coolify:** recurso *Docker Compose*, rama `main`, Base Directory `/`, Docker Compose Location `/docker/compose.yml`, dominio en el servicio `app`. Variables obligatorias: `APP_KEY` (`php artisan key:generate --show`), `DB_PASSWORD` y `REVERB_APP_SECRET`. Para la demo: `LMS_DEMO_SEED=true` y `LMS_DEV_LOGIN=true` (con `APP_ENV=staging`, el valor por defecto).
+
+**Volver a sembrar staging en Coolify con el perfil «equipo»:**
+
+1. En las variables del recurso, ponga `LMS_SEED_PERFIL=equipo` y, si quiere la superadmin, `SUPERADMIN_PASSWORD`. **El contenedor solo recibe las variables que lista `docker/compose.yml`**: una variable nueva de la app hay que agregarla también ahí, o la app nunca la ve.
+2. Redespliegue. Al arrancar, `artisan optimize` vuelve a cachear la configuración con los valores nuevos. Si cambia una variable sin redesplegar, corra `php artisan optimize:clear` en el contenedor.
+3. En la terminal del contenedor `app`:
+   ```bash
+   php artisan down
+   php artisan migrate:fresh --seed --force
+   php artisan up
+   ```
+   El modo mantenimiento evita que alguien entre con Google a mitad de la siembra: esa cuenta se crearía sin rol (ADR-038) y chocaría con la del equipo.
+4. Revise que la tabla final diga **«perfil equipo»** y unas 22 cuentas. Si dice «perfil demo», la variable no llegó al contenedor.
 
 **Local:** copie `docker/.env.example` a `docker/.env`, complete las claves y, desde la raíz:
 ```bash

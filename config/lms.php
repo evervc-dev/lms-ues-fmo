@@ -48,6 +48,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Perfil de siembra
+    |--------------------------------------------------------------------------
+    |
+    | «demo» (por omisión): personas inventadas con volumen realista y datos de
+    | uso (notas, asistencia, foros). «equipo»: la misma estructura, pero las
+    | cuentas son las del equipo (seeders/data/testers.php) con su correo real,
+    | más admin.dev; los roles se reparten al azar con LMS_SEED_SEMILLA y no hay
+    | notas ni asistencia inventadas. Si SUPERADMIN_PASSWORD está puesta, crea
+    | también la cuenta superadmin (ADR-082, config/identidad.php). Fuera de
+    | producción.
+    |
+    */
+
+    'seed_perfil' => (string) env('LMS_SEED_PERFIL', 'demo'),
+
+    'seed_semilla' => (int) env('LMS_SEED_SEMILLA', 2026),
+
+    /*
+    |--------------------------------------------------------------------------
     | Área de asistencia de los seeders
     |--------------------------------------------------------------------------
     |
