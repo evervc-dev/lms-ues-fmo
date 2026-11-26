@@ -74,6 +74,7 @@ return [
     'bancos-de-preguntas.show' => ['uri' => '/bancos-de-preguntas/{banco}', 'permiso' => 'banco-preguntas.gestionar', 'titulo' => 'Banco de preguntas', 'modulo' => 'Evaluaciones', 'rf' => ['RF16'], 'op' => 435, 'migas' => ['bancos-de-preguntas'], 'maqueta' => '32 Banco de preguntas'],
 
     // Coordinación y jefatura
+    'departamentos' => ['uri' => '/departamentos', 'permiso' => 'carreras.ver', 'alcance' => 'G', 'titulo' => 'Departamentos', 'modulo' => 'Academica', 'rf' => ['RF07'], 'op' => null],
     'carreras' => ['uri' => '/carreras', 'permiso' => 'carreras.ver', 'titulo' => 'Carreras', 'modulo' => 'Academica', 'rf' => ['RF07', 'RF08'], 'op' => null],
     'carreras.show' => ['uri' => '/carreras/{carrera}', 'permiso' => 'carreras.ver', 'titulo' => 'Carrera', 'modulo' => 'Academica', 'rf' => ['RF07', 'RF08'], 'op' => null, 'migas' => ['carreras'], 'donde' => ['carrera' => '[0-9]+']],
     'carga-academica' => ['uri' => '/carga-academica', 'permiso' => 'secciones.gestionar|secciones.asignar-docente|secciones.cupo', 'titulo' => 'Carga académica', 'modulo' => 'Academica', 'rf' => ['RF08'], 'op' => 403, 'maqueta' => '23 Carga académica'],

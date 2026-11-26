@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Identidad\Livewire\AccesoLocal;
 use App\Modules\Identidad\Livewire\CrearUsuario;
 use App\Modules\Identidad\Livewire\EntrarComo;
 use App\Modules\Identidad\Livewire\EscenarioDetalle;
@@ -24,6 +25,8 @@ use Laravel\Socialite\Two\InvalidStateException;
 Route::middleware('guest')->group(function (): void {
     Route::view('/login', 'modules.identidad.login')->name('login');
     Route::livewire('/dev/entrar-como', EntrarComo::class)->name('dev.entrar-como');
+    // ADR-082: contraseña solo para la cuenta superadministradora; no aparece en /login.
+    Route::livewire('/acceso-local', AccesoLocal::class)->name('acceso-local');
 
     // RF01 (ADR-007): `hd` solo filtra el selector de Google; la validación real está en GoogleAuthService.
     Route::get('/auth/google', function (GoogleAuthService $servicio) {

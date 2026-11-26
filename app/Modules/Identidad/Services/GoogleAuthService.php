@@ -55,6 +55,10 @@ class GoogleAuthService
         if ($usuario->google_sub !== null && $usuario->google_sub !== $sub) {
             $this->rechazar($correo, $usuario->id, 'sub_mismatch', __('Su cuenta no está habilitada; contacte al administrador.'));
         }
+        // ADR-082: la cuenta superadministradora solo entra por /acceso-local, aunque Google valide el correo.
+        if ($usuario->hasRole(AccesoLocalService::ROL)) {
+            $this->rechazar($correo, $usuario->id, 'local_only', __('Su cuenta no está habilitada; contacte al administrador.'));
+        }
         if (! $usuario->is_active) {
             $this->rechazar($correo, $usuario->id, 'inactive', __('Su cuenta está desactivada; contacte al administrador.'));
         }

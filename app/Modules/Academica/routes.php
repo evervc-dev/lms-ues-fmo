@@ -7,6 +7,7 @@ use App\Modules\Academica\Livewire\CarreraDetalle;
 use App\Modules\Academica\Livewire\Carreras;
 use App\Modules\Academica\Livewire\Catalogo;
 use App\Modules\Academica\Livewire\ClavesMatricula;
+use App\Modules\Academica\Livewire\Departamentos;
 use App\Modules\Academica\Livewire\Estructura;
 use App\Modules\Academica\Livewire\EstudiantesSeccion;
 use App\Modules\Academica\Livewire\Inscripcion;
@@ -35,6 +36,7 @@ Route::middleware('auth')->group(function (): void {
     Route::livewire('/catalogo/asignaturas/{asignatura}/editar', AsignaturaFormulario::class)->middleware('permission:asignaturas.gestionar')->name('catalogo.asignaturas.editar');
     Route::livewire('/catalogo/estructura', Estructura::class)->middleware('permission:asignaturas.gestionar')->name('catalogo.estructura');
     // Jefe (D) y Coordinador (C): las carreras de su ámbito, con sus docentes, materias, grupos y horarios.
+    Route::livewire('/departamentos', Departamentos::class)->middleware('permission:carreras.ver')->name('departamentos');
     Route::livewire('/carreras', Carreras::class)->middleware('permission:carreras.ver')->name('carreras');
     Route::livewire('/carreras/{carrera}', CarreraDetalle::class)->middleware('permission:carreras.ver')->whereNumber('carrera')->name('carreras.show');
     // Docente (contenidos.gestionar), Coordinador (contenidos.analitica.ver) y Jefe (cierre.autorizar): los roles con un ámbito de secciones.

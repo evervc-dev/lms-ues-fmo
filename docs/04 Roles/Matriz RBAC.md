@@ -10,6 +10,10 @@ Permisos con nombres listos para `spatie/laravel-permission`. Cada celda indica 
 
 **Alcances:** **G** = global · **D** = su departamento · **C** = su carrera (en grupos: los de materias de los planes de su carrera, [[ADR-080 El grupo teórico es de la asignatura y lo comparten las carreras]]) · **S** = las secciones que imparte · **M** = las asignaturas donde está matriculado · **P** = solo lo propio · vacío = sin permiso.
 
+**Roles exclusivos:** una cuenta con **Estudiante** o **Soporte Técnico** no tiene ningún otro rol; Docente, Coordinador, Jefe de Departamento y Administrador se combinan entre sí ([[ADR-081 Estudiante y Soporte Técnico son roles exclusivos]]).
+
+**Superadministrador** (`superadmin`, [[ADR-082 Cuenta superadministradora de solo lectura total]]): rol exclusivo de una sola cuenta, que no se asigna desde la interfaz. No tiene columna propia; su regla es: todos los permisos del Administrador con el mismo alcance; con **G**, todos los de consulta (`*.ver`, `oferta.estadisticas.ver`, `contenidos.analitica.ver`, `asistencia.diagnostico.ver`, `calificaciones.revision.ver`); con **P**, `notificaciones.preferencias` y `perfil.sesiones.cerrar`. Ningún permiso de acción del Estudiante ni de docencia.
+
 Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinador]] (Coord) · [[Docente]] (Doc) · [[Estudiante]] (Est) · [[Soporte Técnico]] (Sop)
 
 ## Identidad, seguridad y auditoría
@@ -35,7 +39,7 @@ Roles: [[Administrador]] (Adm) · [[Jefe de Departamento]] (Jefe) · [[Coordinad
 | `periodos.gestionar` | G | | | | | | [[RF06]], [[RF34]] (con este permiso el Administrador cierra el período, último eslabón de la cadena de actas) |
 | `periodos.calendario.gestionar` | G | D | C | | | | [[RF06]], [[ADR-068 Calendario de evaluaciones por ámbito]] (el Administrador fija las fechas globales del período, el Jefe las de su departamento y el Coordinador las de su carrera; cada quien sincroniza con su propio Google Calendar) |
 | `asignaturas.gestionar` | G | D | | | | | [[RF07]], [[ADR-072 El Jefe gestiona las asignaturas de su departamento]] (el Jefe, solo las asignaturas de su departamento; la estructura institucional sigue siendo del Administrador) |
-| `carreras.ver` | | D | C | | | | [[RF07]], [[RF08]], [[ADR-047 Carreras visibles y carga masiva sin el Coordinador]] (el Administrador no lo necesita: ya tiene el catálogo) |
+| `carreras.ver` | G | D | C | | | | [[RF07]], [[RF08]], [[ADR-047 Carreras visibles y carga masiva sin el Coordinador]], [[ADR-083 El Administrador navega departamentos y carreras]] (el Administrador entra por `/departamentos`) |
 | `secciones.crear` | G | D | | | | | [[RF08]], [[ADR-074 El grupo teórico pertenece a una carrera y solo lo crean el Administrador y el Jefe]] (crear grupos teóricos; el Coordinador ya no los crea) |
 | `secciones.gestionar` | G | D | C | | | | [[RF08]], [[ADR-073 El Jefe crea los grupos teóricos de su departamento]] (horario y aula de los grupos; el Coordinador, de los de su carrera) |
 | `secciones.asignar-docente` | G | D | C | | | | [[RF08]], [[ADR-037 Jerarquía de creación y asignación de roles]] |

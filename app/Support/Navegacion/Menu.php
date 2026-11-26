@@ -3,6 +3,7 @@
 namespace App\Support\Navegacion;
 
 use App\Models\User;
+use App\Modules\Identidad\Services\AccesoLocalService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,7 +26,7 @@ class Menu
         $grupos = [];
 
         foreach ($definicion as $grupo) {
-            if ($grupo['rol'] !== null && ! $usuario->hasRole($grupo['rol'])) {
+            if ($grupo['rol'] !== null && ! $this->veGrupo($usuario, $grupo['rol'])) {
                 continue;
             }
 
@@ -47,6 +48,19 @@ class Menu
         $conTitulo = count(array_filter($grupos, fn (array $grupo) => $grupo['titulo'] !== null));
 
         return ['grupos' => $grupos, 'conTitulos' => $conTitulo >= 2];
+    }
+
+    /**
+     * Grupo con rol: lo ve quien tiene el rol. El superadministrador (ADR-082) ve todos menos «Estudio», cuyas
+     * opciones son de lo propio del estudiante; dentro de cada grupo siguen filtrando los permisos.
+     */
+    private function veGrupo(User $usuario, string $rol): bool
+    {
+        if ($usuario->hasRole($rol)) {
+            return true;
+        }
+
+        return $rol !== 'estudiante' && $usuario->hasRole(AccesoLocalService::ROL);
     }
 
     /**

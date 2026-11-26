@@ -142,14 +142,31 @@
     @endif
 
     @if ($gestiona)
-        <x-ui.modal nombre="programar-clase" :titulo="__('Programar clase virtual')">
-            <form wire:submit="programar" id="form-programar-clase" class="flex flex-col gap-4">
-                <x-ui.field :etiqueta="__('Tema')" para="virtual-tema" error="tema" requerido><x-ui.input id="virtual-tema" wire:model="tema" maxlength="200" /></x-ui.field>
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <x-ui.field :etiqueta="__('Fecha y hora de inicio')" para="virtual-inicio" error="inicio" requerido><x-ui.input id="virtual-inicio" type="datetime-local" wire:model="inicio" /></x-ui.field>
-                    <x-ui.field :etiqueta="__('Duración (15 a 300 min)')" para="virtual-duracion" error="duracion" requerido><x-ui.input id="virtual-duracion" type="number" min="15" max="300" wire:model="duracion" /></x-ui.field>
-                </div>
-                <x-ui.field :etiqueta="__('Enlace de Meet (opcional)')" para="virtual-meet" error="meetUrl" :ayuda="__('Ej.: https://meet.google.com/abc-defg-hij')"><x-ui.input id="virtual-meet" type="url" wire:model="meetUrl" /></x-ui.field>
+        <x-ui.modal nombre="programar-clase" :titulo="__('Programar clase virtual')" :subtitulo="__('La asistencia se toma después con el reporte de Meet (ADR-003).')">
+            {{-- La hora de fin se calcula mientras se escribe; la duración tiene atajos para los bloques habituales. --}}
+            <form wire:submit="programar" id="form-programar-clase" class="flex flex-col gap-4"
+                x-data="{ ini: $wire.inicio, dur: $wire.duracion, get fin() {
+                    if (! this.ini || ! Number(this.dur)) return null;
+                    const f = new Date(String(this.ini).replace(' ', 'T'));
+                    if (isNaN(f)) return null;
+                    f.setMinutes(f.getMinutes() + Number(this.dur));
+                    return f.toLocaleTimeString('es-SV', { hour: '2-digit', minute: '2-digit', hour12: false });
+                } }">
+                <x-ui.field :etiqueta="__('Tema')" para="virtual-tema" error="tema" requerido><x-ui.input id="virtual-tema" wire:model="tema" maxlength="200" :placeholder="__('Repaso para el parcial')" /></x-ui.field>
+                <x-ui.field :etiqueta="__('Fecha y hora de inicio')" para="virtual-inicio" error="inicio" requerido><x-ui.input id="virtual-inicio" type="datetime-local" wire:model="inicio" x-on:input="ini = $event.target.value" /></x-ui.field>
+                <x-ui.field :etiqueta="__('Duración (15 a 300 min)')" para="virtual-duracion" error="duracion" requerido>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <x-ui.input id="virtual-duracion" type="number" min="15" max="300" wire:model="duracion" x-on:input="dur = $event.target.value" class="w-28" />
+                        @foreach ([50, 100, 120] as $minutos)
+                            <button type="button" wire:click="$set('duracion', {{ $minutos }})" x-on:click="dur = {{ $minutos }}" @class(['h-9 rounded-lg px-3 text-sm ring-1 transition', 'bg-marca-600 text-white ring-marca-600' => (int) $duracion === $minutos, 'bg-white text-texto ring-borde hover:bg-zinc-100' => (int) $duracion !== $minutos])>{{ $minutos }} min</button>
+                        @endforeach
+                    </div>
+                </x-ui.field>
+                <p class="-mt-2 text-xs text-texto-suave" x-show="fin" x-text="@js(__('Termina a las ')) + fin"></p>
+                <x-ui.field :etiqueta="__('Enlace de Meet (opcional)')" para="virtual-meet" error="meetUrl"
+                    :ayuda="__('Si lo deja vacío y tiene conectado Google Calendar, el enlace se crea solo al programar. Ej.: https://meet.google.com/abc-defg-hij')">
+                    <x-ui.input id="virtual-meet" type="url" wire:model="meetUrl" placeholder="https://meet.google.com/…" />
+                </x-ui.field>
             </form>
             <x-slot:pie>
                 <x-ui.button variante="secundario" x-on:click="$dispatch('cerrar-modal', 'programar-clase')">{{ __('Cancelar') }}</x-ui.button>

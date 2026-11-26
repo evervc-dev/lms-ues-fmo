@@ -64,9 +64,10 @@ it('el filtro de carrera solo ofrece las del alcance e ignora una carrera ajena'
         ->and($delJefe['carrera'])->toBeNull()
         ->and($delJefe['filas']->pluck('code')->all())->toBe(['PRN115']);
 
+    // Al Coordinador la carrera ajena lo lleva a la suya, no a «todas» (CP-RF10-03).
     actingAs($e['coordinador']);
     Livewire::withQueryParams(['carrera' => (string) $lma])->test(Oferta::class)
-        ->assertSet('filtroCarrera', '')
+        ->assertSet('filtroCarrera', (string) $e['isi'])
         ->assertDontSee('MAT115');
 });
 

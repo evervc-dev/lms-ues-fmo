@@ -5,6 +5,7 @@ use App\Modules\Identidad\Livewire\ImportarUsuarios;
 use App\Modules\Identidad\Livewire\RolesUsuario;
 use App\Modules\Identidad\Livewire\UsuarioDetalle;
 use App\Modules\Identidad\Services\AsignacionService;
+use App\Modules\Identidad\Services\JerarquiaService;
 use App\Modules\Identidad\Services\RolService;
 use App\Modules\Identidad\Services\UsuarioService;
 use App\Support\DbContext;
@@ -360,14 +361,42 @@ it('CP-RF04-22 muestra el choque sobre las casillas de la pantalla de roles', fu
     expect($e['estudiante']->fresh()->getRoleNames()->all())->toBe(['estudiante']);
 });
 
-it('CP-RF04-22 deja que Estudiante conviva con los roles compatibles', function () {
+it('CP-RF04-27 Estudiante y Soporte Técnico no admiten ningún otro rol, y el resto se combina entre sí (ADR-081)', function (string $cuenta, array $roles, array $asignaciones, ?string $mensaje) {
     $e = escenario();
     actingAs($e['administrador']);
+    $usuario = $e[$cuenta];
+    $asignaciones = array_map(fn (array $datos) => array_map(fn ($valor) => is_string($valor) && isset($e[$valor]) ? $e[$valor] : $valor, $datos), $asignaciones);
+    $antes = $usuario->getRoleNames()->sort()->values()->all();
 
-    app(UsuarioService::class)->cambiarRoles($e['administrador'], $e['estudiante']->id, ['estudiante', 'coordinador'], ['coordinador' => ['carrera' => $e['isi']]]);
+    try {
+        app(UsuarioService::class)->cambiarRoles($e['administrador'], $usuario->id, $roles, $asignaciones);
+        expect($mensaje)->toBeNull()
+            ->and($usuario->fresh()->getRoleNames()->sort()->values()->all())->toBe(collect($roles)->sort()->values()->all());
+    } catch (ValidationException $error) {
+        expect($error->errors()['roles'][0])->toBe($mensaje)
+            ->and($usuario->fresh()->getRoleNames()->sort()->values()->all())->toBe($antes);
+    }
+})->with([
+    'estudiante y coordinador' => ['estudiante', ['estudiante', 'coordinador'], ['coordinador' => ['carrera' => 'isi']], 'Una cuenta con el rol Estudiante no puede tener además el rol Coordinador.'],
+    'estudiante y jefe' => ['estudiante', ['estudiante', 'jefe_departamento'], ['jefe_departamento' => ['departamento' => 'dia']], 'Una cuenta con el rol Estudiante no puede tener además el rol Jefe de Departamento.'],
+    'estudiante y administrador' => ['estudiante', ['estudiante', 'administrador'], [], 'Una cuenta con el rol Estudiante no puede tener además el rol Administrador.'],
+    'soporte y docente' => ['soporte', ['soporte_tecnico', 'docente'], ['docente' => ['departamento' => 'dia']], 'Una cuenta con el rol Soporte Técnico no puede tener además el rol Docente.'],
+    'soporte y administrador' => ['soporte', ['soporte_tecnico', 'administrador'], [], 'Una cuenta con el rol Soporte Técnico no puede tener además el rol Administrador.'],
+    'docente y coordinador' => ['docente', ['docente', 'coordinador'], ['coordinador' => ['carrera' => 'isi']], null],
+    'docente y administrador' => ['docente', ['docente', 'administrador'], [], null],
+]);
 
-    expect($e['estudiante']->fresh()->getRoleNames()->sort()->values()->all())->toBe(['coordinador', 'estudiante'])
-        ->and(DB::table('career_coordinators')->where('user_id', $e['estudiante']->id)->whereNull('valid_to')->value('career_id'))->toBe($e['isi']);
+it('CP-RF04-27 el chequeo común y la pantalla de roles respetan los roles exclusivos', function () {
+    $e = escenario();
+
+    expect(fn () => app(JerarquiaService::class)->exigirRolesCompatibles(['soporte_tecnico', 'estudiante']))
+        ->toThrow(ValidationException::class, 'Una cuenta con el rol Estudiante no puede tener además el rol Soporte Técnico.');
+    expect(fn () => app(JerarquiaService::class)->exigirRolesCompatibles(['soporte_tecnico']))->not->toThrow(ValidationException::class);
+
+    // La pantalla de roles marca el choque sobre las casillas.
+    Livewire::actingAs($e['administrador'])->test(RolesUsuario::class, ['usuario' => $e['soporte']->id])
+        ->set('roles', ['soporte_tecnico', 'docente'])->call('guardar')->assertHasErrors('roles');
+    expect($e['soporte']->fresh()->getRoleNames()->all())->toBe(['soporte_tecnico']);
 });
 
 it('CP-RF04-22 no toca a las cuentas que ya tienen la combinación incompatible', function () {

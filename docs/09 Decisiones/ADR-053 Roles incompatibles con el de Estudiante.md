@@ -9,6 +9,8 @@ fuentes: ["Informe de QA del rol Administrador (27/10/2026), hallazgo BUG-01", "
 
 # ADR-053 · Roles incompatibles con el de Estudiante
 
+> [!warning] Ampliada el 21/11/2026 por [[ADR-081 Estudiante y Soporte Técnico son roles exclusivos]]: Estudiante y Soporte Técnico ya no se combinan con ningún otro rol, así que el punto 2 de abajo deja de valer.
+
 > [!warning] Pendiente de aceptar
 > **Amplía [[ADR-037 Jerarquía de creación y asignación de roles]]**, que define quién asigna cada rol pero no qué roles pueden coexistir en una cuenta.
 

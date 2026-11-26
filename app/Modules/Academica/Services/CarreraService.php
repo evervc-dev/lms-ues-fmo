@@ -4,6 +4,7 @@ namespace App\Modules\Academica\Services;
 
 use App\Models\User;
 use App\Support\Alcance;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -26,18 +27,70 @@ class CarreraService
     public function __construct(private Alcance $alcance) {}
 
     /**
-     * Carreras que el actor puede ver, con su coordinador vigente y sus conteos del período en curso.
+     * Departamentos de la universidad para el Administrador (alcance G, ADR-083): cada uno con su jefe vigente y sus
+     * carreras, asignaturas activas y grupos teóricos del período en curso. El Jefe y el Coordinador no lo usan.
+     *
+     * @return Collection<int, object>
+     *
+     * @throws AuthorizationException
+     */
+    public function departamentos(User $actor): Collection
+    {
+        if ($this->alcance->exigir($actor, self::PERMISO) !== 'G') {
+            throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
+        }
+        $periodoId = PeriodoService::activoId();
+
+        $departamentos = DB::table('departments as d')->select('d.id', 'd.code', 'd.name')
+            ->selectSub(DB::table('careers')->whereColumn('careers.department_id', 'd.id')->selectRaw('count(*)'), 'carreras')
+            ->selectSub(DB::table('subjects')->whereColumn('subjects.department_id', 'd.id')->where('subjects.is_active', true)->selectRaw('count(*)'), 'materias')
+            ->selectSub(DB::table('sections')->join('subjects', 'subjects.id', '=', 'sections.subject_id')
+                ->whereColumn('subjects.department_id', 'd.id')->where('sections.period_id', $periodoId)->selectRaw('count(*)'), 'grupos')
+            ->orderBy('d.code')->get();
+
+        $jefes = DB::table('department_heads')->join('users', 'users.id', '=', 'department_heads.user_id')
+            ->whereNull('department_heads.valid_to')->orderBy('department_heads.valid_from')
+            ->get(['department_heads.department_id', DB::raw("users.first_name || ' ' || users.last_name as nombre")])
+            ->keyBy(fn (object $fila) => (int) $fila->department_id);
+
+        return $departamentos->each(function (object $departamento) use ($jefes): void {
+            $departamento->id = (int) $departamento->id;
+            $departamento->carreras = (int) $departamento->carreras;
+            $departamento->materias = (int) $departamento->materias;
+            $departamento->grupos = (int) $departamento->grupos;
+            $departamento->jefe = $jefes[$departamento->id]->nombre ?? null;
+        });
+    }
+
+    /**
+     * Departamento por el que el Administrador filtra las carreras; null si no existe o si el actor no tiene
+     * alcance global (el filtro no amplía el alcance del Jefe ni del Coordinador).
+     */
+    public function departamentoFiltrable(User $actor, ?int $departamentoId): ?object
+    {
+        if ($departamentoId === null || $this->alcance->de($actor, self::PERMISO) !== 'G') {
+            return null;
+        }
+
+        return DB::table('departments')->where('id', $departamentoId)->first(['id', 'code', 'name']);
+    }
+
+    /**
+     * Carreras que el actor puede ver, con su coordinador vigente y sus conteos del período en curso. El
+     * Administrador puede limitarlas a un departamento; para los demás el filtro se ignora.
      *
      * @return Collection<int, object>
      */
-    public function listar(User $actor): Collection
+    public function listar(User $actor, ?int $departamentoId = null): Collection
     {
         $vision = $this->alcance->exigir($actor, self::PERMISO);
         $periodoId = PeriodoService::activoId();
+        $departamentoId = $vision === 'G' ? $departamentoId : null;
 
         $carreras = $this->enAlcance(
             DB::table('careers as c')->join('departments as d', 'd.id', '=', 'c.department_id')
                 ->select('c.id', 'c.code', 'c.name', 'd.name as departamento', 'd.code as departamentoCodigo')
+                ->when($departamentoId !== null, fn ($q) => $q->where('c.department_id', $departamentoId))
                 ->orderBy('d.code')->orderBy('c.code'),
             $actor,
             $vision
@@ -60,7 +113,7 @@ class CarreraService
      * Detalle de una carrera del ámbito del actor: coordinador, docentes y materias del plan con
      * sus grupos y horarios del período en curso.
      *
-     * @return array{carrera: object, periodo: ?string, planes: array<int, string>, coordinador: ?object,
+     * @return array{carrera: object, vision: string, periodo: ?string, planes: array<int, string>, coordinador: ?object,
      *               docentes: Collection<int, object>, materias: Collection<int, object>}
      */
     public function detalle(User $actor, int $carreraId): array
@@ -69,7 +122,7 @@ class CarreraService
 
         $carrera = DB::table('careers as c')->join('departments as d', 'd.id', '=', 'c.department_id')
             ->where('c.id', $carreraId)
-            ->first(['c.id', 'c.code', 'c.name', 'd.name as departamento', 'd.code as departamentoCodigo']);
+            ->first(['c.id', 'c.code', 'c.name', 'c.department_id', 'd.name as departamento', 'd.code as departamentoCodigo']);
 
         if ($carrera === null) {
             abort(404);
@@ -90,6 +143,7 @@ class CarreraService
 
         return [
             'carrera' => $carrera,
+            'vision' => $vision,
             'periodo' => $periodoId === null ? null : DB::table('academic_periods')->where('id', $periodoId)->value('name'),
             'planes' => DB::table('study_plans')->where('career_id', $carreraId)->orderBy('name')->pluck('name')->all(),
             'coordinador' => $this->coordinadores([$carreraId])->first(),

@@ -23,8 +23,11 @@ class OfertaService
     /**
      * Estadísticas de la oferta, con la carrera y el ciclo del plan de cada asignatura.
      *
+     * Con alcance C (el Coordinador) siempre hay una carrera elegida: sin ella, o con una fuera de su alcance, se usa la
+     * primera por código. El Jefe y el Administrador pueden ver todas las de su alcance a la vez.
+     *
      * @param  int|null  $carrera  Carrera por la que se filtra; se ignora si queda fuera del alcance del actor.
-     * @return array{filas: Collection<int, \stdClass>, cerrado: ?string, totales: array<string, int>, carreras: Collection<int, \stdClass>, carrera: ?int}
+     * @return array{filas: Collection<int, \stdClass>, cerrado: ?string, totales: array<string, int>, carreras: Collection<int, \stdClass>, carrera: ?int, carreraObligatoria: bool}
      */
     public function estadisticas(User $actor, ?int $carrera = null): array
     {
@@ -34,6 +37,10 @@ class OfertaService
 
         $carreras = $this->alcance->carrerasVisibles($actor, 'oferta.estadisticas.ver');
         $carrera = $carreras->contains(fn (\stdClass $c) => (int) $c->id === $carrera) ? $carrera : null;
+        $carreraObligatoria = $alcance === 'C';
+        if ($carreraObligatoria && $carrera === null && $carreras->isNotEmpty()) {
+            $carrera = (int) $carreras->first()->id;
+        }
 
         $asignaturas = DB::table('subjects')->where('is_active', true)
             ->when($alcance === 'D', fn ($q) => $q->whereIn('department_id', $this->alcance->departamentos($actor)))
@@ -69,6 +76,7 @@ class OfertaService
             'totales' => ['inscritos' => (int) $filas->sum('inscritos'), 'aprobados' => (int) $filas->sum('aprobados'), 'reprobados' => (int) $filas->sum('reprobados'), 'grupos' => (int) $filas->sum('grupos')],
             'carreras' => $carreras,
             'carrera' => $carrera,
+            'carreraObligatoria' => $carreraObligatoria,
         ];
     }
 

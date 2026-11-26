@@ -112,6 +112,8 @@ class CrearUsuario extends Component
         abort_unless($jerarquia->puedeCrear(auth()->user()), 403);
 
         $this->rolNuevo = $this->rolesCreables()[0] ?? '';
+        $this->departamentoCoordina = $this->departamentoInicial(null);
+        $this->departamentoEstudiante = $this->departamentoInicial(null);
     }
 
     /** Orden de la lista, del rol más frecuente al menos frecuente. */

@@ -18,6 +18,30 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF03, RF04 · Estudiante y Soporte Técnico son roles exclusivos
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** `JerarquiaService::exigirRolesCompatibles()` rechaza cualquier otro rol en una cuenta con Estudiante o Soporte Técnico (crear, cambiar roles, carga masiva); la pantalla de roles lo explica.
+- **CP cubiertos:** CP-RF04-27 nuevo; CP-RF04-22 y CP-RF04-11 ajustados.
+- **Decisiones:** [[ADR-081 Estudiante y Soporte Técnico son roles exclusivos]] (pendiente), amplía ADR-053.
+- **Pendiente:** —
+
+### 2026-11-21 · RF15, RF16, RF18 · Tarea, cuestionario y regla de avance más claros
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** «Nueva tarea» y «Nuevo cuestionario» comparten los datos de la actividad (cuánto vale en la nota final y cuántos días queda abierta, calculado al escribir) y una barra de acciones fija abajo. La política de entregas tardías, la navegación del cuestionario y las extensiones van en tarjetas o etiquetas seleccionables. La regla de avance del recurso pasa de dos listas encadenadas a una sola elección con su efecto y la regla vigente. Solo vistas; no cambian los Services.
+- **CP cubiertos:** sin casos nuevos; pasan las pruebas existentes. Los ids que usa la prueba de navegador del examen se conservan.
+- **Decisiones:** —
+- **Pendiente:** —
+
+### 2026-11-21 · RF06, RF08, RF21, RF32 · Modales medianos más claros
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** horario del grupo (bloques actuales con su aula y aviso de choque, días con botones, duración calculada), clase virtual (hora de fin, atajos de duración, qué pasa sin enlace de Meet), fecha del calendario («Todo el día»), nuevo período (duración en semanas y los tres cómputos) y solicitud de cancelación (tipo en tarjetas con su efecto). Solo vistas; no cambian los Services.
+- **CP cubiertos:** sin casos nuevos; pasan las pruebas existentes de cada formulario.
+- **Decisiones:** —
+- **Pendiente:** grupo C (tarea y cuestionario por secciones; regla de avance del recurso).
+
 ### 2026-11-21 · RF07, RF26, RF15 · Formularios complejos fuera del modal
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

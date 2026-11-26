@@ -20,11 +20,17 @@ trait ConAsignacion
 {
     public ?int $carreraCoordina = null;
 
+    /** Departamento que filtra las carreras del Coordinador. Solo es de la interfaz: no se envía al Service. */
+    public ?int $departamentoCoordina = null;
+
     public ?int $departamentoJefatura = null;
 
     public ?int $departamentoDocente = null;
 
     public ?int $carreraEstudiante = null;
+
+    /** Departamento que filtra las carreras del Estudiante. Solo es de la interfaz: no se envía al Service. */
+    public ?int $departamentoEstudiante = null;
 
     public ?int $planEstudiante = null;
 
@@ -71,6 +77,38 @@ trait ConAsignacion
     public function carneDelCorreo(): ?string
     {
         return $this->carneFijo ? null : AsignacionService::carneDeCorreo($this->correoDeAsignacion());
+    }
+
+    /**
+     * Si la carrera que coordina no es del departamento elegido, se limpia para que elija otra.
+     */
+    public function updatedDepartamentoCoordina(): void
+    {
+        if (! $this->carreraEsDelDepartamento($this->carreraCoordina, $this->departamentoCoordina)) {
+            $this->carreraCoordina = null;
+        }
+    }
+
+    /**
+     * Si la carrera del estudiante no es del departamento elegido, se limpian la carrera y su plan.
+     */
+    public function updatedDepartamentoEstudiante(): void
+    {
+        if (! $this->carreraEsDelDepartamento($this->carreraEstudiante, $this->departamentoEstudiante)) {
+            $this->carreraEstudiante = null;
+            $this->planEstudiante = null;
+        }
+    }
+
+    /**
+     * Carreras del departamento elegido, para el selector que va después del departamento.
+     *
+     * @return Collection<int, object>
+     */
+    public function carrerasDelDepartamento(?int $departamentoId): Collection
+    {
+        return $departamentoId === null ? collect()
+            : $this->opciones['carreras']->filter(fn (object $carrera) => (int) $carrera->department_id === $departamentoId)->values();
     }
 
     /**
@@ -159,13 +197,34 @@ trait ConAsignacion
     protected function precargarAsignacion(array $asignacion): void
     {
         $this->carreraCoordina = $asignacion['carreraCoordina'];
+        $this->departamentoCoordina = $this->departamentoInicial($this->carreraCoordina);
         $this->departamentoJefatura = $asignacion['departamentoJefatura'];
         $this->departamentoDocente = $asignacion['departamentoDocente'];
         $this->carreraEstudiante = $asignacion['carreraEstudiante'];
+        $this->departamentoEstudiante = $this->departamentoInicial($this->carreraEstudiante);
         $this->planEstudiante = $asignacion['planEstudiante'];
         $this->cicloEstudiante = $asignacion['cicloEstudiante'];
         $this->carne = (string) ($asignacion['carne'] ?? '');
         $this->carneFijo = $asignacion['carne'] !== null;
+    }
+
+    /**
+     * Departamento con el que abre el selector: el de la carrera ya asignada o, si el actor solo tiene un
+     * departamento a la vista (el Jefe), ese.
+     */
+    protected function departamentoInicial(?int $carreraId): ?int
+    {
+        $carrera = $carreraId === null ? null : $this->opciones['carreras']->firstWhere('id', $carreraId);
+        if ($carrera !== null) {
+            return (int) $carrera->department_id;
+        }
+
+        return $this->opciones['departamentos']->count() === 1 ? (int) $this->opciones['departamentos']->first()->id : null;
+    }
+
+    private function carreraEsDelDepartamento(?int $carreraId, ?int $departamentoId): bool
+    {
+        return $carreraId !== null && $this->carrerasDelDepartamento($departamentoId)->contains('id', $carreraId);
     }
 
     /**

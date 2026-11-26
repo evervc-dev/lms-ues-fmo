@@ -19,8 +19,8 @@ use Illuminate\Validation\ValidationException;
  *   o la cuenta que encontró escribiendo su correo completo.
  * - Coordinador: no asigna roles (importa estudiantes de su carrera: ImportacionService).
  *
- * Además, ningún camino de asignación deja convivir el rol Estudiante con el de Docente o el de Soporte
- * Técnico (ADR-053): exigirRolesCompatibles().
+ * Además, ningún camino de asignación deja que una cuenta con el rol Estudiante o el de Soporte Técnico tenga otro
+ * rol (ADR-081, que amplía ADR-053): exigirRolesCompatibles().
  */
 class JerarquiaService
 {
@@ -32,13 +32,14 @@ class JerarquiaService
     ];
 
     /**
-     * Roles que no pueden coexistir con el de Estudiante (ADR-053): quien estudia no ejerce como docente
-     * ni atiende Soporte, porque el alcance S (sus secciones) y el M (sus matrículas) se cruzarían en la
-     * misma sección. Los demás roles sí coexisten entre sí y con Estudiante.
+     * Roles exclusivos (ADR-081): la cuenta que los tiene no puede tener ningún otro rol. Quien estudia no ejerce
+     * funciones del personal (el alcance M de sus matrículas se cruzaría con el S o el C de la misma sección), y
+     * Soporte Técnico, que crea y corrige cuentas, no acumula permisos académicos. Docente, Coordinador, Jefe y
+     * Administrador sí se combinan entre sí.
      *
      * @var array<int, string>
      */
-    public const INCOMPATIBLES_CON_ESTUDIANTE = ['docente', 'soporte_tecnico'];
+    public const ROLES_EXCLUSIVOS = ['estudiante', 'soporte_tecnico'];
 
     /** Permiso directo (por usuario, nunca por rol) que el Administrador concede a un Soporte para crear docentes. */
     public const PERMISO_CREAR_DOCENTE = 'usuarios.crear-docente';
@@ -113,6 +114,11 @@ class JerarquiaService
      */
     public function puedeCambiarRoles(User $actor, User $usuario): bool
     {
+        // ADR-082: los roles de la cuenta superadministradora no se cambian desde la interfaz.
+        if ($usuario->hasRole(AccesoLocalService::ROL)) {
+            return false;
+        }
+
         return $this->puedeEditarDatos($actor, $usuario)
             || ($this->alcance->de($actor, 'usuarios.roles.asignar') !== null && $this->enAlcanceDelJefe($actor, $usuario->id));
     }
@@ -162,7 +168,7 @@ class JerarquiaService
     }
 
     /**
-     * Combinación de roles válida (ADR-053): Estudiante no convive con Docente ni con Soporte Técnico.
+     * Combinación de roles válida (ADR-081): Estudiante y Soporte Técnico no conviven con ningún otro rol.
      * Se exige en todo camino de asignación (crear, cambiar roles y carga masiva), así que vale igual para el
      * Administrador, para Soporte y para el Jefe en su departamento. No se aplica hacia atrás: las cuentas que
      * ya tengan la combinación quedan como están hasta que alguien les cambie los roles.
@@ -174,19 +180,18 @@ class JerarquiaService
      */
     public function exigirRolesCompatibles(array $roles, string $campo = 'roles'): void
     {
-        if (! in_array('estudiante', $roles, true)) {
+        $roles = array_values(array_unique($roles));
+        $exclusivo = collect(self::ROLES_EXCLUSIVOS)->first(fn (string $rol) => in_array($rol, $roles, true));
+        if ($exclusivo === null || count($roles) === 1) {
             return;
         }
 
-        $choques = array_values(array_intersect(self::INCOMPATIBLES_CON_ESTUDIANTE, $roles));
-        if ($choques === []) {
-            return;
-        }
-
+        // Se nombra el rol exclusivo y los demás, en el orden del catálogo: «Estudiante … además los roles Docente y Soporte Técnico».
+        $choques = array_values(array_filter(RolService::ROLES, fn (string $rol) => $rol !== $exclusivo && in_array($rol, $roles, true)));
         $nombres = array_map(fn (string $rol) => __('roles.'.$rol), $choques);
         throw ValidationException::withMessages([$campo => count($nombres) === 1
-            ? __('Una cuenta con el rol Estudiante no puede tener además el rol :rol.', ['rol' => $nombres[0]])
-            : __('Una cuenta con el rol Estudiante no puede tener además los roles :roles.', ['roles' => implode(' y ', $nombres)])]);
+            ? __('Una cuenta con el rol :exclusivo no puede tener además el rol :rol.', ['exclusivo' => __('roles.'.$exclusivo), 'rol' => $nombres[0]])
+            : __('Una cuenta con el rol :exclusivo no puede tener además los roles :roles.', ['exclusivo' => __('roles.'.$exclusivo), 'roles' => implode(' y ', $nombres)])]);
     }
 
     /**
