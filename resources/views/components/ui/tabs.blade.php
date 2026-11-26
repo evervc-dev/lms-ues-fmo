@@ -4,7 +4,12 @@
 --}}
 @props(['pestanas' => [], 'etiqueta' => null])
 
-<nav aria-label="{{ $etiqueta ?? __('Pestañas') }}" {{ $attributes->class(['-mb-px shrink-0 overflow-x-auto']) }}>
+{{-- Sin barra de desplazamiento visible; mientras queden pestañas a la derecha, el borde se desvanece para indicarlo. --}}
+<nav aria-label="{{ $etiqueta ?? __('Pestañas') }}"
+    x-data="{ fin: true, medir() { this.fin = this.$el.scrollLeft + this.$el.clientWidth >= this.$el.scrollWidth - 4 } }"
+    x-init="medir()" x-on:scroll.passive="medir()" x-on:resize.window="medir()"
+    :class="fin ? '' : '[mask-image:linear-gradient(to_right,black_80%,transparent)]'"
+    {{ $attributes->class(['-mb-px shrink-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden']) }}>
     <ul class="flex min-w-max gap-1 border-b border-borde">
         @foreach ($pestanas as $pestana)
             <li>

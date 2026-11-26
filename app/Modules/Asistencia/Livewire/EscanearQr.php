@@ -89,7 +89,11 @@ class EscanearQr extends Component
 
     public function render(): View
     {
-        return $this->pagina('modules.asistencia.escanear', ['yaRegistrada' => $this->yaRegistrada()]);
+        return $this->pagina('modules.asistencia.escanear', [
+            'yaRegistrada' => $this->yaRegistrada(),
+            // Sin teléfono registrado el QR siempre se rechaza: se le dice antes de escanear (revisión UX del rol Estudiante).
+            'tieneTelefono' => DB::table('student_devices')->where('student_id', auth()->id())->where('status', 'active')->exists(),
+        ]);
     }
 
     /**

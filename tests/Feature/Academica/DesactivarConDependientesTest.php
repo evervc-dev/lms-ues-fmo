@@ -47,6 +47,7 @@ it('CP-RF07-23 desactivar una asignatura desactiva toda la cadena que depende de
     $e = escenario();
     $pr = cadenaDePrerrequisitos($e['dia']);
 
+    actingAs($e['jefe']);
     $cascada = app(CatalogoService::class)->cambiarEstadoAsignatura($e['jefe'], $pr['PR1'], false);
 
     expect($cascada)->toBe(['PR2', 'PR3'])
@@ -59,6 +60,7 @@ it('CP-RF07-23 al reactivar solo vuelve la asignatura elegida', function () {
     $e = escenario();
     $pr = cadenaDePrerrequisitos($e['dia']);
     $catalogo = app(CatalogoService::class);
+    actingAs($e['administrador']);
     $catalogo->cambiarEstadoAsignatura($e['administrador'], $pr['PR1'], false);
 
     expect($catalogo->cambiarEstadoAsignatura($e['administrador'], $pr['PR1'], true))->toBe([])
@@ -74,9 +76,11 @@ it('CP-RF07-23 bloquea al Jefe si una dependiente activa es de otro departamento
     DbContext::system(fn () => DB::table('subject_prerequisites')->insert(['subject_id' => $ajena['MA9'], 'prerequisite_id' => $pr['PR1']]));
     $catalogo = app(CatalogoService::class);
 
+    actingAs($e['jefe']);
     expect(fn () => $catalogo->cambiarEstadoAsignatura($e['jefe'], $pr['PR1'], false))->toThrow(ValidationException::class, 'MA9');
     expect(activa($pr['PR1']))->toBeTrue()->and(activa($ajena['MA9']))->toBeTrue();
 
+    actingAs($e['administrador']);
     expect($catalogo->cambiarEstadoAsignatura($e['administrador'], $pr['PR1'], false))->toBe(['MA9'])
         ->and(activa($ajena['MA9']))->toBeFalse();
 });

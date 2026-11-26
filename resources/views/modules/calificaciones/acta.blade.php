@@ -29,7 +29,7 @@
         <x-ui.table ajustar :vacio="__('No hay estudiantes activos.')">
             <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Carné') }}</th><th class="text-right">{{ __('Nota final') }}</th><th>{{ __('Resultado') }}</th></x-slot:cabecera>
             @foreach ($filas as $f)
-                <tr><td>{{ $f->last_name }}, {{ $f->first_name }}</td><td>{{ $f->student_code }}</td><td class="text-right font-semibold">{{ number_format($f->final, 1) }}</td>
+                <tr><td>{{ $f->last_name }}, {{ $f->first_name }}</td><td>{{ mb_strtoupper((string) $f->student_code) }}</td><td class="text-right font-semibold">{{ number_format($f->final, 1) }}</td>
                     <td><x-ui.badge :color="$f->aprobado ? 'verde' : 'rojo'">{{ $f->aprobado ? __('Aprobado') : __('Reprobado') }}</x-ui.badge></td></tr>
             @endforeach
         </x-ui.table>

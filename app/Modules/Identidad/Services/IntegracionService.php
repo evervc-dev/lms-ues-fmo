@@ -4,6 +4,9 @@ namespace App\Modules\Identidad\Services;
 
 use App\Models\User;
 use App\Support\Alcance;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * Integraciones (RNF09): Google Workspace y correo institucional, de solo lectura. Las credenciales salen del `.env`
@@ -16,7 +19,9 @@ class IntegracionService
     public function __construct(private Alcance $alcance) {}
 
     /**
-     * @return array<string, array{titulo: string, configurada: bool, campos: list<array{etiqueta: string, variable: string, valor: string, ok: bool}>}>
+     * Estado de cada integración: `ok` (configurada), `revisar` (tiene datos, pero así no funciona) o `pendiente`.
+     *
+     * @return array<string, array{titulo: string, configurada: bool, estado: string, aviso: ?string, campos: list<array{etiqueta: string, variable: string, valor: string, ok: bool}>}>
      */
     public function listar(User $admin): array
     {
@@ -38,9 +43,52 @@ class IntegracionService
             ]],
         ];
 
-        return collect($integraciones)->map(fn (array $i) => [
-            'titulo' => $i[0], 'campos' => $i[1], 'configurada' => collect($i[1])->every(fn (array $c) => $c['ok']),
-        ])->all();
+        $avisoCorreo = $this->problemaDelCorreo();
+
+        return collect($integraciones)->map(function (array $i, string $clave) use ($avisoCorreo): array {
+            $completa = collect($i[1])->every(fn (array $c) => $c['ok']);
+            $aviso = $clave === 'correo' ? $avisoCorreo : null;
+
+            return [
+                'titulo' => $i[0], 'campos' => $i[1], 'configurada' => $completa && $aviso === null,
+                'estado' => ! $completa ? 'pendiente' : ($aviso !== null ? 'revisar' : 'ok'), 'aviso' => $aviso,
+            ];
+        })->all();
+    }
+
+    /**
+     * Por qué el correo, aun con datos, no saldría (QA admin 21/11): el mailer no envía (`log`, `array`) o el servidor es
+     * local (127.0.0.1) fuera del entorno local, donde en Railway no hay servidor de correo.
+     */
+    public function problemaDelCorreo(): ?string
+    {
+        $mailer = (string) config('mail.default');
+        if (in_array($mailer, ['log', 'array'], true)) {
+            return __('El correo está en modo «:m»: los avisos se guardan en el registro y no se envían.', ['m' => $mailer]);
+        }
+        $host = mb_strtolower(trim((string) config('mail.mailers.smtp.host')));
+        if ($mailer === 'smtp' && in_array($host, ['127.0.0.1', 'localhost', '::1', '0.0.0.0'], true) && ! app()->environment('local')) {
+            return __('El servidor de correo es local (:h) y en este servidor no hay uno: los avisos por correo probablemente no salen.', ['h' => $host]);
+        }
+
+        return null;
+    }
+
+    /**
+     * Envía un correo de prueba al Administrador, en el momento (no en cola), para que vea enseguida si falla.
+     *
+     * @throws ValidationException con el error del servidor de correo.
+     */
+    public function enviarCorreoDePrueba(User $admin): void
+    {
+        $this->alcance->exigir($admin, 'integraciones.gestionar');
+
+        try {
+            Mail::raw(__('Este es un correo de prueba del LMS UES FMO. Si lo recibió, el envío de avisos por correo funciona.'),
+                fn ($mensaje) => $mensaje->to($admin->institutional_email)->subject(__('Correo de prueba · LMS UES FMO')));
+        } catch (Throwable $excepcion) {
+            throw ValidationException::withMessages(['correo' => __('No se pudo enviar: :e', ['e' => str($excepcion->getMessage())->limit(200)])]);
+        }
     }
 
     /**

@@ -157,7 +157,7 @@
 
     @case('soporte_tecnico')
         <div class="grid gap-3 sm:grid-cols-3">
-            <a href="{{ route('dispositivos') }}" wire:navigate><x-ui.stat :etiqueta="__('Solicitudes de teléfono pendientes')" :valor="$b['solicitudes']" icono="device-phone-mobile" :tono="$b['solicitudes'] ? 'aviso' : 'exito'" /></a>
+            <a href="{{ route('dispositivos') }}" wire:navigate><x-ui.stat :etiqueta="__('Cambios de teléfono pendientes')" :valor="$b['solicitudes']" icono="device-phone-mobile" :tono="$b['solicitudes'] ? 'aviso' : 'exito'" /></a>
             <a href="{{ route('asistencia.diagnostico') }}" wire:navigate><x-ui.stat :etiqueta="__('Rechazos de asistencia de hoy')" :valor="array_sum($b['rechazosHoy'])" icono="signal" :tono="array_sum($b['rechazosHoy']) ? 'aviso' : 'exito'" /></a>
             @can('usuarios.ver')
                 <a href="{{ route('usuarios', ['rol' => 'estudiante', 'telefono' => 'sin']) }}" wire:navigate><x-ui.stat :etiqueta="__('Estudiantes sin teléfono')" :valor="$b['sinTelefono']" icono="exclamation-triangle" :detalle="__('Ver quiénes son')" /></a>
@@ -169,13 +169,13 @@
         {{-- Las tarjetas solas dejaban la pantalla casi vacía: debajo va el trabajo del día, para entrar a
              resolver sin pasar antes por el menú (revisión de diseño del 25/10/2026). --}}
         <div class="mt-4 grid gap-4 lg:grid-cols-2">
-            <x-ui.card :titulo="__('Solicitudes de teléfono por resolver')" :descripcion="__('De la más antigua a la más reciente.')">
+            <x-ui.card :titulo="__('Cambios de teléfono por resolver')" :descripcion="__('De la más antigua a la más reciente.')">
                 <x-slot:acciones><x-ui.button tamano="sm" variante="fantasma" :href="route('dispositivos')">{{ __('Ver todas') }}</x-ui.button></x-slot:acciones>
                 @forelse ($b['pendientes'] as $p)
                     <a href="{{ route('dispositivos') }}" wire:navigate class="flex items-start justify-between gap-3 border-b border-borde py-2 text-sm last:border-0 hover:text-marca-700">
                         <span class="min-w-0">
                             <span class="font-medium">{{ $p->first_name }} {{ $p->last_name }}</span>
-                            <span class="block truncate text-xs text-texto-suave">{{ $p->student_code ?? '' }} · {{ $p->reason }}</span>
+                            <span class="block truncate text-xs text-texto-suave">{{ mb_strtoupper((string) $p->student_code) }} · {{ $p->reason }}</span>
                         </span>
                         <span class="whitespace-nowrap text-xs text-texto-suave">{{ $fecha($p->created_at)->diffForHumans() }}</span>
                     </a>
@@ -192,7 +192,7 @@
                     <div class="flex items-center justify-between gap-3 border-b border-borde py-2 text-sm last:border-0">
                         <span class="min-w-0">
                             <span class="font-medium">{{ $r->first_name }} {{ $r->last_name }}</span>
-                            <span class="block truncate text-xs text-texto-suave">{{ $r->student_code ?? '' }}{{ $r->asignatura ? ' · '.$r->asignatura : '' }} · {{ $fecha($r->occurred_at)->format('d/m H:i') }}</span>
+                            <span class="block truncate text-xs text-texto-suave">{{ mb_strtoupper((string) $r->student_code) }}{{ $r->asignatura ? ' · '.$r->asignatura : '' }} · {{ $fecha($r->occurred_at)->format('d/m H:i') }}</span>
                         </span>
                         <x-ui.badge color="rojo">{{ __(\App\Modules\Asistencia\Services\DiagnosticoService::MOTIVOS[$r->result] ?? $r->result) }}</x-ui.badge>
                     </div>

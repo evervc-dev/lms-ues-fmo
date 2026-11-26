@@ -63,13 +63,13 @@ class DiagnosticoService
             'filas' => $filas->map(fn (object $i) => [
                 Carbon::parse($i->occurred_at)->format('d/m/Y H:i:s'),
                 trim($i->first_name.' '.$i->last_name),
-                (string) ($i->student_code ?? ''),
+                mb_strtoupper((string) $i->student_code),
                 $i->institutional_email,
                 $i->materia,
                 $i->grupo,
                 Carbon::parse($i->session_date)->format('d/m/Y'),
                 __(self::MOTIVOS[$i->result] ?? $i->result),
-                $i->distance_m !== null ? (string) (int) $i->distance_m : '',
+                $i->distance_m !== null && $i->result !== 'no_location' ? (string) (int) $i->distance_m : '',
             ])->all(),
         ];
     }

@@ -13,7 +13,7 @@
             <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Estado') }}</th><th class="text-right">{{ __('Asistencia') }}</th><th class="text-right">{{ __('Promedio') }}</th><th>{{ __('Alerta') }}</th><th></th></x-slot:cabecera>
             @foreach ($estudiantes as $e)
                 <tr wire:key="est-{{ $e->id }}" @class(['opacity-60' => $e->status !== 'active'])>
-                    <td>{{ $e->first_name }} {{ $e->last_name }}<p class="text-xs text-texto-suave">{{ $e->student_code ?? $e->institutional_email }}</p></td>
+                    <td>{{ $e->first_name }} {{ $e->last_name }}<p class="text-xs text-texto-suave">{{ $e->student_code ? mb_strtoupper($e->student_code) : $e->institutional_email }}</p></td>
                     <td><x-ui.badge :color="['active' => 'verde', 'withdrawn' => 'gris', 'transferred' => 'azul'][$e->status]">{{ ['active' => __('Activa'), 'withdrawn' => __('Retirada'), 'transferred' => __('Trasladada')][$e->status] }}</x-ui.badge></td>
                     <td class="text-right">@if ($e->asistencia !== null)<span @class(['text-red-700' => $e->asistencia < 75, 'text-amber-700' => $e->asistencia >= 75 && $e->asistencia < 85])>{{ $e->asistencia }} %</span>@else — @endif</td>
                     <td class="text-right">@if ($e->promedio !== null)<span @class(['text-red-700' => $e->promedio < 6])>{{ number_format((float) $e->promedio, 1) }}</span>@else — @endif</td>

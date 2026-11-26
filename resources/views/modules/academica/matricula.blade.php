@@ -18,7 +18,7 @@
                         @else
                             {{ $m->first_name }} {{ $m->last_name }}
                         @endif
-                        <p class="text-xs text-texto-suave">{{ $m->student_code ?? $m->institutional_email }}</p>
+                        <p class="text-xs text-texto-suave">{{ $m->student_code ? mb_strtoupper($m->student_code) : $m->institutional_email }}</p>
                     </td>
                     <td><span class="font-semibold">{{ $m->code }}</span> · {{ $m->grupo }}</td>
                     <td>{{ $vias[$m->enrolled_via] ?? $m->enrolled_via }}</td>
@@ -39,7 +39,7 @@
             @if ($candidatos->isNotEmpty())
                 <div class="flex flex-col gap-1">
                     @foreach ($candidatos as $c)
-                        <label class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-zinc-50"><input type="radio" wire:model.live="estudianteId" value="{{ $c->id }}" class="text-marca-600 focus:ring-marca-600"> {{ $c->first_name }} {{ $c->last_name }} <span class="text-texto-suave">{{ $c->student_code }}</span></label>
+                        <label class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-zinc-50"><input type="radio" wire:model.live="estudianteId" value="{{ $c->id }}" class="text-marca-600 focus:ring-marca-600"> {{ $c->first_name }} {{ $c->last_name }} <span class="text-texto-suave">{{ mb_strtoupper((string) $c->student_code) }}</span></label>
                     @endforeach
                 </div>
             @endif

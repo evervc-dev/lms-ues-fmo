@@ -78,15 +78,90 @@ it('CP-RF27-05 requires a reason to reject a phone change', function () {
     expect(DB::table('device_change_requests')->value('status'))->toBe('rejected');
 });
 
+it('CP-RF27-05 valida el motivo antes de rechazar y lo limpia al cambiar de solicitud', function () {
+    $e = escenario();
+    $otro = usuarioCon('estudiante');
+    $ids = DbContext::system(fn () => [
+        DB::table('device_change_requests')->insertGetId(['student_id' => $e['estudiante']->id, 'reason' => 'Teléfono nuevo', 'status' => 'pending', 'created_at' => now(), 'updated_at' => now()]),
+        DB::table('device_change_requests')->insertGetId(['student_id' => $otro->id, 'reason' => 'Se mojó', 'status' => 'pending', 'created_at' => now(), 'updated_at' => now()]),
+    ]);
+    actingAs($e['soporte']);
+
+    // El campo del motivo aparece al pulsar «Rechazar», no antes; confirmar sin motivo da el error y no resuelve.
+    Livewire::test(SolicitudesDispositivo::class)
+        ->assertDontSee('Motivo del rechazo')
+        ->call('iniciarRechazo')->assertSee('Motivo del rechazo')
+        ->call('rechazar')->assertHasErrors(['motivoRechazo'])
+        ->call('seleccionar', $ids[1])->assertHasNoErrors()->assertSet('rechazando', false)->assertSet('motivoRechazo', '');
+
+    expect(DB::table('device_change_requests')->where('status', 'pending')->count())->toBe(2);
+});
+
+it('CP-RF27-05 al aprobar avisa el éxito y actualiza el contador del menú sin recargar', function () {
+    $e = escenario();
+    DbContext::system(fn () => DB::table('device_change_requests')->insert(['student_id' => $e['estudiante']->id, 'reason' => 'Me lo robaron', 'status' => 'pending', 'created_at' => now(), 'updated_at' => now()]));
+    actingAs($e['soporte']);
+
+    Livewire::test(SolicitudesDispositivo::class)->call('aprobar')
+        ->assertDispatched('aviso', tipo: 'exito')
+        ->assertDispatched('contador-menu', clave: 'dispositivos-pendientes', valor: 0);
+});
+
+it('CP-RF27-04 avisa en Pendientes un cambio aprobado en los 30 días previos, y no cuenta la solicitud misma', function () {
+    $e = escenario();
+    $this->travelTo('2026-10-20 10:00');
+    DbContext::system(fn () => DB::table('device_change_requests')->insert([
+        ['student_id' => $e['estudiante']->id, 'reason' => 'Primero', 'status' => 'approved', 'resolved_by' => $e['soporte']->id, 'resolved_at' => '2026-10-05 09:00', 'created_at' => '2026-10-04 09:00', 'updated_at' => now()],
+        ['student_id' => $e['estudiante']->id, 'reason' => 'Segundo', 'status' => 'pending', 'resolved_by' => null, 'resolved_at' => null, 'created_at' => '2026-10-20 08:00', 'updated_at' => now()],
+    ]));
+    actingAs($e['soporte']);
+
+    Livewire::test(SolicitudesDispositivo::class)->assertSeeText('Ya había cambiado de teléfono en los 30 días anteriores a esta solicitud.');
+
+    // La primera, ya resuelta, no tenía un cambio anterior: no se cuenta a sí misma.
+    Livewire::withQueryParams(['estado' => 'resueltas'])->test(SolicitudesDispositivo::class)
+        ->assertSeeText('Primero')->assertDontSeeText('Ya había cambiado de teléfono');
+});
+
 it('grants and revokes permissions but never removes role management from administrators', function () {
     $e = escenario();
     actingAs($e['administrador']);
 
-    Livewire::test(RolesPermisos::class)->call('alternar', 'docente', 'reportes.ver');
+    Livewire::test(RolesPermisos::class)->call('marcar', 'docente', 'reportes.ver')->call('guardar');
     expect(Role::findByName('docente')->hasPermissionTo('reportes.ver'))->toBeFalse();
 
-    Livewire::test(RolesPermisos::class)->call('alternar', 'administrador', 'roles.gestionar')->assertDispatched('aviso', tipo: 'error');
+    Livewire::test(RolesPermisos::class)->call('marcar', 'administrador', 'roles.gestionar')->call('guardar')->assertDispatched('aviso', tipo: 'error');
     expect(Role::findByName('administrador')->hasPermissionTo('roles.gestionar'))->toBeTrue();
+});
+
+it('CP-RF03-09 acumula los cambios de permisos y no aplica nada hasta «Guardar cambios»', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+
+    $pantalla = Livewire::test(RolesPermisos::class)
+        ->call('marcar', 'docente', 'reportes.ver')
+        ->call('marcar', 'coordinador', 'reportes.ver')
+        ->assertSet('cambios', ['docente|reportes.ver' => false, 'coordinador|reportes.ver' => false])
+        ->assertSee(__('Tiene 2 cambios sin guardar.'));
+    expect(Role::findByName('docente')->hasPermissionTo('reportes.ver'))->toBeTrue();
+
+    // Volver a marcar la casilla la deja como estaba guardada y quita el cambio.
+    $pantalla->call('marcar', 'coordinador', 'reportes.ver')->assertSet('cambios', ['docente|reportes.ver' => false])
+        ->call('guardar')->assertSet('cambios', [])->assertDispatched('aviso', tipo: 'exito');
+    expect(Role::findByName('docente')->hasPermissionTo('reportes.ver'))->toBeFalse()
+        ->and(Role::findByName('coordinador')->hasPermissionTo('reportes.ver'))->toBeTrue();
+});
+
+it('CP-RF03-09 descartar no cambia nada y la pantalla muestra el nombre legible del permiso', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+
+    Livewire::test(RolesPermisos::class)
+        ->assertSee(['Publicar actas', 'actas.publicar', 'con este rol'])
+        ->call('marcar', 'docente', 'reportes.ver')->call('descartar')->assertSet('cambios', []);
+    expect(Role::findByName('docente')->hasPermissionTo('reportes.ver'))->toBeTrue();
+
+    Livewire::test(RolesPermisos::class)->set('buscar', 'publicar actas')->assertSee('actas.publicar')->assertDontSee('reportes.ver');
 });
 
 it('CP-RF27-06 muestra en «Resueltas» el motivo con que Soporte rechazó la solicitud', function () {

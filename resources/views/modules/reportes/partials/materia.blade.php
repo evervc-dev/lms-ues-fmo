@@ -30,7 +30,7 @@
     <div>
         <div class="flex items-baseline justify-between text-xs">
             <span class="text-texto-suave">{{ __('Avance del curso') }}</span>
-            <span class="font-semibold text-texto">{{ $m->avance !== null ? $m->avance.' %' : '—' }}</span>
+            <span class="font-semibold text-texto">{{ $m->avance !== null ? $m->avance.' %' : __('— · Sin material') }}</span>
         </div>
         <x-ui.progress class="mt-1" :valor="$m->avance ?? 0" :mostrar="false"
             :etiqueta="__('Avance de :m', ['m' => $m->code])" />
@@ -44,7 +44,8 @@
     <div class="mt-auto flex items-center justify-between gap-3 border-t border-borde pt-3">
         <p class="truncate text-xs text-texto-suave">
             @forelse ($m->horario as $h)
-                {{ $dias[$h->weekday] ?? '' }} {{ \Illuminate\Support\Str::of($h->start_time)->substr(0, 5) }}@if (! $loop->last) · @endif
+                {{-- Con inicio y fin, como en la materia: «Vie 07:00 · Vie 08:50» parecía un rango y eran dos clases. --}}
+                {{ $dias[$h->weekday] ?? '' }} {{ substr((string) $h->start_time, 0, 5) }}–{{ substr((string) $h->end_time, 0, 5) }}@if (! $loop->last) · @endif
             @empty
                 {{ __('Sin horario asignado') }}
             @endforelse

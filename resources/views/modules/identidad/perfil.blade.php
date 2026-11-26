@@ -10,7 +10,7 @@
                 <div><dt class="text-texto-suave">{{ __('Nombre') }}</dt><dd class="font-medium">{{ $usuario->fullName() }}</dd></div>
                 <div><dt class="text-texto-suave">{{ __('Correo institucional') }}</dt><dd class="font-medium">{{ $usuario->institutional_email }}</dd></div>
                 @if ($datos['estudiante'])
-                    <div><dt class="text-texto-suave">{{ __('Carné') }}</dt><dd class="font-medium">{{ $datos['estudiante']->carne }}</dd></div>
+                    <div><dt class="text-texto-suave">{{ __('Carné') }}</dt><dd class="font-medium">{{ mb_strtoupper((string) $datos['estudiante']->carne) }}</dd></div>
                     <div><dt class="text-texto-suave">{{ __('Carrera') }}</dt><dd class="font-medium">{{ $datos['estudiante']->carrera }} · {{ $datos['estudiante']->plan }}</dd></div>
                     <div><dt class="text-texto-suave">{{ __('Ciclo') }}</dt><dd class="font-medium">{{ $datos['estudiante']->ciclo }}</dd></div>
                 @endif
@@ -39,9 +39,22 @@
                     @error('dispositivo')
                         <x-ui.alert tipo="error">{{ $message }}</x-ui.alert>
                     @enderror
-                    <div>
-                        <x-ui.button icono="device-phone-mobile" wire:click="registrarDispositivo">{{ __('Registrar este teléfono') }}</x-ui.button>
-                        <p class="mt-1 text-xs text-texto-suave">{{ __('Solo puede tener un teléfono registrado. Para cambiarlo, solicítelo a Soporte.') }}</p>
+                    {{-- Solo en un teléfono (pantalla táctil o navegador móvil). En una computadora se explica y se ofrece un
+                         QR para abrir esta pantalla en el celular: registrar la PC dejaba al estudiante sin poder marcar. --}}
+                    <div x-data="{ telefono: window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) }">
+                        <div x-show="telefono" x-cloak>
+                            <x-ui.button icono="device-phone-mobile" wire:click="registrarDispositivo">{{ __('Registrar este teléfono') }}</x-ui.button>
+                            <p class="mt-1 text-xs text-texto-suave">{{ __('Solo puede tener un teléfono registrado. Para cambiarlo, solicítelo a Soporte.') }}</p>
+                        </div>
+                        <div x-show="! telefono" class="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                            @if ($qrTelefono)
+                                <div class="size-36 shrink-0 rounded-lg bg-white p-2 ring-1 ring-borde [&>svg]:size-full" role="img" aria-label="{{ __('Código QR para abrir esta pantalla en su teléfono') }}">{!! $qrTelefono !!}</div>
+                            @endif
+                            <div>
+                                <p class="font-medium text-texto">{{ __('Abra esta página desde su teléfono') }}</p>
+                                <p class="mt-1 text-texto-suave">{{ __('Está en una computadora: aquí no se puede registrar el teléfono. Escanee el código con la cámara de su celular, entre con su cuenta institucional y pulse «Registrar este teléfono».') }}</p>
+                            </div>
+                        </div>
                     </div>
                 @endif
 

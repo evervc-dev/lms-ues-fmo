@@ -144,6 +144,7 @@ it('CP-RF18-02 al fijar la regla completa a quien ya la cumplía y no desmarca l
     $e = escenario();
     $q = evaluacionDeProgreso($e);
     notaEnBorrador($e, $q['item'], 9.0);
+    actingAs($e['docente']);
     app(CalificacionService::class)->publicar($e['docente'], $q['item']);
     $unidad = unidadDeContenidos($e['seccion']);
 

@@ -47,19 +47,27 @@
                     <span class="hidden sm:inline">LMS UES FMO</span>
                 </a>
 
+                {{-- En el teléfono el período se mantiene, abreviado («2026-II»): antes desaparecía y solo quedaba el aviso de pruebas. --}}
                 <span @class([
-                    'ml-1 hidden items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset md:inline-flex',
+                    'ml-1 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset md:px-3',
                     'bg-marca-50 text-marca-700 ring-marca-200' => $periodoActivo,
                     'bg-zinc-100 text-texto-suave ring-borde' => ! $periodoActivo,
                 ])>
                     <span @class(['size-1.5 rounded-full', 'bg-marca-600' => $periodoActivo, 'bg-texto-desactivado' => ! $periodoActivo])></span>
-                    {{ $periodoActivo ? __('Período :periodo · en curso', ['periodo' => $periodoActivo]) : __('Sin período activo') }}
+                    @if ($periodoActivo)
+                        <span class="md:hidden">{{ $periodoActivo }}</span>
+                        <span class="hidden md:inline">{{ __('Período :periodo · en curso', ['periodo' => $periodoActivo]) }}</span>
+                    @else
+                        <span class="md:hidden">{{ __('Sin período') }}</span>
+                        <span class="hidden md:inline">{{ __('Sin período activo') }}</span>
+                    @endif
                 </span>
 
                 {{-- Con «Entrar como…» activo el ambiente es de pruebas: se avisa en todas las pantallas, no solo en el login (QA 03/11, H-14). --}}
                 @if (app(\App\Modules\Identidad\Services\AccesoDesarrolloService::class)->habilitado())
-                    <span class="ml-1 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-inset ring-amber-200" title="{{ __('Datos de demostración; el acceso «Entrar como…» está activo.') }}">
-                        {{ __('Ambiente de pruebas') }}
+                    <span class="ml-1 inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 ring-1 ring-inset ring-amber-200 md:px-3" title="{{ __('Datos de demostración; el acceso «Entrar como…» está activo.') }}">
+                        <span class="md:hidden">{{ __('Pruebas') }}</span>
+                        <span class="hidden md:inline">{{ __('Ambiente de pruebas') }}</span>
                     </span>
                 @endif
 

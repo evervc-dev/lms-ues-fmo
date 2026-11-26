@@ -260,7 +260,7 @@ it('CP-RF04-23 el alta rechaza un nombre sin espacios y guarda el resto como nom
     Livewire::test(CrearUsuario::class)
         ->set('correo', 'rg21008')->set('nombres', 'Rocío')->set('apellidos', str_repeat('m', 80))
         ->call('siguiente')->assertHasErrors(['apellidos'])->assertSet('paso', 1)
-        ->set('nombres', 'rocío GUADALUPE')->set('apellidos', 'garcía de la o')->set('rolNuevo', 'soporte_tecnico')
+        ->set('nombres', 'ROCÍO GUADALUPE')->set('apellidos', 'garcía de la o')->set('rolNuevo', 'soporte_tecnico')
         ->call('crear')->assertHasNoErrors()->assertRedirect();
 
     $usuario = User::query()->where('institutional_email', 'rg21008@ues.edu.sv')->first();
@@ -277,6 +277,23 @@ it('CP-RF04-23 la edición aplica el mismo formato', function () {
     expect(fn () => app(UsuarioService::class)->actualizarDatos($e['administrador'], $e['docente']->id, ['nombres' => 'Ana', 'apellidos' => str_repeat('m', 80)]))
         ->toThrow(ValidationException::class);
 
-    app(UsuarioService::class)->actualizarDatos($e['administrador'], $e['docente']->id, ['nombres' => 'MARÍA josé', 'apellidos' => 'hernández DEL cid']);
+    app(UsuarioService::class)->actualizarDatos($e['administrador'], $e['docente']->id, ['nombres' => 'MARÍA JOSÉ', 'apellidos' => 'hernández del cid']);
     expect($e['docente']->fresh()->only('first_name', 'last_name'))->toBe(['first_name' => 'María José', 'last_name' => 'Hernández del Cid']);
+});
+
+it('CP-RF04-12 la ficha muestra el carné en mayúsculas y dice «Nunca ha iniciado sesión» sin tabla de accesos vacía', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+    // El carné se guarda en minúsculas como sale del correo (RF04); en pantalla va siempre en mayúsculas.
+    $nuevo = app(UsuarioService::class)->crear($e['administrador'], ['correo' => 'zz99901@ues.edu.sv', 'nombres' => 'Prueba', 'apellidos' => 'Revisión UX',
+        'rol' => 'estudiante', 'asignacion' => ['carrera' => $e['isi'], 'plan' => $e['plan'], 'ciclo' => 1]]);
+
+    expect(DB::table('student_profiles')->where('user_id', $nuevo->id)->value('student_code'))->toBe('zz99901')
+        ->and($nuevo->fresh()->last_name)->toBe('Revisión UX');
+
+    $this->get(route('usuarios.show', $nuevo->id))->assertOk()
+        ->assertSeeText('carné ZZ99901')
+        ->assertSeeText('Nunca ha iniciado sesión')
+        ->assertSeeText('No registrado')
+        ->assertDontSeeText('Últimos accesos');
 });

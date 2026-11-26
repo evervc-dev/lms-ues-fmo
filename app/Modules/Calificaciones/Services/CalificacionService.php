@@ -256,7 +256,7 @@ class CalificacionService
         );
 
         $filas = $libro['filas']->map(fn (object $f) => array_merge(
-            [$f->student_code ?? '', trim($f->last_name.', '.$f->first_name)],
+            [mb_strtoupper((string) $f->student_code), trim($f->last_name.', '.$f->first_name)],
             $items->map(fn (array $item) => ($nota = $f->notas->get($item['id'])) ? (float) $nota->score : null)->all(),
             [$f->final],
         ))->values()->all();

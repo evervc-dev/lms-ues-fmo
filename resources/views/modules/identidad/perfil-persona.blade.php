@@ -62,7 +62,7 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div><dt class="text-texto-suave">{{ __('Plan') }}</dt><dd>{{ $estudiante['plan'] ?? '—' }}</dd></div>
                             <div><dt class="text-texto-suave">{{ __('Ciclo') }}</dt><dd>{{ $estudiante['ciclo'] ?? '—' }}</dd></div>
-                            <div><dt class="text-texto-suave">{{ __('Carné') }}</dt><dd>{{ $estudiante['carne'] ?? '—' }}</dd></div>
+                            <div><dt class="text-texto-suave">{{ __('Carné') }}</dt><dd>{{ ($estudiante['carne'] ?? null) ? mb_strtoupper($estudiante['carne']) : __('No registrado') }}</dd></div>
                             <div><dt class="text-texto-suave">{{ __('Año de ingreso') }}</dt><dd>{{ $estudiante['ingreso'] ? $estudiante['ingreso']['anio'].' ('.$estudiante['ingreso']['periodo'].')' : '—' }}</dd></div>
                         </div>
                         <div>

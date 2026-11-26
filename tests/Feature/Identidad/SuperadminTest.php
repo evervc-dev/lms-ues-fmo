@@ -76,7 +76,11 @@ it('CP-RF03-08 entra por /acceso-local con la contraseña y registra el intento'
 it('CP-RF03-08 rechaza una contraseña errada y una cuenta que no es superadmin, y bloquea tras 5 intentos', function () {
     $cuenta = superadmin();
     $otro = usuarioCon('administrador');
-    DbContext::system(fn () => $otro->forceFill(['password' => bcrypt(CLAVE_SUPERADMIN)])->save());
+    // Aunque otra cuenta tuviera la misma contraseña, no entra por no ser superadmin. En PostgreSQL ni siquiera puede
+    // tenerla: el CHECK users_password_only_emergency solo deja contraseña a la cuenta de emergencia.
+    if (DB::connection()->getDriverName() !== 'pgsql') {
+        DbContext::system(fn () => $otro->forceFill(['password' => bcrypt(CLAVE_SUPERADMIN)])->save());
+    }
     RateLimiter::clear('acceso-local:superadmin@ues.edu.sv|127.0.0.1');
 
     Livewire::test(AccesoLocal::class)->set('correo', $otro->institutional_email)->set('clave', CLAVE_SUPERADMIN)

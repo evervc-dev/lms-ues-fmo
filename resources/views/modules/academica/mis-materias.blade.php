@@ -9,18 +9,30 @@
             <x-slot:acciones><x-ui.button icono="plus" :href="route('inscripcion')">{{ __('Inscribir materias') }}</x-ui.button></x-slot:acciones>
         </x-ui.empty-state></x-ui.card>
     @else
+        @if ($plazoCambio && ! $cambioAbierto)
+            <p class="text-sm text-texto-suave">{{ __('El plazo para pedir cambios de grupo terminó el :fecha.', ['fecha' => $plazoCambio->format('d/m/Y')]) }}</p>
+        @endif
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             @foreach ($materias as $m)
                 <div wire:key="materia-{{ $m->id }}" class="flex flex-col rounded-xl bg-white ring-1 ring-borde transition hover:ring-marca-300">
-                    <a href="{{ route('secciones.contenidos', ['seccion' => $m->ulid]) }}" wire:navigate class="flex flex-1 flex-col gap-3 p-4">
+                    {{-- Toda la parte de arriba abre la materia, con el cursor de enlace y un «Ingresar» visible. --}}
+                    <a href="{{ route('secciones.contenidos', ['seccion' => $m->ulid]) }}" wire:navigate class="flex flex-1 cursor-pointer flex-col gap-3 p-4">
                         <div class="flex gap-1"><x-ui.badge color="marca">{{ $m->code }}</x-ui.badge><x-ui.badge>{{ __('Grupo :g', ['g' => $m->grupo]) }}</x-ui.badge></div>
                         <h2 class="font-semibold text-texto">{{ $m->name }}</h2>
                         <p class="text-sm text-texto-suave">{{ $m->docente ?? __('Docente por asignar') }}</p>
-                        <x-ui.progress :valor="$m->recursos ? 100 * $m->completados / $m->recursos : 0" :etiqueta="__('Avance de :m', ['m' => $m->code])" />
+                        {{-- Sin materiales, «Sin material» en vez de un 0 % (igual que en Inicio). --}}
+                        @if ($m->recursos)
+                            <x-ui.progress :valor="100 * $m->completados / $m->recursos" :etiqueta="__('Avance de :m', ['m' => $m->code])" />
+                        @else
+                            <p class="text-xs text-texto-suave">{{ __('Avance: — · Sin material') }}</p>
+                        @endif
+                        <span class="text-sm font-medium text-marca-700">{{ __('Ingresar') }} →</span>
                     </a>
-                    <div class="border-t border-borde px-2 py-1">
-                        <x-ui.button tamano="sm" variante="fantasma" icono="arrows-right-left" wire:click="abrirCambio({{ $m->id }})">{{ __('Solicitar cambio de grupo') }}</x-ui.button>
-                    </div>
+                    @if ($cambioAbierto)
+                        <div class="border-t border-borde px-2 py-1">
+                            <x-ui.button tamano="sm" variante="fantasma" icono="arrows-right-left" wire:click="abrirCambio({{ $m->id }})">{{ __('Solicitar cambio de grupo') }}</x-ui.button>
+                        </div>
+                    @endif
                 </div>
             @endforeach
         </div>

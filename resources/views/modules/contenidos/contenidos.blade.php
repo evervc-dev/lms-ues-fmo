@@ -4,7 +4,8 @@
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
 
     <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex w-full max-w-xl flex-wrap items-center gap-2">
+        {{-- Sin materiales no hay qué buscar ni filtrar: se ocultan hasta que haya (revisión UX del rol Estudiante). --}}
+        <div @class(['flex w-full max-w-xl flex-wrap items-center gap-2', 'hidden' => ! $hayMateriales && $buscar === '' && $tipo === ''])>
             <x-ui.search class="min-w-0 flex-1" wire:model.live.debounce.300ms="buscar" :placeholder="__('Buscar material por nombre…')" />
             <x-ui.select class="w-44" wire:model.live="tipo" :aria-label="__('Filtrar por tipo')">
                 <option value="">{{ __('Todos los tipos') }}</option>
@@ -21,7 +22,7 @@
         </div>
     </div>
 
-    @if ($esEstudiante)
+    @if ($esEstudiante && $hayMateriales)
         <x-ui.card><p class="mb-2 text-sm font-medium text-texto">{{ __('Su avance en la materia') }}</p><x-ui.progress :valor="$avance" :etiqueta="__('Avance')" /></x-ui.card>
     @endif
 

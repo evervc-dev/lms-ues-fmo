@@ -36,7 +36,8 @@
                         <span @class(['block text-sm font-medium', 'text-texto' => $actual || $hecho, 'text-texto-suave' => ! $actual && ! $hecho])>
                             {{ $definicion['titulo'] }}
                         </span>
-                        @if ($actual && ($definicion['descripcion'] ?? null))
+                        {{-- Todos los pasos llevan su subtítulo: si solo lo tenía el actual, la barra cambiaba de alto al avanzar. --}}
+                        @if ($definicion['descripcion'] ?? null)
                             <span class="block text-xs text-texto-suave">{{ $definicion['descripcion'] }}</span>
                         @endif
                     </span>

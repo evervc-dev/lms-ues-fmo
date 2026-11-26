@@ -44,14 +44,16 @@
         </div>
 
         <x-ui.table ajustar :vacio="__('No hay intentos con esos filtros.')">
-            <x-slot:cabecera><th>{{ __('Fecha y hora') }}</th><th>{{ __('Estudiante') }}</th><th>{{ __('Sesión') }}</th><th>{{ __('Resultado') }}</th><th class="text-right">{{ __('Distancia') }}</th></x-slot:cabecera>
+            {{-- «Resultado», lo que se viene a ver, va junto al estudiante: en el teléfono quedaba fuera de la pantalla. --}}
+            <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Resultado') }}</th><th>{{ __('Fecha y hora') }}</th><th>{{ __('Sesión') }}</th><th class="text-right">{{ __('Distancia') }}</th></x-slot:cabecera>
             @foreach ($intentos as $i)
                 <tr wire:key="intento-{{ $i->id }}">
-                    <td class="whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($i->occurred_at)->timezone('America/El_Salvador')->format('d/m/Y H:i:s') }}</td>
-                    <td>{{ $i->first_name }} {{ $i->last_name }}<p class="text-xs text-texto-suave">{{ $i->student_code ?? $i->institutional_email }}</p></td>
-                    <td>{{ $i->materia }} · {{ $i->grupo }}<p class="text-xs text-texto-suave">{{ \Illuminate\Support\Carbon::parse($i->session_date)->format('d/m/Y') }}</p></td>
+                    <td class="min-w-40">{{ $i->first_name }} {{ $i->last_name }}<p class="text-xs text-texto-suave">{{ $i->student_code ? mb_strtoupper($i->student_code) : $i->institutional_email }}</p></td>
                     <td><x-ui.badge :color="$i->result === 'ok' ? 'verde' : ($i->result === 'token_expired' ? 'ambar' : 'rojo')">{{ __($motivos[$i->result] ?? $i->result) }}</x-ui.badge></td>
-                    <td class="text-right">{{ $i->distance_m !== null ? number_format($i->distance_m).' m' : '—' }}</td>
+                    <td class="whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($i->occurred_at)->timezone('America/El_Salvador')->format('d/m/Y H:i:s') }}</td>
+                    <td>{{ $i->materia }} · {{ $i->grupo }}<p class="text-xs text-texto-suave">{{ \Illuminate\Support\Carbon::parse($i->session_date)->format('d/m/Y') }}</p></td>
+                    {{-- Sin ubicación no hay distancia que mostrar, aunque la fila traiga una. --}}
+                    <td class="text-right">{{ $i->distance_m !== null && $i->result !== 'no_location' ? number_format($i->distance_m).' m' : '—' }}</td>
                 </tr>
             @endforeach
         </x-ui.table>

@@ -618,6 +618,7 @@ it('deja de ofrecer el enlace de Meet cuando la clase terminó, pero conserva la
     $e = escenarioMeet();
     // La clase de prueba empezó a las 07:00 y «ahora» son las 10:00: ya terminó.
     $terminada = claseVirtual($e, ['topic' => 'Recursividad en Python']);
+    actingAs($e['docente']);
     servicioMeet()->grabacion($e['docente'], $e['seccion'], $terminada, 'https://drive.google.com/file/d/abc/view');
     actingAs($e['estudiante']);
 
@@ -625,12 +626,14 @@ it('deja de ofrecer el enlace de Meet cuando la clase terminó, pero conserva la
         ->assertDontSee('Unirse a Meet')->assertSee('Ver grabación');
 
     // Sin grabación, la fila dice que la clase finalizó en vez de invitar a entrar a la llamada.
+    actingAs($e['docente']);
     servicioMeet()->grabacion($e['docente'], $e['seccion'], $terminada, null);
+    actingAs($e['estudiante']);
     Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])
         ->assertDontSee('Unirse a Meet')->assertSee('Clase finalizada');
 
     // La que todavía no empieza sí mantiene el enlace.
-    DB::table('video_sessions')->where('id', $terminada)->delete();
+    DbContext::system(fn () => DB::table('video_sessions')->where('id', $terminada)->delete());
     claseVirtual($e, ['topic' => 'Normalización', 'starts_at' => '2026-10-30 07:00:00', 'status' => 'scheduled']);
     Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])->assertSee('Unirse a Meet');
 });
@@ -645,7 +648,7 @@ it('muestra el enlace de Meet a la vista y copiable mientras la clase sigue abie
         ->assertDontSee('Copiar el enlace de Meet')->assertDontSee('meet.google.com/abc-defg-hij');
 
     // La que sigue abierta muestra el enlace en texto, además del «Unirse a Meet».
-    DB::table('video_sessions')->where('id', $terminada)->delete();
+    DbContext::system(fn () => DB::table('video_sessions')->where('id', $terminada)->delete());
     claseVirtual($e, ['topic' => 'Normalización', 'starts_at' => '2026-10-30 07:00:00', 'status' => 'scheduled']);
 
     Livewire::test(ClasesVirtuales::class, ['seccionId' => $e['seccion']])

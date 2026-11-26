@@ -2,6 +2,7 @@
 
 namespace App\Modules\Contenidos\Livewire;
 
+use App\Modules\Contenidos\Services\ContenidoService;
 use App\Modules\Contenidos\Services\ProgresoService;
 use App\Support\Navegacion\PaginaDeSeccion;
 use Illuminate\Contracts\View\View;
@@ -17,8 +18,12 @@ class Progreso extends Component
 {
     use PaginaDeSeccion;
 
-    public function render(ProgresoService $progreso): View
+    public function render(ProgresoService $progreso, ContenidoService $contenidos): View
     {
-        return $this->paginaDeSeccion('modules.contenidos.progreso', $progreso->avance(auth()->user(), $this->seccionId()));
+        $seccion = $this->seccionId();
+
+        // Quien no gestiona los contenidos (el estudiante, el Coordinador) no recibe la invitación a crear unidades.
+        return $this->paginaDeSeccion('modules.contenidos.progreso', $progreso->avance(auth()->user(), $seccion)
+            + ['gestiona' => $contenidos->puedeGestionar(auth()->user(), $seccion)]);
     }
 }

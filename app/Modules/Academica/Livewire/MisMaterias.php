@@ -71,6 +71,14 @@ class MisMaterias extends Component
                 DB::raw("(select users.first_name || ' ' || users.last_name from teaching_assignments t join users on users.id = t.teacher_id where t.section_id = s.id and t.is_responsible = true and t.ended_at is null limit 1) as docente"))
             ->orderBy('a.code')->get();
 
-        return $this->pagina('modules.academica.mis-materias', ['materias' => $materias]);
+        // Con el plazo vencido no se ofrece el botón en cada tarjeta: antes se abría para decir que ya terminó.
+        $periodo = PeriodoService::activoId();
+        $plazoCambio = $periodo === null ? null : app(MatriculaService::class)->plazoDeCambio($periodo);
+
+        return $this->pagina('modules.academica.mis-materias', [
+            'materias' => $materias,
+            'plazoCambio' => $plazoCambio,
+            'cambioAbierto' => $plazoCambio !== null && now()->lte($plazoCambio),
+        ]);
     }
 }

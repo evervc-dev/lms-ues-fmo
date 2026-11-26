@@ -12,7 +12,7 @@
             <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Asignatura') }}</th><th>{{ __('Cambio') }}</th><th>{{ __('Justificación') }}</th><th>{{ __('Fecha') }}</th><th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
             @foreach ($solicitudes as $s)
                 <tr wire:key="cambio-{{ $s->id }}">
-                    <td>{{ $s->first_name }} {{ $s->last_name }}<p class="text-xs text-texto-suave">{{ $s->student_code }}</p></td>
+                    <td>{{ $s->first_name }} {{ $s->last_name }}<p class="text-xs text-texto-suave">{{ mb_strtoupper((string) $s->student_code) }}</p></td>
                     <td><span class="font-semibold">{{ $s->code }}</span> · {{ $s->name }}</td>
                     <td>{{ __('Grupo :o → :d', ['o' => $s->grupo_origen, 'd' => $s->grupo_destino]) }}</td>
                     <td class="max-w-xs">{{ $s->justification }}</td>

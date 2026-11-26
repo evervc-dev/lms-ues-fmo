@@ -72,6 +72,6 @@ class ImportarUsuarios extends Component
 
     public function render(ImportacionService $importacion): View
     {
-        return $this->pagina('modules.identidad.importar', ['lotes' => $importacion->lotes(auth()->user()), 'columnas' => ImportacionService::COLUMNAS]);
+        return $this->pagina('modules.identidad.importar', ['lotes' => $importacion->lotes(auth()->user()), 'columnas' => $importacion->columnas(auth()->user())]);
     }
 }

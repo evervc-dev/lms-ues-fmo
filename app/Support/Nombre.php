@@ -7,7 +7,8 @@ use Closure;
 /**
  * Formato de los nombres y apellidos de las cuentas (ADR-060, QA sesión 4): como mucho 60 caracteres por campo,
  * ninguna palabra de más de 25 letras (un apellido de 80 «m» seguidas estiraba la tabla de Usuarios y ocultaba sus
- * acciones) y guardados como nombre propio: «maría DE LOS ángeles» pasa a «María de los Ángeles».
+ * acciones). Se pasan a nombre propio solo si vienen todo en mayúsculas o todo en minúsculas: «MARÍA DE LOS ÁNGELES»
+ * pasa a «María de los Ángeles»; lo escrito con mayúsculas mezcladas se respeta («Revisión UX», «McDonald») (ADR-084).
  *
  * Lo usan el alta, la edición y la carga masiva (que rechazan lo que no cumple) y el ingreso con Google (que solo
  * normaliza: no se le niega la entrada a nadie por cómo escribió su nombre en Google).
@@ -24,6 +25,12 @@ final class Nombre
     public static function normalizar(string $valor): string
     {
         $palabras = preg_split('/\s+/u', trim($valor), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $unido = implode(' ', $palabras);
+
+        // Mayúsculas mezcladas: quien lo escribió eligió cómo (ADR-084). Solo se quitan los espacios de más.
+        if ($unido !== mb_strtoupper($unido) && $unido !== mb_strtolower($unido)) {
+            return $unido;
+        }
 
         return implode(' ', array_map(function (string $palabra, int $i): string {
             $minuscula = mb_strtolower($palabra);

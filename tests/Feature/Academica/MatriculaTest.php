@@ -439,7 +439,7 @@ it('CP-RF09-08 el cambio aprobado hereda el cómputo publicado, deja el historia
         ->and(DB::table('attendance_records')->where('enrollment_id', $nueva)->exists())->toBeFalse();
 });
 
-it('CP-RF09-08 registra el cambio de grupo en la auditoría, con el Coordinador como actor', function () {
+it('CP-RF09-08 registra el cambio de grupo en la auditoría, con el Jefe que lo aprobó como actor', function () {
     $e = escenario();
     $this->travelTo('2026-08-10 10:00');
     $dos = matriculaGrupoDos($e);
@@ -452,7 +452,8 @@ it('CP-RF09-08 registra el cambio de grupo en la auditoría, con el Coordinador 
 
     expect($auditoria->where('action', 'insert')->pluck('entity_id')->map(fn ($id) => (int) $id)->all())->toBe([$nueva])
         ->and($auditoria->where('action', 'update')->pluck('entity_id')->unique()->map(fn ($id) => (int) $id)->all())->toBe([$e['matricula']])
-        ->and($auditoria->pluck('actor_user_id')->unique()->map(fn ($id) => (int) $id)->all())->toBe([$e['coordinador']->id])
+        // El cambio de grupo lo resuelve el Jefe del departamento (ADR-078).
+        ->and($auditoria->pluck('actor_user_id')->unique()->map(fn ($id) => (int) $id)->all())->toBe([$e['jefe']->id])
         ->and(json_decode((string) $traslado->old_values, true)['status'])->toBe('active')
         ->and(json_decode((string) $traslado->new_values, true)['status'])->toBe('transferred');
 })->skip(fn () => DB::connection()->getDriverName() !== 'pgsql', 'La auditoría por triggers solo existe en PostgreSQL.');

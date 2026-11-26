@@ -81,6 +81,7 @@
             @endif
         </x-ui.card>
     @empty
-        <x-ui.card><x-ui.empty-state icono="clipboard-document-list" :titulo="__('El grupo teórico no tiene cómputos configurados')" /></x-ui.card>
+        {{-- Sin jerga interna para el estudiante: «cómputos» es un término del docente. --}}
+        <x-ui.card><x-ui.empty-state icono="clipboard-document-list" :titulo="$gestiona ? __('El grupo teórico no tiene cómputos configurados') : __('Su docente aún no ha publicado actividades.')" /></x-ui.card>
     @endforelse
 </div>

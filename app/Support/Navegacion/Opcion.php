@@ -5,7 +5,8 @@ namespace App\Support\Navegacion;
 /**
  * Una opción del menú ya resuelta para el usuario. Si la ruta aún no existe, $url es null y se
  * muestra deshabilitada («Pronto»); si es una página provisional del registro de vistas, $pendiente es true.
- * $contador es lo que queda por atender detrás de la opción (0 si no lleva contador).
+ * $contador es lo que queda por atender detrás de la opción (0 si no lleva contador); $claveContador, la clave
+ * de Contadores con la que una pantalla lo actualiza sin recargar (evento «contador-menu»), o null si no lleva.
  * $secundaria la dibuja con sangría bajo la opción de la que depende (p. ej. «Importar estudiantes»
  * bajo «Usuarios»). $externa es una pantalla fuera de la aplicación Livewire, como el panel de Horizon:
  * se abre en otra pestaña y con una carga normal, porque wire:navigate le deja al navegador los estilos del panel
@@ -24,6 +25,7 @@ final readonly class Opcion
         public int $contador = 0,
         public bool $secundaria = false,
         public bool $externa = false,
+        public ?string $claveContador = null,
     ) {}
 
     public function disponible(): bool
@@ -35,6 +37,6 @@ final readonly class Opcion
     public function inactiva(): self
     {
         return new self($this->clave, $this->etiqueta, $this->icono, $this->ruta, $this->url, false,
-            $this->pendiente, $this->contador, $this->secundaria, $this->externa);
+            $this->pendiente, $this->contador, $this->secundaria, $this->externa, $this->claveContador);
     }
 }

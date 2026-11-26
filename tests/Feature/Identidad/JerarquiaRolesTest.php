@@ -292,6 +292,9 @@ it('CP-RF04-17 hides access history and device from the head in the user page', 
 
 it('shows each action only to whoever may use it in the user page', function () {
     $e = escenario();
+    // Con un acceso registrado: sin accesos la tabla no se dibuja (revisión UX del rol Soporte).
+    DB::table('login_history')->insert(['user_id' => $e['estudiante']->id, 'attempted_email' => $e['estudiante']->institutional_email, 'ip_address' => '127.0.0.1',
+        'result' => 'success', 'occurred_at' => now()]);
 
     actingAs($e['soporte'])->get(route('usuarios.show', $e['estudiante']->id))->assertOk()->assertSeeText(['Editar datos', 'Últimos accesos']);
     actingAs($e['soporte'])->get(route('usuarios.show', $e['docente']->id))->assertOk()->assertDontSeeText(['Editar datos', 'Roles y asignaciones']);
@@ -413,4 +416,23 @@ it('CP-RF04-22 no toca a las cuentas que ya tienen la combinación incompatible'
 
     actingAs($e['administrador'])->get(route('usuarios.show', $antigua->id))->assertOk();
     expect($antigua->fresh()->getRoleNames()->sort()->values()->all())->toBe(['docente', 'estudiante', 'soporte_tecnico']);
+});
+
+it('CP-RF04-27 el tipo de cuenta deja un rol exclusivo solo y el personal conserva sus roles combinables', function () {
+    $e = escenario();
+
+    Livewire::actingAs($e['administrador'])->test(RolesUsuario::class, ['usuario' => $e['docente']->id])
+        ->assertSet('tipoCuenta', 'personal')
+        ->assertSeeText(['Tipo de cuenta', 'Personal académico', 'Roles del personal', 'Imparte grupos teóricos.'])
+        ->set('tipoCuenta', 'estudiante')->assertSet('roles', ['estudiante'])->assertDontSeeText('Roles del personal')
+        ->set('tipoCuenta', 'personal')->assertSet('roles', [])
+        ->set('roles', ['docente', 'coordinador'])->assertSet('tipoCuenta', 'personal');
+});
+
+it('CP-RF04-27 al Jefe no se le ofrece convertir la cuenta en Estudiante ni Soporte Técnico', function () {
+    $e = escenario();
+
+    Livewire::actingAs($e['jefe'])->test(RolesUsuario::class, ['usuario' => $e['docente']->id])
+        ->assertSeeHtml('value="estudiante" wire:model.live="tipoCuenta" disabled')
+        ->assertSeeHtml('value="soporte_tecnico" wire:model.live="tipoCuenta" disabled');
 });

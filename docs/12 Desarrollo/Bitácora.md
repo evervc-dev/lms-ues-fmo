@@ -18,6 +18,35 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-21 · RF09, RF17, RF18, RF20, RF27, RF29 · Correcciones de la revisión UX/UI del rol Estudiante
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:**
+  - **Dispositivo (RF27):** en una computadora (sin pantalla táctil ni navegador móvil) no se ofrece «Registrar este teléfono»: se explica y se muestra un QR que abre Mi perfil › Dispositivo en el celular. Ya había llegado a Soporte una solicitud de quien registró la PC.
+  - **Escanear QR (RF20):** sin teléfono registrado pide registrarlo antes y no muestra el lector; el código temporal acepta solo 6 dígitos con teclado numérico; el título es «Escanear QR», como el menú.
+  - **Mis notas (RF17):** sin notas publicadas dice «Sin notas aún» en gris, no un 0.0 rojo.
+  - **Mis materias (RF09, RF18):** «Solicitar cambio de grupo» solo dentro del plazo, con la fecha cuando ya cerró; la tarjeta entera abre la materia, con «Ingresar»; sin materiales, «Sin material» en vez de 0 %.
+  - **Inicio:** el horario con inicio y fin («Lun 07:00–08:40»).
+  - **Materia:** miga «Inicio › Mis materias › BAD115 · 01» para el estudiante; textos para él en Progreso y Actividades (sin «cómputos»); sin buscador ni filtro cuando no hay materiales; pestañas sin barra visible y con desvanecido; el aula no se parte.
+  - **Inscripción (RF29):** «Período 2026-II» en vez de «Ciclo II»; primero las materias con grupo abierto, las demás atenuadas y el filtro «Solo con grupos abiertos». La clave no distingue mayúsculas ni espacios (se guarda y se compara normalizada; las claves anteriores siguen sirviendo). La descripción sembrada ya no repite el ciclo, que dependía del plan.
+- **CP cubiertos:** CP-RF09-07, CP-RF17-01, CP-RF18-01, CP-RF20-01, CP-RF27-01, CP-RF29-03, CP-RF29-08 (pruebas nuevas); revisado en el navegador a 390 px y en escritorio.
+- **Decisiones:** del usuario el 21/11/2026: en una computadora se bloquea el registro y se muestra un QR; «ciclo» queda solo para el nivel del plan y el semestre se nombra por el período.
+- **Pendiente:** las descripciones de asignatura ya sembradas en staging conservan «Asignatura del ciclo N» hasta volver a sembrar o editarlas.
+
+### 2026-11-21 · RF04, RF20, RF27 · Correcciones de la revisión UX/UI del rol Soporte Técnico
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:**
+  - **Cambios de teléfono (RF27):** un solo nombre en el menú, la página y el Inicio. El motivo aparece al pulsar «Rechazar» y se valida antes de resolver, sin un «¿Continuar?» extra; los errores se limpian al cambiar de solicitud. Al resolver, el contador del menú se actualiza sin recargar (evento `contador-menu`). El aviso de los 30 días se mide contra la fecha de la solicitud y sin contarla a ella: antes salía en Resueltas por la propia solicitud aprobada y no en Pendientes. En el teléfono, la lista y el detalle no se apilan.
+  - **Usuarios (RF04):** tarjetas en el teléfono (la tabla partía el nombre letra por letra), buscador «Nombre o correo…», el rol como texto fijo cuando solo hay uno, un solo mensaje de activación, el indicador de pasos con subtítulo en todos los pasos. Ficha: «Perfil académico» en vez de «Ver perfil», «Nunca ha iniciado sesión» y «No registrado» en vez de «—», sin tabla de accesos vacía.
+  - **Carné:** se guarda como dice RF04 (en minúsculas, del correo) y se muestra siempre en mayúsculas, también en los CSV.
+  - **Importar:** la miga es «Inicio › Usuarios › Importar estudiantes» y la plantilla de Soporte ya no pide la columna `rol`.
+  - **Diagnóstico (RF20):** «Resultado» junto al estudiante; «Sin ubicación» no muestra distancia. La distancia contradictoria venía del seeder de demostración, corregido.
+  - **Encabezado:** en el teléfono queda el período abreviado («2026-II»).
+- **CP cubiertos:** CP-RF27-04, CP-RF27-05 (nuevas), CP-RF04-12, CP-RF04-20, CP-RF04-23, CP-RF20-13; revisado en el navegador a 390 px.
+- **Decisiones:** [[ADR-084 Nombres con mayúsculas mezcladas se respetan]] (pendiente). Carné: mostrar en mayúsculas sin cambiar RF04. «Año de ingreso» muestra «No registrado»; pedirlo en el alta queda para después.
+- **Pendiente:** el 502 «Application failed to respond» lo devuelve el proxy de Railway cuando la aplicación no responde; Laravel no puede dibujar ahí una página propia. Hay que revisar los logs de Railway (memoria, arranque, workers).
+
 ### 2026-11-21 · — · DbContext anidado restaura el contexto de afuera
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

@@ -78,6 +78,7 @@ it('CP-RF07-09 edita el código y el nombre de un departamento', function () {
 
 it('CP-RF07-09 al editar rechaza el código de otro departamento pero admite el propio', function () {
     $e = escenario();
+    actingAs($e['administrador']);
 
     expect(fn () => departamentos()->guardarDepartamento($e['administrador'], $e['dia'], 'dcnm', 'Ingeniería'))
         ->toThrow(ValidationException::class, 'Ya existe un departamento con ese código.');

@@ -18,7 +18,7 @@
                     <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('Docentes') }}</dt><x-ui.icon name="academic-cap" class="size-4" /><dd>{{ implode(', ', $seccion['docentes']) }}</dd></div>
                 @endif
                 @if ($seccion['horario'])
-                    <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('Horario') }}</dt><x-ui.icon name="clock" class="size-4" /><dd>{{ implode(' · ', $seccion['horario']) }}</dd></div>
+                    <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('Horario') }}</dt><x-ui.icon name="clock" class="size-4" /><dd class="flex flex-wrap gap-x-1">@foreach ($seccion['horario'] as $franja)<span class="whitespace-nowrap">{{ $franja }}@if (! $loop->last) ·@endif</span>@endforeach</dd></div>
                 @endif
             </dl>
         </div>

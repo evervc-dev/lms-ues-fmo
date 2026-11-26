@@ -43,7 +43,7 @@
                 <x-slot:cabecera><th>{{ __('Estudiante') }}</th><th>{{ __('Estado') }}</th><th>{{ __('Método') }}</th>@if ($salida)<th>{{ __('Salida') }}</th>@endif<th class="text-right">{{ __('Acciones') }}</th></x-slot:cabecera>
                 @foreach ($estudiantes as $e)
                     <tr wire:key="asis-{{ $e->matricula }}">
-                        <td>{{ $e->last_name }}, {{ $e->first_name }}<p class="text-xs text-texto-suave">{{ $e->student_code }}</p></td>
+                        <td>{{ $e->last_name }}, {{ $e->first_name }}<p class="text-xs text-texto-suave">{{ mb_strtoupper((string) $e->student_code) }}</p></td>
                         <td>@if ($e->status)<x-ui.badge :color="$colores[$e->status]">{{ __($estados[$e->status]) }}</x-ui.badge>@else<span class="text-texto-suave">—</span>@endif</td>
                         <td class="text-texto-suave">{{ $e->method ? __($metodos[$e->method] ?? $e->method) : '' }}{{ $e->correction_reason ? ' · '.__('corregido') : '' }}</td>
                         @if ($salida)

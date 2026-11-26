@@ -335,19 +335,22 @@ class UsuarioService
             $matriculas = DB::table('enrollments')->join('academic_periods', 'academic_periods.id', '=', 'enrollments.period_id')
                 ->where('enrollments.student_id', $usuarioId)->where('enrollments.status', 'active')->where('academic_periods.status', '!=', 'closed')
                 ->pluck('enrollments.id');
-            foreach ($matriculas as $matricula) {
-                DB::table('enrollments')->where('id', $matricula)->update(['status' => 'withdrawn', 'updated_at' => now()]);
-                DB::table('enrollment_changes')->insert(['enrollment_id' => $matricula, 'change_type' => 'withdrawn', 'reason' => $motivo, 'actor_id' => $actor->id, 'occurred_at' => now()]);
-                DB::table('section_change_requests')->where('enrollment_id', $matricula)->where('status', 'pending')
-                    ->update(['status' => 'rejected', 'resolved_by' => $actor->id, 'resolved_at' => now(), 'updated_at' => now()]);
-            }
+            // Con su propio evento: dentro del de cambiarRoles() quedaba «user.roles_changed» sobre una matrícula (QA admin 21/11).
+            DbContext::run(function () use ($matriculas, $motivo, $actor): void {
+                foreach ($matriculas as $matricula) {
+                    DB::table('enrollments')->where('id', $matricula)->update(['status' => 'withdrawn', 'updated_at' => now()]);
+                    DB::table('enrollment_changes')->insert(['enrollment_id' => $matricula, 'change_type' => 'withdrawn', 'reason' => $motivo, 'actor_id' => $actor->id, 'occurred_at' => now()]);
+                    DB::table('section_change_requests')->where('enrollment_id', $matricula)->where('status', 'pending')
+                        ->update(['status' => 'rejected', 'resolved_by' => $actor->id, 'resolved_at' => now(), 'updated_at' => now()]);
+                }
+            }, 'enrollment.withdrawn', $motivo);
         }
         if (in_array('docente', $quitados, true)) {
             // Solo los de períodos no cerrados: el historial de quién impartió un período cerrado no se toca.
             $abiertos = DB::table('sections')->join('academic_periods', 'academic_periods.id', '=', 'sections.period_id')
                 ->where('academic_periods.status', '!=', 'closed')->select('sections.id');
-            DB::table('teaching_assignments')->where('teacher_id', $usuarioId)->whereNull('ended_at')->whereIn('section_id', $abiertos)
-                ->update(['ended_at' => now()->toDateString(), 'is_responsible' => false, 'updated_at' => now()]);
+            DbContext::run(fn () => DB::table('teaching_assignments')->where('teacher_id', $usuarioId)->whereNull('ended_at')->whereIn('section_id', $abiertos)
+                ->update(['ended_at' => now()->toDateString(), 'is_responsible' => false, 'updated_at' => now()]), 'section.teacher_removed', $motivo);
         }
     }
 

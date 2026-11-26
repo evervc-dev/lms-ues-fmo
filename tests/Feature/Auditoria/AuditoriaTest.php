@@ -95,8 +95,9 @@ it('CP-RF05-02 exporta a CSV los eventos filtrados dentro de su alcance', functi
     $delJefe = app(AuditoriaService::class)->exportar($e['jefe'], []);
     $filtrado = app(AuditoriaService::class)->exportar($e['administrador'], ['buscar' => 'dcnm']);
 
-    expect(collect($delJefe['filas'])->pluck(3)->all())->toBe(['grade.corrected.dia'])
-        ->and(collect($filtrado['filas'])->pluck(3)->all())->toBe(['grade.corrected.dcnm'])
+    // «Qué pasó» va en palabras; un evento sin traducción conserva su nombre entre paréntesis para rastrearlo.
+    expect(collect($delJefe['filas'])->pluck(3)->all())->toBe(['Otro cambio del sistema (grade.corrected.dia)'])
+        ->and(collect($filtrado['filas'])->pluck(3)->all())->toBe(['Otro cambio del sistema (grade.corrected.dcnm)'])
         ->and($delJefe['columnas'])->toContain('Qué pasó', 'Qué cambió');
 
     actingAs($e['administrador']);
@@ -256,3 +257,32 @@ it('pagina la auditoría con «Anterior» y «Siguiente» en español, sin mostr
     actingAs($e['administrador'])->get(route('auditoria'))->assertOk()
         ->assertSeeText(['Anterior', 'Siguiente'])->assertDontSee('pagination.');
 });
+
+it('CP-RF20-13 no muestra distancia en un intento sin ubicación aunque la fila traiga una', function () {
+    $e = escenario();
+    DbContext::system(function () use ($e) {
+        $sesion = DB::table('attendance_sessions')->insertGetId(['ulid' => (string) str()->ulid(), 'section_id' => $e['seccion'], 'session_date' => now()->toDateString(), 'status' => 'closed', 'opened_by' => $e['docente']->id, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('attendance_scan_attempts')->insert(['session_id' => $sesion, 'student_id' => $e['estudiante']->id, 'result' => 'no_location', 'distance_m' => 2310, 'occurred_at' => now()]);
+    });
+    actingAs($e['soporte']);
+
+    Livewire::test(DiagnosticoAsistencia::class)->assertSee('Sin ubicación')->assertDontSee('2,310 m')->assertDontSee('2310 m');
+});
+
+it('CP-RF05-02 muestra los eventos en palabras y nunca el nombre técnico', function () {
+    expect(AuditoriaService::evento('user.roles_changed'))->toBe('Cambiaron los roles de una cuenta')
+        ->and(AuditoriaService::evento('role.permission.changed'))->toBe('Cambiaron los permisos de un rol')
+        ->and(AuditoriaService::evento('evento.que.no.existe'))->toBe('Otro cambio del sistema (evento.que.no.existe)');
+});
+
+it('CP-RF05-02 en modo de roles laxos, quitar Estudiante audita el retiro de la matrícula como retiro y no como cambio de roles', function () {
+    $e = escenario();
+    config(['lms.roles_laxos' => true]);
+    actingAs($e['administrador']);
+
+    app(UsuarioService::class)->cambiarRoles($e['administrador'], $e['estudiante']->id, ['docente'], ['docente' => ['departamento' => $e['dia']]]);
+
+    DbContext::auditScope(all: true);
+    expect(DB::table('audit_logs')->where('entity_type', 'enrollments')->where('entity_id', $e['matricula'])->where('action', 'update')->value('event_type'))
+        ->toBe('enrollment.withdrawn');
+})->skip(fn () => DB::connection()->getDriverName() !== 'pgsql', 'La auditoría la escriben los triggers de PostgreSQL.');

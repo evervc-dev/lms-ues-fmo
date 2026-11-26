@@ -296,6 +296,8 @@ it('CP-RF07-15 deja la estructura institucional solo al Administrador', function
 
 it('CP-RF07-16 deja al Jefe editar la descripción de las asignaturas de su departamento, no de otro', function () {
     $e = escenario();
+    // En PostgreSQL, DbContext::run toma el actor de la sesión: sin actingAs la auditoría rechaza la escritura (AC900).
+    actingAs($e['jefe']);
 
     catalogo()->editarDescripcion($e['jefe'], $e['prn'], 'Fundamentos de programación.');
 
@@ -351,9 +353,11 @@ it('CP-RF07-19 impide al Jefe usar el plan de una carrera de otro departamento; 
     $matematica = carreraConPlan($e['dcnm'], 'LMA', 'Plan 07');
     $datos = ['codigo' => 'IND102', 'nombre' => 'Estadística industrial', 'creditos' => 4, 'departamento' => $e['dia'], 'planes' => [['plan' => $matematica['plan'], 'ciclo' => 3]]];
 
+    actingAs($e['jefe']);
     expect(fn () => catalogo()->guardarAsignatura($e['jefe'], null, $datos))->toThrow(AuthorizationException::class)
         ->and(DB::table('subjects')->where('code', 'IND102')->exists())->toBeFalse();
 
+    actingAs($e['administrador']);
     $id = catalogo()->guardarAsignatura($e['administrador'], null, $datos);
     expect(DB::table('career_subjects')->where('subject_id', $id)->value('study_plan_id'))->toBe($matematica['plan']);
 });
@@ -363,6 +367,7 @@ it('CP-RF07-20 al editar agrega, cambia y quita planes sin tocar los de otro dep
     $industrial = carreraConPlan($e['dia'], 'IIN');
     $matematica = carreraConPlan($e['dcnm'], 'LMA', 'Plan 07');
     $datos = ['codigo' => 'IND103', 'nombre' => 'Investigación de operaciones', 'creditos' => 4, 'departamento' => $e['dia']];
+    actingAs($e['administrador']);
     $id = catalogo()->guardarAsignatura($e['administrador'], null, $datos + ['planes' => [['plan' => $e['plan'], 'ciclo' => 5], ['plan' => $matematica['plan'], 'ciclo' => 6]]]);
     actingAs($e['jefe']);
 

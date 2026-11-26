@@ -807,7 +807,8 @@ it('con la asistencia ya registrada la pantalla no vuelve a ofrecer el lector ni
 
     Livewire::test(EscanearQr::class)
         ->assertSee('Su asistencia de esta clase ya quedó registrada.')
-        ->assertDontSee('Escanear QR')
+        // «Escanear QR» es ahora el título de la pantalla: lo que no debe estar es el lector.
+        ->assertDontSee('lector-qr-video', false)
         ->assertDontSee('Ingresar código temporal');
 });
 
