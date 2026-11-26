@@ -9,6 +9,8 @@ fuentes: ["Retroalimentación del cliente y decisión del usuario (26/10/2026)"]
 
 # ADR-050 · Inscripción por catálogo y claves compartidas
 
+> **21/11/2026:** el punto 2 (paridad del ciclo) queda reemplazado por [[ADR-084 La inscripción lista todo el plan sin la regla de paridad]] (pendiente): se listan todas las materias del plan.
+
 > [!warning] Pendiente de aceptar
 > Amplía [[ADR-032 Ajustes por el documento de roles]] §8 (la clave sigue siendo **por asignatura y período**, pero puede escribirse a mano y repetirse en todas) y la [[Matriz RBAC]] (`matricula.claves.gestionar` pasa a tener también al Jefe, D).
 

@@ -23,6 +23,14 @@ function ubicacion() {
     });
 }
 
+/**
+ * ¿Se abrió en un teléfono o tableta? Se marca con el teléfono autorizado (RF27, ADR-045): en una computadora no se
+ * ofrece el escáner. El iPad con iPadOS se anuncia como «Macintosh», así que se reconoce por la pantalla táctil.
+ */
+export function esTelefono(agente = navigator.userAgent, puntosTactiles = navigator.maxTouchPoints ?? 0) {
+    return /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(agente) || (/Macintosh/.test(agente) && puntosTactiles > 1);
+}
+
 function tokenLocal() {
     try {
         return localStorage.getItem('device_token');
@@ -51,6 +59,7 @@ export default (qrInicial, textos, debug = false) => {
         pasos: [],
         contorno: '',
         debug,
+        esComputadora: !esTelefono(),
 
         init() {
             wire = this.$wire;
@@ -70,6 +79,9 @@ export default (qrInicial, textos, debug = false) => {
         },
 
         async empezar() {
+            if (this.esComputadora) {
+                return;
+            }
             this.error = null;
             this.tocar = false;
             this.contorno = '';

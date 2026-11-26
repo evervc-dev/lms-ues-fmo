@@ -220,7 +220,18 @@ it('CP-RF36-08 completa la ficha de Usuarios con las carreras y ciclos del docen
     DbContext::system(fn () => DB::table('student_careers')->where('student_id', $e['estudiante']->id)->update(['admission_period_id' => $e['periodo']]));
 
     actingAs($e['administrador'])->get(route('usuarios.show', ['usuario' => $e['docente']->id]))->assertOk()
-        ->assertSeeText(['Carreras donde imparte', 'Ingeniería de Sistemas Informáticos', 'ISI · ciclo 1', 'Perfil académico']);
+        ->assertSeeText(['Carreras donde imparte', 'Ingeniería de Sistemas Informáticos', 'ISI · ciclo 1', 'Ver perfil']);
     actingAs($e['administrador'])->get(route('usuarios.show', ['usuario' => $e['estudiante']->id]))->assertOk()
         ->assertSeeText(['Año de ingreso', '2026 (2026-II)', 'Materias inscritas este período', 'PRN115 · 01']);
+});
+
+it('CP-RF36-07 la miga del grupo lleva al Jefe a una pestaña que puede abrir, no a Contenidos', function () {
+    $e = escenario();
+    actingAs($e['jefe']);
+
+    $respuesta = $this->get(route('secciones.participantes', ['seccion' => $e['ulid']]))->assertOk();
+
+    $respuesta->assertDontSee('href="'.route('secciones.contenidos', ['seccion' => $e['ulid']]).'"', false)
+        ->assertSee('href="'.route('secciones.estudiantes', ['seccion' => $e['ulid']]).'"', false);
+    $this->get(route('secciones.estudiantes', ['seccion' => $e['ulid']]))->assertOk();
 });

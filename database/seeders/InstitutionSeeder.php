@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Modules\Academica\Services\PeriodoService;
 use Database\Seeders\Concerns\InsertsRows;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +43,21 @@ class InstitutionSeeder extends Seeder
         'ERP115' => ['Sistemas Empresariales', 10, 'DIA'], 'GPR115' => ['Gestión de Proyectos', 10, 'DCE'], 'SEM115' => ['Seminario de Investigación', 10, 'DIA'],
     ];
 
+    /**
+     * Materias que están en un solo plan de ISI; el resto está en los dos. Son datos de prueba, no la malla oficial: sirven
+     * para que el estudiante del Plan 25 no vea las del 98 y al revés (Inscripción y Matrícula filtran por su plan).
+     *
+     * DemoAcademicSeeder inscribe a cada estudiante en todas las materias de su ciclo (ciclos 1 y 3: Plan 25; 5, 7 y 9:
+     * Plan 98) y, en el período anterior, en las del ciclo previo (2; 4, 6 y 8). Por eso las solo del 25 van en los
+     * ciclos 1 a 3 o 10, y las solo del 98, del 4 al 10: ninguna exclusiva cae donde se inscriben estudiantes del otro plan.
+     *
+     * @var array<string, string> código => plan
+     */
+    public const SOLO_PLAN = [
+        'ISI115' => 'Plan 25', 'EST115' => 'Plan 25', 'OPT215' => 'Plan 25',
+        'HDP115' => 'Plan 98', 'TSI115' => 'Plan 98', 'ACC115' => 'Plan 98', 'SGI115' => 'Plan 98',
+    ];
+
     public function run(): void
     {
         $departments = [
@@ -77,9 +91,7 @@ class InstitutionSeeder extends Seeder
             DB::table('subjects')->insert([
                 'code' => $code,
                 'name' => $name,
-                // Sin el ciclo: una asignatura está en ciclos distintos según el plan, y el detalle de inscripción decía
-                // «Ciclo 2 del plan» junto a «Asignatura del ciclo 1» (revisión UX del rol Estudiante).
-                'description' => 'Asignatura de Ingeniería de Sistemas Informáticos.',
+                'description' => "Asignatura del ciclo {$cycle} de Ingeniería de Sistemas Informáticos.",
                 'credits' => in_array($code, ['TDG115', 'SEM115'], true) ? 5 : 4,
                 'department_id' => $dept[$department],
             ] + $this->stamps());
@@ -90,8 +102,11 @@ class InstitutionSeeder extends Seeder
             ->where('careers.code', 'ISI')->pluck('study_plans.id', 'study_plans.name');
 
         $rows = [];
-        foreach ($isiPlans as $planId) {
+        foreach ($isiPlans as $planName => $planId) {
             foreach (self::SUBJECTS as $code => [, $cycle]) {
+                if (isset(self::SOLO_PLAN[$code]) && self::SOLO_PLAN[$code] !== $planName) {
+                    continue;
+                }
                 $rows[] = ['study_plan_id' => $planId, 'subject_id' => $subjects[$code], 'cycle' => $cycle];
             }
         }
@@ -132,9 +147,17 @@ class InstitutionSeeder extends Seeder
                 'name' => $name, 'start_date' => $start, 'end_date' => $end, 'status' => $status, 'preparation_stage' => $stage,
             ] + $this->stamps());
 
-            // Los cuatro cómputos de la plantilla del período (ADR-085).
-            foreach (PeriodoService::plantillaComputos($start, $end) as $computo) {
-                DB::table('grading_component_templates')->insert($computo + ['period_id' => $periodId] + $this->stamps());
+            // Tres cómputos por período: 30 %, 30 % y 40 %.
+            $from = now()->parse($start);
+            foreach ([[1, 30], [2, 30], [3, 40]] as [$number, $weight]) {
+                DB::table('grading_component_templates')->insert([
+                    'period_id' => $periodId,
+                    'number' => $number,
+                    'name' => "Cómputo {$number}",
+                    'starts_on' => $from->copy()->addWeeks(($number - 1) * 6)->toDateString(),
+                    'ends_on' => $number === 3 ? $end : $from->copy()->addWeeks($number * 6)->subDay()->toDateString(),
+                    'weight_percent' => $weight,
+                ] + $this->stamps());
             }
         }
     }
