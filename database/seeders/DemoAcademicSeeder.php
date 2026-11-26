@@ -709,9 +709,10 @@ class DemoAcademicSeeder extends Seeder
      */
     private function seedCalendarAndIntegrations(Collection $sections): void
     {
+        // Las fechas quedan sin sincronizar: el seeder no agenda nada en Google. Antes las marcaba «synced» con un id
+        // inventado que Google rechaza (400), y al sincronizar desde la pantalla nunca llegaban al calendario.
         foreach ([['Primer parcial', '2026-09-01 08:00'], ['Segundo parcial', '2026-10-15 08:00'], ['Tercer parcial', '2026-12-01 08:00'], ['Cierre de notas', '2026-12-11 23:59']] as [$title, $at]) {
-            $eventId = DB::table('period_calendar_events')->insertGetId(['period_id' => $this->period, 'title' => $title, 'starts_at' => $at] + $this->stamps(now()->parse('2026-07-20')));
-            DB::table('google_sync_refs')->insert(['entity_type' => 'period_calendar_event', 'entity_id' => $eventId, 'provider' => 'google_calendar', 'external_id' => Str::random(26), 'sync_status' => 'synced'] + $this->stamps());
+            DB::table('period_calendar_events')->insert(['period_id' => $this->period, 'title' => $title, 'starts_at' => $at] + $this->stamps(now()->parse('2026-07-20')));
         }
 
         // Próxima clase virtual de docente.dev.

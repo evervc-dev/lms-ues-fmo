@@ -1,9 +1,15 @@
-{{-- Nuevo cuestionario (RF16). --}}
+{{-- Crear o editar cuestionario (RF16). --}}
 <div class="flex flex-col gap-5">
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
     <form wire:submit="guardar" class="flex flex-col gap-5 [&_input]:scroll-mb-24 [&_select]:scroll-mb-24 [&_textarea]:scroll-mb-24">
+        @if ($intentosCount > 0)
+            <x-ui.alert tipo="aviso" :titulo="__('Cuestionario con intentos registrados')">
+                {{ trans_choice('{1} Ya hay 1 intento de estudiante registrado.|[2,*] Ya hay :count intentos de estudiantes registrados.', $intentosCount) }}
+                {{ __('Si modifica las preguntas o el banco, tenga en cuenta que los nuevos intentos tendrán preguntas distintas a los intentos ya completados.') }}
+            </x-ui.alert>
+        @endif
         <div class="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
-            @include('modules.evaluaciones.partials.datos-actividad', ['sufijo' => 'C', 'titulo' => __('Nuevo cuestionario')])
+            @include('modules.evaluaciones.partials.datos-actividad', ['sufijo' => 'C', 'titulo' => $editando ? __('Editar cuestionario') : __('Nuevo cuestionario')])
 
             <div class="flex flex-col gap-5">
                 <x-ui.card :titulo="__('Preguntas')" :descripcion="__('Cada estudiante recibe las suyas, sacadas al azar del banco.')">
@@ -46,6 +52,6 @@
             </div>
         </div>
 
-        @include('modules.evaluaciones.partials.acciones-formulario', ['volver' => route('secciones.actividades', ['seccion' => $seccion]), 'enviar' => __('Crear cuestionario')])
+        @include('modules.evaluaciones.partials.acciones-formulario', ['volver' => route('secciones.actividades', ['seccion' => $seccion]), 'enviar' => $editando ? __('Guardar cambios') : __('Crear cuestionario')])
     </form>
 </div>

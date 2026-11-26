@@ -587,10 +587,12 @@ class ActividadService
         return 'cerrada';
     }
 
-    public function validarPeso(int $componenteId, int $seccionId, float $peso): void
+    public function validarPeso(int $componenteId, int $seccionId, float $peso, ?int $ignorarItemId = null): void
     {
         DB::table('grading_components')->where('id', $componenteId)->where('section_id', $seccionId)->exists() || abort(404);
-        $usado = (float) DB::table('grade_items')->where('component_id', $componenteId)->sum('weight_percent');
+        $usado = (float) DB::table('grade_items')->where('component_id', $componenteId)
+            ->when($ignorarItemId !== null, fn ($q) => $q->where('id', '!=', $ignorarItemId))
+            ->sum('weight_percent');
         if ($peso <= 0 || $usado + $peso > 100) {
             throw ValidationException::withMessages(['peso' => __('El peso supera el 100 % del cómputo (ya usado: :u %).', ['u' => rtrim(rtrim(number_format($usado, 2, '.', ''), '0'), '.')])]);
         }

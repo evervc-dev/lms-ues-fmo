@@ -158,8 +158,8 @@ it('CP-RF16-04 shows the quiz correction on its own 10 minutes after closing and
     // Las preguntas salen en orden aleatorio: se navega a la posición real de cada una.
     $posicion = fn (string $enunciado) => (int) DB::table('attempt_answers as r')->join('questions as p', 'p.id', '=', 'r.question_id')->where('p.statement', $enunciado)->value('r.position');
     Livewire::test(Intento::class, ['intento' => $intento])
-        ->call('ir', $posicion('PHP es interpretado'))->assertSeeText(['PHP es interpretado', 'Correcta', '1 de 1 punto', 'PHP se interpreta en tiempo de ejecución.'])
-        ->call('ir', $posicion('Laravel es un lenguaje'))->assertSeeText(['Laravel es un lenguaje', '0 de 1 punto']);
+        ->call('ir', $posicion('PHP es interpretado'))->assertSeeText(['PHP es interpretado', 'Correcta', '5 de 5 pts', 'PHP se interpreta en tiempo de ejecución.'])
+        ->call('ir', $posicion('Laravel es un lenguaje'))->assertSeeText(['Laravel es un lenguaje', '0 de 5 pts']);
 
     (new AvisarRevisionesDisponibles)->handle();
     (new AvisarRevisionesDisponibles)->handle();
@@ -463,15 +463,15 @@ it('CP-RF15-08 lets a student with an extension submit a closed task on time, wi
         ->is_late->toBeFalsy()->late_penalty_applied->toEqual(0);
 });
 
-it('CP-RF15-08 only lets the section teacher grant extensions, and no submission extension for quizzes', function () {
+it('CP-RF15-08 only lets the section teacher grant extensions', function () {
     $e = escenario();
     $c = cuestionarioCalificado($e);
     $prorrogas = app(ProrrogaService::class);
     $hasta = now()->addDay()->toIso8601String();
 
     expect(fn () => $prorrogas->conceder(usuarioCon('docente'), $e['seccion'], $c['ulid'], $e['matricula'], 'review', $hasta, 'Motivo válido'))->toThrow(HttpException::class)
+        ->and(fn () => $prorrogas->conceder(usuarioCon('docente'), $e['seccion'], $c['ulid'], $e['matricula'], 'submission', $hasta, 'Motivo válido'))->toThrow(HttpException::class)
         ->and(fn () => $prorrogas->conceder($e['estudiante'], $e['seccion'], $c['ulid'], $e['matricula'], 'review', $hasta, 'Motivo válido'))->toThrow(HttpException::class)
-        ->and(fn () => $prorrogas->conceder($e['docente'], $e['seccion'], $c['ulid'], $e['matricula'], 'submission', $hasta, 'Motivo válido'))->toThrow(HttpException::class)
         ->and(fn () => $prorrogas->conceder($e['docente'], $e['seccion'], $c['ulid'], $e['matricula'], 'review', now()->subDay()->toIso8601String(), 'Motivo válido'))->toThrow(ValidationException::class)
         ->and(DB::table('assessment_extensions')->count())->toBe(0);
 });

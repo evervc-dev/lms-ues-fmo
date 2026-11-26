@@ -27,6 +27,9 @@ class Catalogo extends Component
     public string $buscar = '';
 
     #[Url(except: '')]
+    public string $departamento = '';
+
+    #[Url(except: '')]
     public string $carrera = '';
 
     #[Url(as: 'creditos', except: '')]
@@ -34,9 +37,27 @@ class Catalogo extends Component
 
     public function updating(string $propiedad): void
     {
-        if (in_array($propiedad, ['buscar', 'carrera', 'filtroCreditos'], true)) {
+        if (in_array($propiedad, ['buscar', 'departamento', 'carrera', 'filtroCreditos'], true)) {
             $this->resetPage();
         }
+    }
+
+    public function updatedDepartamento(): void
+    {
+        if ($this->carrera !== '' && $this->departamento !== '') {
+            $deptoId = DB::table('departments')->where('code', $this->departamento)->value('id');
+            $pertenece = DB::table('careers')->where('id', (int) $this->carrera)->where('department_id', $deptoId)->exists();
+            if (! $pertenece) {
+                $this->carrera = '';
+            }
+        }
+    }
+
+    public function seleccionarDepartamento(string $codigo): void
+    {
+        $this->departamento = $codigo;
+        $this->updatedDepartamento();
+        $this->resetPage();
     }
 
     /**
@@ -73,18 +94,26 @@ class Catalogo extends Component
 
     public function render(CatalogoService $catalogo): View
     {
-        $asignaturas = $catalogo->asignaturas(auth()->user(), ['buscar' => $this->buscar, 'carrera' => $this->carrera, 'creditos' => $this->filtroCreditos]);
+        $actor = auth()->user();
+        $asignaturas = $catalogo->asignaturas($actor, [
+            'buscar' => $this->buscar,
+            'departamento' => $this->departamento,
+            'carrera' => $this->carrera,
+            'creditos' => $this->filtroCreditos,
+        ]);
 
         $ids = $asignaturas->pluck('id')->all();
 
         return $this->pagina('modules.academica.catalogo', [
             'asignaturas' => $asignaturas,
             'prerrequisitosDe' => $catalogo->prerrequisitos($ids),
-            'carrerasDe' => $catalogo->carreras(auth()->user(), $ids),
+            'carrerasDe' => $catalogo->carreras($actor, $ids),
             'dependientesDe' => $catalogo->dependientesActivas($ids),
-            'veDepartamento' => $catalogo->veDepartamento(auth()->user()),
-            'gestionaEstructura' => $catalogo->gestionaEstructura(auth()->user()),
-            'carreras' => $catalogo->carrerasConPlanes(auth()->user()),
+            'veDepartamento' => $catalogo->veDepartamento($actor),
+            'gestionaEstructura' => $catalogo->gestionaEstructura($actor),
+            'departamentos' => $catalogo->departamentosGestionables($actor),
+            'conteosDepto' => $catalogo->conteosPorDepartamento($actor),
+            'carreras' => $catalogo->carrerasConPlanes($actor),
             'valoresCreditos' => DB::table('subjects')->distinct()->orderBy('credits')->pluck('credits'),
         ]);
     }

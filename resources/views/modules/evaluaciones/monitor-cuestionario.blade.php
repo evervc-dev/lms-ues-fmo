@@ -9,9 +9,16 @@
         <x-ui.badge color="ambar">{{ __('En curso: :n', ['n' => $resumen['en_curso']]) }}</x-ui.badge>
         <x-ui.badge color="verde">{{ __('Enviados: :n', ['n' => $resumen['enviados']]) }}</x-ui.badge>
         @if ($enVivo)<span class="text-xs text-texto-suave">{{ __('Se actualiza cada 15 s') }}</span>@endif
-        <span class="ml-auto"><x-ui.badge :color="$revisionVisible ? 'verde' : 'gris'">
-            {{ $revisionVisible ? __('Corrección visible para los estudiantes') : __('La corrección se mostrará el :f', ['f' => $hora($revisionDesde)]) }}
-        </x-ui.badge></span>
+        <div class="ml-auto flex items-center gap-2">
+            @if (! $revisionVisible && $resumen['en_curso'] === 0 && ($resumen['sin_empezar'] === 0 || now()->gte(\Illuminate\Support\Carbon::parse($cuestionario->closes_at))))
+                <x-ui.button tamano="sm" variante="secundario" wire:click="publicarCorreccion" wire:confirm="{{ __('¿Publicar la corrección a los estudiantes ahora sin esperar el tiempo de demora?') }}">
+                    {{ __('Publicar corrección a los estudiantes ahora') }}
+                </x-ui.button>
+            @endif
+            <x-ui.badge :color="$revisionVisible ? 'verde' : 'gris'">
+                {{ $revisionVisible ? __('Corrección visible para los estudiantes') : __('La corrección se mostrará a los estudiantes el :f', ['f' => $hora($revisionDesde)]) }}
+            </x-ui.badge>
+        </div>
     </div>
 
     @if ($resumen['en_curso'] > 0)
@@ -44,11 +51,26 @@
                         —
                     @endif
                 </td>
-                <td class="text-right">{{ $f->intento && $f->intento->score !== null ? number_format((float) $f->intento->score, 1) : '—' }}</td>
                 <td class="text-right">
-                    @if ($f->estado === 'en_curso')
-                        <x-ui.button tamano="sm" variante="peligro" wire:click="cerrar('{{ $f->intento->ulid }}')" wire:confirm="{{ __('Se enviará con lo que el estudiante guardó. ¿Cerrar el intento?') }}">{{ __('Cerrar') }}</x-ui.button>
+                    @if ($f->nota !== null)
+                        <span class="font-semibold">{{ number_format((float) $f->nota, 1) }}</span>
+                    @elseif ($f->intento && $f->intento->score !== null)
+                        <span class="font-semibold">{{ number_format((float) $f->intento->score, 1) }}</span>
+                    @else
+                        —
                     @endif
+                </td>
+                <td class="text-right">
+                    <div class="flex items-center justify-end gap-1">
+                        @if ($f->intento)
+                            <x-ui.button tamano="sm" variante="secundario" :href="route('secciones.cuestionarios.intentos.show', ['seccion' => $seccion, 'cuestionario' => $cuestionario, 'intento' => $f->intento->ulid])">
+                                {{ __('Ver respuestas') }}
+                            </x-ui.button>
+                        @endif
+                        @if ($f->estado === 'en_curso')
+                            <x-ui.button tamano="sm" variante="peligro" wire:click="cerrar('{{ $f->intento->ulid }}')" wire:confirm="{{ __('Se enviará con lo que el estudiante guardó. ¿Cerrar el intento?') }}">{{ __('Cerrar') }}</x-ui.button>
+                        @endif
+                    </div>
                 </td>
             </tr>
         @endforeach

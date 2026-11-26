@@ -47,6 +47,9 @@
                     <fieldset class="flex flex-col gap-2">
                         <legend class="text-sm font-medium text-zinc-800">{{ __('¿Qué quiere que se revise?') }}</legend>
                         @foreach ($candidatos as $c)
+                            @if ($c->clave === 'general' && $candidatos->where('respuesta', '!=', null)->isNotEmpty())
+                                @continue
+                            @endif
                             <div class="rounded-lg p-3 ring-1 ring-borde" wire:key="cand-{{ $c->clave }}">
                                 <label class="flex items-start gap-2 text-sm">
                                     <input type="checkbox" id="cand-{{ $c->clave }}" value="{{ $c->clave }}" wire:model.live="marcados" class="mt-0.5 size-4 rounded border-borde text-marca-600 focus:ring-marca-600">

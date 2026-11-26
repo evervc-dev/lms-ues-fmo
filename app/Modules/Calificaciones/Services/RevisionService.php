@@ -451,16 +451,18 @@ class RevisionService
             $base = (float) DB::table('submission_rubric_scores')->where('submission_id', $entrega->id)->sum('points');
             DB::table('grades')->whereIn('id', $notas)->update(['score' => round($base * (1 - $penalizacion / 100), 2), 'score_before_penalty' => $base, 'updated_at' => now()]);
         }
-        if ($general !== null) {
+        if ($general !== null && ($solicitud->assessment_type !== 'quiz' || DB::table('grade_review_items')->where('request_id', $solicitud->id)->whereNotNull('attempt_answer_id')->doesntExist())) {
             DB::table('grades')->whereIn('id', $notas)->update(['score' => round($general, 2), 'score_before_penalty' => $general, 'updated_at' => now()]);
         }
     }
 
     private function actividad(int $seccionId, string $ulid): object
     {
-        return DB::table('assessments as a')->join('grade_items as g', 'g.id', '=', 'a.grade_item_id')->where('a.section_id', $seccionId)->where('a.ulid', $ulid)
+        return DB::table('assessments as a')->join('grade_items as g', 'g.id', '=', 'a.grade_item_id')
+            ->leftJoin('quiz_settings as s', 's.assessment_id', '=', 'a.id')
+            ->where('a.section_id', $seccionId)->where('a.ulid', $ulid)
             ->whereIn('a.assessment_type', ['assignment', 'quiz'])
-            ->first(['a.id', 'a.ulid', 'a.title', 'a.assessment_type', 'a.rubric_id', 'a.section_id', 'a.closes_at', 'g.id as item_id', 'g.is_published']) ?? abort(404);
+            ->first(['a.id', 'a.ulid', 'a.title', 'a.assessment_type', 'a.rubric_id', 'a.section_id', 'a.closes_at', 'g.id as item_id', 'g.is_published', 's.review_published']) ?? abort(404);
     }
 
     /**

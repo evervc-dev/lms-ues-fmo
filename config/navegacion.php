@@ -35,6 +35,7 @@ return [
                 ['clave' => 'inscripcion', 'etiqueta' => 'Inscripción de materias', 'ruta' => 'inscripcion', 'permiso' => 'matricula.automatricular', 'icono' => 'user-plus'],
                 ['clave' => 'mis-materias', 'etiqueta' => 'Mis materias', 'ruta' => 'materias', 'permiso' => 'contenidos.ver', 'icono' => 'book-open'],
                 ['clave' => 'mis-notas', 'etiqueta' => 'Mis notas', 'ruta' => 'mis-notas', 'permiso' => 'calificaciones.ver', 'icono' => 'chart-bar'],
+                ['clave' => 'mi-plan', 'etiqueta' => 'Mi plan', 'ruta' => 'mi-plan', 'permiso' => 'plan.ver', 'icono' => 'table-cells'],
                 ['clave' => 'mi-asistencia', 'etiqueta' => 'Mi asistencia', 'ruta' => 'mi-asistencia', 'permiso' => 'asistencia.ver', 'icono' => 'clipboard-document-check'],
             ],
         ],

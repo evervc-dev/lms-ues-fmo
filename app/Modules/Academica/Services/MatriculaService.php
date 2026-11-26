@@ -8,10 +8,12 @@ use App\Support\Alcance;
 use App\Support\Busqueda;
 use App\Support\DbContext;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -100,8 +102,8 @@ class MatriculaService
     }
 
     /**
-     * Asignaturas que el estudiante puede inscribir (RF29, ADR-050 y ADR-084): las del plan de su carrera activa, de
-     * cualquier ciclo del plan (ADR-084 quitó la regla de paridad). Cada fila trae cuántos grupos abiertos tiene en el
+     * Asignaturas que el estudiante puede inscribir (RF29, ADR-050 y ADR-088): las del plan de su carrera activa, de
+     * cualquier ciclo del plan (ADR-088 quitó la regla de paridad). Cada fila trae cuántos grupos abiertos tiene en el
      * período, si tiene clave vigente y si ya está inscrito.
      *
      * @return Collection<int, object>
@@ -176,7 +178,9 @@ class MatriculaService
         $periodo = (int) PeriodoService::activoId();
 
         $vigente = $this->clavesVigentes($periodo)->where('subject_id', $asignaturaId)->first(['key_hash']);
-        if ($vigente === null || ! Hash::check(trim($clave), $vigente->key_hash)) {
+        // Se compara normalizada (mayúsculas, sin espacios); también tal como se escribió, por las claves guardadas
+        // antes de normalizarlas.
+        if ($vigente === null || ! (Hash::check(self::normalizarClave($clave), $vigente->key_hash) || Hash::check(trim($clave), $vigente->key_hash))) {
             RateLimiter::hit($limite, self::BLOQUEO_SEGUNDOS);
             throw ValidationException::withMessages(['clave' => __('La clave no es válida o venció.')]);
         }
@@ -213,6 +217,7 @@ class MatriculaService
             ->whereIn('subjects.id', $ambito)
             ->leftJoin('enrollment_keys as k', fn ($j) => $j->on('k.subject_id', '=', 'subjects.id')->where('k.period_id', $periodo)->where('k.is_active', true))
             ->select('subjects.id', 'subjects.code', 'subjects.name', 'k.id as clave_id', 'k.valid_until', 'k.updated_at as generada',
+                DB::raw('(k.key_encrypted is not null) as consultable'),
                 DB::raw('(select count(*) from enrollments e where e.subject_id = subjects.id and e.period_id = '.(int) $periodo." and e.status = 'active' and e.enrolled_via = 'key') as por_clave"),
                 DB::raw('(select count(*) from sections s where s.subject_id = subjects.id and s.period_id = '.(int) $periodo.') as secciones'))
             ->orderBy('subjects.code')->get();
@@ -220,8 +225,17 @@ class MatriculaService
 
     /**
      * Pone (o cambia) la clave de una asignatura: la escrita a mano o una generada. La anterior deja de funcionar.
-     * Devuelve la clave en claro una sola vez: se guarda con hash.
+     * Devuelve la clave en claro; se guarda con hash y cifrada (ADR-087).
      */
+    /**
+     * La clave de inscripción no distingue mayúsculas ni espacios: «isi115 - ab12c» vale lo mismo que «ISI115-AB12C»
+     * (revisión UX del rol Estudiante). Se guarda y se compara así.
+     */
+    public static function normalizarClave(string $clave): string
+    {
+        return mb_strtoupper((string) preg_replace('/\s+/u', '', $clave));
+    }
+
     public function generarClave(User $actor, int $asignaturaId, ?string $vence = null, ?string $clave = null, ?int $periodoId = null): string
     {
         $this->alcance->exigir($actor, 'matricula.claves.gestionar');
@@ -230,10 +244,10 @@ class MatriculaService
         }
         $periodo = (int) PeriodoService::preparableOActivo($periodoId);
         $clave = $clave !== null && trim($clave) !== ''
-            ? trim($clave)
+            ? self::normalizarClave($clave)
             : DB::table('subjects')->where('id', $asignaturaId)->value('code').'-'.Str::upper(Str::random(5));
 
-        DbContext::run(fn () => $this->guardarClave($asignaturaId, $periodo, Hash::make($clave), $vence), 'enrollment_key.generated');
+        DbContext::run(fn () => $this->guardarClave($asignaturaId, $periodo, Hash::make($clave), Crypt::encryptString($clave), $vence), 'enrollment_key.generated');
 
         return $clave;
     }
@@ -245,21 +259,42 @@ class MatriculaService
     public function aplicarClaveATodas(User $actor, string $clave, ?string $vence = null, ?int $periodoId = null): int
     {
         $this->alcance->exigir($actor, 'matricula.claves.gestionar');
-        $clave = trim($clave);
+        $clave = self::normalizarClave($clave);
         if ($clave === '') {
             throw ValidationException::withMessages(['clave' => __('Escriba la clave que se aplicará a todas las asignaturas.')]);
         }
         $asignaturas = $this->claves($actor)->pluck('id')->map(fn ($id) => (int) $id);
         $periodo = (int) PeriodoService::preparableOActivo($periodoId);
         $hash = Hash::make($clave);
+        $cifrada = Crypt::encryptString($clave);
 
-        DbContext::run(function () use ($asignaturas, $periodo, $hash, $vence): void {
+        DbContext::run(function () use ($asignaturas, $periodo, $hash, $cifrada, $vence): void {
             foreach ($asignaturas as $asignaturaId) {
-                $this->guardarClave($asignaturaId, $periodo, $hash, $vence);
+                $this->guardarClave($asignaturaId, $periodo, $hash, $cifrada, $vence);
             }
         }, 'enrollment_key.generated');
 
         return $asignaturas->count();
+    }
+
+    /**
+     * La clave vigente de una asignatura de su ámbito, para volver a consultarla (ADR-087). Null si no hay clave activa
+     * o si se generó antes de guardarlas cifradas: esa solo se puede cambiar.
+     */
+    public function verClave(User $actor, int $asignaturaId, ?int $periodoId = null): ?string
+    {
+        $this->alcance->exigir($actor, 'matricula.claves.gestionar');
+        if (! $this->claves($actor)->contains('id', $asignaturaId)) {
+            throw new AuthorizationException(__('No tiene permiso para realizar esta acción.'));
+        }
+        $cifrada = DB::table('enrollment_keys')->where('subject_id', $asignaturaId)->where('period_id', PeriodoService::preparableOActivo($periodoId))
+            ->where('is_active', true)->value('key_encrypted');
+
+        try {
+            return $cifrada === null ? null : Crypt::decryptString($cifrada);
+        } catch (DecryptException) {
+            return null; // Cifrada con otra APP_KEY.
+        }
     }
 
     public function desactivarClave(User $actor, int $asignaturaId, ?int $periodoId = null): void
@@ -270,6 +305,15 @@ class MatriculaService
         }
         DbContext::run(fn () => DB::table('enrollment_keys')->where('subject_id', $asignaturaId)->where('period_id', PeriodoService::preparableOActivo($periodoId))
             ->where('is_active', true)->update(['is_active' => false, 'updated_at' => now()]), 'enrollment_key.disabled');
+    }
+
+    /**
+     * Nombre del plan de estudios (pensum) activo del estudiante, como «Plan 25».
+     */
+    public function planDe(int $estudianteId): ?string
+    {
+        return DB::table('student_careers')->join('study_plans', 'study_plans.id', '=', 'student_careers.study_plan_id')
+            ->where('student_careers.student_id', $estudianteId)->where('student_careers.status', 'active')->value('study_plans.name');
     }
 
     /**
@@ -735,12 +779,13 @@ class MatriculaService
     }
 
     /**
-     * Desactiva la clave activa de la asignatura en el período y guarda la nueva (ya con hash). Va dentro de DbContext::run().
+     * Desactiva la clave activa de la asignatura en el período y guarda la nueva: con hash, para verificarla, y cifrada,
+     * para volver a mostrarla a quien la gestiona (ADR-087). Va dentro de DbContext::run().
      */
-    private function guardarClave(int $asignaturaId, int $periodoId, string $hash, ?string $vence): void
+    private function guardarClave(int $asignaturaId, int $periodoId, string $hash, string $cifrada, ?string $vence): void
     {
         DB::table('enrollment_keys')->where('subject_id', $asignaturaId)->where('period_id', $periodoId)->where('is_active', true)->update(['is_active' => false, 'updated_at' => now()]);
-        DB::table('enrollment_keys')->insert(['subject_id' => $asignaturaId, 'period_id' => $periodoId, 'key_hash' => $hash,
+        DB::table('enrollment_keys')->insert(['subject_id' => $asignaturaId, 'period_id' => $periodoId, 'key_hash' => $hash, 'key_encrypted' => $cifrada,
             'valid_until' => $vence ? $vence.' 23:59:59' : null, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
     }
 

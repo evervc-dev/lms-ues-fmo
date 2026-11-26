@@ -50,6 +50,7 @@
                                 {{-- webkitdirectory: el navegador entrega cada archivo con su ruta relativa. --}}
                                 <input id="archivos" type="file" multiple webkitdirectory directory x-on:change="elegir($event)" class="mx-auto text-sm">
                                 <p x-show="subiendo" class="text-xs text-texto-suave">{{ __('Subiendo los archivos de la carpeta…') }}</p>
+                                <p x-show="error" x-cloak class="text-sm font-medium text-red-700">{{ __('No se pudo subir la carpeta. Revise que no pase de :mb MB ni de :n archivos y vuelva a intentarlo.', ['mb' => $maximoTotalMb, 'n' => $maximoArchivos]) }}</p>
                             </div>
                         </x-ui.field>
                         @error('archivos.*')<p class="text-sm text-red-700">{{ $message }}</p>@enderror

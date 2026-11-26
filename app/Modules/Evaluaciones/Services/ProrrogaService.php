@@ -19,8 +19,14 @@ class ProrrogaService
 {
     public const TIPOS = ['submission' => 'Entrega de la tarea', 'review' => 'Plazo para pedir revisión'];
 
-    /** Permiso que exige cada tipo de prórroga (alcance S: las secciones del docente). */
-    private const PERMISOS = ['submission' => 'tareas.gestionar', 'review' => 'calificaciones.revision.resolver'];
+    public static function nombreTipo(string $tipo, ?string $assessmentType = null): string
+    {
+        if ($tipo === 'submission') {
+            return $assessmentType === 'quiz' ? __('Resolución del cuestionario') : __('Entrega de la tarea');
+        }
+
+        return self::TIPOS[$tipo] ?? $tipo;
+    }
 
     public function __construct(private Alcance $alcance) {}
 
@@ -52,7 +58,12 @@ class ProrrogaService
     public function deActividad(User $docente, int $seccionId, string $ulid): array
     {
         $actividad = $this->actividad($seccionId, $ulid);
-        $tipos = array_filter(self::TIPOS, fn (string $tipo) => $this->puede($docente, $seccionId, $actividad, $tipo), ARRAY_FILTER_USE_KEY);
+        $tipos = [];
+        foreach (array_keys(self::TIPOS) as $tipo) {
+            if ($this->puede($docente, $seccionId, $actividad, $tipo)) {
+                $tipos[$tipo] = self::nombreTipo($tipo, $actividad->assessment_type);
+            }
+        }
         abort_if($tipos === [], 403);
 
         $seudonimos = $this->seudonimos($actividad);
@@ -126,12 +137,13 @@ class ProrrogaService
 
     private function puede(User $docente, int $seccionId, object $actividad, string $tipo): bool
     {
-        // La prórroga de entrega solo existe para tareas; los cuestionarios tienen su propio límite de tiempo.
-        if ($tipo === 'submission' && $actividad->assessment_type !== 'assignment') {
-            return false;
-        }
+        $permiso = match ($tipo) {
+            'submission' => $actividad->assessment_type === 'quiz' ? 'cuestionarios.gestionar' : 'tareas.gestionar',
+            'review' => 'calificaciones.revision.resolver',
+            default => null,
+        };
 
-        return $this->alcance->puedeEnSeccion($docente, self::PERMISOS[$tipo], $seccionId);
+        return $permiso !== null && $this->alcance->puedeEnSeccion($docente, $permiso, $seccionId);
     }
 
     private function actividad(int $seccionId, string $ulid): object

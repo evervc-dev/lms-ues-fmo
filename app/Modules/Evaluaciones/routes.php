@@ -11,6 +11,7 @@ use App\Modules\Evaluaciones\Livewire\NuevaPregunta;
 use App\Modules\Evaluaciones\Livewire\NuevaTarea;
 use App\Modules\Evaluaciones\Livewire\NuevoCuestionario;
 use App\Modules\Evaluaciones\Livewire\Pendientes;
+use App\Modules\Evaluaciones\Livewire\RevisionIntentoDocente;
 use App\Modules\Evaluaciones\Livewire\Tarea;
 use App\Modules\Evaluaciones\Services\ActividadService;
 use App\Modules\Evaluaciones\Services\ImportacionPreguntasService;
@@ -37,6 +38,8 @@ Route::middleware('auth')->group(function (): void {
             : Storage::download($archivo['ruta'], $archivo['nombre']);
     })->middleware('permission:calificaciones.gestionar|tareas.entregar')->name('secciones.entregas.archivo');
     Route::livewire('/secciones/{seccion}/cuestionarios/crear', NuevoCuestionario::class)->middleware('permission:cuestionarios.gestionar')->name('secciones.cuestionarios.crear');
+    Route::livewire('/secciones/{seccion}/cuestionarios/{cuestionario}/editar', NuevoCuestionario::class)->middleware('permission:cuestionarios.gestionar')->name('secciones.cuestionarios.editar');
+    Route::livewire('/secciones/{seccion}/cuestionarios/{cuestionario}/intentos/{intento}', RevisionIntentoDocente::class)->middleware('permission:cuestionarios.gestionar')->name('secciones.cuestionarios.intentos.show');
     Route::livewire('/secciones/{seccion}/cuestionarios/{cuestionario}', Cuestionario::class)->middleware('permission:cuestionarios.resolver|cuestionarios.gestionar')->name('secciones.cuestionarios.show');
     Route::livewire('/intentos/{intento}', Intento::class)->middleware('permission:cuestionarios.resolver')->name('intentos.show');
     Route::livewire('/pendientes-de-calificar', Pendientes::class)->middleware('permission:calificaciones.gestionar')->name('pendientes-de-calificar');

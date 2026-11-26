@@ -437,7 +437,7 @@ it('CP-RF04-27 al Jefe no se le ofrece convertir la cuenta en Estudiante ni Sopo
         ->assertSeeHtml('value="soporte_tecnico" wire:model.live="tipoCuenta" disabled');
 });
 
-it('CP-RF04-30 el Administrador y Soporte cambian el plan del estudiante desde su ficha', function (string $rol) {
+it('CP-RF04-31 el Administrador y Soporte cambian el plan del estudiante desde su ficha', function (string $rol) {
     $e = escenario();
     $plan98 = DbContext::system(fn () => DB::table('study_plans')->insertGetId(['career_id' => $e['isi'], 'name' => 'Plan 98', 'created_at' => now(), 'updated_at' => now()]));
     $atajo = route('usuarios.roles', ['usuario' => $e['estudiante']->id, 'paso' => 'asignaciones']);

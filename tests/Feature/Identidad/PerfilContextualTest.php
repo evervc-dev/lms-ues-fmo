@@ -220,7 +220,7 @@ it('CP-RF36-08 completa la ficha de Usuarios con las carreras y ciclos del docen
     DbContext::system(fn () => DB::table('student_careers')->where('student_id', $e['estudiante']->id)->update(['admission_period_id' => $e['periodo']]));
 
     actingAs($e['administrador'])->get(route('usuarios.show', ['usuario' => $e['docente']->id]))->assertOk()
-        ->assertSeeText(['Carreras donde imparte', 'Ingeniería de Sistemas Informáticos', 'ISI · ciclo 1', 'Ver perfil']);
+        ->assertSeeText(['Carreras donde imparte', 'Ingeniería de Sistemas Informáticos', 'ISI · ciclo 1', 'Perfil académico']);
     actingAs($e['administrador'])->get(route('usuarios.show', ['usuario' => $e['estudiante']->id]))->assertOk()
         ->assertSeeText(['Año de ingreso', '2026 (2026-II)', 'Materias inscritas este período', 'PRN115 · 01']);
 });

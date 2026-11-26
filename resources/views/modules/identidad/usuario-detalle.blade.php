@@ -102,7 +102,8 @@
             <dl class="grid grid-cols-2 gap-3 text-sm">
                 <div><dt class="text-texto-suave">{{ __('Último acceso') }}</dt><dd>{{ $usuario->last_login_at?->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? __('Nunca ha iniciado sesión') }}</dd></div>
                 <div><dt class="text-texto-suave">{{ __('Creada') }}</dt><dd>{{ $usuario->created_at?->timezone('America/El_Salvador')->format('d/m/Y') }}</dd></div>
-                @if ($verAccesos)
+                {{-- El teléfono de asistencia es del estudiante: a un docente no se le muestra «No registrado». --}}
+                @if ($verAccesos && in_array('estudiante', $rolesActuales, true))
                     <div><dt class="text-texto-suave">{{ __('Teléfono de asistencia') }}</dt><dd>{{ $dispositivo ? __('Registrado el :fecha', ['fecha' => \Illuminate\Support\Carbon::parse($dispositivo->created_at)->format('d/m/Y')]) : __('No registrado') }}</dd></div>
                 @endif
                 @if ($usuario->deactivated_at)

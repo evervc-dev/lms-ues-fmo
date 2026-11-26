@@ -1,14 +1,18 @@
 <?php
 
+use App\Modules\Evaluaciones\Events\RevisionCuestionarioPublicada;
 use App\Modules\Evaluaciones\Jobs\AvisarRevisionesDisponibles;
 use App\Modules\Evaluaciones\Jobs\CerrarIntentosVencidos;
 use App\Modules\Evaluaciones\Livewire\Intento;
 use App\Modules\Evaluaciones\Livewire\MonitorCuestionario;
+use App\Modules\Evaluaciones\Livewire\RevisionIntentoDocente;
 use App\Modules\Evaluaciones\Services\CuestionarioService;
+use App\Modules\Evaluaciones\Services\ProrrogaService;
 use App\Support\DbContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
@@ -311,3 +315,195 @@ it('audits why an attempt was closed in PostgreSQL', function () {
 
     $this->assertDatabaseHas('audit_logs', ['entity_type' => 'quiz_attempts', 'action' => 'update', 'event_type' => 'quiz_attempt.expired']);
 })->skip(fn () => DB::connection()->getDriverName() !== 'pgsql', 'La auditoría por triggers solo existe en PostgreSQL.');
+
+it('permite al docente editar un cuestionario existente', function () {
+    $e = escenario();
+    $cuestionarios = app(CuestionarioService::class);
+    $componente = DbContext::system(fn () => DB::table('grading_components')->insertGetId([
+        'section_id' => $e['seccion'], 'number' => 1, 'name' => 'Cómputo 1', 'starts_on' => '2026-07-27', 'ends_on' => '2026-12-11', 'weight_percent' => 100, 'created_at' => now(), 'updated_at' => now(),
+    ]));
+    actingAs($e['docente']);
+    $banco = $cuestionarios->crearBanco($e['docente'], 'Banco PRN', $e['prn']);
+    $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'PHP es interpretado', 'correcta' => 0]);
+    $ulid = $cuestionarios->crearCuestionario($e['docente'], $e['seccion'], [
+        'titulo' => 'Parcial Original', 'instrucciones' => 'Instrucciones 1', 'componente' => $componente, 'peso' => 40,
+        'abre' => now()->addHour()->format('Y-m-d H:i:s'), 'cierra' => now()->addHours(2)->format('Y-m-d H:i:s'),
+        'intentos' => 1, 'minutos' => 30, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 1, 'tema' => null,
+    ]);
+
+    $nuevaApertura = now()->addHours(3)->format('Y-m-d H:i:s');
+    $nuevoCierre = now()->addHours(5)->format('Y-m-d H:i:s');
+    $cuestionarios->actualizarCuestionario($e['docente'], $e['seccion'], $ulid, [
+        'titulo' => 'Parcial Editado', 'instrucciones' => 'Nuevas instrucciones', 'componente' => $componente, 'peso' => 50,
+        'abre' => $nuevaApertura, 'cierra' => $nuevoCierre,
+        'intentos' => 2, 'minutos' => 45, 'navegacion' => 'linear', 'banco' => $banco, 'cantidad' => 1, 'tema' => null,
+    ]);
+
+    $c = DB::table('assessments as a')->join('quiz_settings as s', 's.assessment_id', '=', 'a.id')
+        ->join('grade_items as g', 'g.id', '=', 'a.grade_item_id')
+        ->where('a.ulid', $ulid)->first(['a.title', 'a.instructions', 's.time_limit_minutes', 's.navigation', 'a.max_attempts', 'g.weight_percent']);
+
+    expect($c->title)->toBe('Parcial Editado')
+        ->and($c->instructions)->toBe('Nuevas instrucciones')
+        ->and((int) $c->time_limit_minutes)->toBe(45)
+        ->and($c->navigation)->toBe('linear')
+        ->and((int) $c->max_attempts)->toBe(2)
+        ->and((float) $c->weight_percent)->toBe(50.0);
+});
+
+it('permite otorgar prorroga de resolucion en cuestionario y comenzar con cuestionario cerrado', function () {
+    $e = escenario();
+    $cuestionarios = app(CuestionarioService::class);
+    $prorrogas = app(ProrrogaService::class);
+    $componente = DbContext::system(fn () => DB::table('grading_components')->insertGetId([
+        'section_id' => $e['seccion'], 'number' => 1, 'name' => 'Cómputo 1', 'starts_on' => '2026-07-27', 'ends_on' => '2026-12-11', 'weight_percent' => 100, 'created_at' => now(), 'updated_at' => now(),
+    ]));
+    actingAs($e['docente']);
+    $banco = $cuestionarios->crearBanco($e['docente'], 'Banco PRN', $e['prn']);
+    $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'PHP es interpretado', 'correcta' => 0]);
+
+    // Cuestionario cerrado en el pasado
+    $ulid = $cuestionarios->crearCuestionario($e['docente'], $e['seccion'], [
+        'titulo' => 'Parcial Cerrado', 'instrucciones' => null, 'componente' => $componente, 'peso' => 50,
+        'abre' => now()->subHours(2)->format('Y-m-d H:i:s'), 'cierra' => now()->subHour()->format('Y-m-d H:i:s'),
+        'intentos' => 1, 'minutos' => 30, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 1, 'tema' => null,
+    ]);
+
+    // El estudiante no puede iniciar porque está cerrado
+    actingAs($e['estudiante']);
+    expect(fn () => $cuestionarios->iniciar($e['estudiante'], $e['seccion'], $ulid))->toThrow(ValidationException::class);
+
+    // El docente concede prórroga de tipo 'submission' para este estudiante
+    actingAs($e['docente']);
+    $prorrogas->conceder($e['docente'], $e['seccion'], $ulid, $e['matricula'], 'submission', now()->addHours(2)->format('Y-m-d H:i:s'), 'Permiso médico justificado');
+
+    // Ahora el estudiante sí puede iniciar gracias a la prórroga
+    actingAs($e['estudiante']);
+    $intentoUlid = $cuestionarios->iniciar($e['estudiante'], $e['seccion'], $ulid);
+    expect($intentoUlid)->not->toBeEmpty();
+
+    $intento = DB::table('quiz_attempts')->where('ulid', $intentoUlid)->first();
+    expect($intento->status)->toBe('in_progress');
+});
+
+it('muestra al docente las respuestas y la nota estimada en el monitor durante el examen', function () {
+    $e = escenario();
+    $x = examenEnCurso($e);
+    [$primera, $segunda] = $x['respuestas'];
+
+    // El estudiante responde la primera pregunta con su opción correcta
+    $preguntaId = DB::table('attempt_answers')->where('id', $primera)->value('question_id');
+    $opcionCorrecta = (int) DB::table('question_options')->where('question_id', $preguntaId)->where('is_correct', true)->value('id');
+    app(CuestionarioService::class)->guardarRespuesta($e['estudiante'], $x['intento'], $primera, $opcionCorrecta, null);
+
+    // El docente revisa el monitor
+    actingAs($e['docente']);
+    $monitor = app(CuestionarioService::class)->monitor($e['docente'], $e['seccion'], $x['ulid']);
+    $filaEstudiante = $monitor['filas']->firstWhere('matricula', $e['matricula']);
+
+    // La nota estimada debe calcularse a partir de las respuestas respondidas (1 de 2 correctas = 5.0)
+    expect($filaEstudiante->nota)->toBe(5.0)
+        ->and($filaEstudiante->respondidas)->toBe(1);
+
+    // El docente inspecciona el detalle del intento
+    $detalle = app(CuestionarioService::class)->intentoParaDocente($e['docente'], $e['seccion'], $x['ulid'], $x['intento']);
+    expect($detalle['notaCalculada'])->toBe(5.0)
+        ->and($detalle['preguntas'])->toHaveCount(2)
+        ->and($detalle['preguntas'][0]->puntos_estimados)->toBe(1.0);
+
+    // Probar el componente Livewire MonitorCuestionario con la acción verIntento (redirige a la pantalla dedicada)
+    $seccionUlid = (string) DB::table('sections')->where('id', $e['seccion'])->value('ulid');
+    Livewire::test(MonitorCuestionario::class, ['seccion' => $seccionUlid, 'cuestionario' => $x['ulid']])
+        ->call('verIntento', $x['intento'])
+        ->assertRedirect(route('secciones.cuestionarios.intentos.show', [
+            'seccion' => $seccionUlid,
+            'cuestionario' => $x['ulid'],
+            'intento' => $x['intento'],
+        ]));
+
+    // Probar la pantalla dedicada RevisionIntentoDocente en pantalla completa
+    Livewire::test(RevisionIntentoDocente::class, [
+        'seccion' => $seccionUlid,
+        'cuestionario' => $x['ulid'],
+        'intento' => $x['intento'],
+    ])
+        ->assertOk()
+        ->assertSee('Respuestas del examen')
+        ->assertSee('5.0');
+});
+
+it('permite al docente publicar la correccion anticipada a los estudiantes cuando nadie esta respondiendo', function () {
+    Event::fake([RevisionCuestionarioPublicada::class]);
+    $e = escenario();
+    $x = examenEnCurso($e);
+
+    // Con el intento en curso, el docente no puede publicar anticipadamente
+    actingAs($e['docente']);
+    expect(fn () => app(CuestionarioService::class)->publicarRevisionAnticipada($e['docente'], $e['seccion'], $x['ulid']))
+        ->toThrow(ValidationException::class);
+
+    // El estudiante termina su examen
+    actingAs($e['estudiante']);
+    app(CuestionarioService::class)->terminar($e['estudiante'], $x['intento']);
+
+    // Ahora no hay nadie en curso; sin embargo, no han pasado los 10 minutos de demora
+    $c = DB::table('assessments')->where('ulid', $x['ulid'])->first();
+    expect(CuestionarioService::revisionVisible($c))->toBeFalse();
+
+    // El docente publica la corrección anticipada mediante el componente MonitorCuestionario
+    actingAs($e['docente']);
+    Livewire::test(MonitorCuestionario::class, ['seccion' => (string) DB::table('sections')->where('id', $e['seccion'])->value('ulid'), 'cuestionario' => $x['ulid']])
+        ->assertSee(__('Publicar corrección a los estudiantes ahora'))
+        ->call('publicarCorreccion')
+        ->assertDispatched('aviso', tipo: 'exito');
+
+    Event::assertDispatched(RevisionCuestionarioPublicada::class);
+
+    // Ahora la revisión es visible de inmediato para estudiantes sin esperar los 10 minutos
+    $cActualizado = DB::table('assessments as a')->join('quiz_settings as s', 's.assessment_id', '=', 'a.id')
+        ->where('a.ulid', $x['ulid'])->first(['a.*', 's.review_published']);
+    expect(CuestionarioService::revisionVisible($cActualizado))->toBeTrue();
+});
+
+it('permite asignar puntaje personalizado a las preguntas del banco y pondera el intento', function () {
+    $e = escenario();
+    $cuestionarios = app(CuestionarioService::class);
+    $componente = DbContext::system(fn () => DB::table('grading_components')->insertGetId([
+        'section_id' => $e['seccion'], 'number' => 1, 'name' => 'Cómputo 1', 'starts_on' => '2026-07-27', 'ends_on' => '2026-12-11', 'weight_percent' => 100, 'created_at' => now(), 'updated_at' => now(),
+    ]));
+
+    actingAs($e['docente']);
+    $banco = $cuestionarios->crearBanco($e['docente'], 'Banco Ponderado', $e['prn']);
+
+    // Pregunta 1 vale 6 puntos, Pregunta 2 vale 4 puntos (total 10)
+    $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'P1 importante', 'correcta' => 0, 'puntos' => 6.0]);
+    $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'P2 secundaria', 'correcta' => 0, 'puntos' => 2.0]);
+
+    $p2Id = DB::table('questions')->where('statement', 'P2 secundaria')->value('id');
+    // Docente edita los puntos de P2 a 4.0
+    $cuestionarios->actualizarPuntosPregunta($e['docente'], $banco, (int) $p2Id, 4.0);
+
+    expect((float) DB::table('questions')->where('id', $p2Id)->value('points'))->toBe(4.0);
+
+    $ulid = $cuestionarios->crearCuestionario($e['docente'], $e['seccion'], [
+        'titulo' => 'Examen Ponderado', 'instrucciones' => null, 'componente' => $componente, 'peso' => 50,
+        'abre' => now()->subMinutes(5)->format('Y-m-d H:i:s'), 'cierra' => now()->addMinutes(20)->format('Y-m-d H:i:s'),
+        'intentos' => 1, 'minutos' => 20, 'navegacion' => 'free', 'banco' => $banco, 'cantidad' => 2, 'tema' => null,
+    ]);
+
+    actingAs($e['estudiante']);
+    $intento = $cuestionarios->iniciar($e['estudiante'], $e['seccion'], $ulid);
+
+    // Responder únicamente la Pregunta 1 (vale 6 de 10) correctamente
+    $p1Respuesta = DB::table('attempt_answers as r')->join('questions as p', 'p.id', '=', 'r.question_id')
+        ->where('r.attempt_id', DB::table('quiz_attempts')->where('ulid', $intento)->value('id'))
+        ->where('p.statement', 'P1 importante')->first(['r.id as respuesta_id', 'p.id as question_id']);
+    $opcionCorrecta = (int) DB::table('question_options')->where('question_id', $p1Respuesta->question_id)->where('is_correct', true)->value('id');
+
+    $cuestionarios->guardarRespuesta($e['estudiante'], $intento, (int) $p1Respuesta->respuesta_id, $opcionCorrecta, null);
+    $cuestionarios->terminar($e['estudiante'], $intento);
+
+    // Como contestó bien la de 6 pts y no contestó la de 4 pts, la nota debe ser 6.0 (6 de 10)
+    $notaObtenida = (float) DB::table('quiz_attempts')->where('ulid', $intento)->value('score');
+    expect($notaObtenida)->toBe(6.0);
+});

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Calificaciones\Jobs\EvaluarRiesgoAcademico;
 use App\Modules\Calificaciones\Services\CalificacionService;
 use App\Modules\Evaluaciones\Events\IntentoCalificado;
+use App\Modules\Evaluaciones\Events\RevisionCuestionarioPublicada;
 use App\Support\Alcance;
 use App\Support\DbContext;
 use Illuminate\Support\Carbon;
@@ -24,7 +25,7 @@ class CuestionarioService
 {
     public const TIPOS = ['multiple_choice' => 'Opción múltiple', 'true_false' => 'Verdadero / falso', 'short_answer' => 'Respuesta corta', 'essay' => 'Ensayo'];
 
-    public function __construct(private Alcance $alcance, private ActividadService $actividades, private CalificacionService $calificaciones) {}
+    public function __construct(private Alcance $alcance, private ActividadService $actividades, private CalificacionService $calificaciones, private ProrrogaService $prorrogas) {}
 
     /**
      * Bancos propios y compartidos conmigo.
@@ -142,16 +143,36 @@ class CuestionarioService
         if ($opciones !== [] && ! isset($opciones[$correcta])) {
             throw ValidationException::withMessages(['correcta' => __('Marque la opción correcta.')]);
         }
+        $puntos = isset($datos['puntos']) ? (float) $datos['puntos'] : 1.0;
+        if ($puntos <= 0 || $puntos > 10) {
+            throw ValidationException::withMessages(['puntos' => __('El puntaje debe ser mayor a 0 y hasta 10 puntos.')]);
+        }
 
-        DbContext::run(function () use ($bancoId, $datos, $opciones, $correcta) {
+        DbContext::run(function () use ($bancoId, $datos, $opciones, $correcta, $puntos) {
             $aceptadas = array_values(array_filter(array_map('trim', explode(',', (string) ($datos['aceptadas'] ?? '')))));
-            $id = DB::table('questions')->insertGetId(['bank_id' => $bancoId, 'question_type' => $datos['tipo'], 'statement' => $datos['enunciado'], 'topic' => $datos['tema'] ?? null,
+            $id = DB::table('questions')->insertGetId([
+                'bank_id' => $bancoId, 'question_type' => $datos['tipo'], 'statement' => $datos['enunciado'], 'topic' => $datos['tema'] ?? null,
+                'points' => $puntos,
                 'accepted_answers' => $datos['tipo'] === 'short_answer' ? json_encode($aceptadas) : null,
-                'justification' => $datos['justificacion'] ?? null, 'created_at' => now(), 'updated_at' => now()]);
+                'justification' => $datos['justificacion'] ?? null, 'created_at' => now(), 'updated_at' => now(),
+            ]);
             foreach ($opciones as $i => $texto) {
                 DB::table('question_options')->insert(['question_id' => $id, 'text' => $texto, 'is_correct' => $i === $correcta, 'position' => $i, 'created_at' => now(), 'updated_at' => now()]);
             }
         }, 'question.created');
+    }
+
+    public function actualizarPuntosPregunta(User $docente, int $bancoId, int $preguntaId, float $puntos): void
+    {
+        $this->exigirDuenoDelBanco($docente, $bancoId);
+        if ($puntos <= 0 || $puntos > 10) {
+            throw ValidationException::withMessages(['puntos' => __('El puntaje debe ser mayor a 0 y hasta 10 puntos.')]);
+        }
+
+        DbContext::run(function () use ($bancoId, $preguntaId, $puntos) {
+            DB::table('questions')->where('id', $preguntaId)->where('bank_id', $bancoId)
+                ->update(['points' => $puntos, 'updated_at' => now()]);
+        }, 'question.updated');
     }
 
     public function compartir(User $docente, int $bancoId, int $colegaId): void
@@ -197,6 +218,85 @@ class CuestionarioService
     }
 
     /**
+     * @param  array{componente: int, titulo: string, instrucciones?: string|null, abre: string, cierra: string, peso: float, minutos: int, intentos: int, navegacion: string, banco?: int|null, cantidad?: int|null, tema?: string|null}  $datos
+     */
+    public function actualizarCuestionario(User $docente, int $seccionId, string $ulid, array $datos): void
+    {
+        abort_unless($this->alcance->puedeEnSeccion($docente, 'cuestionarios.gestionar', $seccionId), 403);
+        $c = DB::table('assessments')->where('section_id', $seccionId)->where('ulid', $ulid)->where('assessment_type', 'quiz')->first() ?? abort(404);
+
+        if (isset($datos['banco'])) {
+            $this->bancos($docente)->contains('id', $datos['banco']) || abort(403);
+            $disponibles = DB::table('questions')->where('bank_id', $datos['banco'])->when($datos['tema'] ?? null, fn ($q, $t) => $q->where('topic', $t))->count();
+            if ($disponibles === 0) {
+                throw ValidationException::withMessages(['cantidad' => __('El banco no tiene preguntas con ese tema. Elija otro tema o agregue preguntas al banco.')]);
+            }
+            if ($datos['cantidad'] > 0 && $disponibles < $datos['cantidad']) {
+                throw ValidationException::withMessages(['cantidad' => __('El banco solo tiene :n preguntas con ese filtro.', ['n' => $disponibles])]);
+            }
+        }
+
+        $this->actividades->validarPeso((int) $datos['componente'], $seccionId, (float) $datos['peso'], (int) $c->grade_item_id);
+
+        if (Carbon::parse($datos['cierra'])->lte(Carbon::parse($datos['abre']))) {
+            throw ValidationException::withMessages(['cierra' => __('El cierre debe ser posterior a la apertura.')]);
+        }
+
+        DbContext::run(function () use ($c, $datos) {
+            DB::table('grade_items')->where('id', $c->grade_item_id)->update([
+                'component_id' => $datos['componente'],
+                'title' => $datos['titulo'],
+                'weight_percent' => $datos['peso'],
+                'updated_at' => now(),
+            ]);
+
+            DB::table('assessments')->where('id', $c->id)->update([
+                'title' => $datos['titulo'],
+                'instructions' => $datos['instrucciones'] ?? null,
+                'opens_at' => $datos['abre'],
+                'closes_at' => $datos['cierra'],
+                'max_attempts' => max(1, $datos['intentos']),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('quiz_settings')->where('assessment_id', $c->id)->update([
+                'time_limit_minutes' => $datos['minutos'],
+                'navigation' => $datos['navegacion'],
+            ]);
+
+            if (isset($datos['banco'])) {
+                DB::table('quiz_question_rules')->where('assessment_id', $c->id)->update([
+                    'bank_id' => $datos['banco'],
+                    'topic' => $datos['tema'] ?? null,
+                    'quantity' => $datos['cantidad'],
+                    'updated_at' => now(),
+                ]);
+            }
+        }, 'assessment.updated');
+    }
+
+    /**
+     * @return array{cuestionario: object, regla: ?object, intentosCount: int}
+     */
+    public function cuestionarioParaEditar(User $docente, int $seccionId, string $ulid): array
+    {
+        abort_unless($this->alcance->puedeEnSeccion($docente, 'cuestionarios.gestionar', $seccionId), 403);
+        $c = DB::table('assessments as a')->join('quiz_settings as s', 's.assessment_id', '=', 'a.id')
+            ->join('grade_items as g', 'g.id', '=', 'a.grade_item_id')
+            ->where('a.section_id', $seccionId)->where('a.ulid', $ulid)->where('a.assessment_type', 'quiz')
+            ->first(['a.*', 's.time_limit_minutes', 's.navigation', 'g.component_id', 'g.weight_percent', 'g.id as item_id']) ?? abort(404);
+
+        $regla = DB::table('quiz_question_rules')->where('assessment_id', $c->id)->first();
+        $intentosCount = DB::table('quiz_attempts')->where('assessment_id', $c->id)->count();
+
+        return [
+            'cuestionario' => $c,
+            'regla' => $regla,
+            'intentosCount' => $intentosCount,
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function cuestionario(User $usuario, int $seccionId, string $ulid): array
@@ -207,11 +307,16 @@ class CuestionarioService
             ->first(['a.*', 's.time_limit_minutes', 's.navigation', 's.review_published', 'g.weight_percent', 'g.is_published', 'g.id as item_id']) ?? abort(404);
         $matricula = $this->actividades->matricula($usuario, $seccionId);
         $gestiona = $this->alcance->puedeEnSeccion($usuario, 'cuestionarios.gestionar', $seccionId);
+        $prorroga = $matricula ? $this->prorrogas->vigente($matricula, (int) $c->id, 'submission') : null;
         $estado = $this->actividades->estado($c);
+        if ($estado === 'cerrada' && $prorroga !== null) {
+            $estado = 'abierta';
+        }
 
         return [
             'cuestionario' => $c,
             'estado' => $estado,
+            'prorroga' => $prorroga,
             'aciertos' => $gestiona && $estado === 'cerrada' ? $this->aciertos((int) $c->id) : collect(),
             'preguntas' => (int) DB::table('quiz_question_rules')->where('assessment_id', $c->id)->sum('quantity'),
             'misIntentos' => $matricula ? DB::table('quiz_attempts')->where('assessment_id', $c->id)->where('enrollment_id', $matricula)->orderBy('attempt_number')->get() : collect(),
@@ -250,23 +355,25 @@ class CuestionarioService
         $datos = $this->cuestionario($estudiante, $seccionId, $ulid);
         $c = $datos['cuestionario'];
         $matricula = $this->actividades->matricula($estudiante, $seccionId) ?? abort(403);
+        $prorroga = $this->prorrogas->vigente($matricula, (int) $c->id, 'submission');
 
         if ($abierto = $datos['misIntentos']->firstWhere('status', 'in_progress')) {
             return $abierto->ulid;
         }
-        if ($datos['estado'] !== 'abierta') {
+        if ($datos['estado'] !== 'abierta' && $prorroga === null) {
             throw ValidationException::withMessages(['intento' => __('El cuestionario no está abierto.')]);
         }
         if ($datos['misIntentos']->count() >= (int) $c->max_attempts) {
             throw ValidationException::withMessages(['intento' => __('Ya usó sus :n intentos.', ['n' => $c->max_attempts])]);
         }
 
-        return DbContext::run(function () use ($c, $matricula, $datos) {
+        return DbContext::run(function () use ($c, $matricula, $datos, $prorroga) {
             $inicio = now();
             $limite = $inicio->copy()->addMinutes((int) $c->time_limit_minutes);
+            $cierre = $prorroga ? Carbon::parse($prorroga) : Carbon::parse($c->closes_at);
             $ulid = (string) Str::ulid();
             $intento = DB::table('quiz_attempts')->insertGetId(['ulid' => $ulid, 'assessment_id' => $c->id, 'enrollment_id' => $matricula, 'attempt_number' => $datos['misIntentos']->count() + 1,
-                'started_at' => $inicio, 'deadline_at' => $limite->min(Carbon::parse($c->closes_at)), 'status' => 'in_progress', 'created_at' => now(), 'updated_at' => now()]);
+                'started_at' => $inicio, 'deadline_at' => $limite->min($cierre), 'status' => 'in_progress', 'created_at' => now(), 'updated_at' => now()]);
             $posicion = 0;
             foreach (DB::table('quiz_question_rules')->where('assessment_id', $c->id)->get() as $regla) {
                 $ids = DB::table('questions')->where('bank_id', $regla->bank_id)
@@ -297,7 +404,7 @@ class CuestionarioService
             ->first(['a.id', 'a.ulid', 'a.title', 'a.closes_at', 's.navigation', 's.review_published', 'subjects.code', 'sections.ulid as seccion']);
         $cuestionario->revision_visible = self::revisionVisible($cuestionario);
         $preguntas = DB::table('attempt_answers as r')->join('questions as p', 'p.id', '=', 'r.question_id')->where('r.attempt_id', $intento->id)->orderBy('r.position')
-            ->get(['r.id as respuesta_id', 'r.position', 'r.selected_option_id', 'r.answer_text', 'r.score', 'p.id', 'p.question_type', 'p.statement', 'p.justification']);
+            ->get(['r.id as respuesta_id', 'r.position', 'r.selected_option_id', 'r.answer_text', 'r.score', 'p.id', 'p.question_type', 'p.statement', 'p.justification', 'p.points']);
         $opciones = DB::table('question_options')->whereIn('question_id', $preguntas->pluck('id'))->orderBy('position')->get(['id', 'question_id', 'text', 'is_correct'])->groupBy('question_id');
         $preguntas->each(fn ($p) => $p->opciones = ($opciones[$p->id] ?? collect())->values());
 
@@ -389,6 +496,14 @@ class CuestionarioService
 
     public static function revisionVisible(object $cuestionario): bool
     {
+        if (property_exists($cuestionario, 'review_published') && (bool) $cuestionario->review_published) {
+            return true;
+        }
+
+        if (isset($cuestionario->id) && (bool) DB::table('quiz_settings')->where('assessment_id', $cuestionario->id)->value('review_published')) {
+            return true;
+        }
+
         return now()->gte(self::revisionDesde($cuestionario));
     }
 
@@ -438,16 +553,25 @@ class CuestionarioService
             ->groupBy('attempt_answers.attempt_id')->selectRaw('attempt_answers.attempt_id, count(*) as total')->pluck('total', 'attempt_id');
         $totales = DB::table('attempt_answers')->join('quiz_attempts', 'quiz_attempts.id', '=', 'attempt_answers.attempt_id')
             ->where('quiz_attempts.assessment_id', $c->id)->groupBy('attempt_answers.attempt_id')->selectRaw('attempt_answers.attempt_id, count(*) as total')->pluck('total', 'attempt_id');
+        $puntos = DB::table('attempt_answers as r')->join('quiz_attempts as q', 'q.id', '=', 'r.attempt_id')
+            ->leftJoin('questions as p', 'p.id', '=', 'r.question_id')
+            ->leftJoin('question_options as o', 'o.id', '=', 'r.selected_option_id')
+            ->where('q.assessment_id', $c->id)
+            ->groupBy('r.attempt_id')
+            ->selectRaw('r.attempt_id, sum(case when r.score is not null then r.score * coalesce(p.points, 1.0) when p.question_type in (\'multiple_choice\', \'true_false\') and o.is_correct is true then coalesce(p.points, 1.0) else 0.0 end) as suma, sum(coalesce(p.points, 1.0)) as cant')
+            ->get()->keyBy('attempt_id');
 
         $filas = DB::table('enrollments as e')->join('users as u', 'u.id', '=', 'e.student_id')->where('e.section_id', $seccionId)->where('e.status', 'active')
             ->orderBy('u.last_name')->orderBy('u.first_name')->get(['e.id as matricula', 'u.first_name', 'u.last_name'])
-            ->each(function (object $f) use ($intentos, $respondidas, $totales): void {
+            ->each(function (object $f) use ($intentos, $respondidas, $totales, $puntos): void {
                 $i = $intentos[$f->matricula] ?? null;
                 $f->intento = $i;
                 $f->estado = $i === null ? 'sin_empezar' : ($i->status === 'in_progress' ? 'en_curso' : 'enviado');
                 $f->segundos = $i && $i->status === 'in_progress' ? max(0, (int) now()->diffInSeconds(Carbon::parse($i->deadline_at), false)) : null;
                 $f->respondidas = $i ? (int) ($respondidas[$i->id] ?? 0) : 0;
                 $f->preguntas = $i ? (int) ($totales[$i->id] ?? 0) : 0;
+                $p = $i ? ($puntos[$i->id] ?? null) : null;
+                $f->nota = $i?->score !== null ? (float) $i->score : ($p && $p->cant > 0 && ($f->estado === 'enviado' || $f->respondidas > 0) ? round(10 * (float) $p->suma / $p->cant, 1) : null);
             });
 
         $resumen = ['sin_empezar' => $filas->where('estado', 'sin_empezar')->count(), 'en_curso' => $filas->where('estado', 'en_curso')->count(), 'enviados' => $filas->where('estado', 'enviado')->count()];
@@ -514,12 +638,37 @@ class CuestionarioService
     }
 
     /**
+     * El docente publica anticipadamente la corrección a los estudiantes sin esperar los minutos de demora (ADR-040, ADR-042).
+     * Solo si no hay intentos en curso.
+     *
+     * @throws ValidationException
+     */
+    public function publicarRevisionAnticipada(User $docente, int $seccionId, string $ulid): void
+    {
+        abort_unless($this->alcance->puedeEnSeccion($docente, 'cuestionarios.gestionar', $seccionId), 403);
+        $c = $this->cuestionarioDeSeccion($seccionId, $ulid);
+
+        if (DB::table('quiz_attempts')->where('assessment_id', $c->id)->where('status', 'in_progress')->exists()) {
+            throw ValidationException::withMessages(['revision' => __('No se puede publicar la corrección mientras haya intentos en curso.')]);
+        }
+
+        DbContext::run(function () use ($c) {
+            $marcado = DB::table('quiz_settings')->where('assessment_id', $c->id)->where('review_published', false)
+                ->update(['review_published' => true]);
+            if ($marcado > 0) {
+                RevisionCuestionarioPublicada::dispatch((int) $c->id);
+            }
+        }, 'quiz_review.available');
+    }
+
+    /**
      * Datos mínimos del cuestionario para el monitor y sus acciones (se consultan cada 15 s).
      */
     private function cuestionarioDeSeccion(int $seccionId, string $ulid): object
     {
-        return DB::table('assessments')->where('section_id', $seccionId)->where('ulid', $ulid)->where('assessment_type', 'quiz')
-            ->first(['id', 'ulid', 'title', 'opens_at', 'closes_at']) ?? abort(404);
+        return DB::table('assessments as a')->leftJoin('quiz_settings as s', 's.assessment_id', '=', 'a.id')
+            ->where('a.section_id', $seccionId)->where('a.ulid', $ulid)->where('a.assessment_type', 'quiz')
+            ->first(['a.id', 'a.ulid', 'a.title', 'a.opens_at', 'a.closes_at', 's.review_published']) ?? abort(404);
     }
 
     private function intentoDelMonitor(User $docente, int $seccionId, string $cuestionarioUlid, string $intentoUlid): object
@@ -528,6 +677,56 @@ class CuestionarioService
         $c = $this->cuestionarioDeSeccion($seccionId, $cuestionarioUlid);
 
         return DB::table('quiz_attempts')->where('assessment_id', $c->id)->where('ulid', $intentoUlid)->first() ?? abort(404);
+    }
+
+    /**
+     * Respuestas y puntuación de un intento para que el docente lo revise (RF16).
+     *
+     * @return array{estudiante: object, intento: object, cuestionario: object, preguntas: Collection<int, object>, notaCalculada: float}
+     */
+    public function intentoParaDocente(User $docente, int $seccionId, string $cuestionarioUlid, string $intentoUlid): array
+    {
+        abort_unless($this->alcance->puedeEnSeccion($docente, 'cuestionarios.gestionar', $seccionId), 403);
+        $c = $this->cuestionarioDeSeccion($seccionId, $cuestionarioUlid);
+        $intento = DB::table('quiz_attempts as q')->join('enrollments as e', 'e.id', '=', 'q.enrollment_id')
+            ->join('users as u', 'u.id', '=', 'e.student_id')
+            ->where('q.assessment_id', $c->id)->where('q.ulid', $intentoUlid)
+            ->first(['q.*', 'u.first_name', 'u.last_name', 'u.institutional_email as email', 'e.id as matricula_id']) ?? abort(404);
+
+        $preguntas = DB::table('attempt_answers as r')->join('questions as p', 'p.id', '=', 'r.question_id')
+            ->where('r.attempt_id', $intento->id)->orderBy('r.position')
+            ->get(['r.id as respuesta_id', 'r.position', 'r.selected_option_id', 'r.answer_text', 'r.score', 'p.id as question_id', 'p.question_type', 'p.statement', 'p.justification', 'p.accepted_answers', 'p.points']);
+
+        $opciones = DB::table('question_options')->whereIn('question_id', $preguntas->pluck('question_id'))->orderBy('position')
+            ->get(['id', 'question_id', 'text', 'is_correct'])->groupBy('question_id');
+
+        $preguntas->each(function (object $p) use ($opciones): void {
+            $p->opciones = ($opciones[$p->question_id] ?? collect())->values();
+            $ptsMax = (float) ($p->points ?? 1.0);
+            if ($p->score === null && in_array($p->question_type, ['multiple_choice', 'true_false'], true) && $p->selected_option_id) {
+                $proporcion = (float) (bool) $p->opciones->firstWhere('id', $p->selected_option_id)?->is_correct;
+                $p->puntos_estimados = $proporcion * $ptsMax;
+            } elseif ($p->score === null && $p->question_type === 'short_answer' && $p->answer_text) {
+                $aceptadas = array_map(fn ($a) => mb_strtolower(trim($a)), json_decode((string) $p->accepted_answers, true) ?: []);
+                $proporcion = (float) in_array(mb_strtolower(trim((string) $p->answer_text)), $aceptadas, true);
+                $p->puntos_estimados = $proporcion * $ptsMax;
+            } elseif ($p->score !== null) {
+                $p->puntos_estimados = (float) $p->score * $ptsMax;
+            } else {
+                $p->puntos_estimados = 0.0;
+            }
+        });
+
+        $totalMax = (float) $preguntas->sum('points');
+        $notaCalculada = $totalMax > 0 ? round(10 * $preguntas->sum('puntos_estimados') / $totalMax, 1) : 0.0;
+
+        return [
+            'estudiante' => (object) ['first_name' => $intento->first_name, 'last_name' => $intento->last_name, 'email' => $intento->email],
+            'intento' => $intento,
+            'cuestionario' => $c,
+            'preguntas' => $preguntas,
+            'notaCalculada' => $intento->score !== null ? (float) $intento->score : $notaCalculada,
+        ];
     }
 
     public function calificarEnsayo(User $docente, int $respuestaId, float $puntos): void
@@ -591,8 +790,13 @@ class CuestionarioService
     private function registrarNota(int $intentoId): void
     {
         $intento = DB::table('quiz_attempts')->where('id', $intentoId)->first();
-        $respuestas = DB::table('attempt_answers')->where('attempt_id', $intentoId)->get(['score']);
-        $nota = $respuestas->count() ? round(10 * $respuestas->sum('score') / $respuestas->count(), 2) : 0;
+        $respuestas = DB::table('attempt_answers as r')
+            ->join('questions as p', 'p.id', '=', 'r.question_id')
+            ->where('r.attempt_id', $intentoId)
+            ->get(['r.score', 'p.points']);
+        $totalPuntos = (float) $respuestas->sum('points');
+        $puntosObtenidos = (float) $respuestas->sum(fn ($r) => (float) ($r->score ?? 0) * (float) ($r->points ?? 1.0));
+        $nota = $totalPuntos > 0 ? round(10 * $puntosObtenidos / $totalPuntos, 2) : 0;
         $pendientes = $respuestas->whereNull('score')->count();
         DB::table('quiz_attempts')->where('id', $intentoId)->update(['score' => $nota, 'status' => $pendientes ? 'pending_grading' : 'graded', 'updated_at' => now()]);
 

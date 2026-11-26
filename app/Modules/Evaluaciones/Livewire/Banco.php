@@ -37,6 +37,10 @@ class Banco extends Component
      */
     public ?array $previa = null;
 
+    public ?int $editandoPreguntaId = null;
+
+    public float $editandoPuntos = 1.0;
+
     public function abrirImportacion(): void
     {
         $this->reset('archivo', 'previa');
@@ -72,6 +76,24 @@ class Banco extends Component
     private function extension(): string
     {
         return pathinfo((string) $this->archivo->getClientOriginalName(), PATHINFO_EXTENSION) ?: 'xlsx';
+    }
+
+    public function editarPuntos(int $preguntaId, float $puntosActuales): void
+    {
+        $this->editandoPreguntaId = $preguntaId;
+        $this->editandoPuntos = $puntosActuales;
+        $this->dispatch('abrir-modal', 'editar-puntos-modal');
+    }
+
+    public function guardarPuntos(CuestionarioService $cuestionarios): void
+    {
+        $this->validate(['editandoPuntos' => 'required|numeric|min:0.01|max:10']);
+        if ($this->editandoPreguntaId !== null) {
+            $cuestionarios->actualizarPuntosPregunta(auth()->user(), $this->bancoId, $this->editandoPreguntaId, $this->editandoPuntos);
+            $this->dispatch('cerrar-modal', 'editar-puntos-modal');
+            $this->reset('editandoPreguntaId', 'editandoPuntos');
+            $this->dispatch('aviso', tipo: 'exito', mensaje: __('Puntos de la pregunta actualizados.'));
+        }
     }
 
     public function mount(int $banco): void

@@ -5,6 +5,7 @@ use App\Modules\Identidad\Livewire\CrearUsuario;
 use App\Modules\Identidad\Livewire\EntrarComo;
 use App\Modules\Identidad\Livewire\RolesPermisos;
 use App\Modules\Identidad\Livewire\Usuarios;
+use App\Modules\Identidad\Services\PerfilService;
 use App\Modules\Identidad\Services\UsuarioService;
 use App\Support\DbContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -297,4 +298,31 @@ it('CP-RF04-12 la ficha muestra el carné en mayúsculas y dice «Nunca ha inici
         ->assertSeeText('Nunca ha iniciado sesión')
         ->assertSeeText('No registrado')
         ->assertDontSeeText('Últimos accesos');
+});
+
+it('CP-RF04-12 la ficha y Mi perfil muestran solo los perfiles de los roles actuales, no los de un rol quitado', function () {
+    $e = escenario();
+    actingAs($e['administrador']);
+    // Antes era estudiante: al darle solo el rol Docente, su carrera y carné quedan como historial.
+    $cuenta = usuarioCon('docente');
+    DbContext::system(function () use ($e, $cuenta) {
+        DB::table('teacher_profiles')->insert(['user_id' => $cuenta->id, 'department_id' => $e['dia'], 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('student_profiles')->insert(['user_id' => $cuenta->id, 'student_code' => 'GP22006', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('student_careers')->insert(['student_id' => $cuenta->id, 'career_id' => $e['isi'], 'study_plan_id' => $e['plan'], 'current_cycle' => 9, 'status' => 'active',
+            'created_at' => now(), 'updated_at' => now()]);
+    });
+
+    $ficha = app(UsuarioService::class)->ficha($e['administrador'], $cuenta->id);
+    expect($ficha['estudiante'])->toBeNull()->and($ficha['dispositivo'])->toBeNull()->and($ficha['docenteEn'])->not->toBeNull();
+
+    $this->get(route('usuarios.show', $cuenta->id))->assertOk()
+        ->assertSeeText('Docente del departamento')
+        ->assertDontSeeText('carné GP22006')
+        ->assertDontSeeText('Teléfono de asistencia');
+
+    expect(app(PerfilService::class)->datos($cuenta->fresh())['estudiante'])->toBeNull();
+
+    // Si vuelve a ser estudiante, el historial vuelve a verse.
+    DbContext::system(fn () => $cuenta->syncRoles(['estudiante']));
+    expect(app(UsuarioService::class)->ficha($e['administrador'], $cuenta->id)['estudiante']?->carne)->toBe('GP22006');
 });

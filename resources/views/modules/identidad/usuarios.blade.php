@@ -1,6 +1,8 @@
 {{-- Usuarios (RF04, maqueta 29). --}}
 <div class="flex flex-col gap-5 lg:h-full">
-    <x-ui.encabezado :titulo="__('Usuarios')" :subtitulo="__('Cuentas institucionales @ues.edu.sv. Las cuentas se desactivan, nunca se eliminan.')">
+    <x-ui.encabezado :titulo="__('Usuarios')" :subtitulo="$departamentosAlcance === null
+        ? __('Cuentas institucionales @ues.edu.sv. Las cuentas se desactivan, nunca se eliminan.')
+        : __('Personal de su departamento (:d): docentes y coordinadores de sus carreras. Los estudiantes de sus grupos teóricos están en Matrícula.', ['d' => implode(', ', $departamentosAlcance)])">
         @if ($importa || $puedeCrear)
             <x-slot:acciones>
                 @if ($importa)
@@ -25,10 +27,11 @@
     <x-ui.card ajustar>
         <div class="mb-4 flex flex-col gap-2">
             <div class="grid gap-3 md:grid-cols-[1fr_auto_auto_auto]">
-                <x-ui.search wire:model.live.debounce.300ms="buscar" :placeholder="__('Buscar por nombre o correo…')" />
+                <x-ui.search wire:model.live.debounce.300ms="buscar" :placeholder="__('Nombre o correo…')" />
                 <x-ui.select wire:model.live="rol" :aria-label="__('Rol')">
                     <option value="">{{ __('Todos los roles') }}</option>
-                    @foreach (['administrador', 'jefe_departamento', 'coordinador', 'docente', 'estudiante', 'soporte_tecnico'] as $opcion)
+                    {{-- Con alcance de departamento solo se ofrecen los roles que pueden aparecer en la lista. --}}
+                    @foreach ($departamentosAlcance === null ? ['administrador', 'jefe_departamento', 'coordinador', 'docente', 'estudiante', 'soporte_tecnico'] : ['jefe_departamento', 'coordinador', 'docente'] as $opcion)
                         <option value="{{ $opcion }}">{{ __('roles.'.$opcion) }}</option>
                     @endforeach
                     <option value="{{ \App\Modules\Identidad\Services\UsuarioService::SIN_ROL }}">{{ __('Sin rol') }}</option>
@@ -57,7 +60,45 @@
                 : __('Estudiantes con carrera activa que ya tienen un teléfono de asistencia registrado.') }}</x-ui.alert>
         @endif
 
-        <x-ui.table ajustar :vacio="__('No hay usuarios con esos filtros.')">
+        {{-- En el teléfono, una tarjeta por usuario: en la tabla, el nombre y el correo se partían letra por letra
+             (revisión UX del rol Soporte, 390 px). --}}
+        <ul class="flex flex-col gap-2 md:hidden">
+            @forelse ($this->usuarios as $usuario)
+                <li wire:key="usuario-movil-{{ $usuario->id }}" class="rounded-xl p-3 ring-1 ring-borde">
+                    <div class="flex items-start gap-3">
+                        <x-ui.avatar :iniciales="$usuario->iniciales()" :foto="$usuario->avatar_url" tamano="sm" />
+                        <div class="min-w-0 flex-1">
+                            <a href="{{ route('usuarios.show', $usuario->id) }}" wire:navigate class="block break-words font-medium text-texto hover:text-marca-700 hover:underline">{{ $usuario->fullName() }}</a>
+                            <p class="truncate text-xs text-texto-suave">{{ $usuario->institutional_email }}</p>
+                            <div class="mt-2 flex flex-wrap items-center gap-1">
+                                @foreach ($usuario->roles as $rolUsuario)
+                                    <x-ui.badge color="marca">{{ __('roles.'.$rolUsuario->name) }}</x-ui.badge>
+                                @endforeach
+                                <x-ui.badge :color="$usuario->is_active ? 'verde' : 'gris'">{{ $usuario->is_active ? __('Activo') : __('Inactivo') }}</x-ui.badge>
+                            </div>
+                            <p class="mt-1 text-xs text-texto-suave">{{ $usuario->last_login_at ? __('Último acceso: :f', ['f' => $usuario->last_login_at->timezone('America/El_Salvador')->format('d/m/Y H:i')]) : __('Nunca ha iniciado sesión') }}</p>
+                        </div>
+                    </div>
+                    @if (($controlTotal && $usuario->id !== auth()->id()) || in_array($usuario->id, $rolesEditables, true))
+                        <div class="mt-2 flex justify-end gap-2">
+                            @if (in_array($usuario->id, $rolesEditables, true))
+                                <x-ui.button tamano="sm" variante="fantasma" :href="route('usuarios.roles', ['usuario' => $usuario->id])">{{ __('Roles') }}</x-ui.button>
+                            @endif
+                            @if (! $controlTotal || $usuario->id === auth()->id())
+                            @elseif ($usuario->is_active)
+                                <x-ui.button tamano="sm" variante="peligro" wire:click="confirmarDesactivar({{ $usuario->id }})">{{ __('Desactivar') }}</x-ui.button>
+                            @else
+                                <x-ui.button tamano="sm" variante="fantasma" wire:click="reactivar({{ $usuario->id }})" wire:confirm="{{ __('¿Reactivar la cuenta de :n? Volverá a poder entrar.', ['n' => $usuario->fullName()]) }}">{{ __('Reactivar') }}</x-ui.button>
+                            @endif
+                        </div>
+                    @endif
+                </li>
+            @empty
+                <li class="py-6 text-center text-sm text-texto-suave">{{ __('No hay usuarios con esos filtros.') }}</li>
+            @endforelse
+        </ul>
+
+        <x-ui.table ajustar class="hidden md:block" :vacio="__('No hay usuarios con esos filtros.')">
             <x-slot:cabecera>
                 <th>{{ __('Usuario') }}</th><th>{{ __('Roles') }}</th><th>{{ __('Estado') }}</th><th>{{ __('Último acceso') }}</th><th class="text-right">{{ __('Acciones') }}</th>
             </x-slot:cabecera>
@@ -84,7 +125,7 @@
                     <td>
                         <x-ui.badge :color="$usuario->is_active ? 'verde' : 'gris'">{{ $usuario->is_active ? __('Activo') : __('Inactivo') }}</x-ui.badge>
                     </td>
-                    <td class="text-texto-suave">{{ $usuario->last_login_at?->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? '—' }}</td>
+                    <td class="text-texto-suave">{{ $usuario->last_login_at?->timezone('America/El_Salvador')->format('d/m/Y H:i') ?? __('Nunca') }}</td>
                     <td class="text-right whitespace-nowrap">
                         @if (in_array($usuario->id, $rolesEditables, true))
                             <x-ui.button tamano="sm" variante="fantasma" :href="route('usuarios.roles', ['usuario' => $usuario->id])">{{ __('Roles') }}</x-ui.button>

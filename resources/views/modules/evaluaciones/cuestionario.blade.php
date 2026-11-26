@@ -7,6 +7,13 @@
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
 
     <x-ui.card :titulo="$cuestionario->title">
+        @if ($gestiona)
+            <x-slot:acciones>
+                <x-ui.button variante="secundario" tamano="sm" icono="pencil-square" :href="route('secciones.cuestionarios.editar', ['seccion' => $seccion, 'cuestionario' => $cuestionario->ulid])">
+                    {{ __('Editar') }}
+                </x-ui.button>
+            </x-slot:acciones>
+        @endif
         @if ($cuestionario->instructions)<p class="mb-4 whitespace-pre-line text-sm">{{ $cuestionario->instructions }}</p>@endif
         <dl class="grid gap-3 text-sm sm:grid-cols-4">
             <div><dt class="text-texto-suave">{{ __('Abre') }}</dt><dd>{{ $fecha($cuestionario->opens_at) }}</dd></div>
