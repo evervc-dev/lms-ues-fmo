@@ -109,9 +109,18 @@ class CargaAcademica extends Component
         $this->terminar('nueva-seccion', __('Grupo teórico creado. Agregue su horario y su docente.'));
     }
 
+    /**
+     * Último día (ISO) en que se programa clase: el sábado. ASIS_BYPASS_WEEKEND habilita también el domingo para
+     * probar, salvo en producción, igual que en la apertura de la asistencia (ADR-075).
+     */
+    public static function ultimoDia(): int
+    {
+        return config('lms.asistencia.bypass_horario') && ! app()->isProduction() ? 7 : 6;
+    }
+
     public function agregarHorario(CargaAcademicaService $carga): void
     {
-        $this->validate(['dia' => 'required|integer|between:1,6', 'inicio' => 'required|date_format:H:i', 'fin' => 'required|date_format:H:i'], [], ['dia' => 'día']);
+        $this->validate(['dia' => 'required|integer|between:1,'.self::ultimoDia(), 'inicio' => 'required|date_format:H:i', 'fin' => 'required|date_format:H:i'], [], ['dia' => 'día']);
         $carga->agregarHorario(auth()->user(), (int) $this->seccionId, $this->dia, $this->inicio, $this->fin, $this->aulaId);
         $this->terminar('horario', __('Horario agregado.'));
     }

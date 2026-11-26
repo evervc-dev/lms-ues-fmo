@@ -507,3 +507,17 @@ it('permite asignar puntaje personalizado a las preguntas del banco y pondera el
     $notaObtenida = (float) DB::table('quiz_attempts')->where('ulid', $intento)->value('score');
     expect($notaObtenida)->toBe(6.0);
 });
+
+it('muestra el monitor cuando no hay intentos en curso y quedan estudiantes sin empezar', function () {
+    $e = escenario();
+    $x = examenEnCurso($e);
+    $otro = usuarioCon('estudiante');
+    DbContext::system(fn () => DB::table('enrollments')->insert(['student_id' => $otro->id, 'section_id' => $e['seccion'], 'period_id' => $e['periodo'], 'subject_id' => $e['prn'],
+        'status' => 'active', 'enrolled_via' => 'admin', 'enrolled_by' => $e['administrador']->id, 'created_at' => now(), 'updated_at' => now()]));
+    app(CuestionarioService::class)->cerrarIntento($e['docente'], $e['seccion'], $x['ulid'], $x['intento']);
+    actingAs($e['docente']);
+
+    Livewire::test(MonitorCuestionario::class, ['seccion' => $e['ulid'], 'cuestionario' => $x['ulid']])
+        ->assertOk()
+        ->assertSeeText(['Sin empezar: 1', 'En curso: 0', 'Enviados: 1']);
+});

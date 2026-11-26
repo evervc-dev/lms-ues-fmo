@@ -18,6 +18,14 @@ El **avance de las tareas** se registra en **OpenProject** ([[OpenProject]]). Es
 - **Pendiente:** …
 ```
 
+### 2026-11-22 · RF15 · Prórrogas a varios estudiantes, con buscador por nombre o carné
+- **Autor:** IA (Claude Code), a pedido del equipo
+- **OpenProject:** OP# pendiente · **PR:** pendiente → test
+- **Hecho:** el modal de prórrogas solo dejaba elegir un estudiante en un select, tedioso con 40. Ahora es una lista con buscador por nombre o carné (sin distinguir tildes) y casillas: uno, varios o todos los que se ven. `ProrrogaService::concederVarios()` guarda la misma prórroga para todos en una transacción, reemplaza las que ya existían y avisa a cada estudiante. Con calificación anónima, el carné no se muestra junto al seudónimo.
+- **CP cubiertos:** CP-RF15-08 (ampliado).
+- **Decisiones:** —
+- **Pendiente:** —
+
 ### 2026-11-22 · RF11 · Subir una carpeta de materiales fallaba siempre
 - **Autor:** IA (Claude Code), a pedido del equipo
 - **OpenProject:** OP# pendiente · **PR:** pendiente → test

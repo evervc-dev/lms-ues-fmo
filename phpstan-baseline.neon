@@ -475,12 +475,6 @@ parameters:
 			path: app/Modules/Evaluaciones/Services/CuestionarioService.php
 
 		-
-			message: '#^Method App\\Modules\\Evaluaciones\\Services\\ProrrogaService\:\:deActividad\(\) should return array\{datosActividad\: object, prorrogas\: Illuminate\\Support\\Collection\<int, object\>, estudiantes\: Illuminate\\Support\\Collection\<int, object\>, tipos\: array\<string, string\>\} but returns array\{datosActividad\: object, prorrogas\: Illuminate\\Support\\Collection\<int, stdClass\>, estudiantes\: Illuminate\\Support\\Collection\<int, stdClass\>, tipos\: non\-empty\-array\{submission\?\: ''Entrega de la tarea'', review\?\: ''Plazo para pedir…''\}\}\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/Evaluaciones/Services/ProrrogaService.php
-
-		-
 			message: '#^Access to an undefined property App\\Modules\\Identidad\\Livewire\\CrearUsuario\:\:\$opciones\.$#'
 			identifier: property.notFound
 			count: 1

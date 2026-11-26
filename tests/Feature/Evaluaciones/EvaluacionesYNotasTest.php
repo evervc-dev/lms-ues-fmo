@@ -16,6 +16,7 @@ use App\Modules\Evaluaciones\Livewire\Prorrogas;
 use App\Modules\Evaluaciones\Livewire\Tarea;
 use App\Modules\Evaluaciones\Services\ActividadService;
 use App\Modules\Evaluaciones\Services\CuestionarioService;
+use App\Modules\Evaluaciones\Services\ProrrogaService;
 use App\Support\DbContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -145,12 +146,65 @@ it('las prórrogas de una tarea anónima usan los mismos seudónimos que Entrega
 
     actingAs($e['docente']);
     $nombre = $e['estudiante']->last_name.', '.$e['estudiante']->first_name;
+    // Ni el nombre ni el carné: el carné también revelaría quién entregó (ADR-006).
+    $carne = (string) DB::table('student_profiles')->where('user_id', $e['estudiante']->id)->value('student_code');
     Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $tarea])->assertSee('Estudiante 1')->assertDontSee($nombre)
-        ->set('matricula', $e['matricula'])->set('tipo', 'submission')->set('hasta', now()->addDays(3)->format('Y-m-d\\TH:i'))->set('motivo', 'Constancia médica')
+        ->assertDontSee(mb_strtoupper($carne))
+        ->set('matriculas', [$e['matricula']])->set('tipo', 'submission')->set('hasta', now()->addDays(3)->format('Y-m-d\\TH:i'))->set('motivo', 'Constancia médica')
         ->call('conceder')->assertHasNoErrors()->assertDontSee($nombre);
 
     Livewire::test(Entregas::class, ['seccion' => $e['ulid'], 'tarea' => $tarea])->call('publicar');
     Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $tarea])->assertSee($nombre)->assertDontSee('Estudiante 1');
+});
+
+it('CP-RF15-08 da la misma prórroga a varios estudiantes a la vez y reemplaza la que ya tenían', function () {
+    $e = escenario();
+    $tarea = tareaDe($e, computos($e)[0]);
+    $otras = DbContext::system(function () use ($e) {
+        return collect(range(1, 2))->map(function (int $i) use ($e) {
+            $estudiante = usuarioCon('estudiante');
+
+            return DB::table('enrollments')->insertGetId(['student_id' => $estudiante->id, 'section_id' => $e['seccion'], 'period_id' => $e['periodo'], 'subject_id' => $e['prn'],
+                'status' => 'active', 'enrolled_via' => 'key', 'enrolled_by' => $estudiante->id, 'created_at' => now(), 'updated_at' => now()]);
+        })->all();
+    });
+    actingAs($e['docente']);
+    $hasta = now()->addDays(3)->format('Y-m-d\\TH:i');
+    // Una ya tenía prórroga: se reemplaza por la nueva.
+    app(ProrrogaService::class)->conceder($e['docente'], $e['seccion'], $tarea, $e['matricula'], 'submission', $hasta, 'Primera prórroga');
+
+    Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $tarea])
+        ->assertSee('Buscar por nombre o carné…')
+        ->call('conceder')->assertHasErrors(['matriculas'])
+        ->set('matriculas', [$e['matricula'], ...$otras])->set('tipo', 'submission')->set('hasta', $hasta)->set('motivo', 'Corte de luz en la facultad')
+        ->call('conceder')->assertHasNoErrors()
+        ->assertDispatched('aviso', tipo: 'exito', mensaje: 'Prórroga guardada para 3 estudiantes. Se avisó a cada uno. Se reemplazó 1 que ya existía.');
+
+    expect(DB::table('assessment_extensions')->where('kind', 'submission')->count())->toBe(3)
+        ->and(DB::table('assessment_extensions')->pluck('reason')->unique()->values()->all())->toBe(['Corte de luz en la facultad']);
+});
+
+it('CP-RF15-08 el asistente de prórrogas valida cada paso y muestra una vista previa antes de guardar', function () {
+    $e = escenario();
+    $tarea = tareaDe($e, computos($e)[0]);
+    actingAs($e['docente']);
+    $hasta = now()->addDays(2)->format('Y-m-d\\TH:i');
+    app(ProrrogaService::class)->conceder($e['docente'], $e['seccion'], $tarea, $e['matricula'], 'submission', $hasta, 'Primera prórroga');
+
+    Livewire::test(Prorrogas::class, ['seccion' => $e['ulid'], 'actividad' => $tarea])->call('abrir')
+        // Paso 1: sin estudiantes no avanza.
+        ->call('siguiente')->assertHasErrors(['matriculas'])->assertSet('paso', 1)
+        ->set('matriculas', [$e['matricula']])->call('siguiente')->assertHasNoErrors()->assertSet('paso', 2)
+        // Paso 2: la fecha debe ser futura y el motivo, de al menos 5 caracteres.
+        ->set('hasta', now()->subDay()->format('Y-m-d\\TH:i'))->set('motivo', 'no')->call('siguiente')
+        ->assertHasErrors(['hasta', 'motivo'])->assertSet('paso', 2)
+        ->set('hasta', $hasta)->set('motivo', 'Constancia médica')->call('siguiente')->assertSet('paso', 3)
+        // Paso 3: vista previa, con el aviso de que se reemplaza la que ya tenía; todavía no se guardó nada.
+        ->assertSeeText(['Constancia médica', 'Reemplaza', 'Confirmar prórroga'])
+        ->call('anterior')->assertSet('paso', 2)->call('siguiente')
+        ->call('conceder')->assertHasNoErrors()->assertSet('paso', 1);
+
+    expect(DB::table('assessment_extensions')->value('reason'))->toBe('Constancia médica');
 });
 
 it('ya no pide la dificultad al crear una pregunta del banco', function () {
@@ -586,4 +640,178 @@ it('«Mis notas» lista cada actividad calificada con su nota', function () {
         ->and($materia->actividades[0]->ulid)->toBe($tarea);
 
     $this->get(route('mis-notas'))->assertOk()->assertSeeText(['Notas por actividad', 'Tarea 1', '9.3']);
+});
+
+it('permite al docente editar una tarea existente y actualiza sus datos', function () {
+    $e = escenario();
+    $computo = computos($e)[0];
+    $tareaUlid = tareaDe($e, $computo, ['peso' => 30]);
+
+    actingAs($e['docente']);
+
+    $nuevaApertura = now()->addDay()->format('Y-m-d\TH:i');
+    $nuevoCierre = now()->addDays(2)->format('Y-m-d\TH:i');
+    $nuevaGracia = now()->addDays(3)->format('Y-m-d\TH:i');
+
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid'], 'tarea' => $tareaUlid])
+        ->assertSet('editandoUlid', $tareaUlid)
+        ->assertSet('titulo', 'Tarea 1')
+        ->set('titulo', 'Tarea Modificada')
+        ->set('instrucciones', 'Instrucciones modificadas')
+        ->set('peso', 45)
+        ->set('abre', $nuevaApertura)
+        ->set('cierra', $nuevoCierre)
+        ->set('politica', 'grace_penalty')
+        ->set('gracia', $nuevaGracia)
+        ->set('penalizacion', 15)
+        ->set('extensiones', ['pdf', 'zip'])
+        ->set('mb', 20)
+        ->set('intentos', 2)
+        ->set('anonima', true)
+        ->call('guardar')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('secciones.tareas.show', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]));
+
+    $t = DB::table('assessments as a')->join('assignment_settings as s', 's.assessment_id', '=', 'a.id')
+        ->join('grade_items as g', 'g.id', '=', 'a.grade_item_id')
+        ->where('a.ulid', $tareaUlid)->first(['a.*', 's.*', 'g.weight_percent']);
+
+    expect($t->title)->toBe('Tarea Modificada')
+        ->and($t->instructions)->toBe('Instrucciones modificadas')
+        ->and((float) $t->weight_percent)->toBe(45.0)
+        ->and($t->late_policy)->toBe('grace_penalty')
+        ->and((int) $t->late_penalty_percent)->toBe(15)
+        ->and((int) $t->max_file_mb)->toBe(20)
+        ->and((int) $t->max_attempts)->toBe(2)
+        ->and((bool) $t->is_anonymous)->toBeTrue()
+        ->and(json_decode((string) $t->allowed_extensions, true))->toBe(['pdf', 'zip']);
+});
+
+it('valida las fechas y períodos de gracia al editar una tarea', function () {
+    $e = escenario();
+    $computo = computos($e)[0];
+    $tareaUlid = tareaDe($e, $computo);
+
+    actingAs($e['docente']);
+
+    // Cierre anterior a la apertura
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid'], 'tarea' => $tareaUlid])
+        ->set('abre', now()->addDays(2)->format('Y-m-d\TH:i'))
+        ->set('cierra', now()->addDay()->format('Y-m-d\TH:i'))
+        ->call('guardar')
+        ->assertHasErrors(['cierra']);
+
+    // Fecha de gracia anterior al cierre
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid'], 'tarea' => $tareaUlid])
+        ->set('abre', now()->addDay()->format('Y-m-d\TH:i'))
+        ->set('cierra', now()->addDays(3)->format('Y-m-d\TH:i'))
+        ->set('politica', 'grace')
+        ->set('gracia', now()->addDays(2)->format('Y-m-d\TH:i'))
+        ->call('guardar')
+        ->assertHasErrors(['gracia']);
+});
+
+it('bloquea el cambio de modalidad en una tarea con entregas registradas', function () {
+    $e = escenario();
+    $computo = computos($e)[0];
+    $tareaUlid = tareaDe($e, $computo);
+
+    // El estudiante realiza una entrega
+    actingAs($e['estudiante']);
+    Livewire::test(Tarea::class, ['seccion' => $e['ulid'], 'tarea' => $tareaUlid])
+        ->set('archivo', UploadedFile::fake()->create('trabajo.pdf', 50))
+        ->call('entregar')
+        ->assertHasNoErrors();
+
+    // El docente intenta cambiar la tarea a grupal
+    actingAs($e['docente']);
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid'], 'tarea' => $tareaUlid])
+        ->assertSet('entregasCount', 1)
+        ->assertSet('modalidadBloqueada', true)
+        ->set('grupal', true)
+        ->call('guardar')
+        ->assertHasErrors(['grupal']);
+});
+
+it('muestra el boton editar tarea al docente y prohibe el acceso a estudiante o docente ajeno', function () {
+    $e = escenario();
+    $computo = computos($e)[0];
+    $tareaUlid = tareaDe($e, $computo);
+
+    // Docente de la sección ve el botón "Editar" en la vista de detalle
+    actingAs($e['docente']);
+    $this->get(route('secciones.tareas.show', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]))
+        ->assertOk()
+        ->assertSeeText(__('Editar'))
+        ->assertSee(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]));
+
+    // Docente accede a la pantalla de edición
+    $this->get(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]))
+        ->assertOk()
+        ->assertSeeText(__('Editar tarea'));
+
+    // Estudiante ve el detalle pero NO ve el botón "Editar"
+    actingAs($e['estudiante']);
+    $this->get(route('secciones.tareas.show', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]))
+        ->assertOk()
+        ->assertDontSee(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]));
+
+    // Estudiante recibe 403 al intentar acceder a la pantalla de edición
+    $this->get(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]))
+        ->assertForbidden();
+
+    // Docente ajeno recibe 403
+    $otroDocente = usuarioCon('docente');
+    actingAs($otroDocente);
+    $this->get(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]))
+        ->assertForbidden();
+});
+
+it('muestra ponderacion acumulada y acciones directas al docente en la lista de actividades', function () {
+    $e = escenario();
+    $computo = computos($e)[0];
+    $tareaUlid = tareaDe($e, $computo, ['peso' => 50]);
+
+    actingAs($e['docente']);
+    $resp = $this->get(route('secciones.actividades', ['seccion' => $e['ulid']]))->assertOk();
+
+    // Ve el badge de ponderado acumulado (50 %)
+    $resp->assertSeeText('Ponderado: 50 %');
+
+    // Ve la acción directa de editar la tarea y de ver entregas
+    $resp->assertSee(route('secciones.tareas.editar', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]));
+    $resp->assertSee(route('secciones.tareas.entregas', ['seccion' => $e['ulid'], 'tarea' => $tareaUlid]));
+});
+
+it('los atajos de extensiones en nueva tarea seleccionan los conjuntos predefinidos', function () {
+    $e = escenario();
+    actingAs($e['docente']);
+
+    Livewire::test(NuevaTarea::class, ['seccion' => $e['ulid']])
+        ->call('seleccionarExtensiones', 'documentos')
+        ->assertSet('extensiones', ActividadService::EXTENSIONES['Documentos'])
+        ->call('seleccionarExtensiones', 'comunes')
+        ->assertSet('extensiones', ['pdf', 'docx', 'xlsx', 'zip'])
+        ->call('seleccionarExtensiones', 'limpiar')
+        ->assertSet('extensiones', [])
+        ->call('seleccionarExtensiones', 'todas')
+        ->assertSet('extensiones', ActividadService::extensionesValidas());
+});
+
+it('calcula las preguntas disponibles en el formulario de cuestionario segun el banco y tema', function () {
+    $e = escenario();
+    $cuestionarios = app(CuestionarioService::class);
+    actingAs($e['docente']);
+    $banco = $cuestionarios->crearBanco($e['docente'], 'Banco UI Test', $e['prn']);
+    $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'P1', 'correcta' => 0, 'tema' => 'Algoritmos']);
+    $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'P2', 'correcta' => 0, 'tema' => 'Algoritmos']);
+    $cuestionarios->agregarPregunta($e['docente'], $banco, ['tipo' => 'true_false', 'enunciado' => 'P3', 'correcta' => 0, 'tema' => 'Bases']);
+
+    Livewire::test(NuevoCuestionario::class, ['seccion' => $e['ulid']])
+        ->set('banco', $banco)
+        ->assertViewHas('disponibles', 3)
+        ->set('tema', 'Algoritmos')
+        ->assertViewHas('disponibles', 2)
+        ->set('tema', 'Bases')
+        ->assertViewHas('disponibles', 1);
 });

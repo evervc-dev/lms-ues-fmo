@@ -6,7 +6,14 @@
     <div class="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <x-ui.card :titulo="$tarea->title">
             <x-slot:acciones>
-                @if ($gestiona)<x-ui.button tamano="sm" :href="route('secciones.tareas.entregas', ['seccion' => $resumen['ulid'], 'tarea' => $tarea->ulid])">{{ __('Ver entregas') }}</x-ui.button>@endif
+                @if ($gestiona)
+                    <x-ui.button variante="secundario" tamano="sm" icono="pencil-square" :href="route('secciones.tareas.editar', ['seccion' => $resumen['ulid'], 'tarea' => $tarea->ulid])">
+                        {{ __('Editar') }}
+                    </x-ui.button>
+                    <x-ui.button tamano="sm" :href="route('secciones.tareas.entregas', ['seccion' => $resumen['ulid'], 'tarea' => $tarea->ulid])">
+                        {{ __('Ver entregas') }}
+                    </x-ui.button>
+                @endif
             </x-slot:acciones>
             @if ($tarea->instructions)<p class="whitespace-pre-line text-sm text-texto">{{ $tarea->instructions }}</p>@endif
             <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">

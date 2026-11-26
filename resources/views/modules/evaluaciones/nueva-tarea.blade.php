@@ -1,9 +1,16 @@
-{{-- Crear tarea (RF15, maqueta 19). --}}
+{{-- Crear o editar tarea (RF15, maqueta 19). --}}
 <div class="flex flex-col gap-5">
     <x-seccion.encabezado :resumen="$resumen" :pestanas="$pestanas" />
     <form wire:submit="guardar" class="flex flex-col gap-5 [&_input]:scroll-mb-24 [&_select]:scroll-mb-24 [&_textarea]:scroll-mb-24">
+        @if ($entregasCount > 0)
+            <x-ui.alert tipo="aviso" :titulo="__('Tarea con entregas registradas')">
+                {{ trans_choice('{1} Ya hay 1 entrega de estudiante registrada.|[2,*] Ya hay :count entregas de estudiantes registradas.', $entregasCount) }}
+                {{ __('Si modifica las fechas o los archivos permitidos, tenga en cuenta que ya existen entregas realizadas.') }}
+            </x-ui.alert>
+        @endif
+
         <div class="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
-            @include('modules.evaluaciones.partials.datos-actividad', ['sufijo' => '', 'titulo' => __('Nueva tarea')])
+            @include('modules.evaluaciones.partials.datos-actividad', ['sufijo' => '', 'titulo' => $editando ? __('Editar tarea') : __('Nueva tarea')])
 
             <div class="flex flex-col gap-5">
                 <x-ui.card :titulo="__('Entrega')" :descripcion="__('Qué puede subir el estudiante y qué pasa si llega tarde.')">
@@ -31,6 +38,13 @@
                         @endif
                         {{-- Se eligen del catálogo, no se escriben: una extensión mal tecleada rechazaba entregas correctas. --}}
                         <x-ui.field :etiqueta="__('Extensiones permitidas')" para="extensiones" error="extensiones" :ayuda="__('Marque las que acepta. Al menos una.')" requerido>
+                            <div class="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
+                                <span class="font-medium text-texto-suave mr-1">{{ __('Atajos:') }}</span>
+                                <button type="button" wire:click="seleccionarExtensiones('documentos')" class="rounded bg-zinc-100 px-2 py-0.5 font-medium text-texto hover:bg-zinc-200 transition">{{ __('Solo documentos') }}</button>
+                                <button type="button" wire:click="seleccionarExtensiones('comunes')" class="rounded bg-zinc-100 px-2 py-0.5 font-medium text-texto hover:bg-zinc-200 transition">{{ __('Formatos habituales') }}</button>
+                                <button type="button" wire:click="seleccionarExtensiones('todas')" class="rounded bg-zinc-100 px-2 py-0.5 font-medium text-texto hover:bg-zinc-200 transition">{{ __('Todas') }}</button>
+                                <button type="button" wire:click="seleccionarExtensiones('limpiar')" class="rounded bg-zinc-100 px-2 py-0.5 font-medium text-red-700 hover:bg-red-50 transition">{{ __('Limpiar') }}</button>
+                            </div>
                             <div class="flex flex-col gap-3 rounded-lg p-3 ring-1 ring-borde" id="extensiones">
                                 @foreach ($catalogoExtensiones as $grupo => $exts)
                                     <div wire:key="ext-{{ $loop->index }}">
@@ -57,8 +71,14 @@
                 <x-ui.card :titulo="__('Calificación')">
                     <div class="flex flex-col gap-4 text-sm">
                         <label class="flex items-start gap-3">
-                            <input type="checkbox" wire:model.live="conRubrica" class="mt-0.5 size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
-                            <span class="flex flex-col"><span class="font-medium text-texto">{{ __('Calificar con rúbrica') }}</span><span class="text-xs text-texto-suave">{{ __('La nota es la suma de los puntos de cada criterio. Sin rúbrica, se pone una nota directa de 0 a 10.') }}</span></span>
+                            <input type="checkbox" wire:model.live="conRubrica" @disabled(! $rubricaEditable) class="mt-0.5 size-4 rounded border-borde text-marca-600 focus:ring-marca-600 disabled:opacity-50">
+                            <span class="flex flex-col">
+                                <span class="font-medium text-texto">{{ __('Calificar con rúbrica') }}</span>
+                                <span class="text-xs text-texto-suave">{{ __('La nota es la suma de los puntos de cada criterio. Sin rúbrica, se pone una nota directa de 0 a 10.') }}</span>
+                                @if (! $rubricaEditable)
+                                    <span class="text-xs font-medium text-amber-600">{{ __('La tarea ya tiene calificaciones: la rúbrica no se puede modificar.') }}</span>
+                                @endif
+                            </span>
                         </label>
                         @if ($conRubrica)
                             @include('modules.evaluaciones.partials.criterios-rubrica', ['modelo' => 'criterios', 'criterios' => $criterios])
@@ -68,14 +88,20 @@
                             <span class="flex flex-col"><span class="font-medium text-texto">{{ __('Calificación anónima') }}</span><span class="text-xs text-texto-suave">{{ __('Los nombres aparecen al publicar las notas.') }}</span></span>
                         </label>
                         <label class="flex items-start gap-3">
-                            <input type="checkbox" wire:model="grupal" class="mt-0.5 size-4 rounded border-borde text-marca-600 focus:ring-marca-600">
-                            <span class="flex flex-col"><span class="font-medium text-texto">{{ __('Tarea grupal') }}</span><span class="text-xs text-texto-suave">{{ __('Usted arma los equipos en la pantalla de entregas; la nota se copia a cada integrante.') }}</span></span>
+                            <input type="checkbox" wire:model="grupal" @disabled($modalidadBloqueada) class="mt-0.5 size-4 rounded border-borde text-marca-600 focus:ring-marca-600 disabled:opacity-50">
+                            <span class="flex flex-col">
+                                <span class="font-medium text-texto">{{ __('Tarea grupal') }}</span>
+                                <span class="text-xs text-texto-suave">{{ __('Usted arma los equipos en la pantalla de entregas; la nota se copia a cada integrante.') }}</span>
+                                @if ($modalidadBloqueada)
+                                    <span class="text-xs font-medium text-amber-600">{{ __('No se puede cambiar la modalidad porque ya existen entregas o equipos asignados.') }}</span>
+                                @endif
+                            </span>
                         </label>
                     </div>
                 </x-ui.card>
             </div>
         </div>
 
-        @include('modules.evaluaciones.partials.acciones-formulario', ['volver' => route('secciones.actividades', ['seccion' => $seccion]), 'enviar' => __('Crear tarea')])
+        @include('modules.evaluaciones.partials.acciones-formulario', ['volver' => $editando ? route('secciones.tareas.show', ['seccion' => $seccion, 'tarea' => $editandoUlid]) : route('secciones.actividades', ['seccion' => $seccion]), 'enviar' => $editando ? __('Guardar cambios') : __('Crear tarea')])
     </form>
 </div>

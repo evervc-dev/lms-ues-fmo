@@ -10,7 +10,7 @@
         <x-ui.badge color="verde">{{ __('Enviados: :n', ['n' => $resumen['enviados']]) }}</x-ui.badge>
         @if ($enVivo)<span class="text-xs text-texto-suave">{{ __('Se actualiza cada 15 s') }}</span>@endif
         <div class="ml-auto flex items-center gap-2">
-            @if (! $revisionVisible && $resumen['en_curso'] === 0 && ($resumen['sin_empezar'] === 0 || now()->gte(\Illuminate\Support\Carbon::parse($cuestionario->closes_at))))
+            @if (! $revisionVisible && $resumen['en_curso'] === 0 && ($resumen['sin_empezar'] === 0 || now()->gte(\Illuminate\Support\Carbon::parse($cierre))))
                 <x-ui.button tamano="sm" variante="secundario" wire:click="publicarCorreccion" wire:confirm="{{ __('¿Publicar la corrección a los estudiantes ahora sin esperar el tiempo de demora?') }}">
                     {{ __('Publicar corrección a los estudiantes ahora') }}
                 </x-ui.button>

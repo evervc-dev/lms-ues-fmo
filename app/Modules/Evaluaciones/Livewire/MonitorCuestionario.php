@@ -80,6 +80,7 @@ class MonitorCuestionario extends Component
 
         return view('modules.evaluaciones.monitor-cuestionario', $datos + [
             'revisionVisible' => CuestionarioService::revisionVisible($datos['cuestionario']),
+            'cierre' => $datos['cuestionario']->closes_at,
         ]);
     }
 

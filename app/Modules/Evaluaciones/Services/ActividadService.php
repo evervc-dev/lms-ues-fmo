@@ -254,6 +254,116 @@ class ActividadService
     }
 
     /**
+     * @return array{tarea: object, criterios: array<int, array{nombre: string, maximo: float}>, entregasCount: int, rubricaEditable: bool, modalidadBloqueada: bool}
+     */
+    public function tareaParaEditar(User $docente, int $seccionId, string $ulid): array
+    {
+        abort_unless($this->alcance->puedeEnSeccion($docente, 'tareas.gestionar', $seccionId), 403);
+        $tarea = DB::table('assessments as a')->join('assignment_settings as s', 's.assessment_id', '=', 'a.id')
+            ->join('grade_items as g', 'g.id', '=', 'a.grade_item_id')
+            ->where('a.section_id', $seccionId)->where('a.ulid', $ulid)->where('a.assessment_type', 'assignment')
+            ->first(['a.*', 's.is_group', 's.late_policy', 's.grace_until', 's.late_penalty_percent', 's.allowed_extensions', 's.max_file_mb', 'g.component_id', 'g.weight_percent', 'g.id as item_id']) ?? abort(404);
+
+        $entregasCount = DB::table('submissions')->where('assessment_id', $tarea->id)->count();
+        $rubricaEditable = $this->rubricas->editable((int) $tarea->grade_item_id, $tarea->rubric_id !== null ? (int) $tarea->rubric_id : null);
+        $modalidadBloqueada = $entregasCount > 0 || DB::table('teams')->where('assessment_id', $tarea->id)->exists();
+
+        $criterios = $this->rubricas->criterios($tarea->rubric_id !== null ? (int) $tarea->rubric_id : null)
+            ->map(fn ($c) => ['nombre' => (string) $c->name, 'maximo' => (float) $c->max_points])
+            ->values()->all();
+
+        return [
+            'tarea' => $tarea,
+            'criterios' => $criterios,
+            'entregasCount' => $entregasCount,
+            'rubricaEditable' => $rubricaEditable,
+            'modalidadBloqueada' => $modalidadBloqueada,
+        ];
+    }
+
+    /**
+     * @param  array{componente: int, titulo: string, instrucciones?: string|null, abre: string, cierra: string, peso: float, politica: string, gracia?: string|null, penalizacion?: int, extensiones: array<int, string>, mb: int, intentos: int, anonima: bool, grupal: bool, conRubrica?: bool, criterios?: array<int, array{nombre: string, maximo: float}>}  $datos
+     */
+    public function actualizarTarea(User $docente, int $seccionId, string $ulid, array $datos): void
+    {
+        abort_unless($this->alcance->puedeEnSeccion($docente, 'tareas.gestionar', $seccionId), 403);
+        $tarea = DB::table('assessments as a')->join('assignment_settings as s', 's.assessment_id', '=', 'a.id')
+            ->where('a.section_id', $seccionId)->where('a.ulid', $ulid)->where('a.assessment_type', 'assignment')
+            ->first(['a.*', 's.is_group', 's.late_policy', 's.grace_until', 's.late_penalty_percent', 's.allowed_extensions', 's.max_file_mb']) ?? abort(404);
+
+        $this->validarPeso((int) $datos['componente'], $seccionId, (float) $datos['peso'], (int) $tarea->grade_item_id);
+
+        if (Carbon::parse($datos['cierra'])->lte(Carbon::parse($datos['abre']))) {
+            throw ValidationException::withMessages(['cierra' => __('El cierre debe ser posterior a la apertura.')]);
+        }
+
+        if ($datos['politica'] !== 'strict' && ! empty($datos['gracia'])) {
+            if (Carbon::parse($datos['gracia'])->lt(Carbon::parse($datos['cierra']))) {
+                throw ValidationException::withMessages(['gracia' => __('La fecha de gracia no puede ser anterior al cierre.')]);
+            }
+        }
+
+        $entregasCount = DB::table('submissions')->where('assessment_id', $tarea->id)->count();
+        $tieneEquipos = DB::table('teams')->where('assessment_id', $tarea->id)->exists();
+        if (($entregasCount > 0 || $tieneEquipos) && (bool) $datos['grupal'] !== (bool) $tarea->is_group) {
+            throw ValidationException::withMessages(['grupal' => __('No se puede cambiar la modalidad de entrega porque ya existen entregas o equipos asignados.')]);
+        }
+
+        $rubricaEditable = $this->rubricas->editable((int) $tarea->grade_item_id, $tarea->rubric_id !== null ? (int) $tarea->rubric_id : null);
+        $criterios = ($datos['conRubrica'] ?? false) ? ($datos['criterios'] ?? []) : [];
+        if ($criterios !== []) {
+            $this->rubricas->validar($criterios);
+        }
+
+        if (! $rubricaEditable) {
+            $anteriores = $this->rubricas->criterios($tarea->rubric_id !== null ? (int) $tarea->rubric_id : null)
+                ->map(fn ($c) => ['nombre' => (string) $c->name, 'maximo' => (float) $c->max_points])->values()->all();
+            if (! ($datos['conRubrica'] ?? false) || $criterios != $anteriores) {
+                throw ValidationException::withMessages(['criterios' => __('La tarea ya tiene calificaciones: la rúbrica no se puede cambiar.')]);
+            }
+        }
+
+        DbContext::run(function () use ($docente, $tarea, $datos, $criterios, $rubricaEditable) {
+            DB::table('grade_items')->where('id', $tarea->grade_item_id)->update([
+                'component_id' => $datos['componente'],
+                'title' => $datos['titulo'],
+                'weight_percent' => $datos['peso'],
+                'updated_at' => now(),
+            ]);
+
+            $rubricaId = $tarea->rubric_id;
+            $rubricaAnterior = $tarea->rubric_id !== null ? (int) $tarea->rubric_id : null;
+            if ($rubricaEditable) {
+                $rubricaId = $criterios === [] ? null : $this->rubricas->insertar($docente->id, $datos['titulo'], $criterios);
+            }
+
+            DB::table('assessments')->where('id', $tarea->id)->update([
+                'title' => $datos['titulo'],
+                'instructions' => $datos['instrucciones'] ?? null,
+                'opens_at' => $datos['abre'],
+                'closes_at' => $datos['cierra'],
+                'max_attempts' => max(1, $datos['intentos']),
+                'rubric_id' => $rubricaId,
+                'is_anonymous' => $datos['anonima'],
+                'updated_at' => now(),
+            ]);
+
+            if ($rubricaEditable && $rubricaAnterior !== null && ! DB::table('assessments')->where('rubric_id', $rubricaAnterior)->exists()) {
+                DB::table('rubrics')->where('id', $rubricaAnterior)->delete();
+            }
+
+            DB::table('assignment_settings')->where('assessment_id', $tarea->id)->update([
+                'is_group' => $datos['grupal'],
+                'late_policy' => $datos['politica'],
+                'grace_until' => $datos['politica'] === 'strict' ? null : ($datos['gracia'] ?? null),
+                'late_penalty_percent' => $datos['politica'] === 'grace_penalty' ? (int) ($datos['penalizacion'] ?? 0) : 0,
+                'allowed_extensions' => json_encode(array_values($datos['extensiones'])),
+                'max_file_mb' => $datos['mb'],
+            ]);
+        }, 'assessment.updated');
+    }
+
+    /**
      * Evaluaciones copiadas de un período anterior que aún no tienen fechas ni cómputo (RF14, ADR-066). Solo las ve el
      * docente de la sección: para el estudiante no existen hasta que se programan.
      *

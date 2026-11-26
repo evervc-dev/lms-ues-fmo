@@ -53,7 +53,7 @@ class ProrrogaService
     /**
      * Prórrogas de la actividad, los estudiantes de la sección y los tipos que el docente puede dar.
      *
-     * @return array{datosActividad: object, prorrogas: Collection<int, object>, estudiantes: Collection<int, object>, tipos: array<string, string>}
+     * @return array{datosActividad: object, prorrogas: Collection<int, \stdClass>, estudiantes: Collection<int, \stdClass>, tipos: array<string, string>}
      */
     public function deActividad(User $docente, int $seccionId, string $ulid): array
     {
@@ -76,8 +76,13 @@ class ProrrogaService
                 ->where('x.assessment_id', $actividad->id)->orderByDesc('x.until')->get(['x.id', 'x.kind', 'x.until', 'x.reason', 'e.id as matricula', 'u.first_name', 'u.last_name'])
                 ->each(fn (object $p) => $p->nombre = $nombre($p)),
             'estudiantes' => DB::table('enrollments as e')->join('users as u', 'u.id', '=', 'e.student_id')->where('e.section_id', $seccionId)->where('e.status', 'active')
-                ->orderBy('u.last_name')->orderBy('u.first_name')->get(['e.id', 'e.id as matricula', 'u.first_name', 'u.last_name'])
-                ->each(fn (object $e) => $e->nombre = $nombre($e))
+                ->leftJoin('student_profiles as sp', 'sp.user_id', '=', 'u.id')
+                ->orderBy('u.last_name')->orderBy('u.first_name')->get(['e.id', 'e.id as matricula', 'u.first_name', 'u.last_name', 'sp.student_code'])
+                // El carné ayuda a buscar; con un seudónimo no se muestra, porque revelaría quién entregó (ADR-006).
+                ->each(function (object $e) use ($nombre, $seudonimos): void {
+                    $e->nombre = $nombre($e);
+                    $e->carne = isset($seudonimos[(int) $e->id]) || $e->student_code === null ? null : mb_strtoupper((string) $e->student_code);
+                })
                 // Primero los nombres y después los seudónimos en su orden, como en Entregas.
                 ->sortBy(fn (object $e) => isset($orden[(int) $e->id]) ? 1 + $orden[(int) $e->id] : 0)->values(),
             'tipos' => $tipos,
@@ -109,12 +114,34 @@ class ProrrogaService
      */
     public function conceder(User $docente, int $seccionId, string $ulid, int $matriculaId, string $tipo, string $hasta, string $motivo): void
     {
+        $this->concederVarios($docente, $seccionId, $ulid, [$matriculaId], $tipo, $hasta, $motivo);
+    }
+
+    /**
+     * La misma prórroga (tipo, fecha y motivo) a varios estudiantes de la sección, en una sola transacción: con 40
+     * estudiantes, darla de uno en uno era tedioso (QA 22/11/2026). Una por estudiante y tipo: la que ya existía se
+     * reemplaza. Cada estudiante recibe su aviso.
+     *
+     * @param  array<int, int>  $matriculas
+     * @return array{nuevas: int, reemplazadas: int}
+     *
+     * @throws ValidationException
+     */
+    public function concederVarios(User $docente, int $seccionId, string $ulid, array $matriculas, string $tipo, string $hasta, string $motivo): array
+    {
         $actividad = $this->actividad($seccionId, $ulid);
         if (! array_key_exists($tipo, self::TIPOS)) {
             abort(422);
         }
         abort_unless($this->puede($docente, $seccionId, $actividad, $tipo), 403);
-        DB::table('enrollments')->where('id', $matriculaId)->where('section_id', $seccionId)->where('status', 'active')->exists() || abort(404);
+
+        $matriculas = array_values(array_unique(array_map('intval', $matriculas)));
+        if ($matriculas === []) {
+            throw ValidationException::withMessages(['matriculas' => __('Elija al menos un estudiante.')]);
+        }
+        // Todas deben ser matrículas activas de esta sección: una ajena no se mezcla con las demás.
+        $validas = DB::table('enrollments')->whereIn('id', $matriculas)->where('section_id', $seccionId)->where('status', 'active')->count();
+        $validas === count($matriculas) || abort(404);
 
         $fecha = rescue(fn () => Carbon::parse($hasta), null, false);
         $errores = array_filter([
@@ -125,14 +152,24 @@ class ProrrogaService
             throw ValidationException::withMessages($errores);
         }
 
-        $id = DbContext::run(function () use ($seccionId, $actividad, $matriculaId, $tipo, $fecha, $motivo, $docente) {
-            DB::table('assessment_extensions')->updateOrInsert(['assessment_id' => $actividad->id, 'enrollment_id' => $matriculaId, 'kind' => $tipo],
-                ['section_id' => $seccionId, 'until' => $fecha, 'reason' => trim($motivo), 'granted_by' => $docente->id, 'updated_at' => now(), 'created_at' => now()]);
+        $existentes = DB::table('assessment_extensions')->where('assessment_id', $actividad->id)->where('kind', $tipo)
+            ->whereIn('enrollment_id', $matriculas)->count();
 
-            return (int) DB::table('assessment_extensions')->where('assessment_id', $actividad->id)->where('enrollment_id', $matriculaId)->where('kind', $tipo)->value('id');
+        $ids = DbContext::run(function () use ($seccionId, $actividad, $matriculas, $tipo, $fecha, $motivo, $docente) {
+            foreach ($matriculas as $matriculaId) {
+                DB::table('assessment_extensions')->updateOrInsert(['assessment_id' => $actividad->id, 'enrollment_id' => $matriculaId, 'kind' => $tipo],
+                    ['section_id' => $seccionId, 'until' => $fecha, 'reason' => trim($motivo), 'granted_by' => $docente->id, 'updated_at' => now(), 'created_at' => now()]);
+            }
+
+            return DB::table('assessment_extensions')->where('assessment_id', $actividad->id)->where('kind', $tipo)
+                ->whereIn('enrollment_id', $matriculas)->pluck('id')->map(fn ($id) => (int) $id)->all();
         }, 'extension.granted');
 
-        ProrrogaConcedida::dispatch($id);
+        foreach ($ids as $id) {
+            ProrrogaConcedida::dispatch($id);
+        }
+
+        return ['nuevas' => count($matriculas) - $existentes, 'reemplazadas' => $existentes];
     }
 
     private function puede(User $docente, int $seccionId, object $actividad, string $tipo): bool
